@@ -581,12 +581,24 @@ interface StatusPillProps {
   value: string
   hint?: string
   tone?: 'neutral' | 'ok' | 'warn' | 'crit' | 'ai'
+  /** W54-c-retry — Optional semantic data-tone attribute (e.g. 'good' | 'warn' |
+   *  'poor' | 'info' | 'neutral') emitted on the root div so downstream CSS
+   *  can target the pill by its semantic tone without altering the visible
+   *  blue/purple AI accent. */
+  dataTone?: Tone
 }
 
 /** Single cell in the status header strip. The `tone` controls the
  *  small colored dot prefix; `tone="ai"` is the blue/purple accent
- *  reserved for AI-generated numbers (probability, confidence). */
-function StatusPill({ label, value, hint, tone = 'neutral' }: StatusPillProps) {
+ *  reserved for AI-generated numbers (probability, confidence).
+ *
+ *  W54-c-retry — `dataTone` is rendered as a `data-tone` attribute on
+ *  the root div so downstream CSS can target the pill by its underlying
+ *  semantic tone (e.g. the Confidence pill renders the model's
+ *  confidence as blue/purple text per the AI accent convention but
+ *  carries `data-tone="good"|"warn"|"poor"` so a downstream stylesheet
+ *  can still tag the pill without breaking the AI-color test contract). */
+function StatusPill({ label, value, hint, tone = 'neutral', dataTone }: StatusPillProps) {
   const dotClass =
     tone === 'ok'
       ? 'bg-emerald-400'
@@ -597,10 +609,15 @@ function StatusPill({ label, value, hint, tone = 'neutral' }: StatusPillProps) {
           : tone === 'ai'
             ? 'bg-blue-400'
             : 'bg-slate-500'
+  // W54-c-retry — only render data-tone when explicitly provided so the
+  // attribute is absent (not "undefined") when the pill has no semantic
+  // tone mapping.
+  const toneProps = dataTone ? { 'data-tone': dataTone as string } : {}
   return (
     <div
-      className="bg-[#0e1015] border border-[#1f2335] rounded-md p-2 flex flex-col gap-0.5"
+      className="bg-[#0e1015] border border-[#1f2335] rounded-md p-2 flex flex-col gap-0.5 transition-colors hover:border-[#2a3045]"
       data-testid="ai-status-pill"
+      {...toneProps}
     >
       <div className="flex items-center gap-1.5">
         <span className={`inline-block w-1.5 h-1.5 rounded-full ${dotClass}`} aria-hidden="true" />
@@ -1319,7 +1336,7 @@ function CalibrationCard({ curve, ece }: CalibrationCardProps) {
               >
                 {calStatus.label}
               </span>
-              <Badge variant="secondary" className="text-[9.5px] tabular-nums" data-testid="ece-badge">
+              <Badge variant="secondary" className="text-[9.5px] tabular-nums" data-testid="ece-badge" data-tone={calStatus.tone}>
                 ECE {ece.toFixed(4)}
               </Badge>
             </span>
@@ -1657,10 +1674,14 @@ export default function AIPredictionExplainerPanel() {
           <button
             type="button"
             onClick={() => setPolling((p) => !p)}
-            className={`badge text-[9px] cursor-pointer border ${polling ? 'badge-green' : 'badge-dim'}`}
+            className={`badge text-[9px] cursor-pointer border inline-flex items-center gap-1 ${polling ? 'badge-green' : 'badge-dim'}`}
             title={polling ? 'Auto-refresh every 20s — click to pause' : 'Paused — click to resume'}
+            aria-label={polling ? 'Auto-refresh every 20s — click to pause' : 'Paused — click to resume auto-refresh'}
+            aria-pressed={polling}
             data-testid="explainer-poll-toggle"
+            data-tone={polling ? 'good' : 'neutral'}
           >
+            {polling && <PulseDot tone="good" pulse={false} />}
             {polling ? 'Live' : 'Paused'}
           </button>
           <Button
@@ -1669,9 +1690,10 @@ export default function AIPredictionExplainerPanel() {
             className="h-6 w-6 border-[#1f2335] bg-[#0e1015] hover:bg-[#1a1f2e] text-[#7e8aaa] hover:text-[#dde1ed]"
             onClick={() => fetchAll()}
             title="Refresh now"
+            aria-label="Refresh now"
             data-testid="explainer-refresh"
           >
-            <RefreshCw className="size-3" />
+            <RefreshCw className="size-3" aria-hidden="true" />
           </Button>
         </div>
       </div>
@@ -1877,12 +1899,14 @@ export default function AIPredictionExplainerPanel() {
               label="Model Status"
               value={modelStatus.label}
               tone={modelStatus.tone === 'ok' ? 'ok' : modelStatus.tone === 'warn' ? 'warn' : 'neutral'}
+              dataTone={modelStatus.tone === 'ok' ? 'good' : modelStatus.tone === 'warn' ? 'warn' : 'neutral'}
               hint={metrics?.model_type ?? 'ensemble'}
             />
             <StatusPill
               label="Model Version"
               value={metrics?.model_version ?? championVersion?.version ?? '—'}
               tone="ai"
+              dataTone="info"
               hint={versions ? `${versions.total_registered} registered` : 'registry n/a'}
             />
             <StatusPill
@@ -1902,18 +1926,33 @@ export default function AIPredictionExplainerPanel() {
                       ? 'warn'
                       : 'crit'
               }
+              dataTone={
+                featureFreshnessSec == null
+                  ? 'neutral'
+                  : featureFreshnessSec < 5
+                    ? 'good'
+                    : featureFreshnessSec < 30
+                      ? 'warn'
+                      : 'poor'
+              }
               hint="seconds since last book update"
             />
             <StatusPill
               label="Prediction P(YES)"
               value={headlineProbability == null ? '—' : fmtPct(headlineProbability, 1)}
               tone="ai"
+              dataTone="info"
               hint={latestTrade ? truncateToken(latestTrade.token_id) : 'no recent prediction'}
             />
             <StatusPill
               label="Confidence"
               value={headlineConfidence == null ? '—' : headlineConfidence.toFixed(2)}
               tone="ai"
+              // W54-c-retry — surface the underlying confidence Tone
+              // (green ≥0.7, amber ≥0.5, red <0.5) via data-tone without
+              // breaking the AI-accent blue/purple test contract on the
+              // value text.
+              dataTone={confidenceTone(headlineConfidence)}
               hint="[0,1] · higher = more certain"
             />
             <StatusPill
@@ -1926,6 +1965,15 @@ export default function AIPredictionExplainerPanel() {
                     ? 'warn'
                     : calibrationStatus.tone === 'crit'
                       ? 'crit'
+                      : 'neutral'
+              }
+              dataTone={
+                calibrationStatus.tone === 'ok'
+                  ? 'good'
+                  : calibrationStatus.tone === 'warn'
+                    ? 'warn'
+                    : calibrationStatus.tone === 'crit'
+                      ? 'poor'
                       : 'neutral'
               }
               hint={ece == null ? 'ECE n/a' : `ECE ${ece.toFixed(4)}`}
@@ -1952,6 +2000,15 @@ export default function AIPredictionExplainerPanel() {
                       ? 'ok'
                       : 'crit'
               }
+              dataTone={
+                edge == null
+                  ? 'neutral'
+                  : Math.abs(edge) < 0.005
+                    ? 'neutral'
+                    : edge > 0
+                      ? 'good'
+                      : 'poor'
+              }
               hint="AI − market"
             />
             <StatusPill
@@ -1966,6 +2023,15 @@ export default function AIPredictionExplainerPanel() {
                       ? 'crit'
                       : 'neutral'
               }
+              dataTone={
+                driftStatus === 'HEALTHY'
+                  ? 'good'
+                  : driftStatus === 'MODERATE_SHIFT'
+                    ? 'warn'
+                    : driftStatus === 'SIGNIFICANT_DRIFT'
+                      ? 'poor'
+                      : 'neutral'
+              }
               hint={`PSI ${fmt(driftReport?.psi, 3)}`}
             />
             <StatusPill
@@ -1978,6 +2044,15 @@ export default function AIPredictionExplainerPanel() {
                     ? 'warn'
                     : dataQuality?.overall_status === 'critical'
                       ? 'crit'
+                      : 'neutral'
+              }
+              dataTone={
+                dataQuality?.overall_status === 'healthy'
+                  ? 'good'
+                  : dataQuality?.overall_status === 'degraded'
+                    ? 'warn'
+                    : dataQuality?.overall_status === 'critical'
+                      ? 'poor'
                       : 'neutral'
               }
               hint={

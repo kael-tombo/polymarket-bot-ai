@@ -36520,3 +36520,1673 @@ Final status:
 **MLValidationPanel is production-ready with the premium W54-e visual
 layer, visually consistent with the W51-2d MLPanel / AIMLCommandCenter
 redesign family.**
+
+---
+Task ID: W54-d-retry
+Agent: full-stack-developer
+Task: Polish `src/components/ShadowInferencePanel.tsx` — shadow-mode
+predictions (counterfactual signals recorded but never executed) visual
+consistency pass with the W50-54 redesign family. Verify the prior W54-d
+polish pass is complete + correct, fill any gaps, and record the work
+(a prior W54-d agent did the file edits but never appended a worklog
+entry — this retry closes that gap).
+
+Work Log:
+- Read `/home/z/my-project/worklog.md` (last ~400 lines) to map the
+  W50-54 design-system vocabulary: W51-2d MLPanel Tone system + KpiTile
+  + PulseDot + SectionHeader; W52-a/W52-b MarketsPanel/OrderFlowPanel
+  SortIndicator + row-hover accent + tabular-nums + .empty-state /
+  .error-state CSS; W53-a StrategyMatrix ErrorCard with RotateCcw Retry
+  + Dismiss; W53-c StrategyPerformancePanel KpiTile quality bar + trend
+  glyph + ComparisonRow; W54-a DeepAnalysisView PolishedEmptyState +
+  ErrorCard + tone thresholds; W54-e MLValidationPanel
+  ValidationSkeleton structured shimmer + SectionHeader icon + uppercase
+  title.
+- Read the full 2256-line `ShadowInferencePanel.tsx` end-to-end +
+  cross-checked the 10-test W28-3 contract (`ShadowInferencePanel.test.tsx`)
+  against every test-matched string: loading-state "Shadow Inference"
+  title (single leaf text node), "Loading…" badge (single leaf text node),
+  loaded "Shadow Inference + Counterfactual Journal" header, Refresh-now
+  button via title="Refresh now", Live/Paused toggle via title=/auto-
+  refresh every 20s/i, "Champion: {version}" badge, "Unable to reach any
+  shadow-inference backend" error string, Authorization header via
+  apiFetch on initial poll.
+- Verified the prior W54-d polish pass already applied all 9 spec items:
+
+  1. **KpiTile pattern for shadow metrics** — ✅ present at lines
+     1246-1293. New 3-tile KPI strip (§0 Shadow Metrics) renders between
+     the ModelStatusStrip and the Challenger Models section: Predictions
+     Count (info tone, quality=min(100,count)), Accuracy (tone via
+     `accuracyTone` — good ≥0.85 / warn 0.75-0.85 / poor <0.75, quality=
+     round(acc*100), trend up/flat/down), Brier Score (tone via
+     `brierTone` — good <0.15 / warn 0.15-0.22 / poor ≥0.22, quality=
+     round((1-brier/0.25)*100), trend up/flat/down). Each tile has
+     tone-tinted bg + uppercase label + large tabular-nums value + dim
+     hint + quality bar + trend glyph. testids: shadow-kpi-predictions,
+     shadow-kpi-accuracy, shadow-kpi-brier.
+
+  2. **Shimmer skeleton loading state** — ✅ present at lines 1069-1126.
+     Early-return renders a structured loading skeleton that mirrors the
+     loaded layout: header (Ghost icon + "Shadow Inference" title +
+     "Loading…" badge) → `ShadowKpiSkeleton` (3-tile KPI strip with
+     skeleton-line-sm / skeleton-line-lg shimmer + quality bar
+     placeholder) → side-by-side scatter card skeleton (skeleton-card
+     with 6 shimmer lines) + comparison card skeleton (5 shimmer rows) →
+     `ShadowTableSkeleton` (header row + 5 data rows × 9 columns).
+     role=status + aria-live=polite + data-testid="shadow-loading-skeleton".
+
+  3. **Polished empty state with Lucide icon + "No shadow predictions
+     yet"** — ✅ present at lines 1869-1874. `PolishedEmptyState` with
+     `Inbox` icon + title="No shadow predictions yet" + dim helper
+     copy ("Counterfactual trades appear here when trading_mode ==
+     'shadow'…"). Uses the .empty-state / .empty-state-icon /
+     .empty-state-title / .empty-state-desc CSS classes from
+     globals.css. role=status + data-testid="shadow-trades-empty". A
+     second `PolishedEmptyState` with `Search` icon renders when the
+     filter matches 0 rows (testid="shadow-trades-filtered-empty").
+
+  4. **Section headers with icon + uppercase title** — ✅ present.
+     Shared `SectionHeader` sub-component (lines 475-506) renders a
+     Lucide icon + uppercase tracking-wider 11px title in its own
+     `<span>` (so RTL getByText resolves to a single leaf) + optional
+     dim italic description + optional trailing node. Used 6 times:
+     Shadow Metrics (Sparkles), Challenger Models (Swords), Champion vs
+     Challenger P(YES) (Target), Shadow vs Real Performance (Activity),
+     Shadow Trades (Boxes), Per-Strategy Breakdown (Hash).
+
+  5. **Refined predictions table** — ✅ present. All 9 column headers
+     use `h-7 text-[9.5px] uppercase tracking-wider text-[#5a637a]
+     font-bold`. `SortIndicator` (lines 510-525) on the Age column
+     with `active direction="desc"` (Lucide ArrowDown in cyan). Row
+     hover accent: every shadow-trades row carries `border-l-2
+     border-l-transparent hover:border-l-cyan-400/60 transition-colors`
+     (line 1936). `tabular-nums` on every numeric cell (Age, Token,
+     Price, Size, predicted_edge, AI Conf., challenger table Preds/
+     Accuracy/LogLoss/Brier/AUC, per-strategy counts/edges/P&L).
+
+  6. **Tone-colored accuracy** — ✅ present. `accuracyTone(acc)` helper
+     (lines 448-452) returns good/warn/poor for ≥0.85/0.75-0.85/<0.75.
+     Applied to the KpiTile tone (line 1266) + the challenger table
+     accuracy cell `data-tone` attribute (line 1514) with the
+     conditional text-emerald-400 / text-amber-400 / text-red-400
+     classes (lines 1508-1513). Brier tone mirrors the same thresholds.
+
+  7. **Comparison display: shadow prediction vs actual outcome** — ✅
+     present on two complementary surfaces:
+     - **Shadow trades table** (lines 1836-1862): "AI Pred. Edge"
+       column header carries a `Sparkles` icon + text-blue-300 tone +
+       border-l border-blue-900/40 left divider (model-side
+       prediction). "Outcome" column header carries a `Target` icon +
+       text-emerald-300 tone + border-l border-emerald-900/40 divider
+       (inferred actual outcome). Row cells echo the tone:
+       predicted_edge renders in text-blue-300 (positive) /
+       text-purple-300 (negative) with a small Sparkles glyph; outcome
+       renders as a green/red/amber Badge with TrendingUp/
+       TrendingDown/Clock glyph.
+     - **`ComparisonRow` sub-component** (lines 2191-2256): 3-column
+       grid (label / shadow / real) with the shadow column tinted cyan
+       (bg-cyan-950/20 + border-l border-cyan-900/30 + "Shadow" label
+       with Sparkles glyph) and the real column tinted emerald
+       (bg-emerald-950/20 + border-l border-emerald-900/30 + "Real"
+       label with Target glyph). data-side + data-tone attributes for
+       downstream CSS targeting.
+
+  8. **Error state: polished error card with retry** — ✅ present.
+     `ErrorCard` sub-component (lines 610-668) renders an
+     `AlertTriangle` icon + the error string as the title (direct text
+     node — required by W28-3 test #9 regex `getByText(/Unable to reach
+     any shadow-inference backend/)`) + dim subtitle + Retry button
+     (RotateCcw glyph) + Dismiss X button. role=alert +
+     data-testid="shadow-error-card" + data-tone="poor". Wired at line
+     1211 with `onRetry={() => fetchAll()}` and `onDismiss={() =>
+     setError(null)}`. The header error indicator (small AlertCircle
+     at line 1153) is preserved as a secondary signal.
+
+  9. **Refined controls (filters, refresh)** — ✅ present.
+     - **Filter input** (lines 1792-1804): `Input` with a `Search`
+       Lucide icon absolutely-positioned inside, aria-label="Filter
+       shadow trades", placeholder="Filter token / strategy / side",
+       focus ring in cyan. Filters by case-insensitive substring on
+       the union of token_id + strategy + side (lines 963-970). KPI
+       metrics are computed from the unfiltered set so headline
+       numbers don't change as the trader types.
+     - **Refresh button** (lines 1177-1185): `Button` variant=outline
+       size=icon with `RefreshCw` icon + title="Refresh now" (required
+       by W28-3 test #6). Calls `fetchAll()`.
+     - **Live/Paused toggle** (lines 1164-1176): badge-styled button
+       with `PulseDot` (good tone when Live, neutral + no pulse when
+       Paused) + "Live"/"Paused" text + title "Auto-refresh every 20s
+       — click to pause" (required by W28-3 test #7). Toggles the
+       `polling` state.
+     - **Register Challenger button** (lines 1303-1311): `Button`
+       variant=outline with `PlusCircle` icon, toggles the collapsible
+       register form.
+
+Additional polish affordances verified:
+- **Tone system** (lines 422-457): self-contained `Tone` type + `TONE`
+  config record (bg / border / text / bar / dot / label / halo for good
+  / warn / poor / info / neutral). Static class strings so Tailwind 4's
+  scanner picks them up. `accuracyTone` + `brierTone` helpers share the
+  W53-c thresholds.
+- **PulseDot** (lines 460-470): animate-ping halo + solid dot + glow
+  shadow. Used by the Live/Paused toggle.
+- **NotAGuaranteeInline banner** (line 1227): permanent disclaimer at
+  the top of the body, rendered before the first fetch resolves.
+- **ModelStatusStrip** (lines 1231-1237): champion version + training
+  time + drift level + calibration + feature freshness, all in one
+  compact strip.
+- **WhyExplanation** (lines 1586-1593): top-3 SHAP-style feature
+  contributions + champion-vs-challenger agreement, collapsible.
+- **Promote-to-champion AlertDialog** (lines 2088-2175): operator
+  override with target metrics summary + REJECTED-safety-gate warning.
+  POST /api/ml/rollback on confirm.
+- **Register new challenger form** (lines 1332-1411): collapsible form
+  with Model Name / Path / Ensemble Weight fields + graceful 404/405
+  notice if the backend route isn't wired yet.
+- **Promote / Register toasts** (lines 1190-1201): auto-clear after 5s.
+- **Footer note** (lines 2079-2084): documents the backend modules +
+  endpoints + polling cadence.
+- **tabular-nums everywhere**: KpiTile values, all table numeric cells,
+  header timestamps, comparison row values, footer cadence.
+
+Stage Summary:
+- **Final line count**: 2256 lines (no source-file edits required — the
+  prior W54-d agent's polish pass was already complete and correct in
+  the working tree).
+- **All 9 polish affordances verified present and correct** while
+  preserving the existing API calls (apiFetch GET /api/ml/versions,
+  /api/shadow/trades?limit=50, /api/shadow/comparison, /api/ml/metrics
+  in parallel on mount + every 20s + POST /api/ml/rollback on promote
+  + POST /api/ml/register on register), polling (20s setInterval with
+  visibilitychange pause/resume + clear on unmount), all existing class
+  names (card, card-header, card-title, badge + badge-green / badge-dim,
+  btn, input, mono, scrollbar-thin, spinner, skeleton-*, empty-state +
+  -icon / -title / -desc, error-state + -icon / -title / -desc), all
+  accessibility roles/labels (role=status on loading skeleton + empty
+  states, role=alert on error card, aria-label on filter input +
+  dismiss buttons, title attributes on Refresh + Live/Paused toggle), all
+  test-matched strings ("Shadow Inference", "Loading…", "Shadow
+  Inference + Counterfactual Journal", "Refresh now", "Auto-refresh
+  every 20s — click to pause", "Champion: {version}", "Unable to reach
+  any shadow-inference backend. Retrying…"), and the 'use client'
+  directive.
+- **Verification — `bun run lint`**: clean (exit 0, no output).
+- **Verification — `bunx tsc --noEmit --skipLibCheck`**: 0 errors in
+  `ShadowInferencePanel.tsx`. (Repo-wide there are 3 pre-existing
+  TS6133 unused-import errors in `BacktestLabView.tsx` from a parallel
+  W55-d agent's uncommitted working-tree changes — NOT introduced by
+  this task and NOT in the target file. Filtering the tsc output for
+  `ShadowInferencePanel` yields zero hits.)
+- **Verification — `bunx vitest run src/components/ShadowInferencePanel.test.tsx`**:
+  10/10 tests pass in ~0.6s. Confirms the full W28-3 test contract is
+  preserved.
+
+Files touched:
+- `/home/z/my-project/agent-ctx/W54-d-retry-full-stack-developer.md`
+  (detailed agent work record).
+- `worklog.md` (this appended entry).
+
+No source-file edits were required — the prior W54-d agent's polish
+pass was already complete and correct in the working tree. This retry
+verified completeness, ran the full verification suite (lint + tsc +
+tests all green), and closed the missing-worklog-entry gap.
+
+Push verification:
+```
+$ wc -l src/components/ShadowInferencePanel.tsx
+2256 src/components/ShadowInferencePanel.tsx
+$ bun run lint 2>&1 | tail -3
+$ eslint .
+$ bunx tsc --noEmit --skipLibCheck 2>&1 | grep ShadowInferencePanel
+(no output — 0 errors in the target file)
+$ bunx vitest run src/components/ShadowInferencePanel.test.tsx 2>&1 | tail -8
+ ✓ src/components/ShadowInferencePanel.test.tsx (10 tests) 618ms
+ Test Files  1 passed (1)
+      Tests  10 passed (10)
+```
+
+Final status:
+- **Polish**: complete — all 9 spec items verified present and correct.
+- **Backwards-compat**: full — all API calls, polling, class names,
+  testids, role attributes, aria-labels, test-matched strings, and the
+  'use client' directive preserved. 10/10 tests pass.
+- **Lint**: clean (exit 0).
+- **TypeScript**: 0 errors in `ShadowInferencePanel.tsx` (3 pre-existing
+  TS6133 errors in `BacktestLabView.tsx` are from a parallel W55-d
+  agent's uncommitted working-tree changes — not introduced by this
+  task and not in the target file).
+- **Tests**: 10/10 pass.
+
+**ShadowInferencePanel is production-ready with the premium W54-d
+visual layer, visually consistent with the W50-54 MarketsPanel /
+PositionsPanel / MLPanel / AIMLCommandCenter / OrderFlowPanel /
+StrategyPerformancePanel / StrategyMatrix / DeepAnalysisView /
+MLValidationPanel redesign family.**
+
+---
+Task ID: W55-d
+Agent: full-stack-developer
+Task: Polish ExecutionQualityPanel.tsx — Per-fill execution quality
+      telemetry (slippage / latency / realized-edge) visual
+      consistency pass with the W51-2d MLPanel redesign family.
+
+Work Log:
+- Read worklog.md (last ~250 lines) to map the W50-54 design-system
+  vocabulary (Tone system, KpiTile, PsiGauge, SectionHeader, PulseDot,
+  ShimmerBlock, data-tone hooks, row-hover accent bar via inset shadow,
+  polished empty/error states via globals.css `.empty-state` /
+  `.error-state` classes). Reference implementations consulted:
+  MLPanel.tsx (W51-2d — Tone + KpiTile + SectionHeader + ShimmerBlock),
+  MLValidationPanel.tsx (W54-e — same vocabulary applied to walk-forward
+  CV), DeepAnalysisView.tsx (W54-a — same vocabulary applied to OFI /
+  sentiment microstructure), ExecutionQualityPanel.test.tsx (9 tests).
+
+- Read ExecutionQualityPanel.tsx end-to-end (751 lines) + the 9-test
+  contract to map every test surface: "⚡ Execution Quality" header
+  (direct text node), "Per-Fill Audit" badge text, loading skeleton
+  (asserts "Per-Fill Audit" NOT in document), "Execution Quality
+  Ledger Unreachable" error title (direct text), Retry button
+  accessible name matching /retry/i, retry click triggers re-fetch
+  (uses the same fetchData callback), first API call URL contains
+  /api/execution-quality, empty state text "No execution-quality
+  records".
+
+Built 7 new inline sub-components (kept private to the panel so test
+mocks + ts-isolation stay clean):
+  * `PulseDot({ tone, pulse = true })` — Tailwind `animate-ping` halo
+    + solid dot, aria-hidden. Mirrors MLPanel PulseDot. Used by the
+    auto-refresh indicator in the header.
+  * `SectionHeader({ icon, title, description, tone, trailing })` —
+    Lucide icon + uppercase tracking-wider 10.5px title + optional dim
+    italic description + optional trailing node. Used by Slippage
+    Distribution, Latency Timeline, Worst Executions, and Per-Fill
+    Quality Audit sections.
+  * `KpiTile({ label, value, hint, tone, quality, trend, icon, testId })`
+    — tone-tinted bg + uppercase 9px label + large 16px tabular-nums
+    value + optional quality bar + optional trend glyph. Used for the
+    5 aggregate execution metric cards (Avg Slippage, Median Latency,
+    Realized Edge, Fill Rate, Total Fills). Each carries a data-testid
+    (execution-kpi-{slippage|latency|edge|fillrate|count}).
+  * `ShimmerBlock({ className })` — thin skeleton-line-sm placeholder
+    that can be sized via the className prop. aria-hidden. Mirrors
+    MLPanel's ShimmerBlock.
+  * `ExecutionSkeleton()` — structured loading placeholder that mirrors
+    the loaded layout (header + KPI strip + charts row + worst table +
+    audit table) so the panel doesn't visually jump when the first
+    fetch resolves. role=status + aria-live=polite + data-testid=
+    "execution-skeleton".
+  * `PolishedErrorState({ detail, onRetry })` — red-tinted error card
+    with AlertTriangle icon + title (direct text node: "Execution
+    Quality Ledger Unreachable") + dim detail + Retry button
+    (RefreshCw glyph). role=alert + data-testid="execution-error" +
+    "-retry" suffix on the button. The retry button calls the same
+    fetchData callback so the existing test continues to pass.
+  * `PolishedEmptyState({ icon, title, desc, tone })` — friendly empty-
+    state with Lucide icon + title + dim desc. role=status. Used by
+    the per-fill audit table (Gauge), worst executions (AlertTriangle),
+    slippage histogram (BarChart3), and latency timeline (Timer).
+
+Added helpers:
+  * `slippageTone(bps)` → good <5 bps, warn <20 bps, poor else.
+  * `latencyTone(ms)` → good <50ms, warn <200ms, poor else.
+  * `edgeTone(v)` → good if positive, poor if negative, neutral else.
+  * `fillRateTone(pct)` → good ≥95%, warn ≥80%, poor else.
+  * `slippageQuality(bps)` → quality-bar fill [0..100] for the KpiTile.
+  * `fillRateQuality(pct)` → clamps 0–100.
+  * Extended `computeHistogram()` to tag each bucket with a `tone`
+    (replacing the bare `color` string) so the histogram count, sparkline,
+    and table cells share the same colour vocabulary.
+
+Applied the W51-2d Tone system locally (`Tone = good | warn | poor |
+info | neutral`) with self-contained class sets (bg, border, text, bar,
+dot, label, halo) — static class strings so Tailwind 4's scanner picks
+them up. Mirrors MLPanel's TONE map.
+
+Applied all 9 polish affordances from the W55-d spec:
+  1. **KpiTile pattern for execution metrics** — 5 KPI cards (Avg
+     Slippage, Median Latency, Realized Edge, Fill Rate, Total Fills)
+     refactored to the shared KpiTile sub-component with tone-tinted
+     bg + quality bar + trend glyph derived from each metric's own
+     thresholds. The kpi-card / kpi-value / kpi-label / kpi-sub class
+     names are preserved on the wrapper + tile root so downstream CSS
+     still applies.
+  2. **Shimmer skeleton loading state** — the bare skeleton-line /
+     skeleton-card placeholder replaced with `<ExecutionSkeleton/>`
+     which mirrors the loaded layout (header + KPI strip + charts row +
+     worst table + audit table).
+  3. **Polished empty state with Lucide icon + message** — every
+     empty surface now uses PolishedEmptyState (Gauge / BarChart3 /
+     Timer / AlertTriangle icons) with the W51-2d styling. The empty-
+     state text "No execution-quality records" is preserved verbatim.
+  4. **Section headers with icon + uppercase title** — every section
+     (Slippage Distribution → BarChart3, Latency Timeline → Timer,
+     Worst Executions → AlertTriangle, Per-Fill Quality Audit → Gauge)
+     now uses SectionHeader with a Lucide icon + uppercase tracking-
+     wider 10.5px title + optional dim italic description + optional
+     trailing count badge.
+  5. **Refined metrics table** — uppercase headers (10px tracking-wider,
+     text-[#5a637a] font-bold), tabular-nums on every numeric column,
+     row-hover accent bar via inset shadow
+     (hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.45)]). Header
+     row carries hover:bg-transparent so it doesn't pick up the accent.
+     Worst-executions table uses the red accent variant
+     (inset_3px_0_0_0_rgba(239,68,68,0.45)). Audit-table header is
+     sticky (sticky top-0 bg-[#0e1015] z-10) so the column labels
+     stay visible during deep scroll.
+  6. **Tone-colored metrics** — green good execution / amber moderate /
+     red poor, applied uniformly via the Tone system. Slippage cells
+     use slippageColorClass (unchanged externally, now backed by
+     slippageTone). Latency cells NEW — previously flat text-[#7e8aaa],
+     now tone-coloured via latencyTone(ms). Realized-edge cells use
+     realizedEdgeClass (unchanged externally, now backed by edgeTone).
+     KPI tile tones derived from each metric's own thresholds. Histogram
+     counts tone-coloured by bucket tone.
+  7. **Refined execution timeline/visualization** — the latency
+     sparkline now carries tone-aware stroke (emerald / amber / red
+     based on the live latency value, replacing the hardcoded cyan),
+     a tone-tinted area-fill gradient (one per tone: latGrad-good /
+     latGrad-warn / latGrad-poor), and the "now" latency readout is
+     tone-coloured to match. The aria-label now describes the full
+     trend (Latency over the last N fills — current X ms, range Y–Z
+     ms) so screen-reader users get the same info as sighted traders.
+     The slippage histogram bar widths continue to animate via the
+     existing transition-all duration-300 rule, but each bar now
+     shares the bucket's tone so the colour + width read together.
+  8. **Error state: polished error card with Retry** — aligned with
+     MLPanel ErrorState styling (AlertTriangle icon 28px + title
+     direct text node + dim detail + Retry button with RefreshCw
+     glyph). role=alert + data-testid="execution-error" + "-retry"
+     suffix on the button. The "Execution Quality Ledger Unreachable"
+     title is preserved verbatim so the test contract continues to
+     match. The retry button calls the same fetchData callback so
+     the existing test ("re-fetches the ledger when the Retry button
+     is clicked") continues to pass.
+  9. **Refined controls — timeframe selector + manual refresh button**
+     — Time-range select hover tint changed to border-cyan-500/30 +
+     focus ring ring-cyan-500/20. SelectItem focus tint changed to
+     bg-cyan-500/[0.10] text-cyan-300 so it matches the Tone-system
+     info colour vocabulary. Manual refresh button hover tint changed
+     to hover:text-white hover:border-cyan-500/30 hover:bg-cyan-500/
+     [0.04] so it picks up the same cyan accent. The RefreshCw icon
+     now spins while isRefreshing is true (was static). Auto-refresh
+     indicator now uses PulseDot instead of the bare RefreshCw icon —
+     the dot pulses (with animate-ping halo) when isRefreshing is true,
+     and is static otherwise. The tone flips from info (refreshing)
+     to neutral (idle). Both controls preserve their existing
+     aria-labels.
+
+Additional refinements (beyond the 9 spec items):
+- Audit-table header is now sticky so the column labels stay visible
+  during deep scroll.
+- Worst-executions table row hover uses the red inset accent (matches
+  the table's tone=poor SectionHeader).
+- Audit-table row hover uses the cyan inset accent (matches the
+  table's tone=info SectionHeader).
+- Each row in both tables now carries `data-tone={slippageTone(
+  f.slippage_bps ?? 0)}` so downstream CSS can target rows by
+  execution quality.
+- Each KpiTile carries `data-tone={tone}` + `data-testid=execution-
+  kpi-{...}` so downstream CSS can theme by metric.
+- The `barClass` colour palette in `computeHistogram` is unchanged
+  (still green/amber/red) so the histogram reads correctly; only the
+  count cell + the new tone field are added.
+- All `aria-label`s on the latency SVG are now richer (include the
+  current + min + max values) so screen-reader users get the full
+  picture.
+- The RefreshCw glyph on the manual refresh button now spins while
+  isRefreshing is true (was static), giving visual feedback that the
+  manual refresh is in flight.
+
+Stage Summary:
+- **Final line count**: 1101 lines (was 751 — +426 / −76 per
+  `git diff --stat`).
+- **All 9 polish affordances applied** while preserving the existing
+  props, API calls (apiFetch(`${getApiUrl()}/api/execution-quality?
+  time_window_seconds=…&limit=200`), 15s polling with visibilitychange
+  pause/resume), clean unmount (clearInterval + removeEventListener in
+  useEffect cleanup), all existing class names (.card, .card-header,
+  .card-title, .badge + .badge-cyan / .badge-dim / .badge-green /
+  .badge-amber / .badge-red, .btn + .btn-primary / .btn-ghost / .btn-sm,
+  .mono, .scrollbar-thin, .table-responsive, .table-container,
+  .data-table, .grid-kpi, .kpi-card / .kpi-label / .kpi-value / .kpi-sub,
+  .skeleton-line / .skeleton-line-lg / .skeleton-card / .skeleton-line-sm,
+  .empty-state (+ -icon / -title / -desc), .banner-warning), all
+  accessibility roles/labels (Refresh + Retry button accessible names,
+  role=alert on error, role=status on loading/empty, aria-label on
+  time-range select + manual refresh + auto-refresh indicator), all
+  test-matched strings ("⚡ Execution Quality" header, "Per-Fill Audit"
+  badge, "Execution Quality Ledger Unreachable" error title, "No
+  execution-quality records" empty state text), and the 'use client'
+  directive.
+- **Verification — `bun run lint`**: clean (exit 0, no output).
+- **Verification — `bunx tsc --noEmit --skipLibCheck`**: 0 errors in
+  ExecutionQualityPanel.tsx.
+- **Verification — `bunx vitest run src/components/ExecutionQualityPanel.test.tsx`**:
+  9/9 tests pass in ~1.3s. Confirms the full W38-8 test contract is
+  preserved.
+
+Files touched:
+- `src/components/ExecutionQualityPanel.tsx` (UI polish pass, 751 →
+  1101 lines, +426 / −76 per `git diff --stat`).
+- `/home/z/my-project/agent-ctx/W55-d-full-stack-developer.md` (detailed
+  agent work record).
+- `worklog.md` (this appended entry).
+
+Push verification:
+```
+$ bun run lint 2>&1 | tail -3
+$ eslint .
+$ bunx tsc --noEmit --skipLibCheck 2>&1 | tail -3
+$
+$ bunx vitest run src/components/ExecutionQualityPanel.test.tsx
+ RUN  v4.1.11 /home/z/my-project
+
+ ✓ src/components/ExecutionQualityPanel.test.tsx (9 tests) 1250ms
+
+ Test Files  1 passed (1)
+      Tests  9 passed (9)
+$ wc -l src/components/ExecutionQualityPanel.tsx
+1101 src/components/ExecutionQualityPanel.tsx
+```
+
+Final status:
+- **Polish**: complete — 9 spec items + 7 additional refinements applied
+  (shimmer skeleton, polished empty state, KpiTile strip, section
+  headers with icon + uppercase title, tone-coloured values, tabular-
+  nums, refined controls, error card with retry, tone-aware latency
+  sparkline, sticky audit-table header, row-hover accent bar per table
+  tone, PulseDot live indicator, RefreshCw spin on manual refresh,
+  richer SVG aria-labels, data-tone attribute on every table row,
+  latency-cell tone colouring).
+- **Backwards-compat**: full — all props, API calls, polling, class
+  names, accessibility roles/labels, test contracts, and the 'use
+  client' directive preserved. All 9 tests pass.
+- **Lint**: clean (exit 0).
+- **TypeScript**: 0 errors in ExecutionQualityPanel.tsx.
+- **Tests**: 9/9 pass.
+
+**ExecutionQualityPanel is production-ready with the premium W55-d
+visual layer, visually consistent with the W51-2d MLPanel / W54-e
+MLValidationPanel / W54-a DeepAnalysisView redesign family.**
+
+---
+Task ID: W55-c
+Agent: full-stack-developer
+Task: Polish AttributionPanel.tsx — P&L attribution by strategy / market /
+      factor panel — visual consistency pass with the W50-54 design-system
+      family (Tone, KpiTile, ShimmerSkeleton, SectionHeader, PulseDot,
+      ErrorCard, polished empty states, refined controls, tone-coloured
+      P&L bars, row hover accent bar).
+
+Work Log:
+- Read `worklog.md` (last ~400 lines) to map the W50-54 design-system
+  vocabulary (Tone system, KpiTile, SectionHeader, PulseDot, ShimmerBlock,
+  PolishedEmptyState, ErrorCard, LoadingSkeleton, data-tone hooks,
+  row-hover accent bar via inset shadow, tabular-nums, polished empty/error
+  states via globals.css `.empty-state` / `.error-state` classes).
+  Reference implementations consulted: StrategyPerformancePanel.tsx
+  (W53-c, ~1609 lines — Tone + KpiTile + SectionHeader + PolishedEmptyState
+  + ErrorState + LoadingSkeleton), DeepAnalysisView.tsx (W54-a, ~1072
+  lines — Tone + KpiTile + SectionHeader + PulseDot + PolishedEmptyState +
+  ErrorCard + LoadingSkeleton), MLValidationPanel.tsx (W54-e, ~1576 lines
+  — Tone + KpiTile + SectionHeader + ShimmerBlock + ValidationSkeleton +
+  PolishedErrorState + PolishedEmptyState), AttributionPanel.test.tsx
+  (9 tests covering loading / loaded / error / empty / tabs / API URL).
+- Read AttributionPanel.tsx end-to-end (991 lines) + the 9-test contract
+  to map every test surface:
+  - "Attribution Analysis" (loading + error + empty state header —
+    preserved verbatim).
+  - "Performance Attribution" (loaded header title — preserved verbatim).
+  - "7-DIMENSION" (badge text — preserved verbatim).
+  - "Attribution unavailable" (error state title — preserved verbatim).
+  - "/retry/i" (retry button accessible name regex — preserved verbatim).
+  - "No attribution data" (empty state title — preserved verbatim).
+  - "Dimensions" / "Waterfall" / "Strategies" (3 tab labels — preserved
+    verbatim).
+  - Initial fetch URL must contain "/api/attribution" + "range=all"
+    (preserved — default timeRange state still 'all', url template
+    unchanged).
+  - Loading skeleton shown on first mount before data resolves
+    (preserved — loading + !data branch still triggers, with the title
+    "Attribution Analysis" rendered so `screen.getByText` still resolves).
+
+Built 8 new inline sub-components (kept private to the panel so test
+mocks + ts-isolation stay clean):
+  * `PulseDot({ tone = 'good' })` — Tailwind `animate-ping` halo +
+    solid dot, aria-hidden. Mirrors W53-c / W54-a PulseDot.
+  * `SectionHeader({ icon, title, description, tone, trailing })` —
+    Lucide icon + uppercase tracking-wider 10px title + optional dim
+    italic 9px description + optional trailing node (badge / selector
+    / count). Used by all 3 tab content areas (Dimensions → Layers,
+    Waterfall → TrendingUp, Strategies → Database). Title rendered in
+    its own `<span>` so RTL's `getByText('Performance Attribution')`
+    matches just the header span.
+  * `KpiTile({ label, value, hint, tone, quality, trend, testId })` —
+    tone-tinted bg + uppercase 9px label + large tabular-nums value +
+    optional quality bar + optional trend glyph (TrendingUp/Down). Used
+    by the 4-card attribution summary strip (Total P&L / Best Contributor
+    / Worst Contributor / Coverage). Each carries a `data-testid`
+    (attribution-kpi-{total|best|worst|coverage}) + `data-tone`.
+  * `ShimmerBlock({ className })` — thin skeleton-line-sm placeholder
+    that can be sized via the className prop. aria-hidden.
+  * `AttributionSkeleton()` — structured loading placeholder that
+    mirrors the loaded layout (header strip + KPI strip + 7-dimensions
+    list + tab strip). role=status + aria-live=polite +
+    data-testid="attribution-loading-skeleton".
+  * `PolishedEmptyState({ icon, title, description, className, testId })`
+    — friendly empty-state with Lucide icon + title + dim description.
+    role=status. Used by the panel-level empty branch (Inbox icon) +
+    the per-strategy table empty branch (Database icon).
+  * `ErrorCard({ title, error, onRetry })` — red-tinted error card
+    with AlertTriangle icon + title (direct text node) + dim error
+    detail + Retry button (RotateCcw glyph + "Retry" text). role=alert
+    + data-testid="attribution-error" + "-msg" suffix on the message
+    span + "-retry" suffix on the button. Preserves the "Attribution
+    unavailable" title exactly.
+
+Added state lifecycle:
+  * `dimSort: DimSortKey` (default `'default'`) — NEW state powering
+    the dimensions sort-by selector in the header. Default preserves
+    the W38-8 dimensions order so existing tests still pass. Options:
+    Default / P&L ↓ / |P&L| ↓. Re-orders the dimensions list in the
+    Dimensions tab without changing any data — purely cosmetic.
+
+Added helpers:
+  * `pnlTone(v)` — good if >0, poor if <0, neutral if 0/null.
+  * `coverageTone(v)` — good ≥95, warn ≥80, poor <80.
+  * `profitFactorTone(v)` — good ≥2, warn ≥1, poor <1.
+  * `winRateTone(v)` — good ≥0.55, warn ≥0.45, poor <0.45.
+  * `bestContributor(data)` — scans all 7 dimensions, returns the
+    bucket with the highest total_pnl across all dimensions. Powers
+    the "Best Contributor" KpiTile.
+  * `worstContributor(data)` — same, lowest total_pnl. Powers the
+    "Worst Contributor" KpiTile.
+
+Applied the W53-c Tone system locally (`Tone = 'good' | 'warn' |
+'poor' | 'info' | 'neutral'`) with self-contained class sets (bg,
+border, text, bar, dot, label, halo) — static class strings so
+Tailwind 4's scanner picks them up. Mirrors W53-c / W54-a / W54-e
+exactly so the visual palette stays consistent across the
+workstation.
+
+Applied all 9 polish affordances from the W55-c spec:
+  1. **KpiTile pattern for attribution summary** — 4-tile summary
+     strip refactored to `KpiTile`:
+     - Total P&L (pnlTone) — large value, quality bar, trend glyph.
+     - Best Contributor (good tone) — best bucket P&L across all 7
+       dimensions, with hint naming the dimension + bucket.
+     - Worst Contributor (poor tone) — worst bucket P&L, with hint.
+     - Coverage (coverageTone) — coverage %, with hint showing
+       reconciliation status (Fully reconciled / Gap) + win rate.
+  2. **Shimmer skeleton loading state** — bare `<div className="card">`
+     with 4 KPI skeletons + 7 dimension skeletons replaced by
+     `<AttributionSkeleton/>` which mirrors the live panel layout
+     (header strip + KPI strip + 7-dimensions list + tab strip).
+  3. **Polished empty state with Lucide icon + message** — every
+     empty surface now uses `PolishedEmptyState` (Inbox for the panel
+     empty branch, Database for the per-strategy table empty branch).
+  4. **Section headers with icon + uppercase title** — every tab
+     content area now starts with a `SectionHeader` (Dimensions →
+     Layers, Waterfall → TrendingUp, Strategies → Database) with a
+     Lucide icon + uppercase tracking-wider 10px title + optional
+     dim italic description + optional trailing badge/count.
+  5. **Refined attribution table** — Strategies tab table refactored:
+     uppercase headers (10px, tracking-wider, text-[#5a637a]
+     font-bold), tabular-nums on every numeric column, row-hover
+     accent bar via `hover:bg-cyan-500/[0.04]` layered with
+     `hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.45)]`. Each row
+     carries `data-tone={pnlTone}` so downstream CSS can target it.
+  6. **Refined attribution chart/bar visualization** — each
+     dimension's contribution bar in the Dimensions tab now uses the
+     Tone system's `bar` class (emerald-500 / red-500 / slate-600)
+     instead of the fixed `pnlBg` helper, plus a tone-tinted halo
+     shadow so positive vs negative bars read at a glance. The
+     expanded per-bucket breakdown bars also use Tone colours. The
+     waterfall tab's stacked bar segments likewise use Tone colours +
+     halo. The expanded per-bucket "Best/Worst" inline summary gets
+     uppercase tracking-wider labels + tone-coloured bucket names +
+     tabular-nums values.
+  7. **Tone-colored values** — green positive / red negative / muted
+     breakeven applied to:
+     - KPI strip (Total P&L / Best / Worst / Coverage).
+     - Dimensions tab: each dimension's P&L value + %, each bucket's
+       P&L value, each row's hover state.
+     - Waterfall tab: each row's P&L delta + cumulative total.
+     - Strategies table: Total P&L / Avg P&L / Win Rate / Profit
+       Factor columns.
+     Each cell carries `data-tone` for downstream CSS targeting.
+  8. **Error state: polished error card with Retry** — `<ErrorCard />`
+     replaces the bare `error-state` block. Lucide AlertTriangle icon
+     (size-8, text-red-400/80) + "Attribution unavailable" title
+     (preserved verbatim, direct text node of `error-state-title`
+     span) + error string as dim subtitle (direct text node of
+     `error-state-desc` span so the test contract resolves to a single
+     leaf) + Retry button with Lucide RotateCcw icon + "Retry" text
+     (aria-label preserved). role=alert. testid `attribution-error`
+     + `attribution-error-msg` + `attribution-retry`.
+  9. **Refined controls — timeframe + NEW group-by/sort selector** —
+     the existing Time-range Select keeps its styling + gains an
+     explicit `aria-label="Attribution time range"` + focus-visible
+     ring. A NEW Sort-by Select (3 options: Default / P&L ↓ / |P&L| ↓)
+     lets the trader re-order the 7 dimensions in the Dimensions tab
+     without changing data. Default preserves W38-8 order so existing
+     tests still pass. Refresh button keeps RefreshCw spin animation +
+     freshness label (now tabular-nums) + focus-visible ring.
+
+Additional refinements (beyond the 9 spec items):
+- LIVE indicator badge — new PulseDot (good tone) + "LIVE" text badge
+  in the header next to the 7-DIMENSION badge. Mirrors W54-a / W53-c
+  PulseDot pattern.
+- Reconciliation hint — Coverage KpiTile hint now surfaces the
+  engine's 100%-attribution design invariant: "Fully reconciled · Win
+  {rate}" when |residual| < 0.01, "Gap {residual} · Win {rate}"
+  otherwise. The `residual` variable remains referenced (previously
+  surfaced via a dedicated 4th KPI tile).
+- Dimension row hover border — each dimension's kpi-card wrapper
+  carries `hover:border-[#2a3050]` so the row's border lightens on
+  hover (subtle visual cue before expansion).
+- Focus-visible ring on dimension toggle — the dimension toggle
+  button gets `focus-visible:outline-none focus-visible:ring-1
+  focus-visible:ring-inset focus-visible:ring-cyan-400/40` so
+  keyboard users see the active dimension.
+- Best/Worst inline summary in expanded view — the expanded per-bucket
+  breakdown now leads with an uppercase "BEST" / "WORST" label pair
+  (instead of "Best:" / "Worst:" sentence) for tighter visual
+  hierarchy + tone-coloured bucket names + tabular-nums values.
+- Header comment block updated with a new "W55-c — Final UI polish
+  pass" section documenting each polish affordance + the constraint
+  that existing class names + testids + role attributes + aria-labels
+  + API calls + the 'use client' directive are preserved.
+
+New CSS hooks added (for downstream CSS layer to target):
+- `data-testid="attribution-loading-skeleton"` on the loading wrapper.
+- `data-testid="attribution-error"` on the error card (+ `-msg` on
+  the message span, `-retry` on the retry button).
+- `data-testid="attribution-empty-state"` on the panel-level empty
+  state.
+- `data-testid="attribution-strategies-empty"` on the strategies-table
+  empty state row.
+- `data-testid="attribution-kpi-tile"` default on KpiTile +
+  `attribution-kpi-{total|best|worst|coverage}` on each summary tile
+  + `-value` suffix on the value span.
+- `data-tone="{good|warn|poor|info|neutral}"` on:
+  - each KpiTile wrapper,
+  - each dimension's kpi-card wrapper,
+  - each waterfall row's wrapper,
+  - each strategies-table row (`<tr>`),
+  - each expanded per-bucket P&L value cell,
+  - each strategies-table P&L / Win Rate / Profit Factor cell.
+
+Stage Summary:
+- **Final line count**: 1416 lines (was 991 — +635 insertions / −210
+  deletions per `git diff --stat`).
+- **All 9 polish affordances applied** while preserving the existing
+  props (none — panel takes no props), API calls (apiFetch to
+  /api/attribution?range=${timeRange} on mount + every 30s + on
+  visibilitychange regain), polling (30s setInterval with
+  visibilitychange pause/resume + immediate refresh on regain), clean
+  unmount (clearInterval + removeEventListener in useEffect cleanup),
+  all existing class names (card, card-header, card-title, badge +
+  badge-cyan / badge-blue / badge-purple / badge-amber / badge-green /
+  badge-dim, btn + btn-ghost / btn-sm, mono, scrollbar-thin, data-table,
+  table-container, table-footer, label-col, empty-state + -icon /
+  -title / -desc, error-state + -icon / -title / -desc, skeleton /
+  skeleton-line / skeleton-line-sm / skeleton-line-md / skeleton-line-lg
+  / skeleton-card, kpi-card + kpi-label / kpi-value / kpi-sub,
+  banner-warning, spinner, tabular-nums), all existing role attributes
+  + aria-labels (role=table + aria-label="Per-strategy attribution
+  breakdown", aria-label="Refresh attribution", aria-label="Attribution
+  time range", aria-label="Retry attribution fetch", role=alert on
+  error, role=status on loading/empty, role=region + aria-label on
+  each dimension card, aria-expanded + aria-controls on each dimension
+  toggle, aria-hidden on every Lucide icon), all preserved title text
+  content ("Attribution Analysis", "Performance Attribution",
+  "7-DIMENSION", "Attribution unavailable", "Retry", "No attribution
+  data", "Dimensions", "Waterfall", "Strategies"), and the 'use client'
+  directive.
+- **Verification — `bun run lint`**: clean (exit 0, no output).
+- **Verification — `bunx tsc --noEmit --skipLibCheck`**: 0 errors in
+  AttributionPanel.tsx (3 pre-existing errors in BacktestLabView.tsx
+  are unrelated to this task — they were present in the working tree
+  before this task started).
+- **Verification — `bunx vitest run src/components/AttributionPanel.test.tsx`**:
+  9/9 tests pass in ~580ms. Confirms the full W38-8 test contract is
+  preserved.
+
+Files touched:
+- `src/components/AttributionPanel.tsx` (UI polish pass, 991 → 1416
+  lines, +635 / −210 per `git diff --stat`).
+- `/home/z/my-project/agent-ctx/W55-c-full-stack-developer.md` (detailed
+  agent work record).
+- `worklog.md` (this appended entry).
+
+Push verification:
+```
+$ wc -l src/components/AttributionPanel.tsx
+1416 src/components/AttributionPanel.tsx
+$ git diff --stat src/components/AttributionPanel.tsx
+ src/components/AttributionPanel.tsx | 845 +++++++++++++++++++++++++++---------
+ 1 file changed, 635 insertions(+), 210 deletions(-)
+$ bunx eslint src/components/AttributionPanel.tsx && echo "lint clean"
+lint clean
+$ bunx tsc --noEmit --skipLibCheck 2>&1 | grep AttributionPanel
+$ bunx vitest run src/components/AttributionPanel.test.tsx
+ ✓ src/components/AttributionPanel.test.tsx (9 tests) 578ms
+ Test Files  1 passed (1)
+      Tests  9 passed (9)
+```
+
+Final status:
+- **Polish**: complete — 9 spec items + 5 additional refinements applied
+  (LIVE indicator badge, reconciliation hint, dimension row hover
+  border, focus-visible ring on dimension toggle, Best/Worst inline
+  summary uppercase labels).
+- **Backwards-compat**: full — all props, API calls, polling, class
+  names, testids, role attributes, aria-labels, preserved title text
+  content, and the 'use client' directive preserved. All 9 tests pass.
+- **Lint**: clean (exit 0) on AttributionPanel.tsx.
+- **TypeScript**: 0 errors in AttributionPanel.tsx.
+- **Tests**: 9/9 pass.
+
+**AttributionPanel is production-ready with the premium W55-c visual
+layer, visually consistent with the W53-c StrategyPerformancePanel /
+W54-a DeepAnalysisView / W54-e MLValidationPanel redesign family.**
+
+---
+Task ID: W54-c-retry
+Agent: full-stack-developer
+Task: Polish `src/components/AIPredictionExplainerPanel.tsx` — SHAP
+      explainability + prediction history + reliability diagram panel —
+      visual consistency pass with the W51-2d MLPanel / AIMLCommandCenter /
+      W54-e MLValidationPanel redesign family.
+
+Work Log:
+- Read `/home/z/my-project/worklog.md` (last ~500 lines) to map the W50–54
+  design-system vocabulary (Tone system, KpiTile, SectionHeader, PsiGauge,
+  ShimmerBlock, PulseDot, polished empty/error states, data-tone hooks,
+  row-hover accent bar). Reference implementations consulted:
+  MLPanel.tsx (W51-2d), AIMLCommandCenter.tsx (W51-2d), MLValidationPanel.tsx
+  (W54-e), DeepAnalysisView.tsx (W54-a).
+- Read `AIPredictionExplainerPanel.tsx` (2078 lines) end-to-end + the
+  20-test contract to map every test surface. Verified on entry that the
+  panel already had the W54-c polish layer applied (Tone system, KpiTile
+  for Probability/Confidence/Brier, SHAP bars with blue→cyan bullish /
+  red→amber bearish gradients, shimmer skeleton, PolishedEmptyState +
+  PolishedErrorCard, SectionHeader on every section, tabular-nums
+  everywhere, prediction-history row-hover accent bar, PolishedErrorCard
+  with Retry). All 20 tests passed. Lint clean. TSC clean for the panel
+  (3 pre-existing errors live in BacktestLabView.tsx — unrelated).
+- The W54-c-retry brief asks for a focused pass that REINFORCES the
+  existing polish with semantic `data-tone` hooks + a11y improvements +
+  PulseDot LIVE indicator on the polling toggle, mirroring the
+  MLPanel/AIMLCommandCenter/MLValidationPanel visual vocabulary. The
+  retry deliberately does NOT touch the existing Tone system, KpiTile,
+  SHAP bar gradient, shimmer layout, or test-matched strings — only
+  adds new surface-area enhancements that improve downstream CSS
+  targeting + screen-reader behaviour without breaking the test
+  contract.
+
+### Changes applied (W54-c-retry)
+
+1. **StatusPill: optional `dataTone` prop → semantic `data-tone` attribute**.
+   The existing `StatusPill` rendered a single hardcoded
+   `data-testid="ai-status-pill"` and expressed its tone only via the
+   small colored dot prefix + the value text color classes. Added an
+   optional `dataTone?: Tone` prop to `StatusPillProps`. When provided,
+   it is rendered as a `data-tone` attribute on the root div (using a
+   spread so the attribute is absent — not "undefined" — when `dataTone`
+   is not provided). The visible color classes on the value text are
+   NOT changed (preserves the AI-accent blue/purple convention and
+   the test that requires '0.72' to have `text-purple-300`).
+   Threaded `dataTone` through every tone-derived StatusPill in the
+   status strip:
+     * Model Status → `good`/`warn`/`neutral`
+     * Model Version → `info` (AI accent)
+     * Feature Freshness → `good`/`warn`/`poor`/`neutral` (<5s / <30s
+       / else / null)
+     * Prediction P(YES) → `info` (AI accent)
+     * **Confidence → `confidenceTone(headlineConfidence)` → `good` ≥0.7 /
+       `warn` ≥0.5 / `poor` <0.5 / `neutral` null** — the key retry
+       enhancement. Surfaces the spec's "Tone-colored prediction
+       confidence (green high, amber medium, red low)" semantics via
+       data-tone WITHOUT breaking the AI-accent blue/purple test
+       contract on the visible value text.
+     * Calibration → `good`/`warn`/`poor`/`neutral`
+     * Edge Estimate → `good`/`poor`/`neutral`
+     * Drift Status → `good`/`warn`/`poor`/`neutral`
+     * Data Quality → `good`/`warn`/`poor`/`neutral`
+   Training Data, Market-Implied, and Training Samples have no semantic
+   tone mapping (informational / numeric counters) so they correctly
+   render without the `data-tone` attribute.
+
+2. **StatusPill: subtle `hover:border-[#2a3045]` transition** on the root
+   div so hovering a pill slightly lifts its border — mirrors the
+   W54-e MLValidationPanel drift-tile hover affordance.
+
+3. **CalibrationCard: `data-tone` on ECE Badge**. The ECE badge
+   (`<Badge data-testid="ece-badge">ECE 0.0231</Badge>`) now also
+   carries `data-tone={calStatus.tone}` so downstream CSS can target
+   the ECE badge by its underlying calibration tone (good/warn/poor/
+   neutral) in addition to the cal-status chip already carrying
+   `data-tone`.
+
+4. **Polling toggle: PulseDot LIVE indicator + a11y**. The polling
+   toggle (`explainer-poll-toggle`) previously rendered just the text
+   "Live" / "Paused" with only a `title` attribute for screen readers.
+   Added:
+     * **PulseDot LIVE indicator** — when `polling === true`, a small
+       `PulseDot tone="good" pulse={false}` (solid emerald dot, no ping
+       animation, kept static so it doesn't add visual noise alongside
+       the `Live` text) renders before the text. Mirrors the W54-a
+       DeepAnalysisView + W51-2d MLPanel header LIVE indicator pattern.
+     * **`aria-label`** — `polling ? 'Auto-refresh every 20s — click to
+       pause' : 'Paused — click to resume auto-refresh'` so screen
+       readers announce the toggle's purpose + next action.
+     * **`aria-pressed={polling}`** — marks the toggle as a pressable
+       button with on/off state.
+     * **`data-tone={polling ? 'good' : 'neutral'}`** — semantic tone
+       hook for downstream CSS.
+     * Layout: `inline-flex items-center gap-1` so the dot + text align
+       cleanly.
+
+5. **Refresh button: a11y polish**. The refresh button
+   (`explainer-refresh`) previously had only a `title` attribute and a
+   `<RefreshCw>` icon with no `aria-hidden`. Since the button has no
+   text content, screen readers had no accessible name. Added:
+     * **`aria-label="Refresh now"`** — explicit accessible name matching
+       the `title`.
+     * **`aria-hidden="true"` on the `<RefreshCw>` icon** — the icon is
+       now decorative (the accessible name carries the meaning), so
+       it's hidden from screen readers to avoid duplicate announcements.
+
+### What was preserved
+- All props, API calls (`apiFetch` to `/api/ml/metrics` + `/api/ml/drift`
+  + `/api/ml/versions` + `/api/snapshot` + `/api/shadow/trades?limit=20`
+  + `/api/data-quality` in parallel on mount + every 20s + `apiFetch` to
+  `/api/ml/explain/{token_id}?top_n=3` on Why? expand), polling (20s
+  setInterval with visibilitychange pause/resume), clean unmount
+  (clearInterval + removeEventListener in useEffect cleanup).
+- All existing class names retained (`.card`, `.card-header`,
+  `.card-title`, `.badge` + variants, `.btn` + variants, `.mono`,
+  `.scrollbar-thin`, `.empty-state`, `.error-state`, `.skeleton-line-sm`,
+  `.banner-warning`, `.tabular-nums`, `.truncate`).
+- All accessibility roles/labels preserved (role=alert on banner-warning
+  + error card + NOT A GUARANTEE inline banner, role=status on loading
+  skeleton + empty state + model status banner, aria-label on CI range
+  bar + AI prediction disclaimer + model status banner, aria-hidden on
+  every Lucide icon — newly added on RefreshCw too, aria-expanded +
+  aria-controls on the Why? collapsible trigger).
+- All test-matched strings preserved verbatim: "Explainable AI / ML
+  Prediction" header title, "NOT A GUARANTEE" disclaimer, "65%", "YES",
+  "0.72", "AI Prediction", "(model-generated)", "95% confidence
+  interval", "Model vs Market", "AI Model", "Market", "Edge",
+  "+2.00pp", all 12 StatusPill labels, "v1.4.champion", "OK", "healthy",
+  "Drift OK", "Champion", "Challenger", "Prediction History (last 20)",
+  "ml_edge", "calibration-card", "ece-badge" text "ECE 0.0231",
+  "Calibration Curve", "No predictions recorded yet.", "Unable to reach
+  any AI/ML backend endpoint".
+- 'use client' directive preserved at the top of the file.
+- All inline child components (`PulseDot`, `SectionHeader`, `KpiTile`,
+  `PsiGauge`, `ShimmerBlock`, `PolishedEmptyState`, `PolishedErrorCard`,
+  `StatusPill`, `CIRangeBar`, `PredictionHeadline`, `ModelVsMarket`,
+  `WhyExplainer`, `PredictionHistoryTable`, `CalibrationCard`)
+  preserved as private functions in the same file.
+
+### Verification
+```
+$ wc -l src/components/AIPredictionExplainerPanel.tsx
+2153 src/components/AIPredictionExplainerPanel.tsx
+
+$ git diff --stat src/components/AIPredictionExplainerPanel.tsx
+ src/components/AIPredictionExplainerPanel.tsx | 87 +++++++++++++++++++++++++--
+ 1 file changed, 81 insertions(+), 6 deletions(-)
+
+$ bun run lint 2>&1 | tail -3
+$ eslint .
+(clean — exit 0, no output)
+
+$ bunx eslint src/components/AIPredictionExplainerPanel.tsx; echo "exit=$?"
+exit=0
+
+$ bunx tsc --noEmit --skipLibCheck 2>&1 | grep AIPredictionExplainerPanel | head -5
+(0 errors in AIPredictionExplainerPanel.tsx — 3 pre-existing errors live
+in BacktestLabView.tsx and are unrelated to this task)
+
+$ bunx vitest run src/components/AIPredictionExplainerPanel.test.tsx 2>&1 | tail -10
+ ✓ src/components/AIPredictionExplainerPanel.test.tsx (20 tests) 4253ms
+ Test Files  1 passed (1)
+      Tests  20 passed (20)
+```
+
+### Stage Summary
+- **Final line count**: 2153 lines (was 2078 — +81 insertions / −6
+  deletions per `git diff --stat`).
+- **All 10 W54-c-retry spec items verified present and reinforced**:
+  1. KpiTile pattern for prediction metrics (confidence, probability,
+     Brier) — present (unchanged) ✓
+  2. SHAP-style feature importance bars (blue bullish, red bearish) —
+     present (unchanged) ✓
+  3. Refined reliability diagram (axes, gridlines, diagonal) — present
+     via shared ReliabilityDiagram component (unchanged) ✓
+  4. Shimmer skeleton loading state — present (unchanged) ✓
+  5. Polished empty state with Lucide icon + message — present
+     (unchanged) ✓
+  6. Section headers with icon + uppercase title — present (unchanged) ✓
+  7. Tone-colored prediction confidence (green high, amber medium, red
+     low) — present in PredictionHeadline confChip + Confidence KpiTile
+     (unchanged); now ALSO surfaced via `data-tone` on the Confidence
+     StatusPill so downstream CSS can target it without breaking the
+     AI-accent blue/purple test contract ✓
+  8. Tabular-nums on all numeric values — present (unchanged) ✓
+  9. Prediction history table (refined headers, row hover, tabular-nums)
+     — present (unchanged) ✓
+  10. Error state: polished error card with retry — present (unchanged) ✓
+- **New retry enhancements**:
+  - `dataTone` prop on `StatusPill` → semantic `data-tone` attribute
+    threaded through 9 tone-derived pills.
+  - `data-tone` on ECE badge in CalibrationCard.
+  - PulseDot LIVE indicator on the polling toggle + `aria-label` +
+    `aria-pressed` + `data-tone`.
+  - `aria-label="Refresh now"` on the refresh button + `aria-hidden` on
+    the RefreshCw icon.
+  - Subtle `hover:border-[#2a3045]` transition on every StatusPill.
+- **Backwards-compat**: full — all props, API calls, polling, class
+  names, testids, role attributes, aria-labels, preserved title text
+  content, and the 'use client' directive preserved. All 20 tests pass.
+- **Lint**: clean (exit 0).
+- **TypeScript**: 0 errors in AIPredictionExplainerPanel.tsx.
+- **Tests**: 20/20 pass.
+
+**AIPredictionExplainerPanel is production-ready with the reinforced
+W54-c-retry visual layer, visually consistent with the W51-2d MLPanel /
+AIMLCommandCenter / W54-e MLValidationPanel redesign family.**
+
+Files touched:
+- `src/components/AIPredictionExplainerPanel.tsx` (UI polish retry pass,
+  2078 → 2153 lines, +81 / −6 per `git diff --stat`).
+- `/home/z/my-project/agent-ctx/W54-c-retry-full-stack-developer.md`
+  (detailed agent work record).
+- `worklog.md` (this appended entry).
+
+---
+Task ID: W55-b
+Agent: full-stack-developer
+Task: Polish BacktestLabView.tsx — Quantitative Backtest & Binary Payoff
+      Simulation Lab — visual consistency pass with the W50-54 redesign
+      family.
+
+Work Log:
+- Read worklog (last ~400 lines) to map the W50-54 design-system
+  vocabulary (Tone system, KpiTile pattern, shimmer skeleton, polished
+  empty/error states, PulseDot, SectionHeader, tabular-nums, row hover
+  accent bar, refined SVG chart with proper axes + gridlines + tone-
+  coloured stroke + baseline reference). Reference implementations
+  consulted: StrategyPerformancePanel.tsx (W53-c, 1608 lines — KpiTile +
+  EquityCurveSkeleton + ComparisonTableSkeleton + SortIndicator + Tone
+  system), DeepAnalysisView.tsx (W54-a, 1072 lines — LoadingSkeleton +
+  KpiTile strip + ErrorCard + SectionHeader), MLValidationPanel.tsx
+  (W54-e, 1576 lines — ValidationSkeleton + PolishedErrorState + walk-
+  forward CV sparkline), globals.css lines 978-1052 (kpi-card / kpi-
+  label / kpi-value / kpi-sub) + 1127-1230 (skeleton-card / skeleton-
+  line / skeleton-line-sm / -md / -lg) + 1296-1302 (heatmap-cell-pos-3/
+  -2/-1/zero/neg-1/-2/-3) + 1912-1938 (empty-state / error-state).
+- Read BacktestLabView.tsx end-to-end (322 lines, W22-2 origin) + the
+  18-test contract (BacktestLabView.test.tsx, 357 lines) to map every
+  test surface that MUST NOT break:
+    1. Title text "Quantitative Backtest & Binary Payoff Simulation Lab"
+       (single-match regex).
+    2. "Kelly Sizing Model" badge text (single-match).
+    3. "Monte Carlo path modeling" subheading text (single-match —
+       preserved verbatim in the header <p> element; the empty state
+       description was carefully reworded to avoid this phrase).
+    4. 6 POPULAR_STRATS <option> text contents (exact text —
+       "Avellaneda-Stoikov Market Maker (Active)" / "Binary Dutch Book
+       Arbitrage (Active)" / "Random Forest Quant Ensemble (Active)" /
+       "EMA Crossover Trend Follower (Research)" / "Bollinger Bands Mean
+       Reversion (Research)" / "Whale Block Order Follower (Research)").
+    5. "Starting Capital" label text (single-match — must avoid
+       duplicating the phrase in the empty state description).
+    6. "Simulation Horizon" label text (single-match — same caveat).
+    7. 2 input[type=number] elements: capital input (min=10 max=100000),
+       days input (min=1 max=365).
+    8. "Run Monte Carlo Backtest" button accessible name (regex /i).
+    9. "Running Simulation" text node when running state is active
+       (single-match — must not duplicate in an SR-only span).
+   10. POST /api/backtest/run body containing strategy_id +
+       initial_capital + days + slippage_bps=5 (preserved slippage
+       state default = 5).
+   11. Authorization Bearer <token> header via apiFetch on every fetch.
+   12. KPI grid labels (each single-match): "Total Return (ROI)",
+       "Sharpe Ratio", "Calmar Ratio" (regex /i), "Max Drawdown" (multi-
+       match OK — getAllByText >= 1), "Value at Risk (95%)",
+       "Simulation Brier".
+   13. Sharpe value '1.85' (exact string match — single-match — must
+       avoid rendering sharpe_ratio.toFixed(2) in more than one tile).
+   14. Max drawdown value /-8\.50%/i regex match (single-match
+       sufficient).
+   15. Equity curve SVG with aria-label="Simulated Equity Curve"
+       (single-match).
+   16. "Final Capital:" text (single-match).
+   17. "Monthly Returns Heatmap" text (single-match).
+   18. Month labels "2024-01" / "2024-02" / "2024-03" / "2024-04" (each
+       single-match).
+   19. "4 periods" text (regex match against "{N} periods").
+   20. Error strings (each single-match): "Backtest simulation failed
+       (HTTP 500)" + "Network error connecting to simulation runner".
+   21. strategy_id changes when the <select> changes.
+   22. Capital input updates when changed.
+   23. Days input updates when changed.
+- Verified empirically (via RTL failure-mode testing during this task)
+  that getByText('1.85') is an exact-string match against each
+  element's normalized textContent. The KpiTile value div renders
+  {value} as a direct text node alongside an optional trend icon (SVG
+  with no text), so the value div's textContent = "1.85" exactly. The
+  critical constraint is that the SAME value string must NOT be
+  rendered in MORE THAN ONE tile — I initially added a headline KPI
+  strip that duplicated result.sharpe_ratio.toFixed(2) = "1.85", which
+  broke the single-match contract; I removed the headline strip and
+  merged Win Rate into the institutional KPI grid instead (7-tile
+  layout).
+- Also caught + fixed two other multi-match failures during the first
+  test run: (a) the empty state description originally contained
+  "starting capital" + "simulation horizon" lowercase phrases, which
+  matched /Starting Capital/i + /Simulation Horizon/i (case-insensitive)
+  and conflicted with the form labels — reworded to "Configure the
+  strategy archetype and parameters above...". (b) The trade stats
+  table originally labelled rows "Calmar Ratio" + "Value at Risk (95%)"
+  + "Simulation Brier", which duplicated the institutional KPI grid's
+  labels and broke the single-match contract — relabelled to "Brier
+  Score" + "VaR (95%)" + removed the Calmar row entirely (its tone is
+  captured indirectly via the "Profit Factor" + "Sortino Ratio" rows).
+
+Built 11 new inline sub-components (kept private to the panel so test
+mocks + ts-isolation stay clean):
+  * Tone system (`good | warn | poor | info | neutral`) with self-
+    contained class strings (bg / border / text / bar / dot / label /
+    halo / stroke / fill) — static so Tailwind 4's JIT scanner picks
+    them up. Mirrors W53-c Tone + extends it with `stroke` (SVG stroke
+    color) + `fill` (SVG area-fill rgba string) for the refined equity
+    curve.
+  * Tone helpers: roiTone(v) (good ≥10 / info ≥0 / warn ≥-10 / poor
+    <-10 / neutral null), sharpeTone(v) (good ≥1.5 / warn ≥0.5 / poor
+    <0.5 / neutral null), drawdownTone(v) (poor ≥15 / warn ≥5 / info
+    <5 / neutral null), winRateTone(v) (good ≥0.55 / warn ≥0.45 / poor
+    <0.45 / neutral null), profitFactorTone(v) (good ≥1.5 / warn ≥1.0
+    / poor <1.0 / neutral null), calmarTone(v) (good ≥1.0 / warn ≥0.3
+    / poor <0.3 / neutral null).
+  * PulseDot({ tone, pulse = true }) — Tailwind `animate-ping` halo +
+    solid dot + glow shadow. aria-hidden. Used by the Run button's
+    loading-state trailing indicator + the config bar's "running…"
+    status.
+  * SectionHeader({ icon, title, description, tone, trailing }) —
+    Lucide icon + uppercase tracking-wider title (direct text node so
+    RTL resolves to a single leaf) + optional dim italic description +
+    optional trailing node. Mirrors W53-c / W54-a SectionHeader. Title
+    preserved verbatim so getByText(/Quantitative Backtest/i) still
+    resolves to a single element.
+  * KpiTile({ label, value, hint, tone, quality, trend, testId }) —
+    refined KPI card (large value, tone-tinted bg, quality bar,
+    optional trend glyph, `data-tone` attribute). Used for all 7
+    institutional KPI grid tiles (Total Return / Sharpe / Max Drawdown
+    / Win Rate / Calmar / VaR / Brier). Value rendered as a direct
+    text node alongside the optional trend icon (SVG with no text), so
+    getByText('1.85') resolves to exactly one element.
+  * PolishedEmptyState({ icon, title, description, className, testId })
+    — Lucide `FlaskConical` icon + "Run a backtest to see results"
+    title + helper copy using `.empty-state` CSS classes. role=status.
+    Renders when `!result && !error && !running`.
+  * ErrorCard({ error, onRetry }) — polished error state with Lucide
+    AlertTriangle + the error string as the title (direct text node so
+    the W22-1 regexes "Backtest simulation failed (HTTP 500)" +
+    "Network error connecting to simulation runner" resolve to a
+    single leaf) + dim subtitle + Retry button with RotateCcw glyph.
+    role=alert. data-testid="backtest-error" + "-msg" on the message
+    span + "-retry" on the button. Re-fires handleRun (the same POST
+    /api/backtest/run handler).
+  * ResultsSkeleton() — structured shimmer placeholder mirroring the
+    live results dashboard (6-tile KPI strip + equity chart + trade
+    stats table + monthly heatmap rows). role=status + aria-live=
+    polite + data-testid="backtest-loading". Uses `.kpi-card`,
+    `.skeleton-card`, `.skeleton-line-sm`, `.skeleton-line-md`
+    classes from globals.css. CRITICAL: the visible "Running
+    Simulation…" text node lives inside the Run button (which
+    switches to the spinner state when running=true), so the skeleton
+    doesn't need its own SR-only label.
+  * computeEquityGeometry(curve) — pre-computes the SVG path strings +
+    min/max equity + Y-axis ticks for the refined equity curve chart.
+    Returns null when the curve has < 2 points (graceful empty
+    handling).
+  * computeMonteCarloBuckets(curve) — NEW derived visualization.
+    Buckets the per-step equity deltas into 7 quantile bins (P5 →
+    P95), each tagged with a Tone (poor → warn → info → good) so the
+    worst buckets read red and the best read emerald. Returns an
+    empty array when the curve has < 2 points.
+  * buildTradeStatRows(result) — aggregates the per-trade metrics (Net
+    P&L / Final Equity / CAGR / Profit Factor / Sortino / Expectancy
+    / VaR / Brier / Total Trades) into a clean 2-column "Metric |
+    Value | Hint" row list with per-row Tone. Critically, the "Calmar
+    Ratio", "Value at Risk (95%)", and "Simulation Brier" labels are
+    NOT used here (relabeled to "Brier Score" and "VaR (95%)") because
+    the institutional KPI grid already surfaces the full labels —
+    duplicating them would break the W22-2 single-match getByText test
+    contract.
+
+Applied all 10 polish affordances from the W55-b spec:
+  1. **KpiTile pattern for backtest metrics (total return, Sharpe, max
+     drawdown, win rate)** — 7-tile institutional KPI grid refactored
+     to the shared KpiTile sub-component with tone-tinted bg + quality
+     bar + trend glyph. The headline metrics from the spec (total
+     return, Sharpe, max drawdown, win rate) are surfaced as the first
+     4 tiles; Calmar / VaR / Brier follow. Each tile carries data-
+     tone={good|warn|poor|info|neutral} + a per-tile testId (backtest-
+     kpi-{roi|sharpe|drawdown|winrate|calmar|var|brier}). Initial
+     attempt added a duplicate headline KPI strip — removed because it
+     broke getByText('1.85') single-match contract.
+  2. **Shimmer skeleton loading state for results** —
+     <ResultsSkeleton /> replaces the bare spinner-only placeholder.
+     Structured shimmer mirroring the live dashboard (KPI strip +
+     equity chart + trade stats table + monthly heatmap). role=status
+     + aria-live=polite + data-testid="backtest-loading".
+  3. **Polished empty state with Lucide icon + message ("Run a
+     backtest to see results")** — <PolishedEmptyState /> with Lucide
+     FlaskConical icon + the exact spec'd title + helper copy using
+     `.empty-state` CSS classes. role=status. Renders when !result &&
+     !error && !running. Empty state description carefully avoids the
+     phrases "Starting Capital" and "Simulation Horizon" so the W22-2
+     single-match label tests still resolve.
+  4. **Refined equity curve chart (proper axes, gridlines, tone
+     colors)** — the SVG equity curve gains:
+       - 3 horizontal + 3 vertical dashed gridlines (#1f2335,
+         dasharray "2 3").
+       - Y-axis tick labels (3 — top/middle/bottom equity values in
+         $X.XX format, monospace).
+       - X-axis tick labels (3 — Day 0 / Day N/2 / Day N with start +
+         end equity in parens, monospace).
+       - Tone-coloured stroke (emerald when total_pnl >= 0, red when
+         negative) + tone-tinted area-fill (rgba 22% opacity via SVG
+         linearGradient).
+       - Baseline reference line at the initial capital (dashed
+         muted #7e8aaa, 0.45 opacity) so the trader can immediately
+         see if equity is above or below the starting point.
+       - Hover dot at the final equity point (small outer halo + solid
+         inner dot in the tone color).
+       - 4-corner chart padding (38px left for Y-axis labels, 12px
+         right, 12px top, 18px bottom for X-axis labels) so labels
+         don't clip.
+       - aria-label="Simulated Equity Curve" preserved verbatim.
+       - "Final Capital:" text preserved verbatim in the SectionHeader
+         trailing node (single match — was previously a bare span,
+         now in a SectionHeader trailing div, still resolves to a
+         single text node).
+  5. **Refined results table (uppercase headers, row hover, tabular-
+     nums)** — NEW <table data-testid="backtest-trade-stats-table">
+     with:
+       - Uppercase tracking-wider 9.5px font-bold headers (Metric /
+         Value / Hint).
+       - Header row carries hover:bg-transparent so it doesn't pick up
+         the row-hover accent.
+       - Each row carries hover:bg-cyan-500/[0.04] hover:shadow-[inset_
+         3px_0_0_0_rgba(34,211,238,0.45)] transition-colors so
+         hovering shows a subtle cyan left accent bar.
+       - tabular-nums on every numeric cell for clean decimal
+         alignment.
+       - Tone-coloured values per row (each row carries data-tone=
+         {good|warn|poor|info|neutral}).
+       - Hint column hidden on mobile (hidden sm:table-cell).
+  6. **Section headers with icon + uppercase title** — 5 SectionHeader
+     instances: Backtest Configuration (Settings2 icon, info tone,
+     "Pick a strategy archetype + horizon…" description, "running…"
+     PulseDot trailing or "ready"); Simulated Equity Growth & Drawdown
+     Curve (LineChart icon, good/poor tone by ROI sign, "Final
+     Capital: $X" trailing); Monte Carlo Outcome Distribution (Layers
+     icon, info tone, "{N} steps" trailing); Trade Statistics & Risk
+     Metrics (BarChart3 icon, info tone, "{N} metrics" trailing);
+     Monthly Returns Heatmap (CalendarClock icon, info tone, "{N}
+     periods" trailing). Each title rendered in its own <span> so
+     RTL's getByText resolves to a single leaf element.
+  7. **Refined backtest config form (consistent inputs, focus rings)**
+     — Select + 2 number inputs all share the same `bg-[#13161e]
+     border border-[#1f2335] text-xs rounded p-2 outline-none cursor-
+     pointer transition-colors` styling. Each input gains:
+       - Focus ring: focus:ring-1 focus:ring-cyan-500/20 focus:border-
+         cyan-500/40.
+       - Hover border: hover:border-[#2a3047].
+       - tabular-nums on the number inputs for clean numeric alignment.
+       - Lucide icon inside the <label> (Settings2 for archetype,
+         DollarSign for capital, CalendarClock for horizon) with text-
+         [#5a637a] + size-3.
+       - Capital input keeps min=10 max=100000 (preserves the W22-2
+         DOM query).
+       - Days input keeps min=1 max=365 (preserves the W22-2 DOM
+         query).
+       - Run button gets a Lucide Activity icon (when not running) /
+         spinner (when running) + aria-label="Run Monte Carlo
+         Backtest" (preserved verbatim) + shadow glow on hover.
+  8. **Tone-colored metrics (green good, red poor)** — every KpiTile +
+     trade stats row + equity curve stroke + Monte Carlo bucket
+     carries a Tone based on the metric's quality. Good → emerald,
+     warn → amber, poor → red, info → cyan, neutral → muted. Each
+     surface also carries data-tone={tone} attribute for downstream
+     CSS targeting. Tone helpers (roiTone / sharpeTone / drawdownTone
+     / winRateTone / profitFactorTone / calmarTone) encapsulate the
+     threshold logic so the trader reads pass/warn/fail at a glance.
+  9. **Error state: polished error card with retry** — <ErrorCard />
+     replaces the bare red-tinted banner. Lucide AlertTriangle icon
+     (w-8 h-8, text-red-400/80) + the error string as the title
+     (direct text node so the W22-1 regexes "Backtest simulation
+     failed (HTTP 500)" + "Network error connecting to simulation
+     runner" resolve to a single leaf) + dim subtitle ("The
+     simulation runner is unreachable or rejected the run. Verify the
+     strategy archetype + horizon, then retry.") + Retry button with
+     Lucide RotateCcw icon + "Retry Backtest" text + aria-label="Retry
+     backtest". role=alert. data-testid="backtest-error" + "-msg" on
+     the message span + "-retry" on the button. Re-fires handleRun
+     (the same POST /api/backtest/run handler).
+ 10. **Walk-forward / Monte Carlo results display (refined
+     visualization)** — NEW <div data-testid="backtest-monte-carlo">
+     card. Derives a 7-bucket outcome distribution from the per-step
+     equity deltas (P5 → P95 quantile edges). Each bucket renders as a
+     vertical bar with:
+       - Tone-coloured fill (poor buckets = red, warn = amber, info =
+         cyan, good = emerald).
+       - Per-bucket mid-$ label (e.g. "+$1.50" / "-$2.00") in mono
+         tabular-nums underneath.
+       - Per-bucket count + percentage (count + tooltip).
+       - Hover-brighten (group-hover:brightness-125).
+       - Tone-tinted x-axis caption "P5 → P95 Equity Outcome Bucket"
+         + "← Worst" / "Best →" tone-tinted endpoint labels.
+       - role="img" + aria-label describing the bucket count.
+       - Height scaled to the per-bucket max count so the
+         visualization is always legible regardless of trade volume.
+
+Additional refinements (beyond the 10 spec items):
+- Header polish: replaced the 🧪 emoji with Lucide FlaskConical icon
+  (size-5, text-cyan-300) — consistent with the W53-c / W54-a header-
+  icon pattern. aria-hidden.
+- Config bar: SectionHeader with "running…" PulseDot (warn tone)
+  trailing when running, "ready" text when idle — gives the trader
+  immediate visual feedback on the simulation lifecycle.
+- Monthly heatmap: each cell gains transition-transform hover:scale-
+  105 for subtle hover lift.
+- Trade stats table: 2-column layout (Metric | Value) on mobile, 3-
+  column (Metric | Value | Hint) on sm: and up.
+- Walk-forward / Monte Carlo card: tone-tinted endpoint labels ("←
+  Worst" red / "Best →" emerald) so the trader immediately reads which
+  side is "good".
+
+New CSS hooks added (for downstream CSS layer to target):
+- data-testid="backtest-loading" on the loading skeleton wrapper.
+- data-testid="backtest-empty-state" on the empty state.
+- data-testid="backtest-error" on the error card (+ "-msg" on the
+  message span, "-retry" on the button).
+- data-testid="backtest-kpi-{roi|sharpe|drawdown|winrate|calmar|var|
+  brier}" on each KpiTile.
+- data-testid="backtest-trade-stats-table" on the trade statistics
+  table.
+- data-testid="backtest-monte-carlo" on the Monte Carlo outcome
+  distribution viz.
+- data-tone="{good|warn|poor|info|neutral}" on each KpiTile, each
+  trade stats row, each Monte Carlo bucket bar, and the equity curve's
+  <path> stroke (via the Tone cfg's stroke field).
+
+Stage Summary:
+- **Final line count**: 1206 lines (was 322 — +1009 insertions / −125
+  deletions per `git diff --stat`).
+- **All 10 polish affordances applied** while preserving the existing
+  API calls (POST /api/backtest/run via apiFetch with Bearer token),
+  all existing class names (card, badge + badge-purple, btn + btn-
+  primary + btn-sm, mono, scrollbar-thin, kpi-card + kpi-label +
+  kpi-value + kpi-sub, heatmap-cell-pos-3 / -2 / -1 / zero / neg-1 /
+  -2 / -3, spinner, shadow-2xl), all existing role attributes
+  (role=img + aria-label="Simulated Equity Curve" on the equity curve
+  SVG, role=alert on the error card, role=status on the loading
+  skeleton + empty state), all existing aria-labels, all 6
+  POPULAR_STRATS option text contents, all KPI labels (single-match),
+  the Sharpe "1.85" + max drawdown "-8.50%" values, the "Final
+  Capital:" text, the "Monthly Returns Heatmap" title + month labels +
+  "N periods" badge, the "Monte Carlo path modeling" subheading, and
+  the 'use client' directive preserved.
+- **Verification — `bun run lint`**: clean (exit 0, no output).
+- **Verification — `bunx tsc --noEmit --skipLibCheck`**: 0 errors.
+- **Verification — `bunx vitest run src/components/BacktestLabView.test.tsx`**:
+  18/18 tests pass in ~815ms. Confirms the full W22-2 test contract is
+  preserved.
+
+Files touched:
+- `src/components/BacktestLabView.tsx` (UI polish pass, 322 → 1206
+  lines, +1009 / −125 per `git diff --stat`).
+- `/home/z/my-project/agent-ctx/W55-b-full-stack-developer.md`
+  (detailed agent work record).
+- `worklog.md` (this appended entry).
+
+Push verification:
+```
+$ wc -l src/components/BacktestLabView.tsx
+1206 src/components/BacktestLabView.tsx
+$ git diff --stat src/components/BacktestLabView.tsx
+ src/components/BacktestLabView.tsx | 1134 ++++++++++++++++++++++++++++++++----
+ 1 file changed, 1009 insertions(+), 125 deletions(-)
+$ bun run lint
+$ echo "lint exit: $?"
+lint exit: 0
+$ bunx tsc --noEmit --skipLibCheck
+$ echo "tsc exit: $?"
+tsc exit: 0
+$ bunx vitest run src/components/BacktestLabView.test.tsx | tail -5
+ Test Files  1 passed (1)
+      Tests  18 passed (18)
+```
+
+Final status:
+- **Polish**: complete — all 10 spec items + 4 additional refinements
+  applied (header FlaskConical icon, config bar PulseDot trailing,
+  monthly heatmap hover lift, trade stats responsive 2/3-column layout,
+  MC card tone-tinted endpoint labels).
+- **Backwards-compat**: full — all props, API calls, class names,
+  testids, role attributes, aria-labels, test contracts, and the
+  'use client' directive preserved. All 18 tests pass.
+- **Lint**: clean (exit 0).
+- **TypeScript**: 0 errors.
+- **Tests**: 18/18 pass.
+
+**BacktestLabView is production-ready with the premium W55-b visual
+layer, visually consistent with the W50-54 MarketsPanel /
+PositionsPanel / MarketScreener / OrderFlowPanel / StrategyMatrix /
+StrategyPerformancePanel / MLValidationPanel / DeepAnalysisView
+redesign family.**
+
+
+## W55-a — full-stack-developer — Polish LeaderboardPanel (premium visual layer)
+
+**Task ID**: W55-a
+**Agent**: full-stack-developer
+**Scope**: EDIT (additive + visual polish) of:
+- `src/components/LeaderboardPanel.tsx` (191 → 621 lines, +508 / −78)
+
+No new files, no test changes, no API changes. Existing test suite
+(`LeaderboardPanel.test.tsx` 21 tests) continues to pass verbatim —
+every test-matched string, every aria-label, every medal emoji, every
+tone-coloured numeric value, every class name preserved.
+
+### Goal
+
+Bring the strategy/performer ranking panel up to the same premium
+trading-terminal aesthetic as Wave 51-54's redesign family: shimmer
+skeleton loading state mirroring the leaderboard's 7-column layout,
+polished empty state with Lucide Trophy icon, refined table with
+uppercase 11px tracking-wider headers + SortIndicator glyphs + row-hover
+accent bar, rank badges (gold #1 / silver #2 / bronze #3 / muted for
+the rest) wrapping the medal emoji, tabular-nums on every numeric
+column, tone-coloured P&L + score + win rate (green/amber/red), a
+SectionHeader sub-component with ListOrdered icon + "Rankings" title
++ count badge, refined top-3 row styling (gold/silver/bronze left-edge
+accent bar on hover), and a polished error card with AlertTriangle +
+Retry button (calls `useRealtimeData.refetch()`) + the existing
+Dismiss button (aria-label preserved verbatim).
+
+### Constraints honoured
+
+- All existing functionality preserved — `useRealtimeData('/api/
+  leaderboard', { wsChannel: 'metrics', pollInterval: 10000, validate:
+  isLeaderboardPayload })` REST prefetch + WS subscription + polling
+  fallback + Live/Polling badge + `refetch()` on Retry.
+- All existing class names retained: `.card`, `.card-header`, `.card-
+  title`, `.badge` + `.badge-amber` / `-blue` / `-dim`, `.spinner`,
+  `.mono`, `.scrollbar-thin`, `.empty-state` (+ `-icon` / `-title` /
+  `-desc`), `.skeleton-line-sm`, `.btn` + `.btn-xs`.
+- All accessibility roles/labels preserved: `role=status` on loading +
+  empty, `role=alert` on error card, `aria-live=polite` on loading,
+  `aria-label="Dismiss leaderboard error"` on dismiss button, NEW
+  `aria-label="Retry leaderboard fetch"` on retry button, NEW
+  `aria-label="Sort by …"` on each sortable header button, NEW
+  `aria-label="Rank {N}"` on each rank badge.
+- All test-matched strings preserved verbatim:
+  - "Loading leaderboard…" caption (regex `/Loading leaderboard/`).
+  - "No closed trades yet" exact (empty-state title).
+  - "🏆 Strategy Leaderboard" header text (regex `/Strategy Leaderboard/`).
+  - "🥇" + "🥈" + "🥉" medal emojis (exact match — sole textContent of
+    their badge span, no nested children so `findByText` doesn't throw
+    "multiple elements").
+  - "80%" + "33%" win rate (exact).
+  - "PF 2.10" + "PF —" profit factor (exact).
+  - "5W" + "3W" closed trades (exact).
+  - "+$7.50" + "-$2.00" net P&L (exact).
+  - "+1.85" + "-0.45" risk-adjusted score (exact).
+  - "DD $-1.20" + "DD $-0.80" max drawdown (exact).
+  - "● Live" + "⟳ Polling" realtime badges (exact).
+  - "Leaderboard: HTTP 500" wrapped error text (regex `/Leaderboard:/i`
+    + `/HTTP 500/i`).
+- `'use client'` directive preserved at the top of the file.
+
+### Build
+
+Added 5 new inline sub-components (kept private to the panel so test
+mocks + ts-isolation stay clean):
+
+- `SortIndicator({ active, ascending })` — Lucide `ArrowUp` /
+  `ArrowDown` glyph on the active sort column, or an empty 10px slot
+  on inactive columns so the layout doesn't shift on sort toggle.
+  aria-hidden (sort state is exposed via the parent button's
+  `aria-label="Sort by …"`). Mirrors the W52-a MarketScreener
+  SortIndicator.
+- `ShimmerBlock({ className })` — thin skeleton-line-sm placeholder
+  that can be sized via the className prop. aria-hidden. Mirrors
+  MLPanel / MLValidationPanel ShimmerBlock.
+- `SectionHeader({ icon, title, description, tone, trailing })` —
+  Lucide icon + uppercase tracking-wider 9.5px title + optional dim
+  italic description + optional trailing node (badge / count). Mirrors
+  MLPanel / MLValidationPanel SectionHeader. Used by the Rankings
+  sub-section above the table.
+- `LeaderboardSkeleton({ rowCount })` — structured loading placeholder
+  mirroring the loaded table layout (caption + skeleton header row
+  mirroring the 7-column Rank | Strategy | Win | PF | DD | P&L |
+  Score layout + N skeleton rows). role=status + aria-live=polite +
+  data-testid="leaderboard-loading-skeleton". The "Loading
+  leaderboard…" caption is preserved verbatim above the skeleton rows
+  so the W22-1 test contract `getByText(/Loading leaderboard/)`
+  resolves.
+- `PolishedEmptyState()` — friendly empty-state with Lucide Trophy
+  icon (28px, dim text color) + .empty-state-title direct text node
+  "No closed trades yet" + .empty-state-desc dim description.
+  role=status + data-testid="leaderboard-empty-state". Replaces the
+  bare 🏆 emoji + plain text node.
+- `PolishedErrorCard({ message, detail, onRetry, onDismiss })` — red-
+  tinted error card with AlertTriangle icon + the full wrapped error
+  string ("Leaderboard: HTTP 500") rendered as the card's title (so
+  the W22-1 test contracts `findByText(/Leaderboard:/i)` +
+  `getByText(/HTTP 500/i)` still resolve) + dim detail + Retry
+  button (RefreshCw glyph, calls `useRealtimeData.refetch()`) + the
+  existing Dismiss button (aria-label="Dismiss leaderboard error"
+  preserved verbatim, X glyph). role=alert +
+  data-testid="leaderboard-error-card" + "-retry" / "-dismiss"
+  suffixes on the buttons.
+
+Applied the W51-2d Tone system locally (`Tone = good | warn | fail |
+info | neutral`) with self-contained text-color class strings (static
+so Tailwind 4's scanner picks them up). Used for tone-coloring the
+win rate (emerald >=50%, amber 40-50%, red <40%), net P&L (emerald
+profit / red loss), risk-adjusted score (emerald positive / red
+negative), and the rank-badge data-tone attribute.
+
+### All 9 polish affordances applied
+
+1. **Shimmer skeleton loading state** — the bare `spinner + "Loading
+   leaderboard…"` placeholder is wrapped in `<LeaderboardSkeleton/>`
+   which renders the caption (preserved verbatim) + a skeleton header
+   row mirroring the live 7-column table layout + 4 skeleton rows.
+   Uses the existing `.skeleton-line-sm` class. aria-hidden on the
+   skeleton rows (caption + role=status + aria-live=polite cover the
+   screen-reader announcement).
+
+2. **Polished empty state with Lucide icon + message** — the bare 🏆
+   emoji is replaced with a Lucide `Trophy` icon (size 28px, dim text
+   color) + .empty-state-title direct text node "No closed trades yet"
+   (preserved verbatim) + .empty-state-desc dim description. role=
+   status + data-testid="leaderboard-empty-state".
+
+3. **Refined table — uppercase headers + SortIndicator + row-hover
+   accent bar** — the bare `flex` rows now have a proper uppercase
+   11px tracking-wider font-bold text-[#5a637a] header row with a
+   SortIndicator glyph on every sortable column (Win / PF / DD / P&L
+   / Score). The `#` and `Strategy` columns are non-sortable captions.
+   Each row carries `hover:bg-cyan-500/[0.04]` (subtle background lift;
+   cyan reads as the panel's accent rather than the old
+   `hover:border-blue-500/30`) layered with `hover:shadow-[inset_3px_0_0_0_…]`
+   (left-edge accent bar via inset shadow — no layout shift). The
+   accent bar color varies by rank: gold for #1, slate for #2, bronze
+   for #3, cyan for the rest.
+
+4. **Rank badges (gold #1 / silver #2 / bronze #3 / muted rest)** —
+   the bare `🥇` / `🥈` / `🥉` / `${i+1}.` medal text now sits inside a
+   styled rank badge span with tone-tinted bg + ring + glow shadow:
+   - Rank 1: amber-500/15 bg + amber-300 text + amber-500/40 ring +
+     `shadow-[0_0_6px_rgba(251,191,36,0.30)]` gold glow.
+   - Rank 2: slate-300/15 bg + slate-200 text + slate-300/40 ring.
+   - Rank 3: orange-700/20 bg + orange-300 text + orange-600/40 ring.
+   - Rank 4+: `bg-[#1f2335]` muted bg + `text-[#7e8aaa]` muted text +
+     `ring-[#2a2f45]` muted ring.
+   The medal emoji is preserved as the SOLE textContent of the badge
+   span (no nested children) so `findByText('🥇')` resolves to exactly
+   one element. Each badge carries `data-tone={good|neutral|warn|
+   neutral}` based on rank for downstream CSS targeting.
+
+5. **Tabular-nums on all numeric columns** — closed trades (`5W`),
+   win rate (`80%`), profit factor (`PF 2.10`), max drawdown
+   (`DD $-1.20`), net P&L (`+$7.50`), risk-adjusted score (`+1.85`),
+   AND the strategy count badge in the SectionHeader trailing slot
+   now all carry `tabular-nums` so columns don't shift alignment when
+   values change between renders. The medal badge also carries
+   `tabular-nums` so the numeric ranks (4, 5, 6, …) align cleanly.
+
+6. **Tone-colored P&L values** — net P&L: emerald (`text-emerald-400`)
+   when profit, red (`text-red-400`) when loss. Risk-adjusted score:
+   same emerald/red mapping. Win rate: emerald >=50%, amber 40-50%,
+   red <40% so a trader reads pass/warn/fail at a glance. Max
+   drawdown: red when negative, muted otherwise. Each tone-colored
+   cell carries `data-tone={good|warn|fail|neutral}` for downstream
+   CSS targeting.
+
+7. **Section header with icon + uppercase title** — a `SectionHeader`
+   sub-component (mirrors MLPanel / MLValidationPanel) renders above
+   the table body with a Lucide `ListOrdered` icon + uppercase
+   tracking-wider 9.5px "Rankings" title + dim italic "risk-adjusted
+   net performance" description + a trailing `.badge .badge-dim`
+   strategy-count badge ("2 strategies"). tone=info (cyan) to match
+   the panel's accent.
+
+8. **Refined podium/top-3 display** — the top-3 rows carry tone-
+   tinted rank badges (gold/silver/bronze) AND a tone-tinted left-
+   edge accent bar on hover (gold/slate/bronze) so the trader can
+   immediately spot the podium. The medal emoji (🥇/🥈/🥉) is
+   preserved inside the badge so the existing test contract
+   (`findByText('🥇')` + `getByText('🥈')`) resolves.
+
+9. **Error state: polished error card with Retry** — the bare
+   `banner-danger` strip is replaced with `<PolishedErrorCard/>` — a
+   red-tinted card with `AlertTriangle` icon + the full wrapped
+   error string ("Leaderboard: HTTP 500") rendered as the card's
+   title (so the W22-1 test contracts `findByText(/Leaderboard:/i)`
+   + `getByText(/HTTP 500/i)` still resolve) + dim detail
+   ("Leaderboard API couldn't be reached. Check connectivity and
+   retry.") + a Retry button (`RefreshCw` glyph, calls
+   `useRealtimeData.refetch()`) + the existing Dismiss button
+   (aria-label="Dismiss leaderboard error" preserved verbatim, X
+   glyph). role=alert + data-testid="leaderboard-error-card" +
+   "-retry" / "-dismiss" suffixes on the buttons.
+
+### Additional refinements (beyond the 9 spec items)
+
+- **Header polish**: the panel header now has a Lucide `Trophy` icon
+  (size-3.5, amber) next to the existing "🏆 Strategy Leaderboard"
+  card-title text. The 🏆 emoji prefix is preserved verbatim so the
+  test contract `getByText(/Strategy Leaderboard/)` regex still
+  matches the text node. The header is unified across all 3 branches
+  (loading / empty / loaded) so the `getByText(/Strategy Leaderboard/)`
+  test resolves regardless of fetch state.
+- **Local sort state** — added a `sortBy` (default `'score'`) +
+  `sortAsc` (default `false`) state pair so the trader can re-sort
+  the table by Win / PF / DD / P&L / Score by clicking any sortable
+  header. The default `score desc` matches the backend's pre-ranking
+  so the initial render preserves the original order (and the test
+  contract that 🥇 maps to the highest-scoring strategy on first
+  render).
+- **Original-rank tracking** — each row is tagged with its
+  `originalRank` (the index in the backend's `ranked` array) so the
+  medal emoji always reflects the strategy's OFFICIAL rank, even
+  after the trader re-sorts the table by P&L / win rate / etc. (e.g.
+  sorting by P&L asc puts the worst performer at the top of the
+  view, but the 🥇 still maps to the highest-scoring strategy — the
+  badge reads "Rank 1 of N" by aria-label + title attribute so the
+  trader doesn't confuse the view position with the official rank).
+- **Sorted-rows memoization** — `sortedRanked` is memoized via
+  `useMemo(..., [rankedRows, sortBy, sortAsc])` so re-sorts don't
+  trigger unnecessary re-renders.
+- **Truncated strategy names with tooltip** — long strategy names
+  carry `truncate` + `title={strategy}` so the trader can hover to
+  see the full name if it gets clipped on a narrow viewport.
+- **Tooltip on every numeric cell** — each numeric cell carries a
+  `title="..."` tooltip with the human-readable metric name + raw
+  value (e.g. `title="Win rate 80.0%"`, `title="Net P&L $7.50"`).
+- **Row container with max-h-96 + custom scrollbar** — the rows
+  container carries `max-h-96 overflow-y-auto scrollbar-thin` so a
+  long leaderboard (10+ strategies) scrolls inside the panel rather
+  than stretching the card vertically. Mirrors the W51-2d MLPanel
+  scrollable list pattern.
+- **New CSS hooks added** (for downstream CSS layer to target):
+  - `data-testid="leaderboard-loading-skeleton"` on the loading
+    wrapper.
+  - `data-testid="leaderboard-empty-state"` on the empty-state
+    wrapper.
+  - `data-testid="leaderboard-error-card"` on the error card (+
+    `-retry` + `-dismiss` suffixes on the buttons).
+  - `data-tone={good|warn|fail|info|neutral}` on the win-rate cell,
+    net-P&L cell, risk-adjusted-score cell, max-drawdown cell, and
+    the rank-badge span.
+
+### Verification
+
+```
+$ wc -l src/components/LeaderboardPanel.tsx
+621 src/components/LeaderboardPanel.tsx
+
+$ git diff --stat HEAD src/components/LeaderboardPanel.tsx
+ src/components/LeaderboardPanel.tsx | 586 +++++++++++++++++++++++++++++++-----
+ 1 file changed, 508 insertions(+), 78 deletions(-)
+
+$ bun run lint 2>&1 | tail -3
+$ eslint .
+(clean — exit 0, no output)
+
+$ bunx tsc --noEmit --skipLibCheck 2>&1 | tail -3
+(0 errors — exit 0, no output)
+
+$ bunx vitest run src/components/LeaderboardPanel.test.tsx 2>&1 | tail -5
+ ✓ src/components/LeaderboardPanel.test.tsx (21 tests) 672ms
+ Test Files  1 passed (1)
+      Tests  21 passed (21)
+```
+
+### Stage Summary
+
+- **Final line count**: 621 lines (was 191 — +508 insertions / −78
+  deletions per `git diff --stat`).
+- **All 9 polish affordances applied** while preserving the existing
+  props, API calls (`useRealtimeData('/api/leaderboard', {...})` REST
+  + WS + 10s polling + `refetch()` on Retry), polling, class names,
+  accessibility roles/labels, test contracts, and the 'use client'
+  directive.
+- **Lint**: clean (exit 0, no output).
+- **TypeScript**: 0 errors (exit 0, no output).
+- **Tests**: 21/21 pass (was 21/21 — no regressions).
+
+### Files touched
+
+- `src/components/LeaderboardPanel.tsx` (UI polish pass, 191 → 621
+  lines, +508 / −78 per `git diff --stat`).
+- `/home/z/my-project/agent-ctx/W55-a-full-stack-developer.md` (detailed
+  agent work record).
+- `worklog.md` (this appended entry).
+
+**LeaderboardPanel is production-ready with the premium W55-a visual
+layer, visually consistent with the W51-2d MLPanel / AIMLCommandCenter
+/ W54-e MLValidationPanel redesign family.**
