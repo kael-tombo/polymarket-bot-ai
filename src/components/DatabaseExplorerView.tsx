@@ -91,7 +91,7 @@ const TONE: Record<Tone, { text: string }> = {
   warn:    { text: 'text-amber-400' },
   fail:    { text: 'text-red-400' },
   info:    { text: 'text-cyan-300' },
-  neutral: { text: 'text-[#dde1ed]' },
+  neutral: { text: 'text-[var(--text-primary)]' },
 }
 
 // ── Sub-components ─────────────────────────────────────────────────────────
@@ -124,11 +124,11 @@ function SectionHeader({
   return (
     <div className="flex items-center gap-1.5 min-w-0">
       <Icon className={`size-3 shrink-0 ${TONE[tone].text}`} aria-hidden="true" />
-      <span className="text-[9.5px] uppercase tracking-wider font-bold text-[#5a637a] shrink-0">
+      <span className="text-[9.5px] uppercase tracking-wider font-bold text-[var(--text-secondary)] shrink-0">
         {title}
       </span>
       {description && (
-        <span className="text-[8.5px] text-[#5a637a] italic truncate">{description}</span>
+        <span className="text-[8.5px] text-[var(--text-secondary)] italic truncate">{description}</span>
       )}
       {trailing && <span className="ml-auto shrink-0">{trailing}</span>}
     </div>
@@ -153,13 +153,13 @@ function TableSkeleton({ rowCount = 5 }: { rowCount?: number }) {
       aria-label="Querying database table records"
       data-testid="database-loading-skeleton"
     >
-      <div className="text-[10.5px] text-[#7e8aaa] flex items-center gap-2 pb-1">
+      <div className="text-[10.5px] text-[var(--text-secondary)] flex items-center gap-2 pb-1">
         <span className="spinner" aria-hidden="true" />
         <span>Querying table records…</span>
       </div>
       {/* Skeleton header row mirroring the .data-table column layout */}
       <div
-        className="flex items-center gap-3 px-2 py-1.5 border-b border-[#1f2335]"
+        className="flex items-center gap-3 px-2 py-1.5 border-b border-[var(--border)]"
         aria-hidden="true"
       >
         {Array.from({ length: 5 }).map((_, i) => (
@@ -170,7 +170,7 @@ function TableSkeleton({ rowCount = 5 }: { rowCount?: number }) {
       {Array.from({ length: rowCount }).map((_, i) => (
         <div
           key={i}
-          className="flex items-center gap-3 px-2 py-1.5 rounded border border-[#1f2335] bg-[#0e1015]"
+          className="flex items-center gap-3 px-2 py-1.5 rounded border border-[var(--border)] bg-[var(--bg-page)]"
           aria-hidden="true"
         >
           {Array.from({ length: 5 }).map((_, j) => (
@@ -196,7 +196,7 @@ function PolishedEmptyState({ tableName }: { tableName: TableName }) {
       data-testid="database-empty-state"
     >
       <Database
-        className="empty-state-icon text-[#5a637a] opacity-60"
+        className="empty-state-icon text-[var(--text-secondary)] opacity-60"
         size={28}
         aria-hidden="true"
       />
@@ -309,17 +309,17 @@ export default function DatabaseExplorerView() {
   const countTone: Tone = recordCount > 0 ? 'info' : 'neutral'
 
   return (
-    <div className="flex flex-col h-full bg-[#13161e] border border-[#1f2335] rounded-lg overflow-hidden overflow-y-auto scrollbar-thin">
+    <div className="flex flex-col h-full bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg overflow-hidden overflow-y-auto scrollbar-thin">
       {/* ── Header ─────────────────────────────────────────────────────────── */}
-      <div className="flex justify-between items-start gap-3 p-3 border-b border-[#1f2335]">
+      <div className="flex justify-between items-start gap-3 p-3 border-b border-[var(--border)]">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <Database className="size-3.5 text-cyan-400 shrink-0" aria-hidden="true" />
-            <span className="text-sm font-bold text-[#dde1ed]">
+            <span className="text-sm font-bold text-[var(--text-primary)]">
               Database &amp; Time-Series Explorer
             </span>
           </div>
-          <p className="text-xs text-[#7e8aaa] mt-0.5">
+          <p className="text-xs text-[var(--text-secondary)] mt-0.5">
             Inspect persisted historical tables, tick depth records, and ML feature stores
           </p>
         </div>
@@ -329,7 +329,7 @@ export default function DatabaseExplorerView() {
       <div className="flex flex-1 min-h-0 flex-col md:flex-row">
         {/* Schema explorer sidebar — replaces the bare emoji tab strip */}
         <aside
-          className="md:w-56 shrink-0 border-b md:border-b-0 md:border-r border-[#1f2335] bg-[#0e1015] p-2 space-y-1"
+          className="md:w-56 shrink-0 border-b md:border-b-0 md:border-r border-[var(--border)] bg-[var(--bg-page)] p-2 space-y-1"
           aria-label="Database tables"
         >
           <div className="px-1.5 pb-1.5">
@@ -351,14 +351,14 @@ export default function DatabaseExplorerView() {
                   onClick={() => setSelectedTable(t.id)}
                   className={`w-full text-left flex items-center gap-2 px-2 py-1.5 rounded border transition-colors ${
                     active
-                      ? 'bg-cyan-500/[0.08] border-cyan-500/40 text-[#dde1ed] shadow-[inset_2px_0_0_0_rgba(34,211,238,0.55)]'
-                      : 'bg-transparent border-transparent text-[#7e8aaa] hover:bg-cyan-500/[0.04] hover:text-[#dde1ed] hover:border-cyan-500/20'
+                      ? 'bg-cyan-500/[0.08] border-cyan-500/40 text-[var(--text-primary)] shadow-[inset_2px_0_0_0_rgba(34,211,238,0.55)]'
+                      : 'bg-transparent border-transparent text-[var(--text-secondary)] hover:bg-cyan-500/[0.04] hover:text-[var(--text-primary)] hover:border-cyan-500/20'
                   }`}
                   aria-current={active ? 'page' : undefined}
                   aria-pressed={active}
                 >
                   <Icon
-                    className={`size-3.5 shrink-0 ${active ? 'text-cyan-300' : 'text-[#7e8aaa]'}`}
+                    className={`size-3.5 shrink-0 ${active ? 'text-cyan-300' : 'text-[var(--text-secondary)]'}`}
                     aria-hidden="true"
                   />
                   <span className="text-[11px] font-medium truncate">{t.label}</span>
@@ -373,12 +373,12 @@ export default function DatabaseExplorerView() {
           {/* Section header — Lucide icon + uppercase title + table name
               (mono cyan) + tone-colored record-count badge + size
               estimate + polling-interval badge + CSV export. */}
-          <div className="px-3 pt-2.5 pb-2 border-b border-[#1f2335] flex flex-wrap items-center gap-2">
+          <div className="px-3 pt-2.5 pb-2 border-b border-[var(--border)] flex flex-wrap items-center gap-2">
             <div className="flex items-center gap-2 min-w-0 flex-1">
               <TableIcon className="size-3.5 text-cyan-400 shrink-0" aria-hidden="true" />
               <div className="min-w-0">
                 <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="text-[9.5px] uppercase tracking-wider font-bold text-[#5a637a]">
+                  <span className="text-[9.5px] uppercase tracking-wider font-bold text-[var(--text-secondary)]">
                     Table
                   </span>
                   <span className="mono text-cyan-400 text-xs font-medium">
@@ -401,14 +401,14 @@ export default function DatabaseExplorerView() {
                     </span>
                   )}
                 </div>
-                <span className="text-[10.5px] text-[#7e8aaa] block mt-0.5 leading-snug">
+                <span className="text-[10.5px] text-[var(--text-secondary)] block mt-0.5 leading-snug">
                   {TABLE_DESCRIPTIONS[selectedTable]}
                 </span>
               </div>
             </div>
             <div className="flex items-center gap-2 shrink-0">
               <span
-                className="inline-flex items-center gap-1 text-[10px] text-[#7e8aaa] mono tabular-nums"
+                className="inline-flex items-center gap-1 text-[10px] text-[var(--text-secondary)] mono tabular-nums"
                 title="Polling interval"
               >
                 <Timer className="w-3 h-3" aria-hidden="true" />
@@ -438,7 +438,7 @@ export default function DatabaseExplorerView() {
                   document.body.removeChild(link)
                 }}
                 disabled={records.length === 0}
-                className="btn btn-ghost btn-sm text-[10px] px-2 py-0.5 border border-[#1f2335] text-[#7e8aaa] hover:text-white hover:border-cyan-500/30 flex items-center gap-1 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="btn btn-ghost btn-sm text-[10px] px-2 py-0.5 border border-[var(--border)] text-[var(--text-secondary)] hover:text-white hover:border-cyan-500/30 flex items-center gap-1 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 title={`Export ${selectedTable} CSV`}
               >
                 <Download className="w-3 h-3" aria-hidden="true" />

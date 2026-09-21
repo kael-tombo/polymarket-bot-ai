@@ -321,7 +321,7 @@ const TONE: Record<Tone, ToneConfig> = {
   warn:    { bg: 'bg-amber-500/[0.06]',   border: 'border-amber-500/25',   text: 'text-amber-400',   bar: 'bg-amber-500',   dot: 'bg-amber-400',   label: 'text-amber-400/80',   halo: 'shadow-amber-500/10',   rowHover: 'hover:bg-amber-500/[0.04] hover:shadow-[inset_3px_0_0_0_rgba(245,158,11,0.45)]' },
   poor:    { bg: 'bg-red-500/[0.06]',     border: 'border-red-500/25',     text: 'text-red-400',     bar: 'bg-red-500',     dot: 'bg-red-400',     label: 'text-red-400/80',     halo: 'shadow-red-500/10',     rowHover: 'hover:bg-red-500/[0.04] hover:shadow-[inset_3px_0_0_0_rgba(239,68,68,0.45)]' },
   info:    { bg: 'bg-cyan-500/[0.06]',    border: 'border-cyan-500/25',    text: 'text-cyan-400',    bar: 'bg-cyan-500',    dot: 'bg-cyan-400',    label: 'text-cyan-400/80',    halo: 'shadow-cyan-500/10',    rowHover: 'hover:bg-cyan-500/[0.04] hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.45)]' },
-  neutral: { bg: 'bg-[#0e1015]',          border: 'border-[#1f2335]',      text: 'text-[#dde1ed]',   bar: 'bg-[#5a637a]',   dot: 'bg-[#5a637a]',   label: 'text-[#7e8aaa]',      halo: '',                         rowHover: 'hover:bg-cyan-500/[0.04] hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.45)]' },
+  neutral: { bg: 'bg-[var(--bg-page)]',          border: 'border-[var(--border)]',      text: 'text-[var(--text-primary)]',   bar: 'bg-[var(--text-secondary)]',   dot: 'bg-[var(--text-secondary)]',   label: 'text-[var(--text-secondary)]',      halo: '',                         rowHover: 'hover:bg-cyan-500/[0.04] hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.45)]' },
 }
 
 // ── Canonical stage pipeline (refined decision chain visualization) ────────
@@ -486,11 +486,11 @@ function SectionHeader({
   return (
     <div className="flex items-center gap-1.5 mb-2 min-w-0">
       <Icon className={`size-3 shrink-0 ${TONE[tone].text}`} aria-hidden="true" />
-      <span className="text-[10.5px] uppercase tracking-wider font-bold text-[#5a637a] truncate">
+      <span className="text-[10.5px] uppercase tracking-wider font-bold text-[var(--text-secondary)] truncate">
         {title}
       </span>
       {description && (
-        <span className="text-[9px] text-[#5a637a] italic truncate">{description}</span>
+        <span className="text-[9px] text-[var(--text-secondary)] italic truncate">{description}</span>
       )}
       {trailing && <span className="ml-auto shrink-0">{trailing}</span>}
     </div>
@@ -535,11 +535,11 @@ function StatChip({
   const cfg = TONE[tone]
   return (
     <div
-      className={`kpi-card bg-[#0e1015] border ${cfg.border} px-2.5 py-1 rounded-md flex items-center gap-1.5`}
+      className={`kpi-card bg-[var(--bg-page)] border ${cfg.border} px-2.5 py-1 rounded-md flex items-center gap-1.5`}
       title={title}
       data-tone={tone}
     >
-      <span className="kpi-label text-[10px] text-[#7e8aaa] uppercase font-semibold whitespace-nowrap flex items-center gap-1">
+      <span className="kpi-label text-[10px] text-[var(--text-secondary)] uppercase font-semibold whitespace-nowrap flex items-center gap-1">
         {Icon && <Icon className="size-2.5 shrink-0" aria-hidden="true" />}
         {/* IMPORTANT: keep `{label}:` as a single text node so the W30-2 test
             contract `getByText(/^Decisions:?$/)` resolves against this span. */}
@@ -551,7 +551,7 @@ function StatChip({
       >
         {value}
       </span>
-      {sub && <span className="kpi-sub text-[9.5px] text-[#5a637a]">{sub}</span>}
+      {sub && <span className="kpi-sub text-[9.5px] text-[var(--text-secondary)]">{sub}</span>}
     </div>
   )
 }
@@ -605,7 +605,7 @@ function StageIndicatorStrip({ events }: { events: DecisionEvent[] }) {
                 'flex items-center gap-1 px-1.5 py-0.5 rounded border text-[9px] font-bold uppercase tracking-wider transition-colors',
                 active
                   ? `${cfg.bg} ${cfg.border} ${cfg.text}`
-                  : 'bg-[#0e1015] border-[#1f2335]/60 text-[#3e4560]',
+                  : 'bg-[var(--bg-page)] border-[var(--border)]/60 text-[var(--text-dim)]',
               ].join(' ')}
               title={
                 active
@@ -619,7 +619,7 @@ function StageIndicatorStrip({ events }: { events: DecisionEvent[] }) {
               <span
                 className={[
                   'inline-block w-1.5 h-1.5 rounded-full',
-                  active ? cfg.dot : 'bg-[#3e4560]',
+                  active ? cfg.dot : 'bg-[var(--text-dim)]',
                 ].join(' ')}
                 aria-hidden="true"
               />
@@ -628,7 +628,7 @@ function StageIndicatorStrip({ events }: { events: DecisionEvent[] }) {
             {i < CANONICAL_STAGES.length - 1 && (
               <ArrowRight
                 className={`size-2.5 shrink-0 ${
-                  active ? 'text-[#5a637a]' : 'text-[#2d3450]'
+                  active ? 'text-[var(--text-secondary)]' : 'text-[var(--border-strong)]'
                 }`}
                 aria-hidden="true"
               />
@@ -638,7 +638,7 @@ function StageIndicatorStrip({ events }: { events: DecisionEvent[] }) {
       })}
       {/* Trailing P&L chip — pulled from the FILL stage's pnl field. */}
       <ArrowRight
-        className={`size-2.5 shrink-0 ${pnl != null ? 'text-[#5a637a]' : 'text-[#2d3450]'}`}
+        className={`size-2.5 shrink-0 ${pnl != null ? 'text-[var(--text-secondary)]' : 'text-[var(--border-strong)]'}`}
         aria-hidden="true"
       />
       <div
@@ -646,7 +646,7 @@ function StageIndicatorStrip({ events }: { events: DecisionEvent[] }) {
           'flex items-center gap-1 px-1.5 py-0.5 rounded border text-[9px] font-bold uppercase tracking-wider tabular-nums transition-colors',
           pnl != null
             ? `${TONE[pnlTone].bg} ${TONE[pnlTone].border} ${TONE[pnlTone].text}`
-            : 'bg-[#0e1015] border-[#1f2335]/60 text-[#3e4560]',
+            : 'bg-[var(--bg-page)] border-[var(--border)]/60 text-[var(--text-dim)]',
         ].join(' ')}
         title={
           pnl != null
@@ -744,8 +744,8 @@ function StageNode({ event, isLast }: { event: DecisionEvent; isLast: boolean })
     <div className="flex items-start gap-2 min-w-0">
       {/* Timeline rail */}
       <div className="flex flex-col items-center pt-0.5 shrink-0">
-        <span className={`w-2.5 h-2.5 rounded-full ${style.dot} ring-2 ring-[#13161e]`} />
-        {!isLast && <span className="w-px flex-1 bg-[#1f2335] min-h-[24px]" />}
+        <span className={`w-2.5 h-2.5 rounded-full ${style.dot} ring-2 ring-[var(--bg-surface)]`} />
+        {!isLast && <span className="w-px flex-1 bg-[var(--border)] min-h-[24px]" />}
       </div>
       {/* Stage card */}
       <div
@@ -760,7 +760,7 @@ function StageNode({ event, isLast }: { event: DecisionEvent; isLast: boolean })
             {style.label}
           </span>
           <span
-            className="text-[9.5px] mono text-[#7e8aaa] tabular-nums"
+            className="text-[9.5px] mono text-[var(--text-secondary)] tabular-nums"
             title={fmtEpochMs(event.timestamp)}
           >
             {fmtAge(event.timestamp)}
@@ -771,7 +771,7 @@ function StageNode({ event, isLast }: { event: DecisionEvent; isLast: boolean })
             {detail}
           </div>
         )}
-        <div className="mt-0.5 text-[9.5px] text-[#5a637a] mono tabular-nums">
+        <div className="mt-0.5 text-[9.5px] text-[var(--text-secondary)] mono tabular-nums">
           {fmtEpochMs(event.timestamp)}
         </div>
       </div>
@@ -816,9 +816,9 @@ function DecisionChainView({
 
   if (primaryChain.length === 0) {
     return (
-      <div className="px-3 py-2 text-[11px] text-[#7e8aaa]">
+      <div className="px-3 py-2 text-[11px] text-[var(--text-secondary)]">
         No chain events recorded for decision{' '}
-        <span className="mono text-[#dde1ed]">{shortId(decisionId, 16)}</span>.
+        <span className="mono text-[var(--text-primary)]">{shortId(decisionId, 16)}</span>.
       </div>
     )
   }
@@ -868,11 +868,11 @@ function DecisionChainView({
       </div>
 
       {siblingDecisions.length > 0 && (
-        <div className="mt-3 pt-2 border-t border-[#1f2335]/60">
-          <div className="text-[10px] font-bold uppercase tracking-wider text-[#7e8aaa] mb-1.5 flex items-center gap-1.5">
+        <div className="mt-3 pt-2 border-t border-[var(--border)]/60">
+          <div className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-secondary)] mb-1.5 flex items-center gap-1.5">
             <Layers className="size-3" aria-hidden="true" />
             <span>Other Recent Decisions for this Token</span>
-            <span className="text-[9.5px] text-[#5a637a] font-normal normal-case tracking-normal">
+            <span className="text-[9.5px] text-[var(--text-secondary)] font-normal normal-case tracking-normal">
               ({siblingDecisions.length})
             </span>
           </div>
@@ -891,13 +891,13 @@ function DecisionChainView({
               return (
                 <div
                   key={d.id}
-                  className={`flex items-center justify-between gap-2 text-[11px] bg-[#0e1015] px-2 py-1 rounded border ${dCfg.border}`}
+                  className={`flex items-center justify-between gap-2 text-[11px] bg-[var(--bg-page)] px-2 py-1 rounded border ${dCfg.border}`}
                   title={`Decision ${d.id}`}
                   data-tone={dTone}
                 >
                   <span className="mono text-[#c8cfe0] truncate">{shortId(d.id, 18)}</span>
                   <div className="flex items-center gap-1.5 shrink-0">
-                    <span className="text-[9.5px] mono text-[#5a637a] tabular-nums">
+                    <span className="text-[9.5px] mono text-[var(--text-secondary)] tabular-nums">
                       {d.events.length} stage{d.events.length === 1 ? '' : 's'}
                     </span>
                     <span
@@ -905,7 +905,7 @@ function DecisionChainView({
                     >
                       {dOutcome}
                     </span>
-                    <span className="text-[9.5px] mono text-[#7e8aaa] tabular-nums">
+                    <span className="text-[9.5px] mono text-[var(--text-secondary)] tabular-nums">
                       {fmtAge(d.lastTs)}
                     </span>
                   </div>
@@ -928,7 +928,7 @@ function DecisionChainView({
 function DecisionColumnHeader() {
   return (
     <div
-      className="hidden md:flex items-center gap-2 px-3 py-1.5 border-b border-[#1f2335] text-[9px] font-bold uppercase tracking-wider text-[#5a637a] bg-[#0e1015]/60"
+      className="hidden md:flex items-center gap-2 px-3 py-1.5 border-b border-[var(--border)] text-[9px] font-bold uppercase tracking-wider text-[var(--text-secondary)] bg-[var(--bg-page)]/60"
       role="row"
       aria-hidden="true"
     >
@@ -979,8 +979,8 @@ function DecisionCard({
 
   return (
     <div
-      className={`border-b border-[#1f2335]/60 transition-colors ${
-        expanded ? 'bg-[#0e1015]' : TONE[outcomeT].rowHover
+      className={`border-b border-[var(--border)]/60 transition-colors ${
+        expanded ? 'bg-[var(--bg-page)]' : TONE[outcomeT].rowHover
       }`}
       data-tone={outcomeT}
       data-testid="decision-ledger-row"
@@ -995,7 +995,7 @@ function DecisionCard({
       >
         <ChevronRight
           size={14}
-          className="text-[#7e8aaa] shrink-0 transition-transform"
+          className="text-[var(--text-secondary)] shrink-0 transition-transform"
           aria-hidden="true"
           style={expanded ? { transform: 'rotate(90deg)' } : undefined}
         />
@@ -1021,14 +1021,14 @@ function DecisionCard({
         {/* Token + age + reason */}
         <div className="flex-1 min-w-0">
           <div
-            className="text-[11px] mono text-[#dde1ed] truncate"
+            className="text-[11px] mono text-[var(--text-primary)] truncate"
             title={row.token_id}
           >
             {shortId(row.token_id, 22)}
           </div>
-          <div className="text-[9.5px] text-[#5a637a] flex items-center gap-1.5 flex-wrap">
+          <div className="text-[9.5px] text-[var(--text-secondary)] flex items-center gap-1.5 flex-wrap">
             <span className="mono tabular-nums">{fmtAge(row.timestamp)}</span>
-            <span className="text-[#3e4560]">·</span>
+            <span className="text-[var(--text-dim)]">·</span>
             <span>{reasonLabel}</span>
           </div>
         </div>
@@ -1036,7 +1036,7 @@ function DecisionCard({
         {/* Metrics — tabular-nums on every numeric cell so columns don't shift. */}
         <div className="hidden sm:flex items-center gap-3 shrink-0">
           <div className="text-right w-[44px]">
-            <div className="text-[9px] text-[#7e8aaa] uppercase font-semibold">Edge</div>
+            <div className="text-[9px] text-[var(--text-secondary)] uppercase font-semibold">Edge</div>
             <div
               className={`mono text-[11px] font-bold tabular-nums ${
                 edgePos ? 'text-green-400' : 'text-red-400'
@@ -1047,13 +1047,13 @@ function DecisionCard({
             </div>
           </div>
           <div className="text-right w-[44px]">
-            <div className="text-[9px] text-[#7e8aaa] uppercase font-semibold">Conf</div>
+            <div className="text-[9px] text-[var(--text-secondary)] uppercase font-semibold">Conf</div>
             <div className="mono text-[11px] font-bold text-cyan-300 tabular-nums">
               {fmtPct(row.confidence)}
             </div>
           </div>
           <div className="text-right w-[52px]">
-            <div className="text-[9px] text-[#7e8aaa] uppercase font-semibold">Mid</div>
+            <div className="text-[9px] text-[var(--text-secondary)] uppercase font-semibold">Mid</div>
             <div className="mono text-[11px] text-[#c8cfe0] tabular-nums">
               {row.market_mid != null ? fmtPrice(row.market_mid) : '—'}
             </div>
@@ -1062,7 +1062,7 @@ function DecisionCard({
 
         {/* Strategy pill */}
         <span
-          className="text-[9.5px] mono px-1.5 py-0.5 rounded bg-[#0e1015] border border-[#1f2335] text-[#7e8aaa] shrink-0 hidden md:inline-block w-[88px] text-right truncate"
+          className="text-[9.5px] mono px-1.5 py-0.5 rounded bg-[var(--bg-page)] border border-[var(--border)] text-[var(--text-secondary)] shrink-0 hidden md:inline-block w-[88px] text-right truncate"
           title="Strategy"
         >
           {row.strategy || '—'}
@@ -1073,7 +1073,7 @@ function DecisionCard({
       {expanded && (
         <div className="px-1 pb-2">
           {chainLoading && (
-            <div className="px-3 py-3 flex items-center gap-2 text-[11px] text-[#7e8aaa]">
+            <div className="px-3 py-3 flex items-center gap-2 text-[11px] text-[var(--text-secondary)]">
               <Loader2 size={12} className="animate-spin" aria-hidden="true" />
               Loading decision chain…
             </div>
@@ -1103,16 +1103,16 @@ function DecisionCard({
 function DecisionSkeleton() {
   return (
     <div
-      className="card h-full flex flex-col p-3 bg-[#13161e] border border-[#1f2335] shadow-xl"
+      className="card h-full flex flex-col p-3 bg-[var(--bg-surface)] border border-[var(--border)] shadow-xl"
       role="status"
       aria-live="polite"
       aria-label="Loading decision ledger"
       data-testid="decision-ledger-loading-skeleton"
     >
-      <div className="card-header pb-2 mb-3 border-b border-[#1f2335] flex items-center justify-between">
+      <div className="card-header pb-2 mb-3 border-b border-[var(--border)] flex items-center justify-between">
         <div className="flex items-center gap-2">
           <PulseDot tone="info" pulse={false} />
-          <span className="card-title text-xs font-bold text-[#dde1ed]">
+          <span className="card-title text-xs font-bold text-[var(--text-primary)]">
             🧠 DECISION LEDGER
           </span>
         </div>
@@ -1123,7 +1123,7 @@ function DecisionSkeleton() {
         {Array.from({ length: 4 }).map((_, i) => (
           <div
             key={i}
-            className="kpi-card skeleton-card bg-[#0e1015] border border-[#1f2335] px-2.5 py-1 rounded-md flex items-center gap-1.5"
+            className="kpi-card skeleton-card bg-[var(--bg-page)] border border-[var(--border)] px-2.5 py-1 rounded-md flex items-center gap-1.5"
           >
             <ShimmerBlock className="!w-16 !h-2.5" />
             <ShimmerBlock className="!w-10 !h-3.5" />
@@ -1138,7 +1138,7 @@ function DecisionSkeleton() {
         <ShimmerBlock className="!w-20 !h-7" />
       </div>
       {/* Column header shimmer */}
-      <div className="hidden md:flex items-center gap-2 px-3 py-1.5 border-b border-[#1f2335]">
+      <div className="hidden md:flex items-center gap-2 px-3 py-1.5 border-b border-[var(--border)]">
         <ShimmerBlock className="!w-6 !h-2.5" />
         <ShimmerBlock className="!w-16 !h-2.5" />
         <ShimmerBlock className="!w-24 !h-2.5" />
@@ -1153,7 +1153,7 @@ function DecisionSkeleton() {
         {Array.from({ length: 7 }).map((_, i) => (
           <div
             key={i}
-            className="skeleton-card flex items-center gap-2 px-3 py-2.5 border-b border-[#1f2335]/40"
+            className="skeleton-card flex items-center gap-2 px-3 py-2.5 border-b border-[var(--border)]/40"
           >
             <ShimmerBlock className="!w-3 !h-3" />
             <ShimmerBlock className="!w-20 !h-3.5" />
@@ -1183,11 +1183,11 @@ function PolishedEmptyState({ title, desc }: { title: string; desc: string }) {
       role="status"
       data-testid="decision-ledger-empty-state"
     >
-      <Brain className="size-7 text-[#5a637a] opacity-60" aria-hidden="true" />
-      <span className="empty-state-title text-sm font-semibold text-[#dde1ed]">
+      <Brain className="size-7 text-[var(--text-secondary)] opacity-60" aria-hidden="true" />
+      <span className="empty-state-title text-sm font-semibold text-[var(--text-primary)]">
         {title}
       </span>
-      <span className="empty-state-desc text-xs max-w-sm text-center text-[#7e8aaa]">
+      <span className="empty-state-desc text-xs max-w-sm text-center text-[var(--text-secondary)]">
         {desc}
       </span>
     </div>
@@ -1212,14 +1212,14 @@ function PolishedErrorState({
 }) {
   return (
     <div
-      className="card h-full flex flex-col p-3 bg-[#13161e] border border-red-500/30 shadow-xl"
+      className="card h-full flex flex-col p-3 bg-[var(--bg-surface)] border border-red-500/30 shadow-xl"
       role="alert"
       data-testid="decision-ledger-error"
     >
-      <div className="card-header pb-2 mb-2 border-b border-[#1f2335] flex items-center justify-between">
+      <div className="card-header pb-2 mb-2 border-b border-[var(--border)] flex items-center justify-between">
         <div className="flex items-center gap-2">
           <PulseDot tone="poor" pulse={false} />
-          <span className="card-title text-xs font-bold text-[#dde1ed]">
+          <span className="card-title text-xs font-bold text-[var(--text-primary)]">
             🧠 DECISION LEDGER
           </span>
         </div>
@@ -1227,11 +1227,11 @@ function PolishedErrorState({
       </div>
       <div className="flex-1 flex flex-col items-center justify-center gap-2 p-6 text-center">
         <AlertTriangle size={28} className="text-red-400" aria-hidden="true" />
-        <span className="text-xs text-[#dde1ed] font-medium">
+        <span className="text-xs text-[var(--text-primary)] font-medium">
           Decision ledger unavailable
         </span>
         {detail && (
-          <span className="text-[11px] text-[#7e8aaa] max-w-md break-words">{detail}</span>
+          <span className="text-[11px] text-[var(--text-secondary)] max-w-md break-words">{detail}</span>
         )}
         <button
           onClick={onRetry}
@@ -1429,13 +1429,13 @@ export default function DecisionLedgerPanel() {
 
   // ── Main render ───────────────────────────────────────────────────────
   return (
-    <div className="card h-full flex flex-col p-3 bg-[#13161e] border border-[#1f2335] shadow-xl">
+    <div className="card h-full flex flex-col p-3 bg-[var(--bg-surface)] border border-[var(--border)] shadow-xl">
       {/* Header with Stats Strip */}
-      <div className="card-header pb-2 mb-2 border-b border-[#1f2335] flex flex-wrap items-center justify-between gap-2">
+      <div className="card-header pb-2 mb-2 border-b border-[var(--border)] flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           {/* PulseDot — live decision tracking indicator (pulses when not in error state). */}
           <PulseDot tone="info" pulse />
-          <span className="card-title text-xs font-bold text-[#dde1ed] tracking-wide">
+          <span className="card-title text-xs font-bold text-[var(--text-primary)] tracking-wide">
             🧠 DECISION LEDGER
           </span>
           <span
@@ -1491,7 +1491,7 @@ export default function DecisionLedgerPanel() {
           )}
           {lastUpdated && (
             <span
-              className="text-[9.5px] text-[#5a637a] mono ml-1 flex items-center gap-1 tabular-nums"
+              className="text-[9.5px] text-[var(--text-secondary)] mono ml-1 flex items-center gap-1 tabular-nums"
               title={`Last refresh: ${new Date(lastUpdated).toLocaleString()}`}
             >
               <Clock size={10} aria-hidden="true" />
@@ -1514,7 +1514,7 @@ export default function DecisionLedgerPanel() {
           <div className="relative flex-1 min-w-[180px] max-w-xs">
             <Search
               size={12}
-              className="absolute left-2 top-1/2 -translate-y-1/2 text-[#5a637a] pointer-events-none"
+              className="absolute left-2 top-1/2 -translate-y-1/2 text-[var(--text-secondary)] pointer-events-none"
               aria-hidden="true"
             />
             <input
@@ -1522,13 +1522,13 @@ export default function DecisionLedgerPanel() {
               value={tokenQuery}
               onChange={(e) => setTokenQuery(e.target.value)}
               placeholder="Search token, strategy, decision_id…"
-              className="input input-sm w-full text-xs bg-[#0e1015] border border-[#1f2335] focus:border-cyan-500/50 focus:outline-none focus-visible:ring-1 focus-visible:ring-cyan-500/30 rounded pl-7 pr-2.5 py-1.5 text-[#dde1ed] placeholder-[#3e4560] transition-all"
+              className="input input-sm w-full text-xs bg-[var(--bg-page)] border border-[var(--border)] focus:border-cyan-500/50 focus:outline-none focus-visible:ring-1 focus-visible:ring-cyan-500/30 rounded pl-7 pr-2.5 py-1.5 text-[var(--text-primary)] placeholder-[var(--text-dim)] transition-all"
               aria-label="Search decisions"
             />
             {tokenQuery && (
               <button
                 onClick={() => setTokenQuery('')}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-[#7e8aaa] hover:text-white focus:outline-none focus-visible:ring-1 focus-visible:ring-cyan-500/30 rounded"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-[var(--text-secondary)] hover:text-white focus:outline-none focus-visible:ring-1 focus-visible:ring-cyan-500/30 rounded"
                 aria-label="Clear search"
               >
                 ✕
@@ -1539,7 +1539,7 @@ export default function DecisionLedgerPanel() {
           <select
             value={actionFilter}
             onChange={(e) => setActionFilter(e.target.value as ActionFilter)}
-            className="bg-[#0e1015] border border-[#1f2335] text-[#7e8aaa] rounded text-[10px] font-semibold px-2 py-1 outline-none cursor-pointer hover:border-cyan-500/30 focus:border-cyan-500/50 focus:outline-none focus-visible:ring-1 focus-visible:ring-cyan-500/30"
+            className="bg-[var(--bg-page)] border border-[var(--border)] text-[var(--text-secondary)] rounded text-[10px] font-semibold px-2 py-1 outline-none cursor-pointer hover:border-cyan-500/30 focus:border-cyan-500/50 focus:outline-none focus-visible:ring-1 focus-visible:ring-cyan-500/30"
             aria-label="Filter by action type"
           >
             {(Object.keys(ACTION_LABELS) as ActionFilter[]).map((k) => (
@@ -1552,7 +1552,7 @@ export default function DecisionLedgerPanel() {
           <select
             value={outcomeFilter}
             onChange={(e) => setOutcomeFilter(e.target.value as OutcomeFilter)}
-            className="bg-[#0e1015] border border-[#1f2335] text-[#7e8aaa] rounded text-[10px] font-semibold px-2 py-1 outline-none cursor-pointer hover:border-cyan-500/30 focus:border-cyan-500/50 focus:outline-none focus-visible:ring-1 focus-visible:ring-cyan-500/30"
+            className="bg-[var(--bg-page)] border border-[var(--border)] text-[var(--text-secondary)] rounded text-[10px] font-semibold px-2 py-1 outline-none cursor-pointer hover:border-cyan-500/30 focus:border-cyan-500/50 focus:outline-none focus-visible:ring-1 focus-visible:ring-cyan-500/30"
             aria-label="Filter by outcome"
           >
             {(Object.keys(OUTCOME_LABELS) as OutcomeFilter[]).map((k) => (
@@ -1563,7 +1563,7 @@ export default function DecisionLedgerPanel() {
           </select>
           <button
             onClick={fetchList}
-            className="btn btn-ghost btn-sm text-[10px] px-2 py-1 border border-[#1f2335] text-[#7e8aaa] hover:text-white hover:border-cyan-500/30 hover:bg-cyan-500/[0.04] flex items-center gap-1 focus:outline-none focus-visible:ring-1 focus-visible:ring-cyan-500/30"
+            className="btn btn-ghost btn-sm text-[10px] px-2 py-1 border border-[var(--border)] text-[var(--text-secondary)] hover:text-white hover:border-cyan-500/30 hover:bg-cyan-500/[0.04] flex items-center gap-1 focus:outline-none focus-visible:ring-1 focus-visible:ring-cyan-500/30"
             title="Refresh now"
             aria-label="Refresh decision ledger"
           >
@@ -1594,13 +1594,13 @@ export default function DecisionLedgerPanel() {
               title={`Rejection Audit · ${filteredRows.length} ${filteredRows.length === 1 ? 'entry' : 'entries'}`}
               tone="poor"
               trailing={
-                <span className="text-[9px] mono text-[#5a637a] tabular-nums">
+                <span className="text-[9px] mono text-[var(--text-secondary)] tabular-nums">
                   {filteredRows.length} of {rows.length}
                 </span>
               }
             />
             <DecisionColumnHeader />
-            <div className="divide-y divide-[#1f2335]/40">
+            <div className="divide-y divide-[var(--border)]/40">
               {filteredRows.map((r) => (
                 <DecisionCard
                   key={r.decision_id || `${r.token_id}-${r.timestamp}`}

@@ -18,8 +18,8 @@
 // redesign family. All existing functionality, class names, test
 // contracts, aria-labels, and API calls are preserved.
 //
-// Visual language mirrors ObservabilityPanel.tsx (dark `#13161e` card
-// surface, `#1f2335` borders, `#dde1ed` primary text). Polls every
+// Visual language mirrors ObservabilityPanel.tsx (dark `var(--bg-surface)` card
+// surface, `var(--border)` borders, `var(--text-primary)` primary text). Polls every
 // 30s and pauses when the document is hidden (same visibility-aware
 // pattern used across the W8–W13 panels).
 'use client'
@@ -79,7 +79,7 @@ const TONE: Record<Tone, ToneConfig> = {
   warn:    { bg: 'bg-amber-500/[0.06]',   border: 'border-amber-500/25',   text: 'text-amber-400',   bar: 'bg-amber-500',   dot: 'bg-amber-400',   label: 'text-amber-400/80',   halo: 'shadow-amber-500/10',   rowHover: 'hover:shadow-[inset_3px_0_0_0_rgba(251,191,36,0.55)]' },
   poor:    { bg: 'bg-red-500/[0.06]',     border: 'border-red-500/25',     text: 'text-red-400',     bar: 'bg-red-500',     dot: 'bg-red-400',     label: 'text-red-400/80',     halo: 'shadow-red-500/10',     rowHover: 'hover:shadow-[inset_3px_0_0_0_rgba(239,68,68,0.55)]' },
   info:    { bg: 'bg-cyan-500/[0.06]',    border: 'border-cyan-500/25',    text: 'text-cyan-400',    bar: 'bg-cyan-500',    dot: 'bg-cyan-400',    label: 'text-cyan-400/80',    halo: 'shadow-cyan-500/10',    rowHover: 'hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.55)]' },
-  neutral: { bg: 'bg-[#0e1015]',          border: 'border-[#1f2335]',      text: 'text-[#dde1ed]',   bar: 'bg-[#5a637a]',   dot: 'bg-[#5a637a]',   label: 'text-[#7e8aaa]',      halo: '',                       rowHover: 'hover:shadow-[inset_3px_0_0_0_rgba(125,138,170,0.35)]' },
+  neutral: { bg: 'bg-[var(--bg-page)]',          border: 'border-[var(--border)]',      text: 'text-[var(--text-primary)]',   bar: 'bg-[var(--text-secondary)]',   dot: 'bg-[var(--text-secondary)]',   label: 'text-[var(--text-secondary)]',      halo: '',                       rowHover: 'hover:shadow-[inset_3px_0_0_0_rgba(125,138,170,0.35)]' },
 }
 
 /** Map a hit-count to a tone so rows + badges convey severity at a glance:
@@ -188,11 +188,11 @@ function SectionHeader({
   return (
     <div className="flex items-center gap-1.5 mb-1.5">
       <Icon className={`size-3 ${TONE[tone].text}`} aria-hidden="true" />
-      <span className="text-[10.5px] uppercase tracking-wider font-bold text-[#5a637a]">
+      <span className="text-[10.5px] uppercase tracking-wider font-bold text-[var(--text-secondary)]">
         {title}
       </span>
       {description && (
-        <span className="text-[9px] text-[#5a637a] italic truncate">{description}</span>
+        <span className="text-[9px] text-[var(--text-secondary)] italic truncate">{description}</span>
       )}
       {trailing && <span className="ml-auto shrink-0">{trailing}</span>}
     </div>
@@ -244,8 +244,8 @@ function KpiTile({
 }: KpiTileProps) {
   const cfg = tone ? TONE[tone] : null
   const cardCls = cfg
-    ? `kpi-card relative rounded p-2.5 border ${cfg.border} ${cfg.bg} overflow-hidden transition-colors hover:border-[#2d3450]`
-    : 'kpi-card relative rounded p-2.5 border border-[#1f2335] bg-[#0e1015] overflow-hidden transition-colors hover:border-[#2d3450]'
+    ? `kpi-card relative rounded p-2.5 border ${cfg.border} ${cfg.bg} overflow-hidden transition-colors hover:border-[var(--border-strong)]`
+    : 'kpi-card relative rounded p-2.5 border border-[var(--border)] bg-[var(--bg-page)] overflow-hidden transition-colors hover:border-[var(--border-strong)]'
   return (
     <div className={cardCls} title={title} data-tone={tone ?? 'neutral'}>
       <span className={`kpi-label flex items-center gap-1.5 ${cfg ? cfg.label : ''}`}>
@@ -259,9 +259,9 @@ function KpiTile({
       </span>
       {hint && <span className="kpi-sub truncate">{hint}</span>}
       {quality != null && quality > 0 && (
-        <div className="h-0.5 bg-[#1f2335] rounded-full mt-1 overflow-hidden">
+        <div className="h-0.5 bg-[var(--border)] rounded-full mt-1 overflow-hidden">
           <div
-            className={`h-full rounded-full transition-all duration-500 ${cfg ? cfg.bar : 'bg-[#5a637a]'}`}
+            className={`h-full rounded-full transition-all duration-500 ${cfg ? cfg.bar : 'bg-[var(--text-secondary)]'}`}
             style={{ width: `${Math.max(0, Math.min(100, quality))}%` }}
             aria-hidden="true"
           />
@@ -283,23 +283,23 @@ function EndpointRow({ endpoint, count, max }: EndpointRowProps) {
   const cfg = TONE[tone]
   return (
     <div
-      className={`flex items-center gap-2 py-1 px-1.5 rounded border-b border-[#1f2335]/50 last:border-b-0 hover:bg-cyan-500/[0.04] ${cfg.rowHover} transition-shadow`}
+      className={`flex items-center gap-2 py-1 px-1.5 rounded border-b border-[var(--border)]/50 last:border-b-0 hover:bg-cyan-500/[0.04] ${cfg.rowHover} transition-shadow`}
       data-tone={tone}
     >
       <div
-        className="flex-1 min-w-0 text-[11px] mono text-[#dde1ed] truncate tabular-nums"
+        className="flex-1 min-w-0 text-[11px] mono text-[var(--text-primary)] truncate tabular-nums"
         title={endpoint}
       >
         {shortEndpoint(endpoint, 48)}
       </div>
-      <div className="w-24 h-1.5 bg-[#1f2335] rounded-sm overflow-hidden flex-shrink-0">
+      <div className="w-24 h-1.5 bg-[var(--border)] rounded-sm overflow-hidden flex-shrink-0">
         <div
           className={`h-full transition-all duration-300 ${cfg.bar}`}
           style={{ width: `${pct}%` }}
           aria-hidden="true"
         />
       </div>
-      <div className="w-12 text-right text-[11px] mono text-[#dde1ed] font-semibold tabular-nums">
+      <div className="w-12 text-right text-[11px] mono text-[var(--text-primary)] font-semibold tabular-nums">
         {formatNumber(count)}
       </div>
     </div>
@@ -318,23 +318,23 @@ function ClientRow({ ip, count, max }: ClientRowProps) {
   const cfg = TONE[tone]
   return (
     <div
-      className={`flex items-center gap-2 py-1 px-1.5 rounded border-b border-[#1f2335]/50 last:border-b-0 hover:bg-cyan-500/[0.04] ${cfg.rowHover} transition-shadow`}
+      className={`flex items-center gap-2 py-1 px-1.5 rounded border-b border-[var(--border)]/50 last:border-b-0 hover:bg-cyan-500/[0.04] ${cfg.rowHover} transition-shadow`}
       data-tone={tone}
     >
       <div
-        className="flex-1 min-w-0 text-[11px] mono text-[#dde1ed] truncate tabular-nums"
+        className="flex-1 min-w-0 text-[11px] mono text-[var(--text-primary)] truncate tabular-nums"
         title={ip}
       >
         {shortIp(ip)}
       </div>
-      <div className="w-24 h-1.5 bg-[#1f2335] rounded-sm overflow-hidden flex-shrink-0">
+      <div className="w-24 h-1.5 bg-[var(--border)] rounded-sm overflow-hidden flex-shrink-0">
         <div
           className={`h-full transition-all duration-300 ${cfg.bar}`}
           style={{ width: `${pct}%` }}
           aria-hidden="true"
         />
       </div>
-      <div className="w-12 text-right text-[11px] mono text-[#dde1ed] font-semibold tabular-nums">
+      <div className="w-12 text-right text-[11px] mono text-[var(--text-primary)] font-semibold tabular-nums">
         {formatNumber(count)}
       </div>
     </div>
@@ -355,26 +355,26 @@ function ClientRow({ ip, count, max }: ClientRowProps) {
 function RateLimitSkeleton() {
   return (
     <div
-      className="flex flex-col h-full bg-[#13161e] border border-[#1f2335] rounded-lg overflow-hidden p-4 space-y-3"
+      className="flex flex-col h-full bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg overflow-hidden p-4 space-y-3"
       role="status"
       aria-live="polite"
       aria-label="Loading rate-limit stats"
       data-testid="rate-limit-loading-skeleton"
     >
-      <div className="flex items-center justify-between pb-2 border-b border-[#1f2335]">
+      <div className="flex items-center justify-between pb-2 border-b border-[var(--border)]">
         <div className="flex items-center gap-2">
           <PulseDot tone="warn" />
-          <span className="text-sm font-bold text-[#dde1ed]">Rate Limits</span>
+          <span className="text-sm font-bold text-[var(--text-primary)]">Rate Limits</span>
         </div>
         <span className="spinner" aria-hidden="true" />
       </div>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5" aria-hidden="true">
         {[0, 1, 2, 3].map((i) => (
-          <div key={i} className="kpi-card rounded p-2.5 border border-[#1f2335] bg-[#0e1015] space-y-1.5">
+          <div key={i} className="kpi-card rounded p-2.5 border border-[var(--border)] bg-[var(--bg-page)] space-y-1.5">
             <ShimmerBlock className="w-1/2" />
             <ShimmerBlock className="w-3/4 !h-4" />
             <ShimmerBlock className="w-2/3 !h-2" />
-            <div className="h-0.5 w-full bg-[#1f2335] rounded-full overflow-hidden">
+            <div className="h-0.5 w-full bg-[var(--border)] rounded-full overflow-hidden">
               <div
                 className="h-full w-1/2 rounded-full"
                 style={{
@@ -390,7 +390,7 @@ function RateLimitSkeleton() {
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3" aria-hidden="true">
         {[0, 1].map((i) => (
-          <div key={i} className="rounded-md border border-[#1f2335] bg-[#0e1015] p-3 space-y-2">
+          <div key={i} className="rounded-md border border-[var(--border)] bg-[var(--bg-page)] p-3 space-y-2">
             <ShimmerBlock className="w-32" />
             <ShimmerBlock className="w-full !h-[220px] !rounded-md" />
           </div>
@@ -398,7 +398,7 @@ function RateLimitSkeleton() {
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3" aria-hidden="true">
         {[0, 1].map((i) => (
-          <div key={i} className="rounded-md border border-[#1f2335] bg-[#0e1015] p-3 space-y-2">
+          <div key={i} className="rounded-md border border-[var(--border)] bg-[var(--bg-page)] p-3 space-y-2">
             <ShimmerBlock className="w-40" />
             <ShimmerBlock className="w-full" />
             <ShimmerBlock className="w-full" />
@@ -418,17 +418,17 @@ function RateLimitSkeleton() {
 function RateLimitEmptyState({ onRetry }: { onRetry: () => void }) {
   return (
     <div
-      className="flex flex-col h-full bg-[#13161e] border border-[#1f2335] rounded-lg overflow-hidden p-4"
+      className="flex flex-col h-full bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg overflow-hidden p-4"
       data-testid="rate-limit-empty-state"
     >
-      <div className="flex items-center justify-between pb-2 border-b border-[#1f2335]">
+      <div className="flex items-center justify-between pb-2 border-b border-[var(--border)]">
         <div>
           <div className="flex items-center gap-2">
             <PulseDot tone="good" pulse={false} />
-            <span className="text-sm font-bold text-[#dde1ed]">Rate Limits</span>
+            <span className="text-sm font-bold text-[var(--text-primary)]">Rate Limits</span>
             <span className="badge badge-dim text-[9.5px]">30s poll</span>
           </div>
-          <p className="text-xs text-[#7e8aaa] mt-0.5">
+          <p className="text-xs text-[var(--text-secondary)] mt-0.5">
             Per-route throttle analytics · last 1h window
           </p>
         </div>
@@ -438,7 +438,7 @@ function RateLimitEmptyState({ onRetry }: { onRetry: () => void }) {
         role="status"
       >
         <Inbox
-          className="empty-state-icon text-[#5a637a]"
+          className="empty-state-icon text-[var(--text-secondary)]"
           size={28}
           aria-hidden="true"
         />
@@ -498,13 +498,13 @@ function RateLimitErrorState({
 }) {
   return (
     <div
-      className="flex flex-col h-full bg-[#13161e] border border-[#1f2335] rounded-lg overflow-hidden p-4"
+      className="flex flex-col h-full bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg overflow-hidden p-4"
       data-testid="rate-limit-error-card"
     >
-      <div className="flex items-center justify-between pb-2 border-b border-[#1f2335]">
+      <div className="flex items-center justify-between pb-2 border-b border-[var(--border)]">
         <div className="flex items-center gap-2">
           <PulseDot tone="poor" pulse={false} />
-          <span className="text-sm font-bold text-[#dde1ed]">Rate Limits</span>
+          <span className="text-sm font-bold text-[var(--text-primary)]">Rate Limits</span>
           <span className="badge badge-red text-[9.5px]">Offline</span>
         </div>
       </div>
@@ -683,14 +683,14 @@ export default function RateLimitPanel() {
 
   // ── Render: main panel ───────────────────────────────────────────────
   return (
-    <div className="flex flex-col h-full bg-[#13161e] border border-[#1f2335] rounded-lg overflow-hidden">
+    <div className="flex flex-col h-full bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg overflow-hidden">
       {/* ── Header ─────────────────────────────────────────────────────── */}
-      <header className="flex flex-wrap justify-between items-center gap-2 p-4 pb-2 border-b border-[#1f2335]">
+      <header className="flex flex-wrap justify-between items-center gap-2 p-4 pb-2 border-b border-[var(--border)]">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <PulseDot tone="warn" pulse={refreshing} />
             <Activity className="w-4 h-4 text-amber-400 flex-shrink-0" aria-hidden="true" />
-            <h2 className="text-sm font-bold text-[#dde1ed]">Rate Limits</h2>
+            <h2 className="text-sm font-bold text-[var(--text-primary)]">Rate Limits</h2>
             <span className="badge badge-dim text-[9.5px]">30s poll</span>
             {refreshing && (
               <span className="badge badge-amber text-[9.5px]">
@@ -707,7 +707,7 @@ export default function RateLimitPanel() {
               </span>
             )}
           </div>
-          <p className="text-xs text-[#7e8aaa] mt-0.5 truncate">
+          <p className="text-xs text-[var(--text-secondary)] mt-0.5 truncate">
             Per-route throttle analytics · last 1h window ·{' '}
             updated {formatRelativeTime(lastUpdated)}
           </p>
@@ -744,7 +744,7 @@ export default function RateLimitPanel() {
             accentClass={
               (stats?.total_hits ?? 0) > 0
                 ? 'text-amber-400'
-                : 'text-[#dde1ed]'
+                : 'text-[var(--text-primary)]'
             }
             quality={Math.min(100, ((stats?.total_hits ?? 0) / 50) * 100)}
             title={`Total rate-limited requests in the last hour: ${formatNumber(stats?.total_hits ?? 0)}`}
@@ -758,7 +758,7 @@ export default function RateLimitPanel() {
             accentClass={
               (stats?.hits_per_minute_rate ?? 0) > 1
                 ? 'text-red-400'
-                : 'text-[#dde1ed]'
+                : 'text-[var(--text-primary)]'
             }
             quality={Math.min(100, ((stats?.hits_per_minute_rate ?? 0) / 2) * 100)}
             title={`Rate-limited requests per minute: ${formatRate(stats?.hits_per_minute_rate ?? 0)}`}
@@ -786,20 +786,20 @@ export default function RateLimitPanel() {
         {/* ── Charts row ─────────────────────────────────────────────── */}
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-3">
           {/* Hits by endpoint — PnLBarChart */}
-          <div className="bg-[#0e1015] border border-[#1f2335] rounded-md p-3 flex flex-col gap-2">
+          <div className="bg-[var(--bg-page)] border border-[var(--border)] rounded-md p-3 flex flex-col gap-2">
             <SectionHeader
               icon={Server}
               title="Hits by Endpoint"
               tone="info"
               trailing={
-                <span className="text-[9.5px] text-[#7e8aaa] mono tabular-nums">
+                <span className="text-[9.5px] text-[var(--text-secondary)] mono tabular-nums">
                   {endpointBarData.length} endpoints
                 </span>
               }
             />
             <div className="h-[220px]">
               {endpointBarData.length === 0 ? (
-                <div className="h-full flex items-center justify-center text-[11px] text-[#7e8aaa]">
+                <div className="h-full flex items-center justify-center text-[11px] text-[var(--text-secondary)]">
                   No hits recorded
                 </div>
               ) : (
@@ -825,20 +825,20 @@ export default function RateLimitPanel() {
           </div>
 
           {/* Hits per minute — Sparkline */}
-          <div className="bg-[#0e1015] border border-[#1f2335] rounded-md p-3 flex flex-col gap-2">
+          <div className="bg-[var(--bg-page)] border border-[var(--border)] rounded-md p-3 flex flex-col gap-2">
             <SectionHeader
               icon={TrendingUp}
               title="Hits per Minute (60m)"
               tone="info"
               trailing={
-                <span className="text-[9.5px] text-[#7e8aaa] mono tabular-nums">
+                <span className="text-[9.5px] text-[var(--text-secondary)] mono tabular-nums">
                   rate: {formatRate(stats?.hits_per_minute_rate ?? 0)}
                 </span>
               }
             />
             <div className="h-[220px] flex items-center justify-center">
               {perMinuteSeries.length < 2 ? (
-                <div className="text-[11px] text-[#7e8aaa]">
+                <div className="text-[11px] text-[var(--text-secondary)]">
                   Not enough samples for a trend yet
                 </div>
               ) : (
@@ -858,31 +858,31 @@ export default function RateLimitPanel() {
         {/* ── Tables row ─────────────────────────────────────────────── */}
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-3">
           {/* Top endpoints table */}
-          <div className="bg-[#0e1015] border border-[#1f2335] rounded-md p-3 flex flex-col gap-2">
+          <div className="bg-[var(--bg-page)] border border-[var(--border)] rounded-md p-3 flex flex-col gap-2">
             <SectionHeader
               icon={Server}
               title="Top Rate-Limited Endpoints"
               tone="warn"
               trailing={
-                <span className="text-[9.5px] text-[#7e8aaa] mono tabular-nums">
+                <span className="text-[9.5px] text-[var(--text-secondary)] mono tabular-nums">
                   {topEndpointList.length} shown
                 </span>
               }
             />
-            <div className="flex items-center gap-2 pb-1 border-b border-[#1f2335]">
-              <div className="flex-1 text-[9.5px] text-[#7e8aaa] font-semibold uppercase tracking-wider">
+            <div className="flex items-center gap-2 pb-1 border-b border-[var(--border)]">
+              <div className="flex-1 text-[9.5px] text-[var(--text-secondary)] font-semibold uppercase tracking-wider">
                 Endpoint
               </div>
-              <div className="w-24 text-[9.5px] text-[#7e8aaa] font-semibold uppercase tracking-wider text-center">
+              <div className="w-24 text-[9.5px] text-[var(--text-secondary)] font-semibold uppercase tracking-wider text-center">
                 Share
               </div>
-              <div className="w-12 text-right text-[9.5px] text-[#7e8aaa] font-semibold uppercase tracking-wider">
+              <div className="w-12 text-right text-[9.5px] text-[var(--text-secondary)] font-semibold uppercase tracking-wider">
                 Hits
               </div>
             </div>
             <div className="max-h-72 overflow-y-auto scrollbar-thin">
               {topEndpointList.length === 0 ? (
-                <div className="py-6 text-center text-[11px] text-[#7e8aaa]">
+                <div className="py-6 text-center text-[11px] text-[var(--text-secondary)]">
                   No endpoints throttled yet
                 </div>
               ) : (
@@ -899,31 +899,31 @@ export default function RateLimitPanel() {
           </div>
 
           {/* Top clients table */}
-          <div className="bg-[#0e1015] border border-[#1f2335] rounded-md p-3 flex flex-col gap-2">
+          <div className="bg-[var(--bg-page)] border border-[var(--border)] rounded-md p-3 flex flex-col gap-2">
             <SectionHeader
               icon={Globe}
               title="Top Rate-Limited Clients"
               tone="warn"
               trailing={
-                <span className="text-[9.5px] text-[#7e8aaa] mono tabular-nums">
+                <span className="text-[9.5px] text-[var(--text-secondary)] mono tabular-nums">
                   {topClientList.length} shown
                 </span>
               }
             />
-            <div className="flex items-center gap-2 pb-1 border-b border-[#1f2335]">
-              <div className="flex-1 text-[9.5px] text-[#7e8aaa] font-semibold uppercase tracking-wider">
+            <div className="flex items-center gap-2 pb-1 border-b border-[var(--border)]">
+              <div className="flex-1 text-[9.5px] text-[var(--text-secondary)] font-semibold uppercase tracking-wider">
                 Client IP
               </div>
-              <div className="w-24 text-[9.5px] text-[#7e8aaa] font-semibold uppercase tracking-wider text-center">
+              <div className="w-24 text-[9.5px] text-[var(--text-secondary)] font-semibold uppercase tracking-wider text-center">
                 Share
               </div>
-              <div className="w-12 text-right text-[9.5px] text-[#7e8aaa] font-semibold uppercase tracking-wider">
+              <div className="w-12 text-right text-[9.5px] text-[var(--text-secondary)] font-semibold uppercase tracking-wider">
                 Hits
               </div>
             </div>
             <div className="max-h-72 overflow-y-auto scrollbar-thin">
               {topClientList.length === 0 ? (
-                <div className="py-6 text-center text-[11px] text-[#7e8aaa]">
+                <div className="py-6 text-center text-[11px] text-[var(--text-secondary)]">
                   No clients throttled yet
                 </div>
               ) : (
@@ -941,21 +941,21 @@ export default function RateLimitPanel() {
         </section>
 
         {/* ── Top requested endpoints (all-requests view) ───────────── */}
-        <section className="bg-[#0e1015] border border-[#1f2335] rounded-md p-3 flex flex-col gap-2">
+        <section className="bg-[var(--bg-page)] border border-[var(--border)] rounded-md p-3 flex flex-col gap-2">
           <SectionHeader
             icon={Activity}
             title="Most-Requested Endpoints"
             tone="info"
             description="all-requests view"
           />
-          <div className="flex items-center gap-2 pb-1 border-b border-[#1f2335]">
-            <div className="flex-1 text-[9.5px] text-[#7e8aaa] font-semibold uppercase tracking-wider">
+          <div className="flex items-center gap-2 pb-1 border-b border-[var(--border)]">
+            <div className="flex-1 text-[9.5px] text-[var(--text-secondary)] font-semibold uppercase tracking-wider">
               Endpoint
             </div>
-            <div className="w-24 text-[9.5px] text-[#7e8aaa] font-semibold uppercase tracking-wider text-center">
+            <div className="w-24 text-[9.5px] text-[var(--text-secondary)] font-semibold uppercase tracking-wider text-center">
               Share
             </div>
-            <div className="w-12 text-right text-[9.5px] text-[#7e8aaa] font-semibold uppercase tracking-wider">
+            <div className="w-12 text-right text-[9.5px] text-[var(--text-secondary)] font-semibold uppercase tracking-wider">
               Hits
             </div>
           </div>
@@ -968,7 +968,7 @@ export default function RateLimitPanel() {
                 : []
               if (topReqList.length === 0) {
                 return (
-                  <div className="py-6 text-center text-[11px] text-[#7e8aaa]">
+                  <div className="py-6 text-center text-[11px] text-[var(--text-secondary)]">
                     No requests recorded yet
                   </div>
                 )
@@ -987,7 +987,7 @@ export default function RateLimitPanel() {
         </section>
 
         {/* ── Policy reference ───────────────────────────────────────── */}
-        <section className="bg-[#0e1015] border border-[#1f2335] rounded-md p-3 flex flex-col gap-2">
+        <section className="bg-[var(--bg-page)] border border-[var(--border)] rounded-md p-3 flex flex-col gap-2">
           <SectionHeader
             icon={Zap}
             title="Rate-Limit Policy"
@@ -1005,13 +1005,13 @@ export default function RateLimitPanel() {
             ].map((p) => (
               <div
                 key={p.k}
-                className="bg-[#13161e] border border-[#1f2335] rounded-md p-2 flex flex-col gap-0.5"
+                className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-md p-2 flex flex-col gap-0.5"
               >
-                <div className="text-[10px] text-[#7e8aaa] font-semibold uppercase tracking-wider">
+                <div className="text-[10px] text-[var(--text-secondary)] font-semibold uppercase tracking-wider">
                   {p.k}
                 </div>
                 <div className="text-sm font-bold text-amber-400 mono tabular-nums">{p.v}</div>
-                <div className="text-[9.5px] text-[#7e8aaa]">{p.desc}</div>
+                <div className="text-[9.5px] text-[var(--text-secondary)]">{p.desc}</div>
               </div>
             ))}
           </div>

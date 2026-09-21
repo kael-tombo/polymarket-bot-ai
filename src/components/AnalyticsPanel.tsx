@@ -43,8 +43,8 @@
 //      profit factor, expectancy, Sharpe ratio, etc.) so columns don't
 //      shift alignment between renders.
 //   6. Tone-coloured values — the existing colour palette
-//      (`text-[#4ade80]` emerald / `text-[#f87171]` red / `text-[#60a5fa]`
-//      blue / `text-[#dde1ed]` neutral) is preserved verbatim on every
+//      (`text-[#4ade80]` emerald / `text-[#f87171]` red / `text-[var(--accent-fg)]`
+//      blue / `text-[var(--text-primary)]` neutral) is preserved verbatim on every
 //      KPI value so the W26-6 / W15-5 className assertions still match,
 //      AND a `data-tone` attribute hook is layered on top so downstream
 //      CSS can target the tone palette uniformly.
@@ -172,7 +172,7 @@ function isAnalyticsPayload(d: unknown): boolean {
 // 5-tone vocabulary with self-contained static class strings so Tailwind 4's
 // JIT scanner picks them up. The `text` field is used by the KpiTile icon
 // + SectionHeader icon; the existing kpi-value class names
-// (`text-[#4ade80]` / `text-[#f87171]` / `text-[#60a5fa]` / `text-[#dde1ed]`)
+// (`text-[#4ade80]` / `text-[#f87171]` / `text-[var(--accent-fg)]` / `text-[var(--text-primary)]`)
 // are preserved verbatim on the value spans so the W26-6 / W15-5 className
 // assertions still match.
 
@@ -226,12 +226,12 @@ const TONE: Record<Tone, ToneConfig> = {
     label: 'CYAN',
   },
   neutral: {
-    text: 'text-[#dde1ed]',
-    bg: 'bg-[#1f2335]/40',
-    border: 'border-[#1f2335]',
-    bar: 'bg-[#5a637a]',
-    dot: 'bg-[#5a637a]',
-    halo: 'bg-[#5a637a]/40',
+    text: 'text-[var(--text-primary)]',
+    bg: 'bg-[var(--border)]/40',
+    border: 'border-[var(--border)]',
+    bar: 'bg-[var(--text-secondary)]',
+    dot: 'bg-[var(--text-secondary)]',
+    halo: 'bg-[var(--text-secondary)]/40',
     label: 'NEUTRAL',
   },
 }
@@ -258,11 +258,11 @@ function SectionHeader({
   return (
     <div className="flex items-center gap-1.5">
       <Icon className={`size-3 ${TONE[tone].text}`} aria-hidden="true" />
-      <span className="text-[9.5px] uppercase tracking-wider font-bold text-[#5a637a]">
+      <span className="text-[9.5px] uppercase tracking-wider font-bold text-[var(--text-secondary)]">
         {title}
       </span>
       {description && (
-        <span className="text-[8.5px] text-[#5a637a] italic truncate">{description}</span>
+        <span className="text-[8.5px] text-[var(--text-secondary)] italic truncate">{description}</span>
       )}
       {trailing && <span className="ml-auto shrink-0">{trailing}</span>}
     </div>
@@ -333,7 +333,7 @@ function AnalyticsSkeleton() {
       aria-label="Loading analytics metrics"
       data-testid="analytics-loading-skeleton"
     >
-      <div className="flex items-center gap-2 text-[10.5px] text-[#7e8aaa]">
+      <div className="flex items-center gap-2 text-[10.5px] text-[var(--text-secondary)]">
         <span className="spinner" aria-hidden="true" />
         <span>Loading analytics metrics…</span>
       </div>
@@ -352,7 +352,7 @@ function AnalyticsSkeleton() {
       </div>
       {/* Skeleton disclaimer + report placeholder */}
       <div
-        className="border-t border-[#1f2335] pt-2 space-y-1.5"
+        className="border-t border-[var(--border)] pt-2 space-y-1.5"
         aria-hidden="true"
       >
         <ShimmerBlock className="w-1/3" />
@@ -376,7 +376,7 @@ function PolishedEmptyState() {
       data-testid="analytics-empty-state"
     >
       <BarChart3
-        className="empty-state-icon text-[#5a637a]"
+        className="empty-state-icon text-[var(--text-secondary)]"
         size={28}
         aria-hidden="true"
       />
@@ -505,7 +505,7 @@ function AnalyticsPanel() {
         ? 'text-green-400'
         : ciMid < 0.495
         ? 'text-red-400'
-        : 'text-[#7e8aaa]'
+        : 'text-[var(--text-secondary)]'
 
     return {
       n,
@@ -524,11 +524,11 @@ function AnalyticsPanel() {
   // "Loading analytics metrics…" caption preserved verbatim).
   if (isLoading && !data) {
     return (
-      <div className="card flex flex-col bg-[#13161e] border border-[#1f2335] shadow-md">
-        <div className="card-header p-3 border-b border-[#1f2335] flex justify-between items-center">
+      <div className="card flex flex-col bg-[var(--bg-surface)] border border-[var(--border)] shadow-md">
+        <div className="card-header p-3 border-b border-[var(--border)] flex justify-between items-center">
           <div className="flex items-center gap-1.5">
             <BarChart3 className="size-3.5 text-cyan-400 shrink-0" aria-hidden="true" />
-            <span className="card-title text-xs font-bold text-[#dde1ed]">📊 Performance Analytics</span>
+            <span className="card-title text-xs font-bold text-[var(--text-primary)]">📊 Performance Analytics</span>
             <span className="badge badge-amber text-[9.5px]">PAPER</span>
           </div>
           <span className="badge badge-dim text-[9.5px]">Loading…</span>
@@ -546,11 +546,11 @@ function AnalyticsPanel() {
   if (!data || !stats) {
     if (error) {
       return (
-        <div className="card flex flex-col bg-[#13161e] border border-[#1f2335] shadow-md">
-          <div className="card-header p-3 border-b border-[#1f2335] flex justify-between items-center">
+        <div className="card flex flex-col bg-[var(--bg-surface)] border border-[var(--border)] shadow-md">
+          <div className="card-header p-3 border-b border-[var(--border)] flex justify-between items-center">
             <div className="flex items-center gap-1.5">
               <BarChart3 className="size-3.5 text-cyan-400 shrink-0" aria-hidden="true" />
-              <span className="card-title text-xs font-bold text-[#dde1ed]">📊 Performance Analytics</span>
+              <span className="card-title text-xs font-bold text-[var(--text-primary)]">📊 Performance Analytics</span>
               <span className="badge badge-amber text-[9.5px]">PAPER</span>
             </div>
             {isRealtime ? (
@@ -570,11 +570,11 @@ function AnalyticsPanel() {
       )
     }
     return (
-      <div className="card flex flex-col bg-[#13161e] border border-[#1f2335] shadow-md">
-        <div className="card-header p-3 border-b border-[#1f2335] flex justify-between items-center">
+      <div className="card flex flex-col bg-[var(--bg-surface)] border border-[var(--border)] shadow-md">
+        <div className="card-header p-3 border-b border-[var(--border)] flex justify-between items-center">
           <div className="flex items-center gap-1.5">
             <BarChart3 className="size-3.5 text-cyan-400 shrink-0" aria-hidden="true" />
-            <span className="card-title text-xs font-bold text-[#dde1ed]">📊 Performance Analytics</span>
+            <span className="card-title text-xs font-bold text-[var(--text-primary)]">📊 Performance Analytics</span>
             <span className="badge badge-amber text-[9.5px]">PAPER</span>
           </div>
         </div>
@@ -588,11 +588,11 @@ function AnalyticsPanel() {
   const { n, isSmallSample, winRatePct, winRatePValue, isWinRateSignificant, trendArrow, trendColor } = stats
 
   return (
-    <div className="card flex flex-col bg-[#13161e] border border-[#1f2335] shadow-md">
-      <div className="card-header p-3 border-b border-[#1f2335] flex justify-between items-center">
+    <div className="card flex flex-col bg-[var(--bg-surface)] border border-[var(--border)] shadow-md">
+      <div className="card-header p-3 border-b border-[var(--border)] flex justify-between items-center">
         <div className="flex items-center gap-2">
           <BarChart3 className="size-3.5 text-cyan-400 shrink-0" aria-hidden="true" />
-          <span className="card-title text-xs font-bold text-[#dde1ed]">📊 Performance Analytics</span>
+          <span className="card-title text-xs font-bold text-[var(--text-primary)]">📊 Performance Analytics</span>
           <span className="badge badge-amber text-[9.5px]">
             {data.mode?.toUpperCase() || 'PAPER'}
           </span>
@@ -638,7 +638,7 @@ function AnalyticsPanel() {
           (even when n is large) so the trader always knows the CI
           methodology + sample-size basis of the displayed metrics. */}
       <div
-        className="text-[10px] text-[#7e8aaa] mx-3 mt-2 tabular-nums"
+        className="text-[10px] text-[var(--text-secondary)] mx-3 mt-2 tabular-nums"
         data-testid="metrics-sample-note"
       >
         Metrics based on N={n} trades. 95% confidence intervals shown.
@@ -647,7 +647,7 @@ function AnalyticsPanel() {
       {/* Active Strategies Strip */}
       {activeStrats.length > 0 && (
         <div className="px-3 pt-2.5 flex flex-wrap gap-1.5">
-          <span className="text-[10px] text-[#7e8aaa] uppercase font-semibold tracking-wider self-center">Active:</span>
+          <span className="text-[10px] text-[var(--text-secondary)] uppercase font-semibold tracking-wider self-center">Active:</span>
           {activeStrats.map((s) => (
             <span key={s} className="badge badge-green text-[9px]">
               ● {STRATEGY_LABELS[s] ?? s.replace(/_/g, ' ')}
@@ -657,7 +657,7 @@ function AnalyticsPanel() {
       )}
 
       {/* W58-a — Section header above the KPI strip */}
-      <div className="px-3 pt-2.5 pb-1.5 border-b border-[#1f2335]">
+      <div className="px-3 pt-2.5 pb-1.5 border-b border-[var(--border)]">
         <SectionHeader
           icon={Gauge}
           title="Performance KPIs"
@@ -709,7 +709,7 @@ function AnalyticsPanel() {
           icon={Scale}
           tone="info"
           testId="analytics-kpi-profit-factor"
-          valueClassName="text-[#60a5fa]"
+          valueClassName="text-[var(--accent-fg)]"
           value={
             typeof data.profit_factor === 'number'
               ? data.profit_factor.toFixed(2)
@@ -726,7 +726,7 @@ function AnalyticsPanel() {
           icon={Layers}
           tone="neutral"
           testId="analytics-kpi-trades-volume"
-          valueClassName="text-[#dde1ed]"
+          valueClassName="text-[var(--text-primary)]"
           value={`${data.total_trades} trades`}
           sub={
             <span className="text-[#22d3ee]">{fmtUsd(data.total_volume_usdc)} vol</span>
@@ -785,14 +785,14 @@ function AnalyticsPanel() {
           data-testid="analytics-kpi-avg-win-loss"
         >
           <div className="flex items-center gap-1.5 mb-1">
-            <Sigma className="size-3 text-[#dde1ed]" aria-hidden="true" />
+            <Sigma className="size-3 text-[var(--text-primary)]" aria-hidden="true" />
             <span className="kpi-label">Avg Win / Avg Loss</span>
           </div>
           <span className="kpi-value flex items-baseline gap-1 tabular-nums">
             <span className="text-[#4ade80]">
               {data.avg_win != null ? fmtUsd(data.avg_win) : '—'}
             </span>
-            <span className="text-[#7e8aaa] text-[10px]">/</span>
+            <span className="text-[var(--text-secondary)] text-[10px]">/</span>
             <span className="text-[#f87171]">
               {data.avg_loss != null ? fmtUsd(data.avg_loss) : '—'}
             </span>
@@ -816,11 +816,11 @@ function AnalyticsPanel() {
           testId="analytics-kpi-sharpe"
           valueClassName={
             data.sharpe_ratio == null
-              ? 'text-[#dde1ed]'
+              ? 'text-[var(--text-primary)]'
               : data.sharpe_ratio >= 1
               ? 'text-[#4ade80]'
               : data.sharpe_ratio >= 0
-              ? 'text-[#60a5fa]'
+              ? 'text-[var(--accent-fg)]'
               : 'text-[#f87171]'
           }
           value={data.sharpe_ratio != null ? data.sharpe_ratio.toFixed(2) : '—'}
@@ -856,7 +856,7 @@ function AnalyticsPanel() {
 function MetricsDisclaimerSection({ n }: { n: number }) {
   return (
     <div
-      className="border-t border-[#1f2335] p-3 text-[10.5px] text-[#7e8aaa]"
+      className="border-t border-[var(--border)] p-3 text-[10.5px] text-[var(--text-secondary)]"
       data-testid="metrics-disclaimer-section"
       aria-label="Performance Metrics Disclaimer"
     >
@@ -998,7 +998,7 @@ function PerformanceReportSection() {
 
   return (
     <div
-      className="border-t border-[#1f2335] p-3 space-y-2 text-[11px]"
+      className="border-t border-[var(--border)] p-3 space-y-2 text-[11px]"
       data-testid="performance-report-section"
     >
       {/* W58-a — Section header above the report */}
@@ -1048,42 +1048,42 @@ function PerformanceReportSection() {
             </div>
             <div className="grid grid-cols-3 gap-1.5">
               <div>
-                <span className="text-[10px] text-[#7e8aaa] uppercase">
+                <span className="text-[10px] text-[var(--text-secondary)] uppercase">
                   Win Rate (paper)
                 </span>
                 <div className="text-[#4ade80] font-semibold tabular-nums">
                   {paper.win_rate}
                 </div>
-                <div className="text-[9px] text-[#7e8aaa] tabular-nums">
+                <div className="text-[9px] text-[var(--text-secondary)] tabular-nums">
                   95% CI: {paper.win_rate_ci_95}
                 </div>
               </div>
               <div>
-                <span className="text-[10px] text-[#7e8aaa] uppercase">
+                <span className="text-[10px] text-[var(--text-secondary)] uppercase">
                   Profit Factor (paper)
                 </span>
-                <div className="text-[#60a5fa] font-semibold tabular-nums">
+                <div className="text-[var(--accent-fg)] font-semibold tabular-nums">
                   {paper.profit_factor}
                 </div>
               </div>
               <div>
-                <span className="text-[10px] text-[#7e8aaa] uppercase">
+                <span className="text-[10px] text-[var(--text-secondary)] uppercase">
                   Expectancy (paper)
                 </span>
-                <div className="text-[#dde1ed] font-semibold tabular-nums">
+                <div className="text-[var(--text-primary)] font-semibold tabular-nums">
                   {paper.expectancy}
                 </div>
               </div>
               <div>
-                <span className="text-[10px] text-[#7e8aaa] uppercase">
+                <span className="text-[10px] text-[var(--text-secondary)] uppercase">
                   Sharpe (paper)
                 </span>
-                <div className="text-[#dde1ed] font-semibold tabular-nums">
+                <div className="text-[var(--text-primary)] font-semibold tabular-nums">
                   {paper.sharpe_ratio}
                 </div>
               </div>
               <div>
-                <span className="text-[10px] text-[#7e8aaa] uppercase">
+                <span className="text-[10px] text-[var(--text-secondary)] uppercase">
                   Max DD (paper)
                 </span>
                 <div className="text-[#f87171] font-semibold tabular-nums">
@@ -1091,13 +1091,13 @@ function PerformanceReportSection() {
                 </div>
               </div>
               <div>
-                <span className="text-[10px] text-[#7e8aaa] uppercase">
+                <span className="text-[10px] text-[var(--text-secondary)] uppercase">
                   Trades (paper)
                 </span>
-                <div className="text-[#dde1ed] font-semibold tabular-nums">
+                <div className="text-[var(--text-primary)] font-semibold tabular-nums">
                   {paper.n_trades}
                 </div>
-                <div className="text-[9px] text-[#7e8aaa] tabular-nums">
+                <div className="text-[9px] text-[var(--text-secondary)] tabular-nums">
                   p={paper.p_value}
                 </div>
               </div>
@@ -1120,23 +1120,23 @@ function PerformanceReportSection() {
                 </div>
                 <div>
                   Best Sharpe:{' '}
-                  <span className="text-[#60a5fa] font-semibold">
+                  <span className="text-[var(--accent-fg)] font-semibold">
                     {(backtest.best_sharpe ?? 0).toFixed(2)}
                   </span>
                 </div>
                 <div>
                   Strategy:{' '}
-                  <span className="text-[#dde1ed]">
+                  <span className="text-[var(--text-primary)]">
                     {backtest.best_strategy ?? 'unknown'}
                   </span>
                 </div>
                 <div>
                   Experiments:{' '}
-                  <span className="text-[#dde1ed]">{backtest.n_experiments}</span>
+                  <span className="text-[var(--text-primary)]">{backtest.n_experiments}</span>
                 </div>
               </div>
             ) : (
-              <div className="text-[10.5px] text-[#7e8aaa]">
+              <div className="text-[10.5px] text-[var(--text-secondary)]">
                 No backtest experiments yet — run a backtest to populate this
                 section.
               </div>
@@ -1149,7 +1149,7 @@ function PerformanceReportSection() {
               <span className="kpi-label">Walk-Forward</span>
               <span className="text-[10px] text-[#4ade80]">Out-of-sample</span>
             </div>
-            <div className="text-[10.5px] text-[#7e8aaa] leading-tight">
+            <div className="text-[10.5px] text-[var(--text-secondary)] leading-tight">
               {report.walk_forward}
             </div>
           </div>
@@ -1160,7 +1160,7 @@ function PerformanceReportSection() {
               <span className="kpi-label">Live Status</span>
               <span className="text-[10px] text-amber-400">Paper mode</span>
             </div>
-            <div className="text-[10.5px] text-[#7e8aaa] leading-tight">
+            <div className="text-[10.5px] text-[var(--text-secondary)] leading-tight">
               {report.live}
             </div>
           </div>

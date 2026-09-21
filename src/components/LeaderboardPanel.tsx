@@ -83,7 +83,7 @@ const TONE: Record<Tone, { text: string }> = {
   warn:    { text: 'text-amber-400' },
   fail:    { text: 'text-red-400' },
   info:    { text: 'text-cyan-300' },
-  neutral: { text: 'text-[#dde1ed]' },
+  neutral: { text: 'text-[var(--text-primary)]' },
 }
 
 // ── Rank-badge config (gold #1 / silver #2 / bronze #3 / muted rest) ─────
@@ -111,7 +111,7 @@ const RANK_BADGE: Record<number, RankBadgeStyle> = {
 }
 
 const MUTED_RANK_BADGE: RankBadgeStyle = {
-  badge: 'bg-[#1f2335] text-[#7e8aaa] ring-1 ring-[#2a2f45]',
+  badge: 'bg-[var(--border)] text-[var(--text-secondary)] ring-1 ring-[#2a2f45]',
   rowHover: 'hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.55)]',
 }
 
@@ -186,11 +186,11 @@ function SectionHeader({
   return (
     <div className="flex items-center gap-1.5">
       <Icon className={`size-3 ${TONE[tone].text}`} aria-hidden="true" />
-      <span className="text-[9.5px] uppercase tracking-wider font-bold text-[#5a637a]">
+      <span className="text-[9.5px] uppercase tracking-wider font-bold text-[var(--text-secondary)]">
         {title}
       </span>
       {description && (
-        <span className="text-[8.5px] text-[#5a637a] italic truncate">{description}</span>
+        <span className="text-[8.5px] text-[var(--text-secondary)] italic truncate">{description}</span>
       )}
       {trailing && <span className="ml-auto shrink-0">{trailing}</span>}
     </div>
@@ -217,12 +217,12 @@ function LeaderboardSkeleton({ rowCount = 4 }: { rowCount?: number }) {
       aria-label="Loading leaderboard rankings"
       data-testid="leaderboard-loading-skeleton"
     >
-      <div className="text-[10.5px] text-[#7e8aaa] flex items-center gap-2 pb-1">
+      <div className="text-[10.5px] text-[var(--text-secondary)] flex items-center gap-2 pb-1">
         <span className="spinner" aria-hidden="true" />
         <span>Loading leaderboard…</span>
       </div>
       {/* Skeleton header row mirroring the table column layout */}
-      <div className="flex items-center gap-2 px-2.5 py-1.5 border-b border-[#1f2335]" aria-hidden="true">
+      <div className="flex items-center gap-2 px-2.5 py-1.5 border-b border-[var(--border)]" aria-hidden="true">
         <ShimmerBlock className="w-5 shrink-0" />
         <ShimmerBlock className="w-1/3 flex-1" />
         <ShimmerBlock className="w-10 shrink-0" />
@@ -235,7 +235,7 @@ function LeaderboardSkeleton({ rowCount = 4 }: { rowCount?: number }) {
       {Array.from({ length: rowCount }).map((_, i) => (
         <div
           key={i}
-          className="flex items-center gap-2 px-2.5 py-1.5 rounded border border-[#1f2335] bg-[#0e1015]"
+          className="flex items-center gap-2 px-2.5 py-1.5 rounded border border-[var(--border)] bg-[var(--bg-page)]"
           aria-hidden="true"
         >
           <ShimmerBlock className="w-5 shrink-0" />
@@ -263,7 +263,7 @@ function PolishedEmptyState() {
       role="status"
       data-testid="leaderboard-empty-state"
     >
-      <Trophy className="empty-state-icon text-[#5a637a]" size={28} aria-hidden="true" />
+      <Trophy className="empty-state-icon text-[var(--text-secondary)]" size={28} aria-hidden="true" />
       <div className="empty-state-title">No closed trades yet</div>
       <div className="empty-state-desc">
         Rankings populate as strategies close positions and bank P&amp;L.
@@ -412,10 +412,10 @@ export default function LeaderboardPanel() {
   //    verbatim so the regex still matches; the Lucide Trophy icon is
   //    decorative (aria-hidden).
   const header = (
-    <div className="card-header p-3 border-b border-[#1f2335] flex justify-between items-center">
+    <div className="card-header p-3 border-b border-[var(--border)] flex justify-between items-center">
       <div className="flex items-center gap-2">
         <Trophy className="size-3.5 text-amber-400 shrink-0" aria-hidden="true" />
-        <span className="card-title text-xs font-bold text-[#dde1ed]">
+        <span className="card-title text-xs font-bold text-[var(--text-primary)]">
           🏆 Strategy Leaderboard
         </span>
         {isRealtime ? (
@@ -432,7 +432,7 @@ export default function LeaderboardPanel() {
 
   if (isLoading && rows.length === 0) {
     return (
-      <div className="card flex flex-col bg-[#13161e] border border-[#1f2335] shadow-md">
+      <div className="card flex flex-col bg-[var(--bg-surface)] border border-[var(--border)] shadow-md">
         {header}
         {errorCard}
         <LeaderboardSkeleton rowCount={4} />
@@ -444,7 +444,7 @@ export default function LeaderboardPanel() {
 
   if (rows.length === 0) {
     return (
-      <div className="card flex flex-col bg-[#13161e] border border-[#1f2335] shadow-md">
+      <div className="card flex flex-col bg-[var(--bg-surface)] border border-[var(--border)] shadow-md">
         {header}
         {errorCard}
         <PolishedEmptyState />
@@ -455,12 +455,12 @@ export default function LeaderboardPanel() {
   // ── Loaded state — refined table with sort + rank badges + tones ────────
 
   return (
-    <div className="card flex flex-col bg-[#13161e] border border-[#1f2335] shadow-md">
+    <div className="card flex flex-col bg-[var(--bg-surface)] border border-[var(--border)] shadow-md">
       {header}
       {errorCard}
 
       {/* Section header — Lucide icon + uppercase title + count badge */}
-      <div className="px-3 pt-2.5 pb-1.5 border-b border-[#1f2335]">
+      <div className="px-3 pt-2.5 pb-1.5 border-b border-[var(--border)]">
         <SectionHeader
           icon={ListOrdered}
           title="Rankings"
@@ -478,13 +478,13 @@ export default function LeaderboardPanel() {
           strip. Every numeric column header is a sortable button with a
           SortIndicator glyph (▲/▼ on active, empty 10px slot on
           inactive so the layout doesn't shift on sort toggle). */}
-      <div className="flex items-center gap-2 px-2.5 py-1.5 text-[11px] uppercase tracking-wider font-bold text-[#5a637a] border-b border-[#1f2335]">
+      <div className="flex items-center gap-2 px-2.5 py-1.5 text-[11px] uppercase tracking-wider font-bold text-[var(--text-secondary)] border-b border-[var(--border)]">
         <span className="w-5 text-center shrink-0">#</span>
         <span className="flex-1">Strategy</span>
         <button
           type="button"
           onClick={() => handleSort('win_rate')}
-          className="flex items-center justify-end w-12 shrink-0 hover:text-[#dde1ed] transition-colors"
+          className="flex items-center justify-end w-12 shrink-0 hover:text-[var(--text-primary)] transition-colors"
           aria-label="Sort by win rate"
         >
           Win
@@ -493,7 +493,7 @@ export default function LeaderboardPanel() {
         <button
           type="button"
           onClick={() => handleSort('profit_factor')}
-          className="flex items-center justify-end w-14 shrink-0 hover:text-[#dde1ed] transition-colors"
+          className="flex items-center justify-end w-14 shrink-0 hover:text-[var(--text-primary)] transition-colors"
           aria-label="Sort by profit factor"
         >
           PF
@@ -502,7 +502,7 @@ export default function LeaderboardPanel() {
         <button
           type="button"
           onClick={() => handleSort('max_drawdown')}
-          className="flex items-center justify-end w-14 shrink-0 hover:text-[#dde1ed] transition-colors"
+          className="flex items-center justify-end w-14 shrink-0 hover:text-[var(--text-primary)] transition-colors"
           aria-label="Sort by max drawdown"
         >
           DD
@@ -511,7 +511,7 @@ export default function LeaderboardPanel() {
         <button
           type="button"
           onClick={() => handleSort('net_pnl')}
-          className="flex items-center justify-end w-14 shrink-0 hover:text-[#dde1ed] transition-colors"
+          className="flex items-center justify-end w-14 shrink-0 hover:text-[var(--text-primary)] transition-colors"
           aria-label="Sort by net P&L"
         >
           P&L
@@ -520,7 +520,7 @@ export default function LeaderboardPanel() {
         <button
           type="button"
           onClick={() => handleSort('score')}
-          className="flex items-center justify-end w-12 shrink-0 hover:text-[#dde1ed] transition-colors"
+          className="flex items-center justify-end w-12 shrink-0 hover:text-[var(--text-primary)] transition-colors"
           aria-label="Sort by risk-adjusted score"
         >
           Score
@@ -551,7 +551,7 @@ export default function LeaderboardPanel() {
           return (
             <div
               key={r.strategy}
-              className={`group flex items-center gap-2 text-xs bg-[#0e1015] px-2.5 py-1.5 rounded border border-[#1f2335] hover:bg-cyan-500/[0.04] hover:border-cyan-500/30 transition-colors ${badge.rowHover}`}
+              className={`group flex items-center gap-2 text-xs bg-[var(--bg-page)] px-2.5 py-1.5 rounded border border-[var(--border)] hover:bg-cyan-500/[0.04] hover:border-cyan-500/30 transition-colors ${badge.rowHover}`}
             >
               <div className="flex items-center gap-2 min-w-0 flex-1">
                 <span
@@ -563,7 +563,7 @@ export default function LeaderboardPanel() {
                   {medal}
                 </span>
                 <span
-                  className="truncate font-semibold text-[#dde1ed] text-[11px]"
+                  className="truncate font-semibold text-[var(--text-primary)] text-[11px]"
                   title={r.strategy}
                 >
                   {r.strategy}
@@ -571,7 +571,7 @@ export default function LeaderboardPanel() {
               </div>
               <div className="flex items-center gap-2.5 shrink-0">
                 <span
-                  className="text-[10px] text-[#7e8aaa] mono tabular-nums"
+                  className="text-[10px] text-[var(--text-secondary)] mono tabular-nums"
                   title={`${r.closed_trades} closed trades`}
                 >
                   {r.closed_trades}W
@@ -591,7 +591,7 @@ export default function LeaderboardPanel() {
                   <span className="badge badge-dim text-[9px]">PF —</span>
                 )}
                 <span
-                  className={`mono text-[10px] tabular-nums ${r.max_drawdown < 0 ? 'text-red-400' : 'text-[#7e8aaa]'}`}
+                  className={`mono text-[10px] tabular-nums ${r.max_drawdown < 0 ? 'text-red-400' : 'text-[var(--text-secondary)]'}`}
                   data-tone={r.max_drawdown < 0 ? 'fail' : 'neutral'}
                   title={`Max drawdown $${r.max_drawdown.toFixed(2)}`}
                 >

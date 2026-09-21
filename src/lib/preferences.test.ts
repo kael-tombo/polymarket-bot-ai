@@ -34,8 +34,13 @@ import {
 // Local copy of the canonical DEFAULTS so tests can assert against the
 // exact shape without depending on `getDefaults()` for comparison
 // (avoids a circular assertion: "loadPreferences returns getDefaults()").
+//
+// W63-b — `theme` default flipped from 'dark' to 'light' in lib/preferences.ts
+// to match the new ThemeProvider `defaultTheme="light"`. The mirror here is
+// kept in lock-step so the loadPreferences/getDefaults/resetPreferences
+// assertions still reflect the canonical first-run state.
 const EXPECTED_DEFAULTS: UserPreferences = {
-  theme: 'dark',
+  theme: 'light',
   locale: 'en',
   defaultPanel: 'command',
   refreshIntervalMs: 5000,

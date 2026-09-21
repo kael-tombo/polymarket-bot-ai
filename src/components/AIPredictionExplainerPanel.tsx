@@ -368,7 +368,7 @@ const TONE: Record<Tone, ToneConfig> = {
   warn:    { bg: 'bg-amber-500/[0.06]',   border: 'border-amber-500/25',   text: 'text-amber-400',   bar: 'bg-amber-500',   dot: 'bg-amber-400',   label: 'text-amber-400/80',   halo: 'shadow-amber-500/10' },
   poor:    { bg: 'bg-red-500/[0.06]',     border: 'border-red-500/25',     text: 'text-red-400',     bar: 'bg-red-500',     dot: 'bg-red-400',     label: 'text-red-400/80',     halo: 'shadow-red-500/10' },
   info:    { bg: 'bg-purple-500/[0.06]',  border: 'border-purple-500/25', text: 'text-purple-400', bar: 'bg-purple-500', dot: 'bg-purple-400',  label: 'text-purple-400/80',  halo: 'shadow-purple-500/10' },
-  neutral: { bg: 'bg-[#0e1015]',          border: 'border-[#1f2335]',     text: 'text-[#dde1ed]',   bar: 'bg-[#5a637a]',   dot: 'bg-[#5a637a]',   label: 'text-[#7e8aaa]',      halo: '' },
+  neutral: { bg: 'bg-[var(--bg-base)]',          border: 'border-[var(--border)]',     text: 'text-[var(--text-primary)]',   bar: 'bg-[var(--text-secondary)]',   dot: 'bg-[var(--text-secondary)]',   label: 'text-[var(--text-secondary)]',      halo: '' },
 }
 
 /** Map a confidence value [0,1] to a Tone (green ≥0.7, amber ≥0.5, red <0.5). */
@@ -418,11 +418,11 @@ function SectionHeader({
   return (
     <div className="flex items-center gap-1.5 mb-1.5">
       <Icon className={`size-3 ${TONE[tone].text}`} aria-hidden="true" />
-      <span className="text-[9.5px] uppercase tracking-wider font-bold text-[#5a637a]">
+      <span className="text-[9.5px] uppercase tracking-wider font-bold text-[var(--text-secondary)]">
         {title}
       </span>
       {description && (
-        <span className="text-[8.5px] text-[#5a637a] italic truncate">{description}</span>
+        <span className="text-[8.5px] text-[var(--text-secondary)] italic truncate">{description}</span>
       )}
       {trailing && <span className="ml-auto shrink-0">{trailing}</span>}
     </div>
@@ -461,9 +461,9 @@ function KpiTile({ label, value, hint, tone, quality, trend, testId }: KpiTilePr
         {trend === 'up' && <TrendingUp className="size-2.5 inline-block" aria-hidden="true" />}
         {trend === 'down' && <TrendingDown className="size-2.5 inline-block" aria-hidden="true" />}
       </div>
-      <div className="text-[8px] text-[#5a637a] mt-0.5 italic truncate">{hint}</div>
+      <div className="text-[8px] text-[var(--text-secondary)] mt-0.5 italic truncate">{hint}</div>
       {quality != null && quality > 0 && (
-        <div className="h-0.5 bg-[#1f2335] rounded-full mt-1 overflow-hidden">
+        <div className="h-0.5 bg-[var(--border)] rounded-full mt-1 overflow-hidden">
           <div
             className={`h-full rounded-full transition-all duration-500 ${cfg.bar}`}
             style={{ width: `${Math.max(0, Math.min(100, quality))}%` }}
@@ -482,7 +482,7 @@ function PsiGauge({ psi }: { psi: number }) {
   const cfg = TONE[tone]
   return (
     <div className="space-y-0.5" title={`PSI ${psi.toFixed(4)} — thresholds: <0.1 healthy, 0.1–0.25 moderate, >0.25 significant`}>
-      <div className="relative h-1.5 bg-[#1f2335] rounded-full overflow-hidden">
+      <div className="relative h-1.5 bg-[var(--border)] rounded-full overflow-hidden">
         {/* zones */}
         <div className="absolute inset-y-0 left-0 bg-emerald-500/30" style={{ width: '20%' }} aria-hidden="true" />
         <div className="absolute inset-y-0 bg-amber-500/30" style={{ left: '20%', width: '30%' }} aria-hidden="true" />
@@ -494,7 +494,7 @@ function PsiGauge({ psi }: { psi: number }) {
           aria-hidden="true"
         />
       </div>
-      <div className="flex justify-between text-[8px] text-[#5a637a] mono">
+      <div className="flex justify-between text-[8px] text-[var(--text-secondary)] mono">
         <span>0.00</span>
         <span className="text-emerald-400/70">0.10</span>
         <span className="text-amber-400/70">0.25</span>
@@ -532,7 +532,7 @@ function PolishedEmptyState({
       role="status"
       data-testid={testId}
     >
-      <Icon className="size-7 text-[#3e4560] mb-1" aria-hidden="true" />
+      <Icon className="size-7 text-[var(--text-dim)] mb-1" aria-hidden="true" />
       <div className="empty-state-title">{title}</div>
       {description && <div className="empty-state-desc">{description}</div>}
     </div>
@@ -615,13 +615,13 @@ function StatusPill({ label, value, hint, tone = 'neutral', dataTone }: StatusPi
   const toneProps = dataTone ? { 'data-tone': dataTone as string } : {}
   return (
     <div
-      className="bg-[#0e1015] border border-[#1f2335] rounded-md p-2 flex flex-col gap-0.5 transition-colors hover:border-[#2a3045]"
+      className="bg-[var(--bg-base)] border border-[var(--border)] rounded-md p-2 flex flex-col gap-0.5 transition-colors hover:border-[var(--border-strong)]"
       data-testid="ai-status-pill"
       {...toneProps}
     >
       <div className="flex items-center gap-1.5">
         <span className={`inline-block w-1.5 h-1.5 rounded-full ${dotClass}`} aria-hidden="true" />
-        <span className="text-[9px] uppercase tracking-wider text-[#7e8aaa] font-bold">
+        <span className="text-[9px] uppercase tracking-wider text-[var(--text-secondary)] font-bold">
           {label}
         </span>
       </div>
@@ -635,12 +635,12 @@ function StatusPill({ label, value, hint, tone = 'neutral', dataTone }: StatusPi
                 ? 'text-amber-400'
                 : tone === 'crit'
                   ? 'text-red-400'
-                  : 'text-[#dde1ed]'
+                  : 'text-[var(--text-primary)]'
         }`}
       >
         {value}
       </span>
-      {hint && <span className="text-[9px] text-[#5a637a] truncate">{hint}</span>}
+      {hint && <span className="text-[9px] text-[var(--text-secondary)] truncate">{hint}</span>}
     </div>
   )
 }
@@ -664,7 +664,7 @@ function CIRangeBar({
     : null
   return (
     <div
-      className="relative h-1.5 w-full rounded-full bg-[#1f2335] mt-1"
+      className="relative h-1.5 w-full rounded-full bg-[var(--border)] mt-1"
       role="img"
       aria-label={`95% confidence interval from ${(lo * 100).toFixed(1)}% to ${(hi * 100).toFixed(1)}%`}
       data-testid="ai-ci-range-bar"
@@ -711,11 +711,11 @@ function PredictionHeadline({ probability, confidence, ci }: PredictionHeadlineP
         ? 'bg-amber-500/15 text-amber-400 border-amber-500/30'
         : confTone === 'poor'
           ? 'bg-red-500/15 text-red-400 border-red-500/30'
-          : 'bg-[#1f2335] text-[#7e8aaa] border-[#1f2335]'
+          : 'bg-[var(--border)] text-[var(--text-secondary)] border-[var(--border)]'
 
   return (
     <div
-      className="bg-[#0e1015] border border-blue-500/30 rounded-lg p-4"
+      className="bg-[var(--bg-base)] border border-blue-500/30 rounded-lg p-4"
       data-testid="ai-prediction-headline"
     >
       <div className="flex items-center gap-2 mb-1">
@@ -723,7 +723,7 @@ function PredictionHeadline({ probability, confidence, ci }: PredictionHeadlineP
         <span className="text-[10px] uppercase tracking-wider text-blue-300 font-bold">
           AI Prediction
         </span>
-        <span className="text-[9px] text-[#5a637a] italic">
+        <span className="text-[9px] text-[var(--text-secondary)] italic">
           (model-generated)
         </span>
       </div>
@@ -733,12 +733,12 @@ function PredictionHeadline({ probability, confidence, ci }: PredictionHeadlineP
         </span>
         <span
           className={`text-base font-bold ${
-            direction === 'YES' ? 'text-emerald-400' : direction === 'NO' ? 'text-red-400' : 'text-[#dde1ed]'
+            direction === 'YES' ? 'text-emerald-400' : direction === 'NO' ? 'text-red-400' : 'text-[var(--text-primary)]'
           }`}
         >
           {direction}
         </span>
-        <span className="text-[11px] text-[#7e8aaa]">
+        <span className="text-[11px] text-[var(--text-secondary)]">
           (confidence: <span className="mono text-purple-300 font-bold tabular-nums">{confPct}</span>)
         </span>
         {/* W54-c — Tone chip showing confidence level at a glance. */}
@@ -753,7 +753,7 @@ function PredictionHeadline({ probability, confidence, ci }: PredictionHeadlineP
       </div>
       {ci && (
         <div className="mt-2">
-          <div className="flex items-center justify-between text-[9.5px] text-[#7e8aaa]">
+          <div className="flex items-center justify-between text-[9.5px] text-[var(--text-secondary)]">
             <span>95% confidence interval</span>
             <span className="mono text-blue-300 tabular-nums">
               [{(ci.low * 100).toFixed(1)}%, {(ci.high * 100).toFixed(1)}%]
@@ -792,21 +792,21 @@ function ModelVsMarket({ aiProbability, marketImplied, edge }: ModelVsMarketProp
   const edgePct = edge == null ? '—' : `${edge >= 0 ? '+' : ''}${(edge * 100).toFixed(2)}pp`
   const edgeTone =
     edge == null
-      ? 'text-[#dde1ed]'
+      ? 'text-[var(--text-primary)]'
       : Math.abs(edge) < 0.005
-        ? 'text-[#dde1ed]'
+        ? 'text-[var(--text-primary)]'
         : edge > 0
           ? 'text-emerald-400'
           : 'text-red-400'
 
   return (
-    <Card className="bg-[#0e1015] border border-[#1f2335] p-3 rounded-md" data-testid="model-vs-market-card">
+    <Card className="bg-[var(--bg-base)] border border-[var(--border)] p-3 rounded-md" data-testid="model-vs-market-card">
       <div className="flex items-center justify-between mb-2">
-        <span className="text-[10.5px] uppercase tracking-wider font-bold text-[#dde1ed] flex items-center gap-1.5">
+        <span className="text-[10.5px] uppercase tracking-wider font-bold text-[var(--text-primary)] flex items-center gap-1.5">
           <Gauge className="size-3 text-cyan-400" />
           Model vs Market
         </span>
-        <span className="text-[9px] text-[#5a637a] italic">
+        <span className="text-[9px] text-[var(--text-secondary)] italic">
           AI estimate vs order-book mid
         </span>
       </div>
@@ -816,21 +816,21 @@ function ModelVsMarket({ aiProbability, marketImplied, edge }: ModelVsMarketProp
             AI Model
           </div>
           <div className="mono text-lg font-bold text-blue-300 mt-0.5 tabular-nums">{aiPct}</div>
-          <div className="text-[8.5px] text-[#5a637a]">predicted P(YES)</div>
+          <div className="text-[8.5px] text-[var(--text-secondary)]">predicted P(YES)</div>
         </div>
-        <div className="text-center bg-[#13161e] border border-[#1f2335] rounded-md p-2">
+        <div className="text-center bg-[var(--bg-surface)] border border-[var(--border)] rounded-md p-2">
           <div className="text-[9px] uppercase tracking-wider text-cyan-300 font-bold">
             Market
           </div>
           <div className="mono text-lg font-bold text-cyan-300 mt-0.5 tabular-nums">{mktPct}</div>
-          <div className="text-[8.5px] text-[#5a637a]">order-book mid</div>
+          <div className="text-[8.5px] text-[var(--text-secondary)]">order-book mid</div>
         </div>
         <div className="text-center bg-purple-500/5 border border-purple-500/20 rounded-md p-2">
           <div className="text-[9px] uppercase tracking-wider text-purple-300 font-bold">
             Edge
           </div>
           <div className={`mono text-lg font-bold mt-0.5 tabular-nums ${edgeTone}`}>{edgePct}</div>
-          <div className="text-[8.5px] text-[#5a637a]">AI − market</div>
+          <div className="text-[8.5px] text-[var(--text-secondary)]">AI − market</div>
         </div>
       </div>
     </Card>
@@ -925,7 +925,7 @@ function WhyExplainer({
     : 1e-9
 
   return (
-    <Card className="bg-[#0e1015] border border-blue-500/20 rounded-md" data-testid="why-explainer-card">
+    <Card className="bg-[var(--bg-base)] border border-blue-500/20 rounded-md" data-testid="why-explainer-card">
       <Collapsible open={open} onOpenChange={setOpen}>
         <CollapsibleTrigger asChild>
           <button
@@ -941,7 +941,7 @@ function WhyExplainer({
                 Why? — Explainability
               </span>
               {tokenId && (
-                <span className="text-[9.5px] text-[#5a637a] mono tabular-nums">
+                <span className="text-[9.5px] text-[var(--text-secondary)] mono tabular-nums">
                   token {truncateToken(tokenId)}
                 </span>
               )}
@@ -957,19 +957,19 @@ function WhyExplainer({
                 Drift {driftInfo.label}
               </span>
               {open ? (
-                <ChevronDown className="size-3 text-[#7e8aaa]" aria-hidden="true" />
+                <ChevronDown className="size-3 text-[var(--text-secondary)]" aria-hidden="true" />
               ) : (
-                <ChevronRight className="size-3 text-[#7e8aaa]" aria-hidden="true" />
+                <ChevronRight className="size-3 text-[var(--text-secondary)]" aria-hidden="true" />
               )}
             </span>
           </button>
         </CollapsibleTrigger>
         <CollapsibleContent id="why-explainer-content">
-          <div className="p-3 pt-0 space-y-3 border-t border-[#1f2335]/50">
+          <div className="p-3 pt-0 space-y-3 border-t border-[var(--border)]/50">
             {/* Champion vs challenger agreement strip */}
             <div className="grid grid-cols-2 gap-2 mt-2">
-              <div className="bg-[#13161e] border border-[#1f2335] rounded-md p-2">
-                <div className="text-[9px] uppercase tracking-wider text-[#5a637a] font-bold">
+              <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-md p-2">
+                <div className="text-[9px] uppercase tracking-wider text-[var(--text-secondary)] font-bold">
                   Champion
                 </div>
                 <div className="flex items-center justify-between mt-0.5">
@@ -981,8 +981,8 @@ function WhyExplainer({
                   </span>
                 </div>
               </div>
-              <div className="bg-[#13161e] border border-[#1f2335] rounded-md p-2">
-                <div className="text-[9px] uppercase tracking-wider text-[#5a637a] font-bold">
+              <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-md p-2">
+                <div className="text-[9px] uppercase tracking-wider text-[var(--text-secondary)] font-bold">
                   Challenger
                 </div>
                 <div className="flex items-center justify-between mt-0.5">
@@ -1005,12 +1005,12 @@ function WhyExplainer({
                 tone="info"
               />
               {!tokenId && (
-                <div className="text-[10.5px] text-[#7e8aaa] italic">
+                <div className="text-[10.5px] text-[var(--text-secondary)] italic">
                   Select a prediction row below to load its SHAP explanation.
                 </div>
               )}
               {tokenId && loading && (
-                <div className="flex items-center gap-1.5 text-[10.5px] text-[#7e8aaa]">
+                <div className="flex items-center gap-1.5 text-[10.5px] text-[var(--text-secondary)]">
                   <Loader2 className="size-3 animate-spin" aria-hidden="true" />
                   Loading SHAP explanation…
                 </div>
@@ -1036,21 +1036,21 @@ function WhyExplainer({
                     return (
                       <div
                         key={`${f.name}-${i}`}
-                        className="flex items-center gap-2 hover:bg-[#13161e] px-1 py-0.5 rounded transition-colors"
+                        className="flex items-center gap-2 hover:bg-[var(--bg-surface)] px-1 py-0.5 rounded transition-colors"
                         title={`Feature: ${f.name}\nContribution: ${f.contribution.toFixed(4)}\nDirection: ${pushesYes ? 'bullish (→YES)' : 'bearish (→NO)'}`}
                         data-testid={`shap-feature-${i}`}
                         data-tone={pushesYes ? 'good' : 'poor'}
                       >
-                        <span className="text-[10px] text-[#5a637a] w-4 text-right mono tabular-nums">
+                        <span className="text-[10px] text-[var(--text-secondary)] w-4 text-right mono tabular-nums">
                           {i + 1}
                         </span>
                         <span
-                          className="text-[10.5px] text-[#dde1ed] flex-1 truncate mono"
+                          className="text-[10.5px] text-[var(--text-primary)] flex-1 truncate mono"
                           title={f.name}
                         >
                           {f.name}
                         </span>
-                        <div className="flex-1 h-1.5 bg-[#13161e] rounded-full overflow-hidden border border-[#1f2335]">
+                        <div className="flex-1 h-1.5 bg-[var(--bg-surface)] rounded-full overflow-hidden border border-[var(--border)]">
                           <div
                             className={`h-full rounded-full bg-gradient-to-r ${barColor} transition-all duration-300`}
                             style={{ width: `${pct}%` }}
@@ -1068,7 +1068,7 @@ function WhyExplainer({
                     )
                   })}
                   {/* W54-c — Bullish / Bearish legend, matching AIMLCommandCenter. */}
-                  <div className="flex items-center gap-3 pt-2 mt-1 border-t border-[#1f2335] text-[9px] text-[#5a637a] uppercase tracking-wider font-bold">
+                  <div className="flex items-center gap-3 pt-2 mt-1 border-t border-[var(--border)] text-[9px] text-[var(--text-secondary)] uppercase tracking-wider font-bold">
                     <span className="inline-flex items-center gap-1">
                       <span className="inline-block w-3 h-1 rounded-sm bg-gradient-to-r from-blue-600 to-cyan-400" aria-hidden="true" />
                       Bullish (→YES)
@@ -1077,17 +1077,17 @@ function WhyExplainer({
                       <span className="inline-block w-3 h-1 rounded-sm bg-gradient-to-r from-red-600 to-amber-400" aria-hidden="true" />
                       Bearish (→NO)
                     </span>
-                    <span className="text-[#5a637a] italic normal-case tracking-normal">
+                    <span className="text-[var(--text-secondary)] italic normal-case tracking-normal">
                       SHAP signed contributions
                     </span>
                   </div>
-                  <div className="text-[9px] text-[#5a637a] italic mt-1">
+                  <div className="text-[9px] text-[var(--text-secondary)] italic mt-1">
                     Positive contributions push the prediction toward YES;
                     negative toward NO. Magnitudes are SHAP values (not
                     percentages).
                   </div>
                   {explanation.explanation?.predicted_probability != null && (
-                    <div className="text-[10px] text-[#7e8aaa] mt-1 flex items-center gap-1.5">
+                    <div className="text-[10px] text-[var(--text-secondary)] mt-1 flex items-center gap-1.5">
                       <Info className="size-3 text-blue-400" aria-hidden="true" />
                       Ensemble predicted P(YES) ={' '}
                       <span className="mono text-blue-300 font-bold tabular-nums">
@@ -1106,22 +1106,22 @@ function WhyExplainer({
                 </div>
               )}
               {tokenId && !loading && !error && (!explanation || topFeatures.length === 0) && (
-                <div className="text-[10.5px] text-[#7e8aaa] italic">
+                <div className="text-[10.5px] text-[var(--text-secondary)] italic">
                   No SHAP explanation available.
                 </div>
               )}
             </div>
 
             {/* W54-c — Drift status detail with PsiGauge (mirrors MLPanel). */}
-            <div className="bg-[#13161e] border border-[#1f2335] rounded-md p-2 text-[10.5px] space-y-1.5">
-              <div className="flex items-center gap-1.5 text-[#7e8aaa]">
+            <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-md p-2 text-[10.5px] space-y-1.5">
+              <div className="flex items-center gap-1.5 text-[var(--text-secondary)]">
                 <DriftIcon className="size-3" aria-hidden="true" />
                 <span>
                   Drift status:{' '}
                   <span className={`font-bold ${driftInfo.tone === 'ok' ? 'text-emerald-400' : driftInfo.tone === 'warn' ? 'text-amber-400' : 'text-red-400'}`}>
                     {driftInfo.label}
                   </span>
-                  <span className="text-[#5a637a] ml-1">
+                  <span className="text-[var(--text-secondary)] ml-1">
                     ({driftStatus || 'UNKNOWN'})
                   </span>
                 </span>
@@ -1153,15 +1153,15 @@ function PredictionHistoryTable({
   onSelectToken,
 }: PredictionHistoryTableProps) {
   return (
-    <Card className="bg-[#0e1015] border border-[#1f2335] rounded-md" data-testid="prediction-history-card">
-      <div className="p-3 border-b border-[#1f2335]">
+    <Card className="bg-[var(--bg-base)] border border-[var(--border)] rounded-md" data-testid="prediction-history-card">
+      <div className="p-3 border-b border-[var(--border)]">
         <SectionHeader
           icon={Activity}
           title={`Prediction History (last ${HISTORY_ROW_LIMIT})`}
           description="counterfactual journal"
           tone="info"
           trailing={
-            <span className="text-[9px] text-[#5a637a] italic normal-case tracking-normal">
+            <span className="text-[9px] text-[var(--text-secondary)] italic normal-case tracking-normal">
               click a row → load SHAP
             </span>
           }
@@ -1170,33 +1170,33 @@ function PredictionHistoryTable({
       <div className="max-h-80 overflow-y-auto scrollbar-thin">
         <Table>
           <TableHeader>
-            <TableRow className="bg-[#0e1015] border-[#1f2335]">
-              <TableHead className="h-7 text-[9.5px] uppercase tracking-wider text-[#5a637a] font-bold py-1.5 px-2">
+            <TableRow className="bg-[var(--bg-base)] border-[var(--border)]">
+              <TableHead className="h-7 text-[9.5px] uppercase tracking-wider text-[var(--text-secondary)] font-bold py-1.5 px-2">
                 Time
               </TableHead>
-              <TableHead className="h-7 text-[9.5px] uppercase tracking-wider text-[#5a637a] font-bold py-1.5 px-2">
+              <TableHead className="h-7 text-[9.5px] uppercase tracking-wider text-[var(--text-secondary)] font-bold py-1.5 px-2">
                 Token
               </TableHead>
-              <TableHead className="h-7 text-[9.5px] uppercase tracking-wider text-[#5a637a] font-bold py-1.5 px-2">
+              <TableHead className="h-7 text-[9.5px] uppercase tracking-wider text-[var(--text-secondary)] font-bold py-1.5 px-2">
                 Strategy
               </TableHead>
-              <TableHead className="h-7 text-[9.5px] uppercase tracking-wider text-[#5a637a] font-bold py-1.5 px-2 text-right">
+              <TableHead className="h-7 text-[9.5px] uppercase tracking-wider text-[var(--text-secondary)] font-bold py-1.5 px-2 text-right">
                 Pred P(YES)
               </TableHead>
-              <TableHead className="h-7 text-[9.5px] uppercase tracking-wider text-[#5a637a] font-bold py-1.5 px-2 text-right">
+              <TableHead className="h-7 text-[9.5px] uppercase tracking-wider text-[var(--text-secondary)] font-bold py-1.5 px-2 text-right">
                 Conf
               </TableHead>
-              <TableHead className="h-7 text-[9.5px] uppercase tracking-wider text-[#5a637a] font-bold py-1.5 px-2 text-right">
+              <TableHead className="h-7 text-[9.5px] uppercase tracking-wider text-[var(--text-secondary)] font-bold py-1.5 px-2 text-right">
                 Edge
               </TableHead>
-              <TableHead className="h-7 text-[9.5px] uppercase tracking-wider text-[#5a637a] font-bold py-1.5 px-2">
+              <TableHead className="h-7 text-[9.5px] uppercase tracking-wider text-[var(--text-secondary)] font-bold py-1.5 px-2">
                 Outcome
               </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {rows.length === 0 && (
-              <TableRow className="border-[#1f2335]">
+              <TableRow className="border-[var(--border)]">
                 <TableCell colSpan={7} className="py-2">
                   <PolishedEmptyState
                     icon={Activity}
@@ -1257,17 +1257,17 @@ function PredictionHistoryTable({
                 <TableRow
                   key={trade.id}
                   onClick={() => onSelectToken(trade.token_id)}
-                  className={`border-[#1f2335] cursor-pointer transition-all ${rowAccent}`}
+                  className={`border-[var(--border)] cursor-pointer transition-all ${rowAccent}`}
                   data-testid={`prediction-history-row-${trade.id}`}
                   data-tone={trade.predicted_edge > 0 ? 'positive' : trade.predicted_edge < 0 ? 'negative' : 'neutral'}
                 >
-                  <TableCell className="py-1.5 px-2 text-[10px] text-[#7e8aaa] mono tabular-nums whitespace-nowrap">
+                  <TableCell className="py-1.5 px-2 text-[10px] text-[var(--text-secondary)] mono tabular-nums whitespace-nowrap">
                     {fmtTimestamp(trade.timestamp)}
                   </TableCell>
-                  <TableCell className="py-1.5 px-2 text-[10px] mono tabular-nums text-[#dde1ed]">
+                  <TableCell className="py-1.5 px-2 text-[10px] mono tabular-nums text-[var(--text-primary)]">
                     {truncateToken(trade.token_id)}
                   </TableCell>
-                  <TableCell className="py-1.5 px-2 text-[10px] mono text-[#7e8aaa]">
+                  <TableCell className="py-1.5 px-2 text-[10px] mono text-[var(--text-secondary)]">
                     {trade.strategy || '—'}
                   </TableCell>
                   <TableCell className="py-1.5 px-2 text-right mono text-[10.5px] text-blue-300 font-bold tabular-nums">
@@ -1278,7 +1278,7 @@ function PredictionHistoryTable({
                   </TableCell>
                   <TableCell
                     className={`py-1.5 px-2 text-right mono text-[10.5px] tabular-nums ${
-                      trade.predicted_edge > 0 ? 'text-emerald-400' : trade.predicted_edge < 0 ? 'text-red-400' : 'text-[#dde1ed]'
+                      trade.predicted_edge > 0 ? 'text-emerald-400' : trade.predicted_edge < 0 ? 'text-red-400' : 'text-[var(--text-primary)]'
                     }`}
                   >
                     {trade.predicted_edge >= 0 ? '+' : ''}
@@ -1291,7 +1291,7 @@ function PredictionHistoryTable({
           </TableBody>
         </Table>
       </div>
-      <div className="p-2 text-[9px] text-[#5a637a] italic border-t border-[#1f2335]/50">
+      <div className="p-2 text-[9px] text-[var(--text-secondary)] italic border-t border-[var(--border)]/50">
         Outcomes are inferred from predicted-edge sign + side because the
         backend&apos;s shadow-trade journal does not yet stamp the actual
         market resolution (the panel marks each row as &ldquo;inferred&rdquo;
@@ -1321,7 +1321,7 @@ function CalibrationCard({ curve, ece }: CalibrationCardProps) {
         ? { label: 'Acceptable', tone: 'warn' as Tone }
         : { label: 'Poor', tone: 'poor' as Tone }
   return (
-    <Card className="bg-[#0e1015] border border-[#1f2335] rounded-md p-3" data-testid="calibration-card">
+    <Card className="bg-[var(--bg-base)] border border-[var(--border)] rounded-md p-3" data-testid="calibration-card">
       <SectionHeader
         icon={LineChart}
         title="Calibration Curve (predicted vs actual)"
@@ -1361,7 +1361,7 @@ function CalibrationCard({ curve, ece }: CalibrationCardProps) {
           formatY={(v) => v.toFixed(2)}
         />
       )}
-      <div className="text-[9px] text-[#5a637a] italic mt-1">
+      <div className="text-[9px] text-[var(--text-secondary)] italic mt-1">
         Each point is one of the model&apos;s 10 reliability bins. Dashed
         diagonal = perfect calibration. Green ≤ 0.03 |Δ|, amber ≤ 0.08,
         red &gt; 0.08.
@@ -1644,14 +1644,14 @@ export default function AIPredictionExplainerPanel() {
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div
-      className="card flex flex-col bg-[#13161e] border border-[#1f2335] shadow-md"
+      className="card flex flex-col bg-[var(--bg-surface)] border border-[var(--border)] shadow-md"
       data-testid="ai-prediction-explainer-panel"
     >
       {/* Header */}
-      <div className="card-header p-3 border-b border-[#1f2335] flex flex-wrap items-center justify-between gap-2">
+      <div className="card-header p-3 border-b border-[var(--border)] flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <Brain className="size-4 text-blue-400" aria-hidden="true" />
-          <span className="card-title text-sm font-bold text-[#dde1ed]">
+          <span className="card-title text-sm font-bold text-[var(--text-primary)]">
             Explainable AI / ML Prediction
           </span>
           <Badge variant="secondary" className="text-[9.5px]" data-testid="explainer-mode-badge">
@@ -1666,7 +1666,7 @@ export default function AIPredictionExplainerPanel() {
             </span>
           )}
           {lastRefresh && (
-            <span className="text-[9.5px] text-[#5a637a] flex items-center gap-1">
+            <span className="text-[9.5px] text-[var(--text-secondary)] flex items-center gap-1">
               <Clock className="size-3" aria-hidden="true" />
               {Math.max(0, Math.floor((Date.now() - lastRefresh.getTime()) / 1000))}s ago
             </span>
@@ -1687,7 +1687,7 @@ export default function AIPredictionExplainerPanel() {
           <Button
             variant="outline"
             size="icon"
-            className="h-6 w-6 border-[#1f2335] bg-[#0e1015] hover:bg-[#1a1f2e] text-[#7e8aaa] hover:text-[#dde1ed]"
+            className="h-6 w-6 border-[var(--border)] bg-[var(--bg-base)] hover:bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
             onClick={() => fetchAll()}
             title="Refresh now"
             aria-label="Refresh now"
@@ -1740,7 +1740,7 @@ export default function AIPredictionExplainerPanel() {
               <div className={`text-[11px] font-bold uppercase tracking-wider ${TONE[bannerCfg.tone].text}`}>
                 {bannerCfg.label}
               </div>
-              <div className="text-[9.5px] text-[#7e8aaa] truncate">{bannerCfg.desc}</div>
+              <div className="text-[9.5px] text-[var(--text-secondary)] truncate">{bannerCfg.desc}</div>
             </div>
             <span
               className={`badge ${bannerCfg.tone === 'good' ? 'badge-green' : bannerCfg.tone === 'warn' ? 'badge-amber' : bannerCfg.tone === 'poor' ? 'badge-red' : 'badge-dim'} text-[9px] font-bold shrink-0`}
@@ -1760,7 +1760,7 @@ export default function AIPredictionExplainerPanel() {
           {/* Skeleton KPI row */}
           <div className="grid grid-cols-3 gap-2">
             {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="rounded p-2 border border-[#1f2335] bg-[#0e1015]">
+              <div key={i} className="rounded p-2 border border-[var(--border)] bg-[var(--bg-base)]">
                 <ShimmerBlock className="!w-1/2" />
                 <ShimmerBlock className="!w-3/4 !h-3 mt-1.5" />
                 <ShimmerBlock className="!w-2/3 !h-1 mt-1.5" />
@@ -1770,7 +1770,7 @@ export default function AIPredictionExplainerPanel() {
           {/* Skeleton status strip */}
           <div className="grid grid-cols-6 gap-1.5">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="rounded p-2 border border-[#1f2335] bg-[#0e1015]">
+              <div key={i} className="rounded p-2 border border-[var(--border)] bg-[var(--bg-base)]">
                 <ShimmerBlock className="!w-2/3" />
                 <ShimmerBlock className="!w-3/4 !h-2.5 mt-1.5" />
               </div>
@@ -1778,16 +1778,16 @@ export default function AIPredictionExplainerPanel() {
           </div>
           {/* Skeleton headline + Model vs Market */}
           <div className="grid grid-cols-2 gap-3">
-            <div className="rounded p-3 border border-blue-500/20 bg-[#0e1015]">
+            <div className="rounded p-3 border border-blue-500/20 bg-[var(--bg-base)]">
               <ShimmerBlock className="!w-1/3" />
               <ShimmerBlock className="!w-1/2 !h-6 mt-2" />
               <ShimmerBlock className="!w-full !h-1.5 mt-3" />
             </div>
-            <div className="rounded p-3 border border-[#1f2335] bg-[#0e1015]">
+            <div className="rounded p-3 border border-[var(--border)] bg-[var(--bg-base)]">
               <ShimmerBlock className="!w-1/4" />
               <div className="grid grid-cols-3 gap-2 mt-2">
                 {Array.from({ length: 3 }).map((_, i) => (
-                  <div key={i} className="rounded p-2 border border-[#1f2335]">
+                  <div key={i} className="rounded p-2 border border-[var(--border)]">
                     <ShimmerBlock className="!w-full" />
                     <ShimmerBlock className="!w-2/3 !h-3 mt-1.5" />
                   </div>
@@ -1797,7 +1797,7 @@ export default function AIPredictionExplainerPanel() {
           </div>
           {/* Skeleton history + calibration */}
           <div className="grid grid-cols-2 gap-3">
-            <div className="rounded p-3 border border-[#1f2335] bg-[#0e1015]">
+            <div className="rounded p-3 border border-[var(--border)] bg-[var(--bg-base)]">
               <ShimmerBlock className="!w-1/2" />
               <div className="mt-2 space-y-1.5">
                 {Array.from({ length: 4 }).map((_, i) => (
@@ -1805,7 +1805,7 @@ export default function AIPredictionExplainerPanel() {
                 ))}
               </div>
             </div>
-            <div className="rounded p-3 border border-[#1f2335] bg-[#0e1015]">
+            <div className="rounded p-3 border border-[var(--border)] bg-[var(--bg-base)]">
               <ShimmerBlock className="!w-1/2" />
               <div className="mt-2 h-[200px] flex items-center justify-center">
                 <ShimmerBlock className="!w-3/4 !h-32" />
@@ -1885,7 +1885,7 @@ export default function AIPredictionExplainerPanel() {
             description="every required field"
             tone="neutral"
             trailing={lastRefresh && (
-              <span className="text-[9px] text-[#5a637a] mono tabular-nums normal-case tracking-normal italic">
+              <span className="text-[9px] text-[var(--text-secondary)] mono tabular-nums normal-case tracking-normal italic">
                 refreshed {Math.max(0, Math.floor((Date.now() - lastRefresh.getTime()) / 1000))}s ago
               </span>
             )}
@@ -2093,8 +2093,8 @@ export default function AIPredictionExplainerPanel() {
                   >
                     {w.status}
                   </span>
-                  <span className="mono text-[#dde1ed]">{w.name}</span>
-                  {w.message && <span className="text-[#7e8aaa]">— {w.message}</span>}
+                  <span className="mono text-[var(--text-primary)]">{w.name}</span>
+                  {w.message && <span className="text-[var(--text-secondary)]">— {w.message}</span>}
                 </div>
               ))}
             </div>
@@ -2136,7 +2136,7 @@ export default function AIPredictionExplainerPanel() {
           </div>
 
           {/* Footer */}
-          <div className="text-[9px] text-[#3e4560] italic border-t border-[#1f2335] pt-2">
+          <div className="text-[9px] text-[var(--text-dim)] italic border-t border-[var(--border)] pt-2">
             Backend contracts: <code>/api/ml/metrics</code> ·{' '}
             <code>/api/ml/drift</code> · <code>/api/ml/versions</code> ·{' '}
             <code>/api/snapshot</code> · <code>/api/shadow/trades</code> ·{' '}

@@ -2,7 +2,7 @@
 //
 // Renders the small ☀️ / 🌙 icon button that lives in the TopStatusBar
 // right-hand cluster (alongside mute, shortcuts, config). Clicking flips
-// the active theme between `dark` (default) and `light`.
+// the active theme between `light` (default since W63-b) and `dark`.
 //
 // W58-f — Visual polish pass aligned with the W50-57 design system:
 //   • Smooth icon transition — the emoji is wrapped in a span with
@@ -29,10 +29,10 @@
 //   - `next-themes`'s `useTheme()` only knows the active theme *after*
 //     mount (it reads `document.documentElement.className` or
 //     `localStorage` on the client). Rendering the icon during SSR would
-//     emit a `🌙` (the defaultTheme='dark' branch) that may mismatch the
-//     post-hydration value, which React flags as a hydration error and
-//     causes a full client re-render. We avoid that by rendering `null`
-//     until `mounted === true`.
+//     emit a `🌙` (the defaultTheme='light' branch — moon, click to go
+//     dark) that may mismatch the post-hydration value, which React flags
+//     as a hydration error and causes a full client re-render. We avoid
+//     that by rendering `null` until `mounted === true`.
 //
 // Why a small icon button (not a fancy dropdown / segmented control):
 //   - The TopStatusBar is already dense (mode pill, kill switch, P&L,

@@ -152,7 +152,7 @@ const TONE: Record<Tone, ToneConfig> = {
   warn:    { bg: 'bg-amber-500/[0.06]',   border: 'border-amber-500/25',   text: 'text-amber-400',   bar: 'bg-amber-500',   dot: 'bg-amber-400',   label: 'text-amber-400/80',   halo: 'shadow-amber-500/10' },
   poor:    { bg: 'bg-red-500/[0.06]',     border: 'border-red-500/25',     text: 'text-red-400',     bar: 'bg-red-500',     dot: 'bg-red-400',     label: 'text-red-400/80',     halo: 'shadow-red-500/10' },
   info:    { bg: 'bg-cyan-500/[0.06]',    border: 'border-cyan-500/25',    text: 'text-cyan-400',    bar: 'bg-cyan-500',    dot: 'bg-cyan-400',    label: 'text-cyan-400/80',    halo: 'shadow-cyan-500/10' },
-  neutral: { bg: 'bg-[#0e1015]',          border: 'border-[#1f2335]',      text: 'text-[#dde1ed]',   bar: 'bg-[#5a637a]',   dot: 'bg-[#5a637a]',   label: 'text-[#7e8aaa]',     halo: '' },
+  neutral: { bg: 'bg-[var(--bg-page)]',          border: 'border-[var(--border)]',      text: 'text-[var(--text-primary)]',   bar: 'bg-[var(--text-secondary)]',   dot: 'bg-[var(--text-secondary)]',   label: 'text-[var(--text-secondary)]',     halo: '' },
 }
 
 /** Map the legacy `warn` / `danger` / `valueColor` props onto the Tone palette. */
@@ -207,16 +207,16 @@ function SectionHeader({
     <div className="flex items-center justify-between gap-2">
       <div className="flex items-center gap-1.5 min-w-0">
         <Icon className={`size-3.5 shrink-0 ${TONE[tone].text}`} aria-hidden="true" />
-        <span className="text-[10px] uppercase tracking-wider font-bold text-[#dde1ed] truncate">
+        <span className="text-[10px] uppercase tracking-wider font-bold text-[var(--text-primary)] truncate">
           {title}
         </span>
         {description && (
-          <span className="text-[9px] text-[#5a637a] italic truncate hidden md:inline">
+          <span className="text-[9px] text-[var(--text-secondary)] italic truncate hidden md:inline">
             {description}
           </span>
         )}
       </div>
-      {trailing && <span className="shrink-0 text-[10px] text-[#7e8aaa] mono tabular-nums">{trailing}</span>}
+      {trailing && <span className="shrink-0 text-[10px] text-[var(--text-secondary)] mono tabular-nums">{trailing}</span>}
     </div>
   )
 }
@@ -249,7 +249,7 @@ function KpiTile({ label, value, sub, icon: Icon, tone, valueColor, tooltip }: K
   const valueClass = valueColor ? '' : cfg.text
   return (
     <div
-      className={`kpi-card bg-[#0e1015] border ${cfg.border} ${cfg.bg} p-2.5 rounded-lg flex flex-col justify-between transition-colors`}
+      className={`kpi-card bg-[var(--bg-page)] border ${cfg.border} ${cfg.bg} p-2.5 rounded-lg flex flex-col justify-between transition-colors`}
       title={tooltip}
       data-tooltip={tooltip}
       data-tone={tone}
@@ -259,9 +259,9 @@ function KpiTile({ label, value, sub, icon: Icon, tone, valueColor, tooltip }: K
         {label}
       </span>
       <span className={`mono font-bold text-sm tabular-nums ${valueClass}`} style={valueStyle}>
-        {value ?? <span className="text-[#3e4560]">—</span>}
+        {value ?? <span className="text-[var(--text-dim)]">—</span>}
       </span>
-      {sub && <span className="text-[9.5px] text-[#7e8aaa] mt-0.5 block tabular-nums">{sub}</span>}
+      {sub && <span className="text-[9.5px] text-[var(--text-secondary)] mt-0.5 block tabular-nums">{sub}</span>}
     </div>
   )
 }
@@ -283,7 +283,7 @@ function PolishedErrorCard({ onRetry }: { onRetry: () => void }) {
       <span className="badge badge-red text-[9.5px] mb-1">
         Unavailable
       </span>
-      <p className="text-xs text-[#7e8aaa] max-w-[260px] mb-2">
+      <p className="text-xs text-[var(--text-secondary)] max-w-[260px] mb-2">
         Risk engine offline or starting up.
       </p>
       <button
@@ -309,17 +309,17 @@ function PolishedErrorCard({ onRetry }: { onRetry: () => void }) {
 function RiskStatusSkeleton() {
   return (
     <div
-      className="card h-full flex flex-col bg-[#13161e] border border-[#1f2335] rounded-lg overflow-hidden shadow-xl"
+      className="card h-full flex flex-col bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg overflow-hidden shadow-xl"
       role="status"
       aria-live="polite"
       aria-label="Loading institutional risk telemetry…"
       data-testid="risk-status-loading-skeleton"
     >
       {/* Header skeleton */}
-      <div className="card-header p-3 border-b border-[#1f2335] flex justify-between items-center gap-2">
+      <div className="card-header p-3 border-b border-[var(--border)] flex justify-between items-center gap-2">
         <div className="flex items-center gap-2">
           <Shield className="w-3.5 h-3.5 text-[#22d3ee]" aria-hidden="true" />
-          <span className="text-xs font-bold text-[#dde1ed]">
+          <span className="text-xs font-bold text-[var(--text-primary)]">
             Loading institutional risk telemetry…
           </span>
         </div>
@@ -327,12 +327,12 @@ function RiskStatusSkeleton() {
       </div>
 
       {/* Capital allocation bar skeleton */}
-      <div className="px-3 py-2 mx-3 mb-2 mt-2.5 bg-[#0e1015] border border-[#1f2335] rounded-lg space-y-2">
+      <div className="px-3 py-2 mx-3 mb-2 mt-2.5 bg-[var(--bg-page)] border border-[var(--border)] rounded-lg space-y-2">
         <div className="flex items-center justify-between">
           <ShimmerBlock className="w-40" />
           <ShimmerBlock className="w-20" />
         </div>
-        <div className="h-2 rounded-full bg-[#13161e] border border-[#1f2335]" />
+        <div className="h-2 rounded-full bg-[var(--bg-surface)] border border-[var(--border)]" />
         <div className="flex justify-between">
           <ShimmerBlock className="w-16" />
           <ShimmerBlock className="w-16" />
@@ -344,7 +344,7 @@ function RiskStatusSkeleton() {
       <div className="px-3 pb-2">
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="kpi-card bg-[#0e1015] border border-[#1f2335] p-2.5 rounded-lg space-y-2">
+            <div key={i} className="kpi-card bg-[var(--bg-page)] border border-[var(--border)] p-2.5 rounded-lg space-y-2">
               <ShimmerBlock className="w-2/3" />
               <div className="h-4 rounded-sm skeleton-line-md" />
               <ShimmerBlock className="w-1/2" />
@@ -354,7 +354,7 @@ function RiskStatusSkeleton() {
       </div>
 
       {/* Correlated groups strip skeleton */}
-      <div className="px-3 pb-3 pt-2 border-t border-[#1f2335] mt-auto space-y-2">
+      <div className="px-3 pb-3 pt-2 border-t border-[var(--border)] mt-auto space-y-2">
         <div className="flex items-center justify-between">
           <ShimmerBlock className="w-48" />
           <ShimmerBlock className="w-20" />
@@ -362,7 +362,7 @@ function RiskStatusSkeleton() {
         {Array.from({ length: 2 }).map((_, i) => (
           <div
             key={i}
-            className="flex justify-between items-center text-xs bg-[#0e1015] px-2.5 py-1 rounded border border-[#1f2335]"
+            className="flex justify-between items-center text-xs bg-[var(--bg-page)] px-2.5 py-1 rounded border border-[var(--border)]"
           >
             <ShimmerBlock className="w-32" />
             <ShimmerBlock className="w-12" />
@@ -409,12 +409,12 @@ function CapitalAllocationBar({ invested, reserved, maxDeployable }: { invested:
     investedPct > 85 ? 'poor' : investedPct > 60 ? 'warn' : 'good'
 
   return (
-    <div className="px-3 py-2 bg-[#0e1015] border border-[#1f2335] rounded-lg mx-3 mb-2">
-      <div className="flex justify-between items-center text-[10.5px] text-[#7e8aaa] mb-1.5">
-        <span className="font-semibold text-[#dde1ed] flex items-center gap-1.5">
+    <div className="px-3 py-2 bg-[var(--bg-page)] border border-[var(--border)] rounded-lg mx-3 mb-2">
+      <div className="flex justify-between items-center text-[10.5px] text-[var(--text-secondary)] mb-1.5">
+        <span className="font-semibold text-[var(--text-primary)] flex items-center gap-1.5">
           <BarChart3 className="w-3 h-3 text-cyan-400" aria-hidden="true" />
           <span>📊 Capital Allocation</span>
-          <span className="text-[9.5px] font-normal text-[#7e8aaa] tabular-nums">
+          <span className="text-[9.5px] font-normal text-[var(--text-secondary)] tabular-nums">
             (${invested.toFixed(2)} deployed / $60 ceiling)
           </span>
         </span>
@@ -423,7 +423,7 @@ function CapitalAllocationBar({ invested, reserved, maxDeployable }: { invested:
         </span>
       </div>
 
-      <div className="w-full bg-[#13161e] border border-[#1f2335] h-2 rounded-full overflow-hidden flex">
+      <div className="w-full bg-[var(--bg-surface)] border border-[var(--border)] h-2 rounded-full overflow-hidden flex">
         <div
           className="h-full bg-cyan-400 transition-all duration-300"
           style={{ width: `${Math.min(investedPct, 100)}%` }}
@@ -436,7 +436,7 @@ function CapitalAllocationBar({ invested, reserved, maxDeployable }: { invested:
         />
       </div>
 
-      <div className="flex justify-between text-[9px] text-[#7e8aaa] mt-1 mono tabular-nums">
+      <div className="flex justify-between text-[9px] text-[var(--text-secondary)] mt-1 mono tabular-nums">
         <span className="flex items-center gap-1">
           <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 inline-block" /> Active: ${invested.toFixed(2)}
         </span>
@@ -488,11 +488,11 @@ export default function RiskStatusPanel() {
 
   if (error || !risk) {
     return (
-      <div className="card bg-[#13161e] border border-[#1f2335] rounded-lg overflow-hidden">
-        <div className="card-header p-3 border-b border-[#1f2335] flex justify-between items-center gap-2">
+      <div className="card bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg overflow-hidden">
+        <div className="card-header p-3 border-b border-[var(--border)] flex justify-between items-center gap-2">
           <div className="flex items-center gap-2">
             <Shield className="w-3.5 h-3.5 text-[#22d3ee]" aria-hidden="true" />
-            <span className="card-title text-xs font-bold text-[#dde1ed]">🛡 Risk &amp; Exposure</span>
+            <span className="card-title text-xs font-bold text-[var(--text-primary)]">🛡 Risk &amp; Exposure</span>
           </div>
           <PulseDot tone="poor" pulse={false} />
         </div>
@@ -517,14 +517,14 @@ export default function RiskStatusPanel() {
   const effectiveCap = risk.effective_max_position_per_market ?? 3.0
 
   return (
-    <div className="card h-full flex flex-col bg-[#13161e] border border-[#1f2335] rounded-lg overflow-hidden shadow-xl">
+    <div className="card h-full flex flex-col bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg overflow-hidden shadow-xl">
       {/* Header — section header with Shield icon + uppercase title + mode
           badge (with PulseDot) + recon badge (with PulseDot) + kill-switch
           badge (no ping for dead engine). */}
-      <div className="card-header p-3 border-b border-[#1f2335] flex flex-wrap justify-between items-center gap-2">
+      <div className="card-header p-3 border-b border-[var(--border)] flex flex-wrap justify-between items-center gap-2">
         <div className="flex items-center gap-2">
           <Shield className="w-3.5 h-3.5 text-[#22d3ee]" aria-hidden="true" />
-          <span className="card-title text-xs font-bold text-[#dde1ed] tracking-wide">
+          <span className="card-title text-xs font-bold text-[var(--text-primary)] tracking-wide">
             🛡 INSTITUTIONAL RISK &amp; RECONCILIATION
           </span>
           <span
@@ -556,7 +556,7 @@ export default function RiskStatusPanel() {
 
         {/* Dynamic Model Health Multiplier Badge */}
         <div className="flex items-center gap-1.5">
-          <span className="text-[10px] text-[#7e8aaa]">ML Risk Scale:</span>
+          <span className="text-[10px] text-[var(--text-secondary)]">ML Risk Scale:</span>
           <span
             className={`px-2 py-0.5 rounded text-[10px] font-bold font-mono tabular-nums ${
               dynamicMult >= 1.0
@@ -660,7 +660,7 @@ export default function RiskStatusPanel() {
 
       {/* Correlated Groups Strip */}
       {topGroups.length > 0 && (
-        <div className="px-3 pb-3 pt-2 border-t border-[#1f2335] mt-auto">
+        <div className="px-3 pb-3 pt-2 border-t border-[var(--border)] mt-auto">
           <SectionHeader
             icon={Layers3}
             title="Largest Correlated Market Exposure"
@@ -674,10 +674,10 @@ export default function RiskStatusPanel() {
               return (
                 <div
                   key={name}
-                  className="flex justify-between items-center text-xs bg-[#0e1015] px-2.5 py-1 rounded border border-[#1f2335] hover:bg-cyan-500/[0.04] hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.45)] transition-all"
+                  className="flex justify-between items-center text-xs bg-[var(--bg-page)] px-2.5 py-1 rounded border border-[var(--border)] hover:bg-cyan-500/[0.04] hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.45)] transition-all"
                   data-tone={groupTone}
                 >
-                  <span className="text-[#dde1ed] truncate max-w-[200px] text-[11px]">{name}</span>
+                  <span className="text-[var(--text-primary)] truncate max-w-[200px] text-[11px]">{name}</span>
                   <span className={`mono font-bold tabular-nums ${TONE[groupTone].text}`}>
                     {fmtUsd(val)}
                   </span>

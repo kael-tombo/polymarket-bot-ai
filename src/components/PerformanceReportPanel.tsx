@@ -270,7 +270,7 @@ const TONE: Record<Tone, ToneConfig> = {
   warn:    { bg: 'bg-amber-500/[0.06]',    border: 'border-amber-500/25',    text: 'text-amber-400',    bar: 'bg-amber-500',    dot: 'bg-amber-400',    label: 'text-amber-400/80',    halo: 'shadow-amber-500/10' },
   poor:    { bg: 'bg-red-500/[0.06]',     border: 'border-red-500/25',     text: 'text-red-400',      bar: 'bg-red-500',      dot: 'bg-red-400',      label: 'text-red-400/80',      halo: 'shadow-red-500/10' },
   info:    { bg: 'bg-cyan-500/[0.06]',    border: 'border-cyan-500/25',    text: 'text-cyan-400',     bar: 'bg-cyan-500',     dot: 'bg-cyan-400',     label: 'text-cyan-400/80',     halo: 'shadow-cyan-500/10' },
-  neutral: { bg: 'bg-[#0e1015]',          border: 'border-[#1f2335]',      text: 'text-[#dde1ed]',    bar: 'bg-[#5a637a]',    dot: 'bg-[#5a637a]',    label: 'text-[#7e8aaa]',       halo: '' },
+  neutral: { bg: 'bg-[var(--bg-page)]',          border: 'border-[var(--border)]',      text: 'text-[var(--text-primary)]',    bar: 'bg-[var(--text-secondary)]',    dot: 'bg-[var(--text-secondary)]',    label: 'text-[var(--text-secondary)]',       halo: '' },
 }
 
 /** Map the existing MetricCard tone API onto the W58-b Tone palette so the
@@ -318,16 +318,16 @@ function SectionHeader({
     <div className="flex items-center justify-between gap-2 flex-wrap">
       <div className="flex items-center gap-1.5 min-w-0">
         <Icon className={`size-3.5 shrink-0 ${TONE[tone].text}`} aria-hidden="true" />
-        <span className="text-[10px] uppercase tracking-wider font-bold text-[#dde1ed] truncate">
+        <span className="text-[10px] uppercase tracking-wider font-bold text-[var(--text-primary)] truncate">
           {title}
         </span>
         {description && (
-          <span className="text-[9px] text-[#5a637a] italic truncate hidden md:inline">
+          <span className="text-[9px] text-[var(--text-secondary)] italic truncate hidden md:inline">
             {description}
           </span>
         )}
       </div>
-      {trailing && <span className="shrink-0 text-[10px] text-[#7e8aaa] mono tabular-nums">{trailing}</span>}
+      {trailing && <span className="shrink-0 text-[10px] text-[var(--text-secondary)] mono tabular-nums">{trailing}</span>}
     </div>
   )
 }
@@ -368,7 +368,7 @@ function KpiTile({ label, value, hint, tone, icon: Icon, quality, trend, testId 
       </div>
       {hint && <div className="kpi-sub tabular-nums">{hint}</div>}
       {quality != null && quality > 0 && (
-        <div className="h-0.5 bg-[#1f2335] rounded-full mt-1 overflow-hidden">
+        <div className="h-0.5 bg-[var(--border)] rounded-full mt-1 overflow-hidden">
           <div
             className={`h-full rounded-full transition-all duration-500 ${cfg.bar}`}
             style={{ width: `${Math.max(0, Math.min(100, quality))}%` }}
@@ -403,7 +403,7 @@ function PolishedEmptyState({
 }) {
   return (
     <div className="empty-state py-8" role="status" data-testid={testId}>
-      <Icon className="empty-state-icon text-[#3e4560]" size={32} strokeWidth={1.5} aria-hidden="true" />
+      <Icon className="empty-state-icon text-[var(--text-dim)]" size={32} strokeWidth={1.5} aria-hidden="true" />
       <span className="empty-state-title text-sm font-semibold">{title}</span>
       {description && (
         <span className="empty-state-desc text-xs max-w-sm text-center">{description}</span>
@@ -460,7 +460,7 @@ function PerformanceReportSkeleton() {
       aria-label="Loading performance report…"
     >
       {Array.from({ length: 12 }).map((_, i) => (
-        <div key={i} className="kpi-card space-y-2 border border-[#1f2335] bg-[#0e1015]" aria-hidden="true">
+        <div key={i} className="kpi-card space-y-2 border border-[var(--border)] bg-[var(--bg-page)]" aria-hidden="true">
           <div className="flex items-center justify-between">
             <ShimmerBlock className="w-2/5" />
             <ShimmerBlock className="w-4 !h-4 !rounded-full" />
@@ -501,7 +501,7 @@ function CIRangeBar({
     : null
   return (
     <div
-      className="relative h-1.5 w-full rounded-full bg-[#1f2335] mt-1"
+      className="relative h-1.5 w-full rounded-full bg-[var(--border)] mt-1"
       role="img"
       aria-label={`95% confidence interval from ${(lo * 100).toFixed(1)}% to ${(hi * 100).toFixed(1)}%`}
       data-testid="ci-range-bar"
@@ -516,7 +516,7 @@ function CIRangeBar({
       />
       {pt != null && (
         <div
-          className="absolute top-1/2 -translate-y-1/2 w-0.5 h-2.5 rounded-full bg-[#dde1ed]"
+          className="absolute top-1/2 -translate-y-1/2 w-0.5 h-2.5 rounded-full bg-[var(--text-primary)]"
           style={{ left: `${pt}%` }}
           aria-hidden="true"
         />
@@ -555,7 +555,7 @@ function MetricCard({
   const cfg = TONE[t]
   return (
     <Card
-      className={`bg-[#13161e] border ${cfg.border} ${cfg.bg} shadow-sm p-3 gap-2 rounded-md transition-colors hover:shadow-md`}
+      className={`bg-[var(--bg-surface)] border ${cfg.border} ${cfg.bg} shadow-sm p-3 gap-2 rounded-md transition-colors hover:shadow-md`}
       data-testid={testId ?? 'metric-card'}
       data-card-type="metric"
       data-tone={t}
@@ -569,7 +569,7 @@ function MetricCard({
       <div className={`mono text-base font-bold tabular-nums ${cfg.text}`} data-testid="metric-value">
         {value}
       </div>
-      {sub && <div className="text-[10px] text-[#7e8aaa] leading-tight tabular-nums">{sub}</div>}
+      {sub && <div className="text-[10px] text-[var(--text-secondary)] leading-tight tabular-nums">{sub}</div>}
       {ciBar}
     </Card>
   )
@@ -961,7 +961,7 @@ export function PerformanceReportPanel({
         <div className="flex items-center gap-2">
           <PulseDot tone="info" />
           <Activity className="w-3.5 h-3.5 text-cyan-400 shrink-0" aria-hidden="true" />
-          <span className="text-sm font-bold text-[#dde1ed]">
+          <span className="text-sm font-bold text-[var(--text-primary)]">
             📈 Honest Performance Report
           </span>
           <Badge variant="secondary" className="text-[10px] py-0.5">
@@ -972,7 +972,7 @@ export function PerformanceReportPanel({
               model-attributed). */}
           <AIPredictionLabel label="AI Metrics:" hint="model-attributed" size="sm" className="text-[8.5px]" />
         </div>
-        <div className="flex items-center gap-2 text-[10.5px] text-[#7e8aaa]">
+        <div className="flex items-center gap-2 text-[10.5px] text-[var(--text-secondary)]">
           {loading && (
             <span className="flex items-center gap-1" data-testid="report-loading">
               <span className="spinner" aria-hidden="true" /> Loading…
@@ -1031,7 +1031,7 @@ export function PerformanceReportPanel({
         className="w-full"
         data-testid="performance-report-tabs"
       >
-        <TabsList className="bg-[#0e1015] border border-[#1f2335]">
+        <TabsList className="bg-[var(--bg-page)] border border-[var(--border)]">
           <TabsTrigger value="backtest" data-testid="tab-backtest">
             Backtest
           </TabsTrigger>
@@ -1062,10 +1062,10 @@ export function PerformanceReportPanel({
               className="text-[10.5px] rounded-md border px-2.5 py-1.5 flex items-center gap-2"
               data-testid={`category-${activeCategory}-source-banner`}
             >
-              <span className="text-[#5a637a] uppercase tracking-wider font-bold text-[9px]">
+              <span className="text-[var(--text-secondary)] uppercase tracking-wider font-bold text-[9px]">
                 Source:
               </span>
-              <span className="mono text-[#dde1ed]">
+              <span className="mono text-[var(--text-primary)]">
                 {activeCategory === 'backtest' && '🔬 Backtest (historical simulation — does NOT reflect live execution)'}
                 {activeCategory === 'walk_forward' && '🔁 Walk-Forward (rolling out-of-sample retraining)'}
                 {activeCategory === 'paper_trading' && '📝 Paper Trading (simulated execution against live market data)'}
@@ -1097,7 +1097,7 @@ export function PerformanceReportPanel({
             {/* Equity curve — only when the category supplies one. */}
             {hasEquity && (
               <Card
-                className="bg-[#13161e] border border-[#1f2335] shadow-sm p-3 rounded-md"
+                className="bg-[var(--bg-surface)] border border-[var(--border)] shadow-sm p-3 rounded-md"
                 data-testid={`category-${activeCategory}-equity`}
               >
                 {/* W58-b — SectionHeader above the equity curve. */}
@@ -1119,7 +1119,7 @@ export function PerformanceReportPanel({
             {/* Raw status string fallback (legacy backend shape). */}
             {activeMetrics.raw && !activeMetrics.available && (
               <Card
-                className="bg-[#13161e] border border-[#1f2335] p-3 rounded-md text-[11px] text-[#7e8aaa] leading-relaxed"
+                className="bg-[var(--bg-surface)] border border-[var(--border)] p-3 rounded-md text-[11px] text-[var(--text-secondary)] leading-relaxed"
                 data-testid={`category-${activeCategory}-raw`}
               >
                 {activeMetrics.raw}

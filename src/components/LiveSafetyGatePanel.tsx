@@ -150,7 +150,7 @@ const TONE: Record<Tone, ToneConfig> = {
   warn:    { bg: 'bg-amber-500/[0.06]',   border: 'border-amber-500/25',   text: 'text-amber-400',   bar: 'bg-amber-500',   dot: 'bg-amber-400',   label: 'text-amber-400/80',   halo: 'shadow-amber-500/10',   rowHover: 'hover:shadow-[inset_3px_0_0_0_rgba(251,191,36,0.55)]' },
   poor:    { bg: 'bg-red-500/[0.06]',     border: 'border-red-500/25',     text: 'text-red-400',     bar: 'bg-red-500',     dot: 'bg-red-400',     label: 'text-red-400/80',     halo: 'shadow-red-500/10',     rowHover: 'hover:shadow-[inset_3px_0_0_0_rgba(239,68,68,0.55)]' },
   info:    { bg: 'bg-cyan-500/[0.06]',    border: 'border-cyan-500/25',    text: 'text-cyan-400',    bar: 'bg-cyan-500',    dot: 'bg-cyan-400',    label: 'text-cyan-400/80',    halo: 'shadow-cyan-500/10',    rowHover: 'hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.55)]' },
-  neutral: { bg: 'bg-[#0e1015]',          border: 'border-[#1f2335]',      text: 'text-[#dde1ed]',   bar: 'bg-[#5a637a]',   dot: 'bg-[#5a637a]',   label: 'text-[#7e8aaa]',      halo: '',                       rowHover: 'hover:shadow-[inset_3px_0_0_0_rgba(125,138,170,0.35)]' },
+  neutral: { bg: 'bg-[var(--bg-page)]',          border: 'border-[var(--border)]',      text: 'text-[var(--text-primary)]',   bar: 'bg-[var(--text-secondary)]',   dot: 'bg-[var(--text-secondary)]',   label: 'text-[var(--text-secondary)]',      halo: '',                       rowHover: 'hover:shadow-[inset_3px_0_0_0_rgba(125,138,170,0.35)]' },
 }
 
 /** Map a check status to a Tone. PASS → good, FAIL → poor, WARN → warn,
@@ -178,7 +178,7 @@ const STATUS_STYLES: Record<
   PASS:    { badge: 'badge-green', icon: CheckCircle2, ring: 'border-green-500/40',  glow: 'shadow-[0_0_0_1px_rgba(34,197,94,0.15)_inset]',   label: 'PASS', tone: 'good' },
   FAIL:    { badge: 'badge-red',   icon: XCircle,      ring: 'border-red-500/45',    glow: 'shadow-[0_0_0_1px_rgba(239,68,68,0.15)_inset]',  label: 'FAIL', tone: 'poor' },
   WARNING: { badge: 'badge-amber', icon: AlertTriangle, ring: 'border-amber-500/45', glow: 'shadow-[0_0_0_1px_rgba(245,158,11,0.15)_inset]', label: 'WARN', tone: 'warn' },
-  PENDING: { badge: 'badge-dim',   icon: Clock,         ring: 'border-[#1f2335]',     glow: '',                                              label: 'PEND', tone: 'neutral' },
+  PENDING: { badge: 'badge-dim',   icon: Clock,         ring: 'border-[var(--border)]',     glow: '',                                              label: 'PEND', tone: 'neutral' },
 }
 
 const POLL_INTERVAL_MS = 10_000
@@ -233,11 +233,11 @@ function SectionHeader({
   return (
     <div className="flex items-center gap-1.5 mb-2">
       <Icon className={`size-3 ${TONE[tone].text}`} aria-hidden="true" />
-      <span className="text-[10.5px] uppercase tracking-wider font-bold text-[#5a637a]">
+      <span className="text-[10.5px] uppercase tracking-wider font-bold text-[var(--text-secondary)]">
         {title}
       </span>
       {description && (
-        <span className="text-[9px] text-[#5a637a] italic truncate">{description}</span>
+        <span className="text-[9px] text-[var(--text-secondary)] italic truncate">{description}</span>
       )}
       {trailing && <span className="ml-auto shrink-0">{trailing}</span>}
     </div>
@@ -281,7 +281,7 @@ function KpiTile({
   const cfg = tone ? TONE[tone] : null
   const cardCls = cfg
     ? `kpi-card relative rounded p-2 border ${cfg.border} ${cfg.bg} overflow-hidden transition-colors`
-    : 'kpi-card relative rounded p-2 border border-[#1f2335] bg-[#0e1015] overflow-hidden transition-colors'
+    : 'kpi-card relative rounded p-2 border border-[var(--border)] bg-[var(--bg-page)] overflow-hidden transition-colors'
   return (
     <div className={cardCls} data-testid={testId} data-tone={tone ?? 'neutral'}>
       <span className={`kpi-label flex items-center gap-1.5 ${cfg ? cfg.label : ''}`}>
@@ -295,9 +295,9 @@ function KpiTile({
       </span>
       {sub && <span className="kpi-sub">{sub}</span>}
       {quality != null && quality > 0 && (
-        <div className="h-0.5 bg-[#1f2335] rounded-full mt-1 overflow-hidden">
+        <div className="h-0.5 bg-[var(--border)] rounded-full mt-1 overflow-hidden">
           <div
-            className={`h-full rounded-full transition-all duration-500 ${cfg ? cfg.bar : 'bg-[#5a637a]'}`}
+            className={`h-full rounded-full transition-all duration-500 ${cfg ? cfg.bar : 'bg-[var(--text-secondary)]'}`}
             style={{ width: `${Math.max(0, Math.min(100, quality))}%` }}
             aria-hidden="true"
           />
@@ -313,7 +313,7 @@ function KpiTile({
 function PolishedEmptyState() {
   return (
     <div className="empty-state py-8" role="status" data-testid="safety-gate-empty-state">
-      <Shield className="empty-state-icon text-[#5a637a]" size={28} aria-hidden="true" />
+      <Shield className="empty-state-icon text-[var(--text-secondary)]" size={28} aria-hidden="true" />
       <div className="empty-state-title">No staged checks returned</div>
       <div className="empty-state-desc">
         The readiness endpoint responded with an empty checks array. The
@@ -359,7 +359,7 @@ function PolishedErrorState({ message, onRetry, retrying }: PolishedErrorStatePr
       </div>
       {message && (
         <pre
-          className="mono text-[10px] text-red-300/85 bg-[#080910] border border-red-500/30 rounded p-2 max-h-32 overflow-auto text-left"
+          className="mono text-[10px] text-red-300/85 bg-[var(--bg-base)] border border-red-500/30 rounded p-2 max-h-32 overflow-auto text-left"
           data-testid="safety-gate-error-msg"
         >
           {message}
@@ -486,14 +486,14 @@ function CheckCard({
 
   return (
     <div
-      className={`bg-[#0e1015] border ${st.ring} ${st.glow} rounded-lg overflow-hidden transition-colors ${cfg.rowHover}`}
+      className={`bg-[var(--bg-page)] border ${st.ring} ${st.glow} rounded-lg overflow-hidden transition-colors ${cfg.rowHover}`}
       data-tone={tone}
       data-status={status}
     >
       <button
         type="button"
         onClick={onToggle}
-        className="w-full text-left p-3 flex items-start gap-2.5 hover:bg-[#13161e] transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-[#3b82f6]/40"
+        className="w-full text-left p-3 flex items-start gap-2.5 hover:bg-[var(--bg-surface)] transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-[var(--accent)]/40"
         aria-expanded={expanded}
         aria-controls={`check-detail-${check.id}`}
       >
@@ -505,7 +505,7 @@ function CheckCard({
               ? 'bg-red-500/15 text-red-400'
               : status === 'WARNING'
               ? 'bg-amber-500/15 text-amber-400'
-              : 'bg-[#1f2335] text-[#7e8aaa]'
+              : 'bg-[var(--border)] text-[var(--text-secondary)]'
           }`}
         >
           {index + 1}
@@ -516,18 +516,18 @@ function CheckCard({
               className={`h-3.5 w-3.5 flex-shrink-0 ${cfg.text}`}
               aria-hidden="true"
             />
-            <span className="text-[12px] font-semibold text-[#dde1ed] truncate">
+            <span className="text-[12px] font-semibold text-[var(--text-primary)] truncate">
               {check.name}
             </span>
             <span className={`badge ${st.badge} text-[9px] px-1.5 py-0`}>
               {st.label}
             </span>
           </div>
-          <div className="mono text-[9.5px] text-[#7e8aaa] mt-0.5 truncate">
+          <div className="mono text-[9.5px] text-[var(--text-secondary)] mt-0.5 truncate">
             {check.id}
           </div>
         </div>
-        <span className="text-[#7e8aaa] flex-shrink-0 mt-0.5">
+        <span className="text-[var(--text-secondary)] flex-shrink-0 mt-0.5">
           {expanded ? (
             <ChevronDown className="h-3.5 w-3.5" />
           ) : (
@@ -546,7 +546,7 @@ function CheckCard({
               ? 'text-red-300/85'
               : status === 'WARNING'
               ? 'text-amber-300/85'
-              : 'text-[#7e8aaa]'
+              : 'text-[var(--text-secondary)]'
           } line-clamp-2`}
           title={check.detail}
         >
@@ -557,10 +557,10 @@ function CheckCard({
       {expanded && (
         <div
           id={`check-detail-${check.id}`}
-          className="border-t border-[#1f2335] bg-[#08090f]/60 px-3 py-2.5 space-y-2"
+          className="border-t border-[var(--border)] bg-[#08090f]/60 px-3 py-2.5 space-y-2"
         >
           <div>
-            <div className="text-[9.5px] uppercase tracking-wider text-[#7e8aaa] font-semibold">
+            <div className="text-[9.5px] uppercase tracking-wider text-[var(--text-secondary)] font-semibold">
               Threshold
             </div>
             <code className="mono text-[10.5px] text-cyan-300/95 break-all">
@@ -568,7 +568,7 @@ function CheckCard({
             </code>
           </div>
           <div>
-            <div className="text-[9.5px] uppercase tracking-wider text-[#7e8aaa] font-semibold">
+            <div className="text-[9.5px] uppercase tracking-wider text-[var(--text-secondary)] font-semibold">
               Detail
             </div>
             <p className="text-[10.5px] text-[#c8cfe0] leading-relaxed break-words">
@@ -577,15 +577,15 @@ function CheckCard({
           </div>
           {check.value != null && (
             <div>
-              <div className="text-[9.5px] uppercase tracking-wider text-[#7e8aaa] font-semibold">
+              <div className="text-[9.5px] uppercase tracking-wider text-[var(--text-secondary)] font-semibold">
                 Measured value
               </div>
-              <pre className="mono text-[10px] text-[#9aa3bc] bg-[#080910] border border-[#1f2335] rounded p-2 overflow-x-auto max-h-32">
+              <pre className="mono text-[10px] text-[#9aa3bc] bg-[var(--bg-base)] border border-[var(--border)] rounded p-2 overflow-x-auto max-h-32">
                 {JSON.stringify(check.value, null, 2)}
               </pre>
             </div>
           )}
-          <div className="flex items-center justify-between text-[9.5px] text-[#7e8aaa] pt-0.5">
+          <div className="flex items-center justify-between text-[9.5px] text-[var(--text-secondary)] pt-0.5">
             <span>
               Severity:{' '}
               <span className="mono text-[#c8cfe0]">{check.severity}</span>
@@ -601,7 +601,7 @@ function CheckCard({
 function CheckSkeleton() {
   return (
     <div
-      className="bg-[#0e1015] border border-[#1f2335] rounded-lg p-3"
+      className="bg-[var(--bg-page)] border border-[var(--border)] rounded-lg p-3"
       aria-hidden="true"
     >
       <div className="flex items-center gap-2.5">
@@ -630,7 +630,7 @@ function HistoryTimeline({ events }: { events: AuditEvent[] }) {
         role="status"
         data-testid="safety-gate-history-empty"
       >
-        <History className="empty-state-icon text-[#5a637a]" size={24} aria-hidden="true" />
+        <History className="empty-state-icon text-[var(--text-secondary)]" size={24} aria-hidden="true" />
         <div className="empty-state-title">No gate transitions recorded yet</div>
         <div className="empty-state-desc">
           Kill-switch activations, live-trading enablements, and observation-
@@ -654,7 +654,7 @@ function HistoryTimeline({ events }: { events: AuditEvent[] }) {
         return (
           <li
             key={`${e.timestamp}-${i}`}
-            className={`flex items-start gap-2 text-[11px] bg-[#0e1015] border border-[#1f2335] rounded px-2.5 py-1.5 ${cfg.rowHover} hover:bg-[#13161e] transition-colors`}
+            className={`flex items-start gap-2 text-[11px] bg-[var(--bg-page)] border border-[var(--border)] rounded px-2.5 py-1.5 ${cfg.rowHover} hover:bg-[var(--bg-surface)] transition-colors`}
             data-tone={tone}
           >
             <span
@@ -664,10 +664,10 @@ function HistoryTimeline({ events }: { events: AuditEvent[] }) {
             </span>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="mono text-[10px] font-semibold text-[#dde1ed]">
+                <span className="mono text-[10px] font-semibold text-[var(--text-primary)]">
                   {e.event_type}
                 </span>
-                <span className="text-[9px] text-[#7e8aaa] mono tabular-nums">
+                <span className="text-[9px] text-[var(--text-secondary)] mono tabular-nums">
                   {fmtAge(e.timestamp)}
                 </span>
               </div>
@@ -675,7 +675,7 @@ function HistoryTimeline({ events }: { events: AuditEvent[] }) {
                 {e.details}
               </p>
             </div>
-            <span className="mono text-[9px] text-[#7e8aaa] flex-shrink-0 mt-0.5 tabular-nums">
+            <span className="mono text-[9px] text-[var(--text-secondary)] flex-shrink-0 mt-0.5 tabular-nums">
               {fmtTime(e.timestamp)}
             </span>
           </li>
@@ -695,21 +695,21 @@ function HistoryTimeline({ events }: { events: AuditEvent[] }) {
 function LiveSafetyGateSkeleton() {
   return (
     <div
-      className="card bg-[#13161e] border border-[#1f2335] rounded-lg overflow-hidden shadow-xl flex flex-col"
+      className="card bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg overflow-hidden shadow-xl flex flex-col"
       role="status"
       aria-live="polite"
       aria-label="Loading live safety gate"
       data-testid="safety-gate-loading-skeleton"
     >
       {/* Skeleton header bar — preserves the title + animate-spin spinner */}
-      <div className="card-header p-3 border-b border-[#1f2335] flex items-center justify-between gap-2">
+      <div className="card-header p-3 border-b border-[var(--border)] flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <Shield className="h-4 w-4 text-cyan-400" aria-hidden="true" />
-          <span className="text-xs font-bold text-[#dde1ed] tracking-wide">
+          <span className="text-xs font-bold text-[var(--text-primary)] tracking-wide">
             LIVE SAFETY GATE · §82
           </span>
         </div>
-        <Loader2 className="h-3.5 w-3.5 animate-spin text-[#7e8aaa]" aria-hidden="true" />
+        <Loader2 className="h-3.5 w-3.5 animate-spin text-[var(--text-secondary)]" aria-hidden="true" />
       </div>
       {/* Skeleton body — mirrors the loaded layout */}
       <div className="p-3 space-y-3" aria-hidden="true">
@@ -720,12 +720,12 @@ function LiveSafetyGateSkeleton() {
           {Array.from({ length: 4 }).map((_, i) => (
             <div
               key={i}
-              className="kpi-card rounded p-2 border border-[#1f2335] bg-[#0e1015] space-y-1.5"
+              className="kpi-card rounded p-2 border border-[var(--border)] bg-[var(--bg-page)] space-y-1.5"
             >
               <ShimmerBlock className="w-1/2" />
               <ShimmerBlock className="w-3/4 !h-4" />
               <ShimmerBlock className="w-2/3 !h-2" />
-              <div className="h-0.5 w-full bg-[#1f2335] rounded-full overflow-hidden">
+              <div className="h-0.5 w-full bg-[var(--border)] rounded-full overflow-hidden">
                 <div
                   className="h-full w-1/2 rounded-full"
                   style={{
@@ -740,12 +740,12 @@ function LiveSafetyGateSkeleton() {
           ))}
         </div>
         {/* Skeleton progress card */}
-        <div className="rounded-md border border-[#1f2335] bg-[#0e1015] px-3 py-2.5 space-y-2">
+        <div className="rounded-md border border-[var(--border)] bg-[var(--bg-page)] px-3 py-2.5 space-y-2">
           <div className="flex items-center justify-between">
             <ShimmerBlock className="w-44 !h-3" />
             <ShimmerBlock className="w-24 !h-3" />
           </div>
-          <div className="h-2 w-full bg-[#1f2335] rounded-full overflow-hidden">
+          <div className="h-2 w-full bg-[var(--border)] rounded-full overflow-hidden">
             <div
               className="h-full w-3/5 rounded-full"
               style={{
@@ -770,7 +770,7 @@ function LiveSafetyGateSkeleton() {
           ))}
         </div>
         {/* Skeleton history timeline */}
-        <div className="rounded-md border border-[#1f2335] bg-[#0e1015] px-3 py-2.5 space-y-1.5">
+        <div className="rounded-md border border-[var(--border)] bg-[var(--bg-page)] px-3 py-2.5 space-y-1.5">
           <ShimmerBlock className="w-40 !h-3" />
           <ShimmerBlock className="w-full !h-3" />
           <ShimmerBlock className="w-3/4 !h-3" />
@@ -1027,11 +1027,11 @@ export default function LiveSafetyGatePanel() {
   // ── Render: error state ──────────────────────────────────────────────────
   if ((error || !readiness) && !loading) {
     return (
-      <div className="card bg-[#13161e] border border-[#1f2335] rounded-lg overflow-hidden shadow-xl flex flex-col">
-        <div className="card-header p-3 border-b border-[#1f2335] flex items-center justify-between gap-2">
+      <div className="card bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg overflow-hidden shadow-xl flex flex-col">
+        <div className="card-header p-3 border-b border-[var(--border)] flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <ShieldAlert className="h-4 w-4 text-red-400" aria-hidden="true" />
-            <span className="text-xs font-bold text-[#dde1ed] tracking-wide">
+            <span className="text-xs font-bold text-[var(--text-primary)] tracking-wide">
               LIVE SAFETY GATE · §82
             </span>
             <span className="badge badge-red text-[9.5px]">Unavailable</span>
@@ -1093,11 +1093,11 @@ export default function LiveSafetyGatePanel() {
   )
 
   return (
-    <div className="card bg-[#13161e] border border-[#1f2335] rounded-lg overflow-hidden shadow-xl flex flex-col">
+    <div className="card bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg overflow-hidden shadow-xl flex flex-col">
       {/* Header */}
-      <div className="card-header p-3 border-b border-[#1f2335] flex flex-wrap justify-between items-center gap-2">
+      <div className="card-header p-3 border-b border-[var(--border)] flex flex-wrap justify-between items-center gap-2">
         <div className="flex items-center gap-2">
-          <span className="card-title text-xs font-bold text-[#dde1ed] tracking-wide flex items-center gap-1.5">
+          <span className="card-title text-xs font-bold text-[var(--text-primary)] tracking-wide flex items-center gap-1.5">
             <Shield className="h-4 w-4 text-cyan-400" aria-hidden="true" />
             LIVE SAFETY GATE · §82
           </span>
@@ -1115,7 +1115,7 @@ export default function LiveSafetyGatePanel() {
             {gateOpen ? 'OPEN' : 'CLOSED'}
           </span>
           {lastUpdated && (
-            <span className="text-[9.5px] text-[#7e8aaa] mono tabular-nums">
+            <span className="text-[9.5px] text-[var(--text-secondary)] mono tabular-nums">
               · updated {fmtAge(lastUpdated / 1000)}
             </span>
           )}
@@ -1210,7 +1210,7 @@ export default function LiveSafetyGatePanel() {
         </div>
 
         {/* Staged validation progress */}
-        <div className="bg-[#0e1015] border border-[#1f2335] rounded-lg px-3 py-2.5">
+        <div className="bg-[var(--bg-page)] border border-[var(--border)] rounded-lg px-3 py-2.5">
           <SectionHeader
             icon={Activity}
             title="Staged Validation Progress"
@@ -1232,7 +1232,7 @@ export default function LiveSafetyGatePanel() {
           />
           <Progress
             value={progressPct}
-            className="h-2 bg-[#13161e] border border-[#1f2335] [&>[data-slot=progress-indicator]]:bg-gradient-to-r [&>[data-slot=progress-indicator]]:from-cyan-500 [&>[data-slot=progress-indicator]]:to-emerald-500"
+            className="h-2 bg-[var(--bg-surface)] border border-[var(--border)] [&>[data-slot=progress-indicator]]:bg-gradient-to-r [&>[data-slot=progress-indicator]]:from-cyan-500 [&>[data-slot=progress-indicator]]:to-emerald-500"
           />
           <div className="flex flex-wrap gap-2 mt-2 text-[9.5px]">
             <span className="flex items-center gap-1 text-green-400 mono tabular-nums">
@@ -1247,8 +1247,8 @@ export default function LiveSafetyGatePanel() {
               <span className="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block" />
               WARN {counts.WARNING ?? 0}
             </span>
-            <span className="flex items-center gap-1 text-[#7e8aaa] mono tabular-nums">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#3e4560] inline-block" />
+            <span className="flex items-center gap-1 text-[var(--text-secondary)] mono tabular-nums">
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--text-dim)] inline-block" />
               PEND {counts.PENDING ?? 0}
             </span>
             {verdict.blocking_checks.length > 0 && (
@@ -1280,11 +1280,11 @@ export default function LiveSafetyGatePanel() {
                   >
                     Expand all
                   </button>
-                  <span className="text-[#3e4560]">·</span>
+                  <span className="text-[var(--text-dim)]">·</span>
                   <button
                     type="button"
                     onClick={collapseAll}
-                    className="text-[#7e8aaa] hover:text-[#dde1ed] transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-[#3b82f6]/40 rounded px-1"
+                    className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-[var(--accent)]/40 rounded px-1"
                   >
                     Collapse all
                   </button>
@@ -1307,13 +1307,13 @@ export default function LiveSafetyGatePanel() {
       </div>
 
       {/* History timeline */}
-      <div className="px-3 pb-3 pt-2 border-t border-[#1f2335] mt-auto">
+      <div className="px-3 pb-3 pt-2 border-t border-[var(--border)] mt-auto">
         <SectionHeader
           icon={History}
           title="Gate Transition History"
           tone="neutral"
           trailing={
-            <span className="text-[9px] text-[#7e8aaa] mono tabular-nums">
+            <span className="text-[9px] text-[var(--text-secondary)] mono tabular-nums">
               last {HISTORY_LIMIT} events · system audit trail
             </span>
           }
@@ -1333,7 +1333,7 @@ export default function LiveSafetyGatePanel() {
           }
         }}
       >
-        <AlertDialogContent className="bg-[#13161e] border border-red-500/40 text-[#dde1ed] max-w-md">
+        <AlertDialogContent className="bg-[var(--bg-surface)] border border-red-500/40 text-[var(--text-primary)] max-w-md">
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2 text-red-300">
               <AlertTriangle className="h-4 w-4" aria-hidden="true" />
@@ -1361,7 +1361,7 @@ export default function LiveSafetyGatePanel() {
               ) : (
                 <>
                   To confirm, type{' '}
-                  <code className="mono text-amber-300 bg-[#080910] px-1.5 py-0.5 rounded border border-[#1f2335]">
+                  <code className="mono text-amber-300 bg-[var(--bg-base)] px-1.5 py-0.5 rounded border border-[var(--border)]">
                     {FORCE_OPEN_CONFIRMATION_PHRASE}
                   </code>{' '}
                   exactly as shown. This action is logged to the immutable audit
@@ -1379,14 +1379,14 @@ export default function LiveSafetyGatePanel() {
               autoComplete="off"
               spellCheck={false}
               onChange={(e) => setOpenConfirmText(e.target.value)}
-              className="bg-[#080910] border border-[#1f2335] text-[#dde1ed] mono text-sm"
+              className="bg-[var(--bg-base)] border border-[var(--border)] text-[var(--text-primary)] mono text-sm"
               placeholder="Type the confirmation phrase…"
               aria-label="Confirmation phrase"
             />
           )}
 
           {openError && (
-            <pre className="mono text-[10px] text-red-300 bg-[#080910] border border-red-500/30 rounded p-2 max-h-32 overflow-auto">
+            <pre className="mono text-[10px] text-red-300 bg-[var(--bg-base)] border border-red-500/30 rounded p-2 max-h-32 overflow-auto">
               {openError}
             </pre>
           )}
@@ -1446,7 +1446,7 @@ export default function LiveSafetyGatePanel() {
           if (!o) setCloseError(null)
         }}
       >
-        <AlertDialogContent className="bg-[#13161e] border border-red-500/40 text-[#dde1ed] max-w-md">
+        <AlertDialogContent className="bg-[var(--bg-surface)] border border-red-500/40 text-[var(--text-primary)] max-w-md">
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2 text-red-300">
               <Lock className="h-4 w-4" aria-hidden="true" />
@@ -1466,7 +1466,7 @@ export default function LiveSafetyGatePanel() {
           </AlertDialogHeader>
 
           {closeError && (
-            <pre className="mono text-[10px] text-red-300 bg-[#080910] border border-red-500/30 rounded p-2 max-h-32 overflow-auto">
+            <pre className="mono text-[10px] text-red-300 bg-[var(--bg-base)] border border-red-500/30 rounded p-2 max-h-32 overflow-auto">
               {closeError}
             </pre>
           )}

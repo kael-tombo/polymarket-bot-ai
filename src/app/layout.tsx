@@ -53,9 +53,14 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  // PWA — pin the theme color so the Android address bar tints to match
-  // the dashboard's dark shell.
-  themeColor: '#0b0e14',
+  // PWA — pin the theme color so the Android address bar / iOS Safari
+  // chrome tints to match the dashboard's shell. W63-b: defaulted to
+  // light mode, so the browser chrome uses slate-50 (#f8fafc) to blend
+  // with the light-theme `--bg` token. Flipping the toggle to dark via
+  // next-themes does NOT update this meta (it's static at render time),
+  // but the W61-d `.light` palette is the new default canvas, so the
+  // light tint is the correct first-paint choice.
+  themeColor: '#f8fafc',
 }
 
 export default function RootLayout({
@@ -74,10 +79,12 @@ export default function RootLayout({
         />
         {/* W11-8 — PWA: explicit theme-color + manifest links (also surfaced
             via the Next.js Metadata API above, but duplicated here for
-            browsers / web crawlers that only read <link> tags). */}
+            browsers / web crawlers that only read <link> tags). W63-b:
+            theme-color flipped to slate-50 (#f8fafc) to match the new
+            light-theme default shell. */}
         <link rel="manifest" href="/manifest.json" />
         <link rel="apple-touch-icon" href="/icon.svg" />
-        <meta name="theme-color" content="#0b0e14" />
+        <meta name="theme-color" content="#f8fafc" />
       </head>
       <body>
         {/* W13-4 — ThemeProvider wraps the entire app so any CSS variable

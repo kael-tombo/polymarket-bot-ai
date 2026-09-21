@@ -4,7 +4,7 @@
 // `mini-services/polymarket-bot/core/retention.py` over the HTTP surface
 // `POST /api/system/prune` (registered by `register_routes(app)`). Mirrors
 // the visual style established by `MLPanel.tsx` and `SystemHealthView.tsx`
-// (dark `#13161e` cards, `#1f2335` borders, `.kpi-card` / `.badge-*` /
+// (dark `var(--bg-surface)` cards, `var(--border)` borders, `.kpi-card` / `.badge-*` /
 // `.data-table` design-system classes from `globals.css`).
 //
 // W57-a — Polished with the W50-56 design-system layer (Tone system,
@@ -106,7 +106,7 @@ const TONE: Record<Tone, ToneConfig> = {
   warn:    { bg: 'bg-amber-500/[0.06]',   border: 'border-amber-500/25',   text: 'text-amber-400',   bar: 'bg-amber-500',   dot: 'bg-amber-400',   label: 'text-amber-400/80',   halo: 'shadow-amber-500/10' },
   poor:    { bg: 'bg-red-500/[0.06]',     border: 'border-red-500/25',     text: 'text-red-400',     bar: 'bg-red-500',     dot: 'bg-red-400',     label: 'text-red-400/80',     halo: 'shadow-red-500/10' },
   info:    { bg: 'bg-cyan-500/[0.06]',    border: 'border-cyan-500/25',    text: 'text-cyan-400',    bar: 'bg-cyan-500',    dot: 'bg-cyan-400',    label: 'text-cyan-400/80',    halo: 'shadow-cyan-500/10' },
-  neutral: { bg: 'bg-[#0e1015]',          border: 'border-[#1f2335]',      text: 'text-[#dde1ed]',   bar: 'bg-[#5a637a]',   dot: 'bg-[#5a637a]',   label: 'text-[#7e8aaa]',     halo: '' },
+  neutral: { bg: 'bg-[var(--bg-page)]',          border: 'border-[var(--border)]',      text: 'text-[var(--text-primary)]',   bar: 'bg-[var(--text-secondary)]',   dot: 'bg-[var(--text-secondary)]',   label: 'text-[var(--text-secondary)]',     halo: '' },
 }
 
 // ── Tone helpers ──────────────────────────────────────────────────────────
@@ -197,16 +197,16 @@ function SectionHeader({
     <div className="flex items-center justify-between gap-2">
       <div className="flex items-center gap-1.5 min-w-0">
         <Icon className={`size-3.5 shrink-0 ${TONE[tone].text}`} aria-hidden="true" />
-        <span className="text-[10px] uppercase tracking-wider font-bold text-[#dde1ed] truncate">
+        <span className="text-[10px] uppercase tracking-wider font-bold text-[var(--text-primary)] truncate">
           {title}
         </span>
         {description && (
-          <span className="text-[9px] text-[#5a637a] italic truncate hidden md:inline">
+          <span className="text-[9px] text-[var(--text-secondary)] italic truncate hidden md:inline">
             {description}
           </span>
         )}
       </div>
-      {trailing && <span className="shrink-0 text-[10px] text-[#7e8aaa] mono">{trailing}</span>}
+      {trailing && <span className="shrink-0 text-[10px] text-[var(--text-secondary)] mono">{trailing}</span>}
     </div>
   )
 }
@@ -251,7 +251,7 @@ function KpiTile({ label, value, hint, tone, icon: Icon, quality, trend, testId 
       </div>
       <div className="kpi-sub tabular-nums">{hint}</div>
       {quality != null && quality > 0 && (
-        <div className="h-0.5 bg-[#1f2335] rounded-full mt-1 overflow-hidden">
+        <div className="h-0.5 bg-[var(--border)] rounded-full mt-1 overflow-hidden">
           <div
             className={`h-full rounded-full transition-all duration-500 ${cfg.bar}`}
             style={{ width: `${Math.max(0, Math.min(100, quality))}%` }}
@@ -377,7 +377,7 @@ function PolishedEmptyState({ icon: Icon, title, description, className = '', te
       data-testid={testId ?? 'retention-empty-state'}
     >
       <span className="empty-state-icon" aria-hidden="true">
-        <Icon className="w-10 h-10 text-[#3e4560]" strokeWidth={1.5} />
+        <Icon className="w-10 h-10 text-[var(--text-dim)]" strokeWidth={1.5} />
       </span>
       <span className="empty-state-title text-sm font-semibold">{title}</span>
       {description && (
@@ -720,19 +720,19 @@ export default function RetentionPanel() {
   )
 
   return (
-    <div className="flex flex-col h-full bg-[var(--bg-surface)] border border-[#1f2335] rounded-lg overflow-hidden">
+    <div className="flex flex-col h-full bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg overflow-hidden">
       {/* ── Header ─────────────────────────────────────────────────────────── */}
-      <div className="flex flex-wrap justify-between items-center gap-3 p-4 border-b border-[#1f2335] bg-[#13161e]">
+      <div className="flex flex-wrap justify-between items-center gap-3 p-4 border-b border-[var(--border)] bg-[var(--bg-surface)]">
         <div className="flex items-center gap-2.5">
           <div className="p-2 rounded-md bg-[var(--color-amber-bg)] border border-[var(--color-amber-bd)]">
             <Database className="text-[var(--color-amber-fg)]" size={18} />
           </div>
           <div>
-            <h2 className="text-sm font-bold text-[#dde1ed] flex items-center gap-2">
+            <h2 className="text-sm font-bold text-[var(--text-primary)] flex items-center gap-2">
               Data Retention &amp; Pruning
               <span className="badge badge-dim text-[9px]">Bounded-storage policy</span>
             </h2>
-            <p className="text-[11px] text-[#7e8aaa] mt-0.5">
+            <p className="text-[11px] text-[var(--text-secondary)] mt-0.5">
               Four SQLite stores · 7d / 30d / 30d / 90d horizons · <code className="mono text-[10px]">POST /api/system/prune</code>
             </p>
           </div>
@@ -829,11 +829,11 @@ export default function RetentionPanel() {
                 <Table className="data-table">
                   <TableHeader>
                     <TableRow className="hover:bg-transparent">
-                      <TableHead className="text-[10px] uppercase tracking-wider text-[#5a637a] font-bold">Store</TableHead>
-                      <TableHead className="text-[10px] uppercase tracking-wider text-[#5a637a] font-bold">Tables</TableHead>
-                      <TableHead className="text-[10px] uppercase tracking-wider text-[#5a637a] font-bold">Horizon</TableHead>
-                      <TableHead className="text-[10px] uppercase tracking-wider text-[#5a637a] font-bold">DB Path</TableHead>
-                      <TableHead className="text-[10px] uppercase tracking-wider text-[#5a637a] font-bold text-right">Status</TableHead>
+                      <TableHead className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] font-bold">Store</TableHead>
+                      <TableHead className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] font-bold">Tables</TableHead>
+                      <TableHead className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] font-bold">Horizon</TableHead>
+                      <TableHead className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] font-bold">DB Path</TableHead>
+                      <TableHead className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] font-bold text-right">Status</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -856,8 +856,8 @@ export default function RetentionPanel() {
                         >
                           <TableCell className="label-col">
                             <div className="flex flex-col">
-                              <span className="font-semibold text-[#dde1ed]">{t.label}</span>
-                              <span className="text-[10px] text-[#5a637a]">{t.rationale}</span>
+                              <span className="font-semibold text-[var(--text-primary)]">{t.label}</span>
+                              <span className="text-[10px] text-[var(--text-secondary)]">{t.rationale}</span>
                             </div>
                           </TableCell>
                           <TableCell>
@@ -879,10 +879,10 @@ export default function RetentionPanel() {
                           </TableCell>
                           <TableCell>
                             <div className="flex flex-col">
-                              <code className="mono text-[10px] text-[#dde1ed]">
+                              <code className="mono text-[10px] text-[var(--text-primary)]">
                                 {t.defaultDbPath}
                               </code>
-                              <code className="mono text-[9px] text-[#5a637a]">{t.envVar}</code>
+                              <code className="mono text-[9px] text-[var(--text-secondary)]">{t.envVar}</code>
                             </div>
                           </TableCell>
                           <TableCell className="text-right">
@@ -930,26 +930,26 @@ export default function RetentionPanel() {
               <div className="p-4 pt-2 space-y-3">
                 <div className="flex flex-wrap items-end gap-3">
                   <div className="flex-1 min-w-[200px]">
-                    <label className="text-[10px] uppercase tracking-wider text-[#5a637a] font-bold mb-1 block">
+                    <label className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] font-bold mb-1 block">
                       Target store
                     </label>
                     <Select value={pruneTarget} onValueChange={setPruneTarget}>
-                      <SelectTrigger className="h-9 bg-[#0e1015] border-[#1f2335] text-[#dde1ed] text-xs">
+                      <SelectTrigger className="h-9 bg-[var(--bg-page)] border-[var(--border)] text-[var(--text-primary)] text-xs">
                         <SelectValue placeholder="Select target" />
                       </SelectTrigger>
-                      <SelectContent className="bg-[#13161e] border-[#1f2335]">
-                        <SelectItem value="all" className="text-[#dde1ed] focus:bg-[#1f2335]">
+                      <SelectContent className="bg-[var(--bg-surface)] border-[var(--border)]">
+                        <SelectItem value="all" className="text-[var(--text-primary)] focus:bg-[var(--border)]">
                           <span className="font-semibold">all stores</span>
-                          <span className="text-[10px] text-[#7e8aaa] ml-2">(run_all_pruning)</span>
+                          <span className="text-[10px] text-[var(--text-secondary)] ml-2">(run_all_pruning)</span>
                         </SelectItem>
                         {RETENTION_TARGETS.map((t) => (
                           <SelectItem
                             key={t.target}
                             value={t.target}
-                            className="text-[#dde1ed] focus:bg-[#1f2335]"
+                            className="text-[var(--text-primary)] focus:bg-[var(--border)]"
                           >
                             {t.label}
-                            <span className="text-[10px] text-[#7e8aaa] ml-2">
+                            <span className="text-[10px] text-[var(--text-secondary)] ml-2">
                               ({t.horizonDays}d)
                             </span>
                           </SelectItem>
@@ -978,13 +978,13 @@ export default function RetentionPanel() {
                         )}
                       </Button>
                     </AlertDialogTrigger>
-                    <AlertDialogContent className="bg-[#13161e] border-[#1f2335] text-[#dde1ed]">
+                    <AlertDialogContent className="bg-[var(--bg-surface)] border-[var(--border)] text-[var(--text-primary)]">
                       <AlertDialogHeader>
-                        <AlertDialogTitle className="text-[#dde1ed] flex items-center gap-2">
+                        <AlertDialogTitle className="text-[var(--text-primary)] flex items-center gap-2">
                           <AlertTriangle size={16} className="text-[var(--color-amber-fg)]" />
                           Confirm immediate prune
                         </AlertDialogTitle>
-                        <AlertDialogDescription className="text-[#7e8aaa] text-xs">
+                        <AlertDialogDescription className="text-[var(--text-secondary)] text-xs">
                           This will permanently delete rows older than the configured horizon from{' '}
                           <span className="font-semibold text-[var(--color-amber-fg)]">
                             {pruneTarget === 'all' ? 'all four stores' : RETENTION_TARGETS.find((t) => t.target === pruneTarget)?.label}
@@ -1010,7 +1010,7 @@ export default function RetentionPanel() {
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
-                        <AlertDialogCancel className="bg-[#0e1015] border-[#1f2335] text-[#dde1ed] hover:bg-[#1f2335]">
+                        <AlertDialogCancel className="bg-[var(--bg-page)] border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--border)]">
                           Cancel
                         </AlertDialogCancel>
                         <AlertDialogAction
@@ -1025,7 +1025,7 @@ export default function RetentionPanel() {
                   </AlertDialog>
                 </div>
                 {lastResult && (
-                  <div className="bg-[#0e1015] border border-[#1f2335] rounded-md p-3 text-xs">
+                  <div className="bg-[var(--bg-page)] border border-[var(--border)] rounded-md p-3 text-xs">
                     <div className="flex items-center gap-2 mb-2">
                       {(lastResult as PruneAllResult).success === true ||
                       (lastResult as PruneAllResult).success === false ? (
@@ -1033,7 +1033,7 @@ export default function RetentionPanel() {
                       ) : (
                         <CheckCircle2 size={12} className="text-cyan-400" />
                       )}
-                      <span className="font-semibold text-[#dde1ed]">
+                      <span className="font-semibold text-[var(--text-primary)]">
                         Prune result →{' '}
                         {new Date(
                           ((lastResult as PruneAllResult).timestamp ?? Date.now() / 1000) * 1000,
@@ -1047,10 +1047,10 @@ export default function RetentionPanel() {
                           return (
                             <div
                               key={k}
-                              className={`bg-[#13161e] border rounded p-2 text-center ${TONE[cellTone].border}`}
+                              className={`bg-[var(--bg-surface)] border rounded p-2 text-center ${TONE[cellTone].border}`}
                               data-tone={cellTone}
                             >
-                              <div className="text-[9px] text-[#5a637a] uppercase tracking-wider">
+                              <div className="text-[9px] text-[var(--text-secondary)] uppercase tracking-wider">
                                 {k}
                               </div>
                               <div className={`mono text-sm font-bold tabular-nums mt-0.5 ${TONE[cellTone].text}`}>
@@ -1099,11 +1099,11 @@ export default function RetentionPanel() {
                   <Table className="data-table">
                     <TableHeader>
                       <TableRow className="hover:bg-transparent">
-                        <TableHead className="text-[10px] uppercase tracking-wider text-[#5a637a] font-bold">When</TableHead>
-                        <TableHead className="text-[10px] uppercase tracking-wider text-[#5a637a] font-bold">Target</TableHead>
-                        <TableHead className="text-[10px] uppercase tracking-wider text-[#5a637a] font-bold text-right">Rows Deleted</TableHead>
-                        <TableHead className="text-[10px] uppercase tracking-wider text-[#5a637a] font-bold">Per-store detail</TableHead>
-                        <TableHead className="text-[10px] uppercase tracking-wider text-[#5a637a] font-bold text-right">Status</TableHead>
+                        <TableHead className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] font-bold">When</TableHead>
+                        <TableHead className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] font-bold">Target</TableHead>
+                        <TableHead className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] font-bold text-right">Rows Deleted</TableHead>
+                        <TableHead className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] font-bold">Per-store detail</TableHead>
+                        <TableHead className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] font-bold text-right">Status</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -1118,7 +1118,7 @@ export default function RetentionPanel() {
                             <TableCell className="label-col">
                               <div className="flex flex-col">
                                 <span className="tabular-nums">{new Date(h.timestamp * 1000).toLocaleTimeString()}</span>
-                                <span className="text-[10px] text-[#5a637a]">
+                                <span className="text-[10px] text-[var(--text-secondary)]">
                                   {formatRelativeTime(h.timestamp)}
                                 </span>
                               </div>
@@ -1146,7 +1146,7 @@ export default function RetentionPanel() {
                                   ))}
                                 </div>
                               ) : (
-                                <span className="text-[10px] text-[#5a637a]">—</span>
+                                <span className="text-[10px] text-[var(--text-secondary)]">—</span>
                               )}
                             </TableCell>
                             <TableCell className="text-right">
@@ -1187,7 +1187,7 @@ export default function RetentionPanel() {
                 />
               </div>
               <div className="p-4 pt-2 space-y-3">
-                <p className="text-[11px] text-[#7e8aaa] leading-relaxed">
+                <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed">
                   Retention horizons are loaded from{' '}
                   <code className="mono text-[10px] text-[var(--color-cyan-fg)]">core/retention.py</code>{' '}
                   module constants at boot. Runtime updates require an env-var
@@ -1203,11 +1203,11 @@ export default function RetentionPanel() {
                     return (
                       <div
                         key={t.target}
-                        className={`bg-[#0e1015] border rounded-md p-2.5 transition-colors ${TONE[cellTone].border}`}
+                        className={`bg-[var(--bg-page)] border rounded-md p-2.5 transition-colors ${TONE[cellTone].border}`}
                         data-tone={cellTone}
                       >
                         <div className="flex items-center justify-between mb-1.5">
-                          <span className="text-[11px] font-semibold text-[#dde1ed]">
+                          <span className="text-[11px] font-semibold text-[var(--text-primary)]">
                             {t.label}
                           </span>
                           {dirty && (
@@ -1227,13 +1227,13 @@ export default function RetentionPanel() {
                                 [t.target]: Number.isFinite(v) ? Math.max(1, v) : t.horizonDays,
                               }))
                             }}
-                            className="h-8 bg-[#13161e] border-[#1f2335] text-[#dde1ed] mono text-xs tabular-nums"
+                            className="h-8 bg-[var(--bg-surface)] border-[var(--border)] text-[var(--text-primary)] mono text-xs tabular-nums"
                           />
-                          <span className="text-[11px] text-[#7e8aaa]">days</span>
+                          <span className="text-[11px] text-[var(--text-secondary)]">days</span>
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-8 px-2 text-[10px] text-[#7e8aaa] hover:text-[#dde1ed]"
+                            className="h-8 px-2 text-[10px] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
                             onClick={() =>
                               setEditedHorizons((prev) => ({ ...prev, [t.target]: t.horizonDays }))
                             }
@@ -1242,7 +1242,7 @@ export default function RetentionPanel() {
                             Reset
                           </Button>
                         </div>
-                        <div className="text-[9.5px] text-[#5a637a] mt-1.5">
+                        <div className="text-[9.5px] text-[var(--text-secondary)] mt-1.5">
                           env: <code className="mono">{t.envVar}</code>
                         </div>
                       </div>
@@ -1258,7 +1258,7 @@ export default function RetentionPanel() {
                         Object.fromEntries(RETENTION_TARGETS.map((t) => [t.target, t.horizonDays])),
                       )
                     }
-                    className="h-8 text-[11px] bg-[#0e1015] border-[#1f2335] text-[#dde1ed] hover:bg-[#1f2335]"
+                    className="h-8 text-[11px] bg-[var(--bg-page)] border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--border)]"
                   >
                     Reset all
                   </Button>
@@ -1280,7 +1280,7 @@ export default function RetentionPanel() {
       </div>
 
       {/* ── Footer ─────────────────────────────────────────────────────────── */}
-      <div className="flex justify-between items-center px-4 py-2 border-t border-[#1f2335] bg-[#13161e] text-[10px] text-[#5a637a]">
+      <div className="flex justify-between items-center px-4 py-2 border-t border-[var(--border)] bg-[var(--bg-surface)] text-[10px] text-[var(--text-secondary)]">
         <span>
           Auto-refresh: <span className="mono text-[var(--color-blue-fg)]">60s</span>
           {typeof document !== 'undefined' && document.visibilityState === 'hidden' && ' (paused)'}

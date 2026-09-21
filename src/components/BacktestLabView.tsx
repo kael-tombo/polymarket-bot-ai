@@ -196,9 +196,9 @@ const TONE: Record<Tone, ToneConfig> = {
     halo: 'shadow-cyan-500/10',    stroke: '#22d3ee', fill: 'rgba(34, 211, 238, 0.22)',
   },
   neutral: {
-    bg: 'bg-[#0e1015]',          border: 'border-[#1f2335]',      text: 'text-[#dde1ed]',
-    bar: 'bg-[#5a637a]',         dot: 'bg-[#5a637a]',   label: 'text-[#7e8aaa]',
-    halo: '',                      stroke: '#5a637a', fill: 'rgba(90, 99, 122, 0.18)',
+    bg: 'bg-[var(--bg-base)]',          border: 'border-[var(--border)]',      text: 'text-[var(--text-primary)]',
+    bar: 'bg-[var(--text-secondary)]',         dot: 'bg-[var(--text-secondary)]',   label: 'text-[var(--text-secondary)]',
+    halo: '',                      stroke: 'var(--text-secondary)', fill: 'rgba(90, 99, 122, 0.18)',
   },
 }
 
@@ -270,19 +270,19 @@ interface SectionHeaderProps {
 function SectionHeader({ icon: Icon, title, description, tone = 'info', trailing }: SectionHeaderProps) {
   const cfg = TONE[tone]
   return (
-    <div className="flex flex-wrap items-center justify-between gap-2 pb-2 mb-2 border-b border-[#1f2335]">
+    <div className="flex flex-wrap items-center justify-between gap-2 pb-2 mb-2 border-b border-[var(--border)]">
       <div className="flex items-center gap-2 min-w-0">
         <Icon className={`size-3.5 shrink-0 ${cfg.label}`} aria-hidden="true" />
-        <span className="text-xs font-bold text-[#dde1ed] tracking-wide uppercase">
+        <span className="text-xs font-bold text-[var(--text-primary)] tracking-wide uppercase">
           {title}
         </span>
         {description && (
-          <span className="text-[10px] italic text-[#7e8aaa] hidden sm:inline truncate">
+          <span className="text-[10px] italic text-[var(--text-secondary)] hidden sm:inline truncate">
             {description}
           </span>
         )}
       </div>
-      {trailing && <div className="text-[10px] text-[#7e8aaa] mono tabular-nums">{trailing}</div>}
+      {trailing && <div className="text-[10px] text-[var(--text-secondary)] mono tabular-nums">{trailing}</div>}
     </div>
   )
 }
@@ -315,7 +315,7 @@ function KpiTile({ label, value, hint, tone, quality, trend, testId }: KpiTilePr
       </div>
       <div className="kpi-sub">{hint}</div>
       {quality != null && quality > 0 && (
-        <div className="h-0.5 bg-[#1f2335] rounded-full mt-1 overflow-hidden">
+        <div className="h-0.5 bg-[var(--border)] rounded-full mt-1 overflow-hidden">
           <div
             className={`h-full rounded-full transition-all duration-500 ${cfg.bar}`}
             style={{ width: `${Math.max(0, Math.min(100, quality))}%` }}
@@ -342,7 +342,7 @@ function PolishedEmptyState({ icon: Icon, title, description, className = '', te
       data-testid={testId ?? 'backtest-empty-state'}
     >
       <span className="empty-state-icon" aria-hidden="true">
-        <Icon className="w-12 h-12 text-[#3e4560]" strokeWidth={1.5} />
+        <Icon className="w-12 h-12 text-[var(--text-dim)]" strokeWidth={1.5} />
       </span>
       <span className="empty-state-title text-sm font-semibold">{title}</span>
       {description && (
@@ -413,8 +413,8 @@ function ResultsSkeleton() {
       </div>
 
       {/* Equity curve placeholder */}
-      <div className="card p-3 bg-[#0e1015] border border-[#1f2335] rounded-lg">
-        <div className="flex items-center justify-between pb-2 mb-2 border-b border-[#1f2335]">
+      <div className="card p-3 bg-[var(--bg-base)] border border-[var(--border)] rounded-lg">
+        <div className="flex items-center justify-between pb-2 mb-2 border-b border-[var(--border)]">
           <div className="skeleton-line-sm" style={{ width: '40%' }} />
           <div className="skeleton-line-sm" style={{ width: '25%' }} />
         </div>
@@ -435,8 +435,8 @@ function ResultsSkeleton() {
       </div>
 
       {/* Trade stats table placeholder */}
-      <div className="card p-3 bg-[#0e1015] border border-[#1f2335] rounded-lg">
-        <div className="flex items-center justify-between pb-2 mb-2 border-b border-[#1f2335]">
+      <div className="card p-3 bg-[var(--bg-base)] border border-[var(--border)] rounded-lg">
+        <div className="flex items-center justify-between pb-2 mb-2 border-b border-[var(--border)]">
           <div className="skeleton-line-sm" style={{ width: '35%' }} />
           <div className="skeleton-line-sm" style={{ width: '20%' }} />
         </div>
@@ -761,7 +761,7 @@ export default function BacktestLabView() {
             y1={y}
             x2={400 - padRight}
             y2={y}
-            stroke="#1f2335"
+            stroke="var(--border)"
             strokeWidth={1}
             strokeDasharray="2 3"
             opacity={0.7}
@@ -776,7 +776,7 @@ export default function BacktestLabView() {
             y1={padTop}
             x2={x}
             y2={padTop + chartH}
-            stroke="#1f2335"
+            stroke="var(--border)"
             strokeWidth={1}
             strokeDasharray="2 3"
             opacity={0.5}
@@ -790,7 +790,7 @@ export default function BacktestLabView() {
             y1={baselineY}
             x2={400 - padRight}
             y2={baselineY}
-            stroke="#7e8aaa"
+            stroke="var(--text-secondary)"
             strokeWidth={1}
             strokeDasharray="3 3"
             opacity={0.45}
@@ -804,7 +804,7 @@ export default function BacktestLabView() {
             x={padLeft - 4}
             y={yTickYs[i] + 3}
             textAnchor="end"
-            fill="#7e8aaa"
+            fill="var(--text-secondary)"
             fontSize="7"
             fontFamily="monospace"
           >
@@ -813,13 +813,13 @@ export default function BacktestLabView() {
         ))}
 
         {/* X-axis tick labels (3) */}
-        <text x={padLeft} y={124} textAnchor="start" fill="#7e8aaa" fontSize="7" fontFamily="monospace">
+        <text x={padLeft} y={124} textAnchor="start" fill="var(--text-secondary)" fontSize="7" fontFamily="monospace">
           Day 0 (${result.initial_capital.toFixed(0)})
         </text>
-        <text x={padLeft + chartW / 2} y={124} textAnchor="middle" fill="#7e8aaa" fontSize="7" fontFamily="monospace">
+        <text x={padLeft + chartW / 2} y={124} textAnchor="middle" fill="var(--text-secondary)" fontSize="7" fontFamily="monospace">
           Day {Math.round(days / 2)}
         </text>
-        <text x={padLeft + chartW} y={124} textAnchor="end" fill="#7e8aaa" fontSize="7" fontFamily="monospace">
+        <text x={padLeft + chartW} y={124} textAnchor="end" fill="var(--text-secondary)" fontSize="7" fontFamily="monospace">
           Day {days} (${result.final_equity.toFixed(0)})
         </text>
 
@@ -848,25 +848,25 @@ export default function BacktestLabView() {
   }
 
   return (
-    <div className="flex flex-col h-full bg-[#13161e] border border-[#1f2335] rounded-lg overflow-hidden p-4 space-y-3.5 overflow-y-auto scrollbar-thin shadow-2xl">
+    <div className="flex flex-col h-full bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg overflow-hidden p-4 space-y-3.5 overflow-y-auto scrollbar-thin shadow-2xl">
       {/* ── Top Header ─────────────────────────────────────────────────── */}
-      <div className="flex flex-wrap justify-between items-center pb-3 border-b border-[#1f2335] gap-3">
+      <div className="flex flex-wrap justify-between items-center pb-3 border-b border-[var(--border)] gap-3">
         <div className="min-w-0">
           <div className="flex items-center gap-2.5 flex-wrap">
             <FlaskConical className="size-5 text-cyan-300 shrink-0" aria-hidden="true" />
-            <span className="text-sm font-bold text-[#dde1ed] tracking-wide">
+            <span className="text-sm font-bold text-[var(--text-primary)] tracking-wide">
               Quantitative Backtest &amp; Binary Payoff Simulation Lab
             </span>
             <span className="badge badge-purple text-[10px] font-bold">Kelly Sizing Model</span>
           </div>
-          <p className="text-xs text-[#7e8aaa] mt-0.5">
+          <p className="text-xs text-[var(--text-secondary)] mt-0.5">
             Monte Carlo path modeling, $1.00 binary resolution payouts, and institutional metrics (VaR 95%, Calmar, Brier)
           </p>
         </div>
       </div>
 
       {/* ── Control Configuration Bar ───────────────────────────────────── */}
-      <div className="card p-3 bg-[#0e1015] border border-[#1f2335] rounded-lg">
+      <div className="card p-3 bg-[var(--bg-base)] border border-[var(--border)] rounded-lg">
         <SectionHeader
           icon={Settings2}
           title="Backtest Configuration"
@@ -876,14 +876,14 @@ export default function BacktestLabView() {
         />
         <div className="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
           <div>
-            <label className="text-[10px] text-[#7e8aaa] font-bold uppercase block mb-1 flex items-center gap-1.5">
-              <Settings2 className="size-3 text-[#5a637a]" aria-hidden="true" />
+            <label className="text-[10px] text-[var(--text-secondary)] font-bold uppercase block mb-1 flex items-center gap-1.5">
+              <Settings2 className="size-3 text-[var(--text-secondary)]" aria-hidden="true" />
               Trading Strategy Archetype
             </label>
             <select
               value={strategyId}
               onChange={(e) => setStrategyId(e.target.value)}
-              className="w-full bg-[#13161e] border border-[#1f2335] text-xs font-semibold text-[#dde1ed] rounded p-2 outline-none cursor-pointer transition-colors focus:ring-1 focus:ring-cyan-500/20 focus:border-cyan-500/40 hover:border-[#2a3047]"
+              className="w-full bg-[var(--bg-surface)] border border-[var(--border)] text-xs font-semibold text-[var(--text-primary)] rounded p-2 outline-none cursor-pointer transition-colors focus:ring-1 focus:ring-cyan-500/20 focus:border-cyan-500/40 hover:border-[var(--border-strong)]"
             >
               {POPULAR_STRATS.map((s) => (
                 <option key={s.id} value={s.id}>
@@ -894,8 +894,8 @@ export default function BacktestLabView() {
           </div>
 
           <div>
-            <label className="text-[10px] text-[#7e8aaa] font-bold uppercase block mb-1 flex items-center gap-1.5">
-              <DollarSign className="size-3 text-[#5a637a]" aria-hidden="true" />
+            <label className="text-[10px] text-[var(--text-secondary)] font-bold uppercase block mb-1 flex items-center gap-1.5">
+              <DollarSign className="size-3 text-[var(--text-secondary)]" aria-hidden="true" />
               Starting Capital ($)
             </label>
             <input
@@ -904,13 +904,13 @@ export default function BacktestLabView() {
               onChange={(e) => setCapital(Number(e.target.value))}
               min={10}
               max={100000}
-              className="w-full bg-[#13161e] border border-[#1f2335] text-xs mono text-[#dde1ed] rounded p-2 outline-none transition-colors focus:ring-1 focus:ring-cyan-500/20 focus:border-cyan-500/40 hover:border-[#2a3047] tabular-nums"
+              className="w-full bg-[var(--bg-surface)] border border-[var(--border)] text-xs mono text-[var(--text-primary)] rounded p-2 outline-none transition-colors focus:ring-1 focus:ring-cyan-500/20 focus:border-cyan-500/40 hover:border-[var(--border-strong)] tabular-nums"
             />
           </div>
 
           <div>
-            <label className="text-[10px] text-[#7e8aaa] font-bold uppercase block mb-1 flex items-center gap-1.5">
-              <CalendarClock className="size-3 text-[#5a637a]" aria-hidden="true" />
+            <label className="text-[10px] text-[var(--text-secondary)] font-bold uppercase block mb-1 flex items-center gap-1.5">
+              <CalendarClock className="size-3 text-[var(--text-secondary)]" aria-hidden="true" />
               Simulation Horizon (Days)
             </label>
             <input
@@ -919,7 +919,7 @@ export default function BacktestLabView() {
               onChange={(e) => setDays(Number(e.target.value))}
               min={1}
               max={365}
-              className="w-full bg-[#13161e] border border-[#1f2335] text-xs mono text-[#dde1ed] rounded p-2 outline-none transition-colors focus:ring-1 focus:ring-cyan-500/20 focus:border-cyan-500/40 hover:border-[#2a3047] tabular-nums"
+              className="w-full bg-[var(--bg-surface)] border border-[var(--border)] text-xs mono text-[var(--text-primary)] rounded p-2 outline-none transition-colors focus:ring-1 focus:ring-cyan-500/20 focus:border-cyan-500/40 hover:border-[var(--border-strong)] tabular-nums"
             />
           </div>
 
@@ -956,7 +956,7 @@ export default function BacktestLabView() {
 
       {/* ── Empty state (no result yet) ────────────────────────────────── */}
       {!result && !error && !running && (
-        <div className="card p-3 bg-[#0e1015] border border-[#1f2335] rounded-lg">
+        <div className="card p-3 bg-[var(--bg-base)] border border-[var(--border)] rounded-lg">
           <PolishedEmptyState
             icon={FlaskConical}
             title="Run a backtest to see results"
@@ -1044,7 +1044,7 @@ export default function BacktestLabView() {
           </div>
 
           {/* ── Equity Curve SVG Visualizer (refined) ──────────────────── */}
-          <div className="card p-3 bg-[#0e1015] border border-[#1f2335] rounded-lg">
+          <div className="card p-3 bg-[var(--bg-base)] border border-[var(--border)] rounded-lg">
             <SectionHeader
               icon={LineChartIcon}
               title="Simulated Equity Growth & Drawdown Curve"
@@ -1059,7 +1059,7 @@ export default function BacktestLabView() {
             <div className="h-44 w-full flex items-center justify-center">
               {renderEquityCurve()}
             </div>
-            <div className="flex justify-between text-[10px] text-[#7e8aaa] mono mt-1 tabular-nums">
+            <div className="flex justify-between text-[10px] text-[var(--text-secondary)] mono mt-1 tabular-nums">
               <span>Day 0 (Start: ${result.initial_capital})</span>
               <span>
                 Win Rate: {(result.win_rate * 100).toFixed(1)}% ({result.winning_trades}W / {result.losing_trades}L)
@@ -1070,7 +1070,7 @@ export default function BacktestLabView() {
 
           {/* ── Walk-forward / Monte Carlo Outcome Distribution (NEW) ─── */}
           {mcBuckets.length > 0 && (
-            <div className="card p-3 bg-[#0e1015] border border-[#1f2335] rounded-lg">
+            <div className="card p-3 bg-[var(--bg-base)] border border-[var(--border)] rounded-lg">
               <SectionHeader
                 icon={Layers}
                 title="Monte Carlo Outcome Distribution"
@@ -1101,12 +1101,12 @@ export default function BacktestLabView() {
                         />
                       </div>
                       <div className={`text-[8px] mono tabular-nums ${cfg.text}`}>{b.label}</div>
-                      <div className="text-[8px] text-[#7e8aaa] tabular-nums">{b.count}</div>
+                      <div className="text-[8px] text-[var(--text-secondary)] tabular-nums">{b.count}</div>
                     </div>
                   )
                 })}
               </div>
-              <div className="flex justify-between mt-2 text-[9px] text-[#7e8aaa] mono uppercase tracking-wider">
+              <div className="flex justify-between mt-2 text-[9px] text-[var(--text-secondary)] mono uppercase tracking-wider">
                 <span className="text-red-400/80">← Worst</span>
                 <span>P5 → P95 Equity Outcome Bucket</span>
                 <span className="text-emerald-400/80">Best →</span>
@@ -1115,7 +1115,7 @@ export default function BacktestLabView() {
           )}
 
           {/* ── Trade Statistics Table (refined) ─────────────────────── */}
-          <div className="card p-3 bg-[#0e1015] border border-[#1f2335] rounded-lg">
+          <div className="card p-3 bg-[var(--bg-base)] border border-[var(--border)] rounded-lg">
             <SectionHeader
               icon={BarChart3}
               title="Trade Statistics & Risk Metrics"
@@ -1123,17 +1123,17 @@ export default function BacktestLabView() {
               tone="info"
               trailing={<span>{tradeStatRows.length} metrics</span>}
             />
-            <div className="overflow-hidden rounded-md border border-[#1f2335]">
+            <div className="overflow-hidden rounded-md border border-[var(--border)]">
               <table className="w-full text-xs" data-testid="backtest-trade-stats-table">
                 <thead>
-                  <tr className="bg-[#13161e] border-b border-[#1f2335]">
-                    <th className="text-left py-1.5 px-3 text-[9.5px] uppercase tracking-wider font-bold text-[#5a637a] hover:bg-transparent">
+                  <tr className="bg-[var(--bg-surface)] border-b border-[var(--border)]">
+                    <th className="text-left py-1.5 px-3 text-[9.5px] uppercase tracking-wider font-bold text-[var(--text-secondary)] hover:bg-transparent">
                       Metric
                     </th>
-                    <th className="text-right py-1.5 px-3 text-[9.5px] uppercase tracking-wider font-bold text-[#5a637a] hover:bg-transparent">
+                    <th className="text-right py-1.5 px-3 text-[9.5px] uppercase tracking-wider font-bold text-[var(--text-secondary)] hover:bg-transparent">
                       Value
                     </th>
-                    <th className="text-left py-1.5 px-3 text-[9.5px] uppercase tracking-wider font-bold text-[#5a637a] hover:bg-transparent hidden sm:table-cell">
+                    <th className="text-left py-1.5 px-3 text-[9.5px] uppercase tracking-wider font-bold text-[var(--text-secondary)] hover:bg-transparent hidden sm:table-cell">
                       Hint
                     </th>
                   </tr>
@@ -1144,16 +1144,16 @@ export default function BacktestLabView() {
                     return (
                       <tr
                         key={i}
-                        className="border-b border-[#1f2335]/60 last:border-b-0 transition-colors hover:bg-cyan-500/[0.04] hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.45)]"
+                        className="border-b border-[var(--border)]/60 last:border-b-0 transition-colors hover:bg-cyan-500/[0.04] hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.45)]"
                         data-tone={row.tone}
                       >
-                        <td className="py-1.5 px-3 text-[#dde1ed] font-medium">
+                        <td className="py-1.5 px-3 text-[var(--text-primary)] font-medium">
                           {row.label}
                         </td>
                         <td className={`py-1.5 px-3 text-right mono tabular-nums font-bold ${cfg.text}`}>
                           {row.value}
                         </td>
-                        <td className="py-1.5 px-3 text-[10px] text-[#7e8aaa] italic hidden sm:table-cell">
+                        <td className="py-1.5 px-3 text-[10px] text-[var(--text-secondary)] italic hidden sm:table-cell">
                           {row.hint ?? ''}
                         </td>
                       </tr>
@@ -1175,7 +1175,7 @@ export default function BacktestLabView() {
               return rel < -0.66 ? 'heatmap-cell-neg-3' : rel < -0.33 ? 'heatmap-cell-neg-2' : 'heatmap-cell-neg-1'
             }
             return (
-              <div className="card p-3 bg-[#0e1015] border border-[#1f2335] rounded-lg">
+              <div className="card p-3 bg-[var(--bg-base)] border border-[var(--border)] rounded-lg">
                 <SectionHeader
                   icon={CalendarClock}
                   title="Monthly Returns Heatmap"

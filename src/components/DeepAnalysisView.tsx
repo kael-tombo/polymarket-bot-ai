@@ -197,7 +197,7 @@ const TONE: Record<Tone, ToneConfig> = {
   warn:    { bg: 'bg-amber-500/[0.06]',   border: 'border-amber-500/25',   text: 'text-amber-400',   bar: 'bg-amber-500',   dot: 'bg-amber-400',   label: 'text-amber-400/80',   halo: 'shadow-amber-500/10' },
   poor:    { bg: 'bg-red-500/[0.06]',     border: 'border-red-500/25',     text: 'text-red-400',     bar: 'bg-red-500',     dot: 'bg-red-400',     label: 'text-red-400/80',     halo: 'shadow-red-500/10' },
   info:    { bg: 'bg-cyan-500/[0.06]',    border: 'border-cyan-500/25',   text: 'text-cyan-400',   bar: 'bg-cyan-500',   dot: 'bg-cyan-400',   label: 'text-cyan-400/80',   halo: 'shadow-cyan-500/10' },
-  neutral: { bg: 'bg-[#0e1015]',          border: 'border-[#1f2335]',     text: 'text-[#dde1ed]',   bar: 'bg-[#5a637a]',   dot: 'bg-[#5a637a]',   label: 'text-[#7e8aaa]',      halo: '' },
+  neutral: { bg: 'bg-[var(--bg-base)]',          border: 'border-[var(--border)]',     text: 'text-[var(--text-primary)]',   bar: 'bg-[var(--text-secondary)]',   dot: 'bg-[var(--text-secondary)]',   label: 'text-[var(--text-secondary)]',      halo: '' },
 }
 
 // Tone helpers — map a numeric metric to a Tone for KPI / value tinting.
@@ -254,19 +254,19 @@ function SectionHeader({
   trailing?: ReactNode
 }) {
   return (
-    <div className="card-header pb-2 mb-2 border-b border-[#1f2335] flex items-center justify-between gap-2">
+    <div className="card-header pb-2 mb-2 border-b border-[var(--border)] flex items-center justify-between gap-2">
       <div className="flex items-center gap-1.5 min-w-0">
         <Icon className={`size-3.5 shrink-0 ${TONE[tone].text}`} aria-hidden="true" />
-        <span className="card-title text-xs font-bold text-[#dde1ed] uppercase tracking-wider truncate">
+        <span className="card-title text-xs font-bold text-[var(--text-primary)] uppercase tracking-wider truncate">
           {title}
         </span>
         {description && (
-          <span className="text-[9px] text-[#5a637a] italic truncate hidden md:inline">
+          <span className="text-[9px] text-[var(--text-secondary)] italic truncate hidden md:inline">
             {description}
           </span>
         )}
       </div>
-      {trailing && <span className="shrink-0 text-[10px] text-[#7e8aaa] mono">{trailing}</span>}
+      {trailing && <span className="shrink-0 text-[10px] text-[var(--text-secondary)] mono">{trailing}</span>}
     </div>
   )
 }
@@ -317,9 +317,9 @@ function KpiTile({ label, value, hint, tone, quality, trend, testId }: KpiTilePr
         {trend === 'up' && <TrendingUp className="size-3 inline-block" aria-hidden="true" />}
         {trend === 'down' && <TrendingDown className="size-3 inline-block" aria-hidden="true" />}
       </div>
-      <div className="text-[8.5px] text-[#5a637a] mt-0.5 italic truncate">{hint}</div>
+      <div className="text-[8.5px] text-[var(--text-secondary)] mt-0.5 italic truncate">{hint}</div>
       {quality != null && quality > 0 && (
-        <div className="h-0.5 bg-[#1f2335] rounded-full mt-1 overflow-hidden">
+        <div className="h-0.5 bg-[var(--border)] rounded-full mt-1 overflow-hidden">
           <div
             className={`h-full rounded-full transition-all duration-500 ${cfg.bar}`}
             style={{ width: `${Math.max(0, Math.min(100, quality))}%` }}
@@ -344,7 +344,7 @@ function PolishedEmptyState({ icon: Icon, title, description, className = '', te
   return (
     <div className={`empty-state py-8 ${className}`} role="status" data-testid={testId ?? 'deep-analysis-empty-state'}>
       <span className="empty-state-icon" aria-hidden="true">
-        <Icon className="w-10 h-10 text-[#3e4560]" strokeWidth={1.5} />
+        <Icon className="w-10 h-10 text-[var(--text-dim)]" strokeWidth={1.5} />
       </span>
       <span className="empty-state-title text-sm font-semibold">{title}</span>
       {description && (
@@ -406,14 +406,14 @@ function ErrorCard({
 function LoadingSkeleton() {
   return (
     <div
-      className="flex flex-col h-full bg-[#13161e] border border-[#1f2335] rounded-lg p-4 space-y-3.5 overflow-hidden"
+      className="flex flex-col h-full bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg p-4 space-y-3.5 overflow-hidden"
       role="status"
       aria-live="polite"
       aria-label="Loading deep market analysis…"
       data-testid="deep-analysis-loading"
     >
       {/* Header Skeleton */}
-      <div className="flex justify-between items-center pb-3 border-b border-[#1f2335]">
+      <div className="flex justify-between items-center pb-3 border-b border-[var(--border)]">
         <div className="space-y-1.5">
           <div className="skeleton-line" style={{ width: '280px', height: '14px' }} />
           <div className="skeleton-line" style={{ width: '180px', height: '10px' }} />
@@ -531,7 +531,7 @@ export default function DeepAnalysisView({ onOpenChart, onSelectMarket }: DeepAn
   // ─── Hard-error state (initial fetch failed; no data yet) ───────────────
   if (error && !data) {
     return (
-      <div className="flex flex-col items-center justify-center h-full bg-[#13161e] border border-[#1f2335] rounded-lg overflow-hidden">
+      <div className="flex flex-col items-center justify-center h-full bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg overflow-hidden">
         <ErrorCard
           title="Analysis Engine Offline"
           error={error}
@@ -577,15 +577,15 @@ export default function DeepAnalysisView({ onOpenChart, onSelectMarket }: DeepAn
   const ofiBarFill = Math.min(50, Math.abs(ofi ?? 0) * 50)
 
   return (
-    <div className="flex flex-col h-full bg-[#13161e] border border-[#1f2335] rounded-lg overflow-hidden p-4 space-y-3.5 overflow-y-auto scrollbar-thin shadow-2xl">
+    <div className="flex flex-col h-full bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg overflow-hidden p-4 space-y-3.5 overflow-y-auto scrollbar-thin shadow-2xl">
       {/* ────────────────────────────────────────────────────────────────────
         1. Header — title + ML Edge badge + event/category strip + actions
       ──────────────────────────────────────────────────────────────────── */}
-      <div className="flex flex-wrap justify-between items-center pb-3 border-b border-[#1f2335] gap-3">
+      <div className="flex flex-wrap justify-between items-center pb-3 border-b border-[var(--border)] gap-3">
         <div className="min-w-0">
           <div className="flex items-center gap-2.5">
             <Microscope className="size-4 text-cyan-300 shrink-0" aria-hidden="true" />
-            <h2 className="text-sm font-bold text-[#dde1ed] tracking-wide">
+            <h2 className="text-sm font-bold text-[var(--text-primary)] tracking-wide">
               Deep Market Intelligence &amp; Multi-Factor Alpha Forecaster
             </h2>
             <span className="badge badge-purple text-[10px] font-bold">ML Edge 40% Weight</span>
@@ -598,7 +598,7 @@ export default function DeepAnalysisView({ onOpenChart, onSelectMarket }: DeepAn
             <span className={`text-[9.5px] px-2 py-0.5 rounded border ${info.category.color} font-bold mono tabular-nums`}>
               {info.category.icon} {info.eventTitle}
             </span>
-            <span className="text-xs text-[#dde1ed] font-semibold truncate max-w-xl">
+            <span className="text-xs text-[var(--text-primary)] font-semibold truncate max-w-xl">
               {info.question}
             </span>
           </div>
@@ -737,7 +737,7 @@ export default function DeepAnalysisView({ onOpenChart, onSelectMarket }: DeepAn
       {/* ────────────────────────────────────────────────────────────────────
         3. Top Ranked Opportunities Hub — sortable scan of all candidates
       ──────────────────────────────────────────────────────────────────── */}
-      <div className="card p-3 bg-[#0e1015] border border-[#1f2335]">
+      <div className="card p-3 bg-[var(--bg-base)] border border-[var(--border)]">
         <SectionHeader
           icon={Zap}
           title={`Top Alpha Opportunities (${data?.top_opportunities.length || 0} Ranked)`}
@@ -749,7 +749,7 @@ export default function DeepAnalysisView({ onOpenChart, onSelectMarket }: DeepAn
         <div className="overflow-x-auto scrollbar-thin max-h-40 table-container">
           <table className="data-table text-xs w-full" role="table" aria-label="Deep scan candidate rankings">
             <thead>
-              <tr className="border-b border-[#1f2335] text-[#7e8aaa] text-[10.5px] uppercase tracking-wider">
+              <tr className="border-b border-[var(--border)] text-[var(--text-secondary)] text-[10.5px] uppercase tracking-wider">
                 <th scope="col" className="text-left py-1">Contract</th>
                 <th scope="col" className="text-right">Market Mid</th>
                 <th scope="col" className="text-right">AI Calibrated</th>
@@ -762,7 +762,7 @@ export default function DeepAnalysisView({ onOpenChart, onSelectMarket }: DeepAn
                 <th scope="col" className="text-center">Trade</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#1f2335]/50">
+            <tbody className="divide-y divide-[var(--border)]/50">
               {data?.top_opportunities.length === 0 && (
                 <tr>
                   <td colSpan={9} className="p-0">
@@ -788,10 +788,10 @@ export default function DeepAnalysisView({ onOpenChart, onSelectMarket }: DeepAn
                       isSelected ? 'bg-cyan-500/10 border-l-cyan-400/80' : ''
                     }`}
                   >
-                    <td className="max-w-[200px] truncate font-semibold text-[#dde1ed] text-[11px] py-2" title={rowTitle}>
+                    <td className="max-w-[200px] truncate font-semibold text-[var(--text-primary)] text-[11px] py-2" title={rowTitle}>
                       <span className="block truncate">{rowTitle}</span>
                     </td>
-                    <td className={`mono text-right tabular-nums text-[#7e8aaa]`}>
+                    <td className={`mono text-right tabular-nums text-[var(--text-secondary)]`}>
                       {opp.market_implied_prob ? `${(opp.market_implied_prob * 100).toFixed(1)}%` : '—'}
                     </td>
                     <td className={`mono text-right tabular-nums font-bold ${TONE[mlForecastTone(opp.ml_forecast_prob)].text}`}>
@@ -868,7 +868,7 @@ export default function DeepAnalysisView({ onOpenChart, onSelectMarket }: DeepAn
       {analysis && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
           {/* ── Col 1: Valuation & Alpha Breakdown ─────────────────────────── */}
-          <div className="card p-3 bg-[#0e1015] border border-[#1f2335] flex flex-col justify-between rounded-lg">
+          <div className="card p-3 bg-[var(--bg-base)] border border-[var(--border)] flex flex-col justify-between rounded-lg">
             <div>
               <SectionHeader
                 icon={BarChart3}
@@ -878,22 +878,22 @@ export default function DeepAnalysisView({ onOpenChart, onSelectMarket }: DeepAn
               />
 
               <div className="space-y-2 text-xs">
-                <div className="flex justify-between items-center bg-[#13161e] p-2 rounded border border-[#1f2335]">
-                  <span className="text-[#7e8aaa]">Market-Implied Mid:</span>
-                  <span className="mono font-bold tabular-nums text-[#dde1ed]">
+                <div className="flex justify-between items-center bg-[var(--bg-surface)] p-2 rounded border border-[var(--border)]">
+                  <span className="text-[var(--text-secondary)]">Market-Implied Mid:</span>
+                  <span className="mono font-bold tabular-nums text-[var(--text-primary)]">
                     {analysis.market_implied_prob != null ? `${(analysis.market_implied_prob * 100).toFixed(1)}%` : '—'}
                   </span>
                 </div>
 
-                <div className="flex justify-between items-center bg-[#13161e] p-2 rounded border border-[#1f2335]">
-                  <span className="text-[#7e8aaa]">4-Member AI Forecast:</span>
+                <div className="flex justify-between items-center bg-[var(--bg-surface)] p-2 rounded border border-[var(--border)]">
+                  <span className="text-[var(--text-secondary)]">4-Member AI Forecast:</span>
                   <span className={`mono font-bold tabular-nums ${TONE[mlForecastTone(analysis.ml_forecast_prob)].text}`}>
                     {analysis.ml_forecast_prob != null ? `${(analysis.ml_forecast_prob * 100).toFixed(1)}%` : '—'}
                   </span>
                 </div>
 
-                <div className="flex justify-between items-center bg-[#13161e] p-2 rounded border border-[#1f2335]">
-                  <span className="text-[#7e8aaa]">95% Uncertainty Band:</span>
+                <div className="flex justify-between items-center bg-[var(--bg-surface)] p-2 rounded border border-[var(--border)]">
+                  <span className="text-[var(--text-secondary)]">95% Uncertainty Band:</span>
                   <span className="mono text-amber-400 font-semibold tabular-nums">
                     {analysis.uncertainty_interval?.[0] != null && analysis.uncertainty_interval?.[1] != null
                       ? `[${(analysis.uncertainty_interval[0] * 100).toFixed(1)}% – ${(analysis.uncertainty_interval[1] * 100).toFixed(1)}%]`
@@ -915,14 +915,14 @@ export default function DeepAnalysisView({ onOpenChart, onSelectMarket }: DeepAn
               </div>
             </div>
 
-            <div className="mt-3 pt-2 border-t border-[#1f2335] text-[10px] text-[#7e8aaa] flex justify-between mono tabular-nums">
+            <div className="mt-3 pt-2 border-t border-[var(--border)] text-[10px] text-[var(--text-secondary)] flex justify-between mono tabular-nums">
               <span>Brier: {analysis.model_metadata?.brier_score ?? '0.145'}</span>
               <span>Confidence: {analysis.confidence_score != null ? `${(analysis.confidence_score * 100).toFixed(0)}%` : '—'}</span>
             </div>
           </div>
 
           {/* ── Col 2: Microstructure & Order Flow ────────────────────────── */}
-          <div className="card p-3 bg-[#0e1015] border border-[#1f2335] flex flex-col justify-between rounded-lg">
+          <div className="card p-3 bg-[var(--bg-base)] border border-[var(--border)] flex flex-col justify-between rounded-lg">
             <div>
               <SectionHeader
                 icon={Activity}
@@ -932,9 +932,9 @@ export default function DeepAnalysisView({ onOpenChart, onSelectMarket }: DeepAn
               />
 
               <div className="space-y-2 text-xs">
-                <div className="flex justify-between items-center bg-[#13161e] p-2 rounded border border-[#1f2335]">
-                  <span className="text-[#7e8aaa]">Top of Book Spread:</span>
-                  <span className="mono font-bold tabular-nums text-[#dde1ed]">
+                <div className="flex justify-between items-center bg-[var(--bg-surface)] p-2 rounded border border-[var(--border)]">
+                  <span className="text-[var(--text-secondary)]">Top of Book Spread:</span>
+                  <span className="mono font-bold tabular-nums text-[var(--text-primary)]">
                     {fmtPrice(analysis.best_bid)} / {fmtPrice(analysis.best_ask)} ({analysis.spread_dollars ? `${(analysis.spread_dollars * 100).toFixed(1)}¢` : '—'})
                   </span>
                 </div>
@@ -944,18 +944,18 @@ export default function DeepAnalysisView({ onOpenChart, onSelectMarket }: DeepAn
                     pressure, left of centre (red) for negative OFI / sell
                     pressure. |ofi| capped at 1.0 so the bar never overflows
                     its half. */}
-                <div className="bg-[#13161e] p-2 rounded border border-[#1f2335]">
+                <div className="bg-[var(--bg-surface)] p-2 rounded border border-[var(--border)]">
                   <div className="flex justify-between items-center mb-1.5">
-                    <span className="text-[#7e8aaa]">Order Flow Imbalance (OFI):</span>
+                    <span className="text-[var(--text-secondary)]">Order Flow Imbalance (OFI):</span>
                     <span className={`mono font-bold tabular-nums ${TONE[ofiTone(analysis.order_flow_imbalance)].text}`}>
                       {analysis.order_flow_imbalance != null
                         ? `${analysis.order_flow_imbalance >= 0 ? '+' : '−'}${Math.abs(analysis.order_flow_imbalance).toFixed(2)}`
                         : '—'}
                     </span>
                   </div>
-                  <div className="relative h-1.5 bg-[#1f2335] rounded-full overflow-hidden">
+                  <div className="relative h-1.5 bg-[var(--border)] rounded-full overflow-hidden">
                     {/* Centre tick — marks the breakeven line */}
-                    <div className="absolute left-1/2 top-0 bottom-0 w-px bg-[#5a637a]/60" aria-hidden="true" />
+                    <div className="absolute left-1/2 top-0 bottom-0 w-px bg-[var(--text-secondary)]/60" aria-hidden="true" />
                     {/* Positive fill — extends right of centre, green */}
                     {(analysis.order_flow_imbalance ?? 0) >= 0 && ofiBarFill > 0 && (
                       <div
@@ -971,36 +971,36 @@ export default function DeepAnalysisView({ onOpenChart, onSelectMarket }: DeepAn
                       />
                     )}
                   </div>
-                  <div className="flex justify-between text-[8.5px] text-[#5a637a] mono mt-0.5 tabular-nums">
+                  <div className="flex justify-between text-[8.5px] text-[var(--text-secondary)] mono mt-0.5 tabular-nums">
                     <span>sell</span>
                     <span>buy</span>
                   </div>
                 </div>
 
-                <div className="flex justify-between items-center bg-[#13161e] p-2 rounded border border-[#1f2335]">
-                  <span className="text-[#7e8aaa]">Book Liquidity Depth:</span>
+                <div className="flex justify-between items-center bg-[var(--bg-surface)] p-2 rounded border border-[var(--border)]">
+                  <span className="text-[var(--text-secondary)]">Book Liquidity Depth:</span>
                   <span className="mono font-bold tabular-nums text-cyan-400">
                     {analysis.total_liquidity_usdc != null ? `${fmtUsd(analysis.total_liquidity_usdc, 0)}` : '—'}
                   </span>
                 </div>
 
-                <div className="flex justify-between items-center bg-[#13161e] p-2 rounded border border-[#1f2335]">
-                  <span className="text-[#7e8aaa]">Est. Slippage (~$1.50 block):</span>
-                  <span className="mono text-[#dde1ed] tabular-nums">
+                <div className="flex justify-between items-center bg-[var(--bg-surface)] p-2 rounded border border-[var(--border)]">
+                  <span className="text-[var(--text-secondary)]">Est. Slippage (~$1.50 block):</span>
+                  <span className="mono text-[var(--text-primary)] tabular-nums">
                     {analysis.slippage_bps ?? 2.5} bps
                   </span>
                 </div>
               </div>
             </div>
 
-            <div className="mt-3 pt-2 border-t border-[#1f2335] text-[10px] text-[#7e8aaa] flex justify-between mono tabular-nums">
+            <div className="mt-3 pt-2 border-t border-[var(--border)] text-[10px] text-[var(--text-secondary)] flex justify-between mono tabular-nums">
               <span>Freshness: {analysis.data_freshness_seconds != null ? `${analysis.data_freshness_seconds}s ago` : '2s ago'}</span>
               <span>Compute: {analysis.generation_time_ms != null ? `${analysis.generation_time_ms}ms` : '1.2ms'}</span>
             </div>
           </div>
 
           {/* ── Col 3: Rationale, News & Regime ───────────────────────────── */}
-          <div className="card p-3 bg-[#0e1015] border border-[#1f2335] flex flex-col justify-between rounded-lg">
+          <div className="card p-3 bg-[var(--bg-base)] border border-[var(--border)] flex flex-col justify-between rounded-lg">
             <div>
               <SectionHeader
                 icon={Newspaper}
@@ -1010,12 +1010,12 @@ export default function DeepAnalysisView({ onOpenChart, onSelectMarket }: DeepAn
               />
 
               <div className="space-y-2">
-                <div className="bg-[#13161e] p-2 rounded border border-[#1f2335]">
-                  <span className="text-[10px] text-[#7e8aaa] block font-semibold mb-1 uppercase tracking-wider">
+                <div className="bg-[var(--bg-surface)] p-2 rounded border border-[var(--border)]">
+                  <span className="text-[10px] text-[var(--text-secondary)] block font-semibold mb-1 uppercase tracking-wider">
                     Decision Rationale:
                   </span>
                   {analysis.action_reasons && analysis.action_reasons.length > 0 ? (
-                    <ul className="text-xs text-[#dde1ed] space-y-1">
+                    <ul className="text-xs text-[var(--text-primary)] space-y-1">
                       {analysis.action_reasons.map((r, i) => (
                         <li key={i} className="flex items-start gap-1.5">
                           <span className="text-cyan-400 font-bold mt-0.5">•</span>
@@ -1024,12 +1024,12 @@ export default function DeepAnalysisView({ onOpenChart, onSelectMarket }: DeepAn
                       ))}
                     </ul>
                   ) : (
-                    <span className="text-xs text-[#7e8aaa]">Market conditions within standard execution boundaries.</span>
+                    <span className="text-xs text-[var(--text-secondary)]">Market conditions within standard execution boundaries.</span>
                   )}
                 </div>
 
-                <div className="bg-[#13161e] p-2 rounded border border-[#1f2335]">
-                  <span className="text-[10px] text-[#7e8aaa] block font-semibold mb-1 uppercase tracking-wider">
+                <div className="bg-[var(--bg-surface)] p-2 rounded border border-[var(--border)]">
+                  <span className="text-[10px] text-[var(--text-secondary)] block font-semibold mb-1 uppercase tracking-wider">
                     Fundamental News Signal:
                   </span>
                   {analysis.supporting_evidence && analysis.supporting_evidence.length > 0 ? (
@@ -1037,7 +1037,7 @@ export default function DeepAnalysisView({ onOpenChart, onSelectMarket }: DeepAn
                       {analysis.supporting_evidence.map((s, i) => {
                         const sentTone: Tone = s.sentiment >= 0.5 ? 'good' : s.sentiment >= 0 ? 'warn' : 'poor'
                         return (
-                          <div key={i} className="text-[11px] text-[#dde1ed] truncate" title={s.headline}>
+                          <div key={i} className="text-[11px] text-[var(--text-primary)] truncate" title={s.headline}>
                             <span className={`font-bold mono tabular-nums ${TONE[sentTone].text}`}>
                               [{s.sentiment >= 0 ? '+' : '−'}{Math.abs(s.sentiment).toFixed(2)}]
                             </span>{' '}
@@ -1047,13 +1047,13 @@ export default function DeepAnalysisView({ onOpenChart, onSelectMarket }: DeepAn
                       })}
                     </div>
                   ) : (
-                    <span className="text-xs text-[#7e8aaa]">No breaking news alerts impacting contract.</span>
+                    <span className="text-xs text-[var(--text-secondary)]">No breaking news alerts impacting contract.</span>
                   )}
                 </div>
               </div>
             </div>
 
-            <div className="mt-3 pt-2 border-t border-[#1f2335] flex justify-end">
+            <div className="mt-3 pt-2 border-t border-[var(--border)] flex justify-end">
               <button
                 onClick={() => fetchSingleMarket(analysis.token_id)}
                 disabled={analyzingSingle}

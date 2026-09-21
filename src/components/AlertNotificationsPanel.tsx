@@ -109,7 +109,7 @@ const TONE: Record<Tone, ToneConfig> = {
   warn:    { bg: 'bg-amber-500/[0.06]',   border: 'border-amber-500/25',   text: 'text-amber-400',   bar: 'bg-amber-500',   dot: 'bg-amber-400',   label: 'text-amber-400/80',   halo: 'shadow-amber-500/10' },
   poor:    { bg: 'bg-red-500/[0.06]',     border: 'border-red-500/25',     text: 'text-red-400',     bar: 'bg-red-500',     dot: 'bg-red-400',     label: 'text-red-400/80',     halo: 'shadow-red-500/10' },
   info:    { bg: 'bg-cyan-500/[0.06]',    border: 'border-cyan-500/25',    text: 'text-cyan-400',    bar: 'bg-cyan-500',    dot: 'bg-cyan-400',    label: 'text-cyan-400/80',    halo: 'shadow-cyan-500/10' },
-  neutral: { bg: 'bg-[#0e1015]',          border: 'border-[#1f2335]',      text: 'text-[#dde1ed]',   bar: 'bg-[#5a637a]',   dot: 'bg-[#5a637a]',   label: 'text-[#7e8aaa]',     halo: '' },
+  neutral: { bg: 'bg-[var(--bg-page)]',          border: 'border-[var(--border)]',      text: 'text-[var(--text-primary)]',   bar: 'bg-[var(--text-secondary)]',   dot: 'bg-[var(--text-secondary)]',   label: 'text-[var(--text-secondary)]',     halo: '' },
 }
 
 // Severity → (icon glyph, label colour, dot colour, ring colour, tone) map.
@@ -203,16 +203,16 @@ function SectionHeader({
     <div className="flex items-center justify-between gap-2">
       <div className="flex items-center gap-1.5 min-w-0">
         <Icon className={`size-3.5 shrink-0 ${TONE[tone].text}`} aria-hidden="true" />
-        <span className="text-[10px] uppercase tracking-wider font-bold text-[#dde1ed] truncate">
+        <span className="text-[10px] uppercase tracking-wider font-bold text-[var(--text-primary)] truncate">
           {title}
         </span>
         {description && (
-          <span className="text-[9px] text-[#5a637a] italic truncate hidden md:inline">
+          <span className="text-[9px] text-[var(--text-secondary)] italic truncate hidden md:inline">
             {description}
           </span>
         )}
       </div>
-      {trailing && <span className="shrink-0 text-[10px] text-[#7e8aaa] mono tabular-nums">{trailing}</span>}
+      {trailing && <span className="shrink-0 text-[10px] text-[var(--text-secondary)] mono tabular-nums">{trailing}</span>}
     </div>
   )
 }
@@ -238,7 +238,7 @@ function AlertsSkeleton() {
       {[0, 1, 2].map((i) => (
         <div
           key={i}
-          className="border-l-2 border-[#1f2335] pl-2 py-1.5 space-y-1"
+          className="border-l-2 border-[var(--border)] pl-2 py-1.5 space-y-1"
         >
           <div className="flex items-center justify-between gap-2">
             <ShimmerBlock className="w-1/2" />
@@ -264,7 +264,7 @@ function PolishedEmptyState() {
       <span className="mb-2 inline-flex p-2 rounded-full bg-cyan-500/[0.06] border border-cyan-500/15" aria-hidden="true">
         <Bell className="w-7 h-7 text-cyan-400/70" strokeWidth={1.5} />
       </span>
-      <p className="text-xs text-[#7e8aaa] max-w-[260px]">
+      <p className="text-xs text-[var(--text-secondary)] max-w-[260px]">
         No active alerts. New alerts will appear here in real time.
       </p>
     </div>
@@ -286,7 +286,7 @@ function PolishedErrorCard() {
       <span className="text-[10.5px] font-bold uppercase tracking-wider text-amber-400 mb-0.5">
         Live feed disconnected
       </span>
-      <p className="text-[10.5px] text-[#7e8aaa] max-w-[240px] mb-1.5">
+      <p className="text-[10.5px] text-[var(--text-secondary)] max-w-[240px] mb-1.5">
         WebSocket handshake failed — the feed will catch up automatically on reconnect.
       </p>
       <span className="inline-flex items-center gap-1 text-[9.5px] text-amber-300/80">
@@ -320,7 +320,7 @@ export function AlertNotificationsPanel({ className }: AlertNotificationsPanelPr
           aria-label={triggerLabel}
           title="Real-time alert feed"
           className={
-            'relative btn btn-ghost btn-sm p-1.5 text-xs text-[#7e8aaa] hover:text-white ' +
+            'relative btn btn-ghost btn-sm p-1.5 text-xs text-[var(--text-secondary)] hover:text-white ' +
             (className ?? '')
           }
           aria-haspopup="dialog"
@@ -348,11 +348,11 @@ export function AlertNotificationsPanel({ className }: AlertNotificationsPanelPr
       <PopoverContent
         align="end"
         sideOffset={6}
-        className="w-[360px] max-w-[calc(100vw-1.5rem)] p-0 bg-[#13161e] border border-[#1f2335] text-[#dde1ed] shadow-xl"
+        className="w-[360px] max-w-[calc(100vw-1.5rem)] p-0 bg-[var(--bg-surface)] border border-[var(--border)] text-[var(--text-primary)] shadow-xl"
         style={{ boxShadow: 'var(--shadow-modal-premium, 0 10px 38px -10px rgba(0,0,0,0.6))' }}
       >
         {/* Header — SectionHeader pattern + Live indicator (with PulseDot) + mute toggle */}
-        <div className="flex items-center justify-between px-3 py-2 border-b border-[#1f2335]">
+        <div className="flex items-center justify-between px-3 py-2 border-b border-[var(--border)]">
           <div className="flex items-center gap-2 min-w-0">
             <SectionHeader
               icon={Bell}
@@ -369,7 +369,7 @@ export function AlertNotificationsPanel({ className }: AlertNotificationsPanelPr
                 testid + `bg-green-400` / `bg-amber-400` dot class strings
                 are preserved verbatim so the W23-4 test contracts resolve. */}
             <span
-              className="flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded bg-[#0e1015] border border-[#1f2335]"
+              className="flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded bg-[var(--bg-page)] border border-[var(--border)]"
               title={
                 isConnected
                   ? 'WebSocket connected — real-time pushes are active.'
@@ -406,7 +406,7 @@ export function AlertNotificationsPanel({ className }: AlertNotificationsPanelPr
           <button
             type="button"
             onClick={toggle}
-            className="text-[10px] font-semibold text-[#7e8aaa] hover:text-[#dde1ed] px-1.5 py-0.5 rounded hover:bg-[#1f2335] flex items-center gap-1"
+            className="text-[10px] font-semibold text-[var(--text-secondary)] hover:text-[var(--text-primary)] px-1.5 py-0.5 rounded hover:bg-[var(--border)] flex items-center gap-1"
             title={
               enabled
                 ? 'Desktop notifications enabled — click to mute'
@@ -456,7 +456,7 @@ export function AlertNotificationsPanel({ className }: AlertNotificationsPanelPr
             <>
               {/* Inline section header above the alert list when there are
                   alerts. Renders the active count as a trailing node. */}
-              <div className="px-3 py-1.5 border-b border-[#1f2335] bg-[#0e1015]/60">
+              <div className="px-3 py-1.5 border-b border-[var(--border)] bg-[var(--bg-page)]/60">
                 <SectionHeader
                   icon={Bell}
                   title="Recent Alerts"
@@ -465,7 +465,7 @@ export function AlertNotificationsPanel({ className }: AlertNotificationsPanelPr
                   trailing={`${alerts.length} ${alerts.length === 1 ? 'alert' : 'alerts'}`}
                 />
               </div>
-              <ul role="list" className="divide-y divide-[#1f2335]">
+              <ul role="list" className="divide-y divide-[var(--border)]">
                 {alerts.map((alert) => {
                   const meta = SEVERITY_META[alert.severity] ?? SEVERITY_META.info
                   const cfg = TONE[meta.tone]
@@ -497,7 +497,7 @@ export function AlertNotificationsPanel({ className }: AlertNotificationsPanelPr
                                 </span>
                                 {alert.name}
                               </span>
-                              <span className="text-[10px] text-[#7e8aaa] shrink-0 mono tabular-nums">
+                              <span className="text-[10px] text-[var(--text-secondary)] shrink-0 mono tabular-nums">
                                 {fmtRelative(alert.timestamp)}
                               </span>
                             </div>
@@ -511,7 +511,7 @@ export function AlertNotificationsPanel({ className }: AlertNotificationsPanelPr
                               >
                                 {alert.severity}
                               </span>
-                              <span className="text-[9px] text-[#5a627a] hover:text-[#dde1ed]">
+                              <span className="text-[9px] text-[#5a627a] hover:text-[var(--text-primary)]">
                                 click to ack →
                               </span>
                             </div>
@@ -533,8 +533,8 @@ export function AlertNotificationsPanel({ className }: AlertNotificationsPanelPr
             disabled when the list is empty so the user can't trigger
             a no-op. */}
         {alerts.length > 0 && (
-          <div className="flex items-center justify-between px-3 py-2 border-t border-[#1f2335] bg-[#0e1015]">
-            <span className="text-[10px] text-[#7e8aaa] mono tabular-nums">
+          <div className="flex items-center justify-between px-3 py-2 border-t border-[var(--border)] bg-[var(--bg-page)]">
+            <span className="text-[10px] text-[var(--text-secondary)] mono tabular-nums">
               {alerts.length} active {alerts.length === 1 ? 'alert' : 'alerts'}
               {unreadCount > 0 && (
                 <span className="text-red-400 font-semibold"> · {unreadCount} unread</span>
@@ -545,7 +545,7 @@ export function AlertNotificationsPanel({ className }: AlertNotificationsPanelPr
               variant="ghost"
               size="sm"
               onClick={acknowledgeAll}
-              className="h-7 px-2 text-[10px] font-semibold text-[#dde1ed] hover:bg-[#1f2335]"
+              className="h-7 px-2 text-[10px] font-semibold text-[var(--text-primary)] hover:bg-[var(--border)]"
               aria-label="Acknowledge all alerts"
             >
               ✓ Acknowledge All

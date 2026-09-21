@@ -134,22 +134,22 @@ import dynamic from 'next/dynamic'
 function PanelLoadingSkeleton({ label = 'Loading panel…' }: { label?: string }) {
   return (
     <div
-      className="card h-full flex flex-col bg-[#13161e] border border-[#1f2335] shadow-md overflow-hidden"
+      className="card h-full flex flex-col bg-[var(--bg-surface)] border border-[var(--border)] shadow-md overflow-hidden"
       role="status"
       aria-live="polite"
       aria-label={label}
     >
       <div
-        className="card-header px-3.5 py-2.5 border-b border-[#1f2335] flex items-center gap-2 bg-[#0e1015]/80"
+        className="card-header px-3.5 py-2.5 border-b border-[var(--border)] flex items-center gap-2 bg-[var(--bg-page)]/80"
       >
         <span className="spinner" aria-hidden="true" />
-        <span className="text-xs font-bold text-[#dde1ed] tracking-wide">{label}</span>
+        <span className="text-xs font-bold text-[var(--text-primary)] tracking-wide">{label}</span>
       </div>
       <div className="p-3 flex flex-col gap-2 flex-1">
-        <div className="h-3 rounded bg-[#1f2335] animate-pulse" style={{ width: '60%' }} />
-        <div className="h-3 rounded bg-[#1f2335] animate-pulse" style={{ width: '40%' }} />
-        <div className="h-3 rounded bg-[#1f2335] animate-pulse" style={{ width: '75%' }} />
-        <div className="h-3 rounded bg-[#1f2335] animate-pulse" style={{ width: '55%' }} />
+        <div className="h-3 rounded bg-[var(--border)] animate-pulse" style={{ width: '60%' }} />
+        <div className="h-3 rounded bg-[var(--border)] animate-pulse" style={{ width: '40%' }} />
+        <div className="h-3 rounded bg-[var(--border)] animate-pulse" style={{ width: '75%' }} />
+        <div className="h-3 rounded bg-[var(--border)] animate-pulse" style={{ width: '55%' }} />
       </div>
       <span className="sr-only">{label}</span>
     </div>

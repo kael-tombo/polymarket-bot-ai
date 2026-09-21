@@ -313,7 +313,7 @@ export default function TopStatusBar({
 
   return (
     <header
-      className="topbar h-auto sticky top-0 z-40 flex flex-col items-stretch bg-[#0e1015]/95 backdrop-blur-md border-b border-[#1f2335] shadow-lg shadow-black/30"
+      className="topbar h-auto sticky top-0 z-40 flex flex-col items-stretch bg-[var(--bg-page)]/95 backdrop-blur-md border-b border-[var(--border)] shadow-lg shadow-black/30"
       style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}
       role="banner"
       aria-label="System status bar"
@@ -346,16 +346,16 @@ export default function TopStatusBar({
               aria-hidden="true"
               className="shrink-0"
             >
-              <circle cx="12" cy="12" r="10.5" stroke="#60a5fa" strokeWidth="1.5" />
-              <circle cx="12" cy="12" r="5.5" stroke="#60a5fa" strokeWidth="1" strokeOpacity="0.5" />
-              <line x1="12" y1="2" x2="12" y2="22" stroke="#60a5fa" strokeWidth="1" strokeOpacity="0.35" />
-              <line x1="2" y1="12" x2="22" y2="12" stroke="#60a5fa" strokeWidth="1" strokeOpacity="0.35" />
+              <circle cx="12" cy="12" r="10.5" stroke="var(--accent-fg)" strokeWidth="1.5" />
+              <circle cx="12" cy="12" r="5.5" stroke="var(--accent-fg)" strokeWidth="1" strokeOpacity="0.5" />
+              <line x1="12" y1="2" x2="12" y2="22" stroke="var(--accent-fg)" strokeWidth="1" strokeOpacity="0.35" />
+              <line x1="2" y1="12" x2="22" y2="12" stroke="var(--accent-fg)" strokeWidth="1" strokeOpacity="0.35" />
             </svg>
             <span
               className="hidden xs:inline-block text-[13px] font-bold tracking-tight whitespace-nowrap"
               style={{ color: 'var(--text-primary)' }}
             >
-              Polymarket<span style={{ color: '#60a5fa' }}>Pro</span>
+              Polymarket<span style={{ color: 'var(--accent-fg)' }}>Pro</span>
             </span>
 
             {/* W49-6 — Active panel breadcrumb. Renders as
@@ -371,13 +371,13 @@ export default function TopStatusBar({
               >
                 {panelGroup && (
                   <>
-                    <span className="text-[#7e8aaa] font-medium truncate">{panelGroup}</span>
-                    <svg aria-hidden="true" width="8" height="10" viewBox="0 0 8 10" fill="none" className="text-[#3e4560] shrink-0">
+                    <span className="text-[var(--text-secondary)] font-medium truncate">{panelGroup}</span>
+                    <svg aria-hidden="true" width="8" height="10" viewBox="0 0 8 10" fill="none" className="text-[var(--text-muted)] shrink-0">
                       <path d="M2 1L7 5L2 9" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   </>
                 )}
-                <span className="text-[#dde1ed] font-semibold truncate">{panelName}</span>
+                <span className="text-[var(--text-primary)] font-semibold truncate">{panelName}</span>
               </span>
             )}
           </div>
@@ -414,27 +414,27 @@ export default function TopStatusBar({
               ring class rather than swapping the text colour so the
               baseline cyan stays legible mid-flash. */}
           <div
-            className={`flex items-center gap-1.5 bg-[#13161e] border px-2.5 py-1 rounded-md text-xs whitespace-nowrap transition-shadow ${
+            className={`flex items-center gap-1.5 bg-[var(--bg-surface)] border px-2.5 py-1 rounded-md text-xs whitespace-nowrap transition-shadow ${
               balanceFlash === 'up'
                 ? 'border-emerald-500/60 shadow-[0_0_0_1px_rgba(34,197,94,0.4),0_0_10px_rgba(34,197,94,0.45)]'
                 : balanceFlash === 'down'
                 ? 'border-red-500/60 shadow-[0_0_0_1px_rgba(239,68,68,0.4),0_0_10px_rgba(239,68,68,0.45)]'
-                : 'border-[#1f2335]'
+                : 'border-[var(--border)]'
             }`}
             title={`Paper balance ${paper_balance != null ? fmtUsd(paper_balance) : '—'}`}
           >
-            <span className="text-[10px] text-[#7e8aaa] uppercase font-bold tracking-wider">BAL</span>
+            <span className="text-[10px] text-[var(--text-secondary)] uppercase font-bold tracking-wider">BAL</span>
             <span className="mono font-bold text-cyan-300 tabular-nums">
               {paper_balance != null ? fmtUsd(paper_balance) : '—'}
             </span>
           </div>
 
           {/* P&L today — green/red, mono, bold. */}
-          <div className="flex items-center gap-1.5 bg-[#13161e] border border-[#1f2335] px-2.5 py-1 rounded-md text-xs whitespace-nowrap">
-            <span className="text-[10px] text-[#7e8aaa] uppercase font-bold tracking-wider">P&amp;L</span>
+          <div className="flex items-center gap-1.5 bg-[var(--bg-surface)] border border-[var(--border)] px-2.5 py-1 rounded-md text-xs whitespace-nowrap">
+            <span className="text-[10px] text-[var(--text-secondary)] uppercase font-bold tracking-wider">P&amp;L</span>
             <span
               className={`mono font-bold tabular-nums ${
-                daily_pnl > 0 ? 'text-green-400' : daily_pnl < 0 ? 'text-red-400' : 'text-[#dde1ed]'
+                daily_pnl > 0 ? 'text-green-400' : daily_pnl < 0 ? 'text-red-400' : 'text-[var(--text-primary)]'
               }`}
             >
               {fmtPnl(daily_pnl)}
@@ -443,11 +443,11 @@ export default function TopStatusBar({
 
           {/* Exposure — gross $ across all open positions. */}
           <div
-            className="flex items-center gap-1.5 bg-[#13161e] border border-[#1f2335] px-2.5 py-1 rounded-md text-xs whitespace-nowrap"
+            className="flex items-center gap-1.5 bg-[var(--bg-surface)] border border-[var(--border)] px-2.5 py-1 rounded-md text-xs whitespace-nowrap"
             title="Gross $ exposure across open positions"
           >
-            <span className="text-[10px] text-[#7e8aaa] uppercase font-bold tracking-wider">EXP</span>
-            <span className="mono font-bold text-[#dde1ed] tabular-nums">{fmtUsd(exposure)}</span>
+            <span className="text-[10px] text-[var(--text-secondary)] uppercase font-bold tracking-wider">EXP</span>
+            <span className="mono font-bold text-[var(--text-primary)] tabular-nums">{fmtUsd(exposure)}</span>
           </div>
 
           {/* Mode badge — kept as 'PAPER TRADING' / 'LIVE TRADING' /
@@ -464,15 +464,15 @@ export default function TopStatusBar({
 
           {/* ML health pill — kept on xl+ only (desktop). */}
           {mlInfo && (
-            <div className="hidden xl:flex items-center gap-2 bg-[#13161e] border border-[#1f2335] px-2.5 py-1 rounded-md text-xs whitespace-nowrap">
+            <div className="hidden xl:flex items-center gap-2 bg-[var(--bg-surface)] border border-[var(--border)] px-2.5 py-1 rounded-md text-xs whitespace-nowrap">
               <span className="text-[10px] text-cyan-400 font-bold uppercase tracking-wider flex items-center gap-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" aria-hidden="true" />
                 ML:
               </span>
               <span className="mono text-[11px] text-green-400 font-semibold tabular-nums">Brier {mlInfo.brier.toFixed(3)}</span>
-              <span className="text-[#3e4560]" aria-hidden="true">|</span>
+              <span className="text-[var(--text-muted)]" aria-hidden="true">|</span>
               <span className="mono text-[11px] text-cyan-300 font-semibold tabular-nums">AUC {(mlInfo.auc * 100).toFixed(0)}%</span>
-              <span className="text-[#3e4560]" aria-hidden="true">|</span>
+              <span className="text-[var(--text-muted)]" aria-hidden="true">|</span>
               <span className={`text-[10px] font-bold uppercase ${mlInfo.status === 'HEALTHY' ? 'text-green-400' : 'text-amber-400'}`}>
                 {mlInfo.status}
               </span>
@@ -482,11 +482,11 @@ export default function TopStatusBar({
           {/* Uptime — desktop xl+ only. */}
           {uptime > 0 && (
             <div
-              className="hidden xl:flex items-center gap-1.5 bg-[#13161e] border border-[#1f2335] px-2.5 py-1 rounded-md text-xs whitespace-nowrap"
+              className="hidden xl:flex items-center gap-1.5 bg-[var(--bg-surface)] border border-[var(--border)] px-2.5 py-1 rounded-md text-xs whitespace-nowrap"
               title="Bot engine uptime since last restart"
             >
-              <span className="text-[10px] text-[#7e8aaa] uppercase font-bold tracking-wider">UP</span>
-              <span className="mono font-semibold text-[#dde1ed] tabular-nums">{fmtUptime(uptime)}</span>
+              <span className="text-[10px] text-[var(--text-secondary)] uppercase font-bold tracking-wider">UP</span>
+              <span className="mono font-semibold text-[var(--text-primary)] tabular-nums">{fmtUptime(uptime)}</span>
             </div>
           )}
         </div>
@@ -505,7 +505,7 @@ export default function TopStatusBar({
           {/* UTC clock — xl+ only (frees space on smaller screens).
               W50-2c — pinned to 32px height + tabular-nums so the digit
               columns don't shimmy as seconds tick. */}
-          <span className="hidden xl:inline-flex items-center mono text-[11px] text-[#7e8aaa] bg-[#0e1015] border border-[#1f2335] px-2 h-8 rounded-md tabular-nums">
+          <span className="hidden xl:inline-flex items-center mono text-[11px] text-[var(--text-secondary)] bg-[var(--bg-page)] border border-[var(--border)] px-2 h-8 rounded-md tabular-nums">
             {nowUtc}
           </span>
 
@@ -518,7 +518,7 @@ export default function TopStatusBar({
               the full connLabel is preserved in the title + SR region
               for compatibility. */}
           <div
-            className="hidden sm:flex items-center gap-1.5 text-xs whitespace-nowrap bg-[#0e1015] border border-[#1f2335] px-2 h-8 rounded-md transition-colors hover:border-[#2d3450]"
+            className="hidden sm:flex items-center gap-1.5 text-xs whitespace-nowrap bg-[var(--bg-page)] border border-[var(--border)] px-2 h-8 rounded-md transition-colors hover:border-[var(--border-strong)]"
             title={`Bot API Connection: ${connLabel}`}
           >
             <span className="relative flex w-2 h-2 items-center justify-center" aria-hidden="true">
@@ -535,7 +535,7 @@ export default function TopStatusBar({
                 }`}
               />
             </span>
-            <span className="font-semibold text-[11px] text-[#dde1ed]">
+            <span className="font-semibold text-[11px] text-[var(--text-primary)]">
               {status === 'connected' ? 'Live' : status === 'connecting' ? 'Degraded' : 'Offline'}
             </span>
           </div>
@@ -547,7 +547,7 @@ export default function TopStatusBar({
               >30s red (aligned to the spec's thresholds via the CSS
               agent's freshness-* rules). */}
           <div
-            className={`hidden sm:flex text-[11px] mono text-[#7e8aaa] px-2 h-8 bg-[#0e1015] border border-[#1f2335] rounded-md items-center gap-1 tabular-nums ${ageClass}`}
+            className={`hidden sm:flex text-[11px] mono text-[var(--text-secondary)] px-2 h-8 bg-[var(--bg-page)] border border-[var(--border)] rounded-md items-center gap-1 tabular-nums ${ageClass}`}
             title="Data freshness since last snapshot"
           >
             <span aria-hidden="true">⏱</span>
@@ -558,7 +558,7 @@ export default function TopStatusBar({
               so the ms digits don't shift as latency fluctuates. */}
           {latencyMs !== null && status === 'connected' && (
             <div
-              className="hidden lg:flex text-[11px] mono text-[#7e8aaa] px-2 h-8 bg-[#0e1015] border border-[#1f2335] rounded-md items-center gap-1 tabular-nums"
+              className="hidden lg:flex text-[11px] mono text-[var(--text-secondary)] px-2 h-8 bg-[var(--bg-page)] border border-[var(--border)] rounded-md items-center gap-1 tabular-nums"
               title="REST API Roundtrip Latency"
             >
               <span
@@ -582,7 +582,7 @@ export default function TopStatusBar({
             <button
               type="button"
               onClick={onOpenSystemHealth}
-              className="hidden sm:flex items-center gap-1.5 text-xs whitespace-nowrap bg-[#0e1015] border border-[#1f2335] px-2 h-8 rounded-md transition-colors hover:border-[#2d3450] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+              className="hidden sm:flex items-center gap-1.5 text-xs whitespace-nowrap bg-[var(--bg-page)] border border-[var(--border)] px-2 h-8 rounded-md transition-colors hover:border-[var(--border-strong)] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
               title={`System health: ${healthTier} — click to open the System Health panel`}
               aria-label={`System health: ${healthTier}. ${healthStyle.label}. Open System Health panel.`}
             >
@@ -590,11 +590,11 @@ export default function TopStatusBar({
                 className={`w-2 h-2 rounded-full inline-block ${healthStyle.bg} ${healthStyle.glow}`}
                 aria-hidden="true"
               />
-              <span className="font-semibold text-[11px] text-[#dde1ed] capitalize">{healthTier}</span>
+              <span className="font-semibold text-[11px] text-[var(--text-primary)] capitalize">{healthTier}</span>
             </button>
           ) : (
             <div
-              className="hidden sm:flex items-center gap-1.5 text-xs whitespace-nowrap bg-[#0e1015] border border-[#1f2335] px-2 h-8 rounded-md"
+              className="hidden sm:flex items-center gap-1.5 text-xs whitespace-nowrap bg-[var(--bg-page)] border border-[var(--border)] px-2 h-8 rounded-md"
               title={`System health: ${healthTier}`}
               role="status"
               aria-label={`System health: ${healthTier}. ${healthStyle.label}.`}
@@ -603,7 +603,7 @@ export default function TopStatusBar({
                 className={`w-2 h-2 rounded-full inline-block ${healthStyle.bg}`}
                 aria-hidden="true"
               />
-              <span className="font-semibold text-[11px] text-[#dde1ed] capitalize">{healthTier}</span>
+              <span className="font-semibold text-[11px] text-[var(--text-primary)] capitalize">{healthTier}</span>
             </div>
           )}
 
@@ -615,7 +615,7 @@ export default function TopStatusBar({
               W50-2c — compact 32px square button. */}
           <button
             onClick={() => setSettingsOpen(true)}
-            className="btn btn-ghost btn-sm h-8 w-8 p-0 inline-flex items-center justify-center text-xs text-[#7e8aaa] hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+            className="btn btn-ghost btn-sm h-8 w-8 p-0 inline-flex items-center justify-center text-xs text-[var(--text-secondary)] hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
             title="User preferences (theme, polling, sound, privacy)"
             aria-label="Open user preferences"
             aria-haspopup="dialog"
@@ -641,7 +641,7 @@ export default function TopStatusBar({
           {onToggleMute && (
             <button
               onClick={onToggleMute}
-              className="btn btn-ghost btn-sm h-8 w-8 p-0 inline-flex items-center justify-center text-xs text-[#7e8aaa] hover:text-white hidden sm:inline-flex focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+              className="btn btn-ghost btn-sm h-8 w-8 p-0 inline-flex items-center justify-center text-xs text-[var(--text-secondary)] hover:text-white hidden sm:inline-flex focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
               title={muted ? 'Unmute alerts' : 'Mute alerts'}
               aria-label={muted ? 'Unmute audio alerts' : 'Mute audio alerts'}
               aria-pressed={muted}
@@ -654,7 +654,7 @@ export default function TopStatusBar({
           {onOpenShortcuts && (
             <button
               onClick={onOpenShortcuts}
-              className="btn btn-ghost btn-sm h-8 w-8 p-0 inline-flex items-center justify-center text-xs text-[#7e8aaa] hover:text-white hidden sm:inline-flex focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+              className="btn btn-ghost btn-sm h-8 w-8 p-0 inline-flex items-center justify-center text-xs text-[var(--text-secondary)] hover:text-white hidden sm:inline-flex focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
               title="Shortcuts (?)"
               aria-label="Open keyboard shortcuts cheatsheet"
             >
@@ -668,7 +668,7 @@ export default function TopStatusBar({
           {onOpenConfig && (
             <button
               onClick={onOpenConfig}
-              className="btn btn-ghost btn-sm h-8 text-xs font-semibold text-[#7e8aaa] hover:text-white items-center gap-1 px-2 hidden md:inline-flex focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+              className="btn btn-ghost btn-sm h-8 text-xs font-semibold text-[var(--text-secondary)] hover:text-white items-center gap-1 px-2 hidden md:inline-flex focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
               aria-label="Open strategy and risk configuration modal"
             >
               <span aria-hidden="true">⚙️</span> <span className="hidden lg:inline">Config</span>

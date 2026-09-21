@@ -418,12 +418,12 @@ function PositionsPanel({
   }, [confirmingPosition])
 
   return (
-    <div className="card h-full flex flex-col p-3 bg-[#13161e] border border-[#1f2335] shadow-xl">
+    <div className="card h-full flex flex-col p-3 bg-[var(--bg-surface)] border border-[var(--border)] shadow-xl">
       {/* Header — title + Live/Polling + KPI strip */}
-      <div className="card-header pb-2 mb-2 border-b border-[#1f2335] flex flex-wrap items-center justify-between gap-2">
+      <div className="card-header pb-2 mb-2 border-b border-[var(--border)] flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
-          <span className="card-title text-xs font-bold text-[#dde1ed] tracking-wide">
+          <span className="card-title text-xs font-bold text-[var(--text-primary)] tracking-wide">
             💼 ACTIVE POSITIONS ({positions.length})
           </span>
           <span className="badge badge-amber text-[9.5px]">USD 25 Exposure Cap</span>
@@ -451,32 +451,32 @@ function PositionsPanel({
             that asserts on the <span>'s className for sign-color). */}
         <div className="flex items-center gap-2 text-xs">
           <div
-            className="kpi-card kpi-card-strip bg-[#0e1015] border border-[#1f2335] px-2.5 py-1 rounded-md flex items-center gap-1.5 shadow-sm"
+            className="kpi-card kpi-card-strip bg-[var(--bg-page)] border border-[var(--border)] px-2.5 py-1 rounded-md flex items-center gap-1.5 shadow-sm"
             data-tone="neutral"
             title="Total Invested / $25 Exposure Cap"
           >
-            <span className="text-[10px] text-[#7e8aaa] uppercase font-semibold tracking-wide">Exposure:</span>
+            <span className="text-[10px] text-[var(--text-secondary)] uppercase font-semibold tracking-wide">Exposure:</span>
             <span className="mono font-bold text-cyan-400 text-xs tabular-nums">{fmtUsd(totalInvested)}</span>
-            <span className="text-[9.5px] text-[#5a637a] tabular-nums">({portfolioExposurePct.toFixed(0)}%)</span>
+            <span className="text-[9.5px] text-[var(--text-secondary)] tabular-nums">({portfolioExposurePct.toFixed(0)}%)</span>
           </div>
 
           <div
-            className="kpi-card kpi-card-strip bg-[#0e1015] border border-[#1f2335] px-2.5 py-1 rounded-md flex items-center gap-1.5 shadow-sm"
+            className="kpi-card kpi-card-strip bg-[var(--bg-page)] border border-[var(--border)] px-2.5 py-1 rounded-md flex items-center gap-1.5 shadow-sm"
             data-tone={totalRealized >= 0 ? 'positive' : 'negative'}
             title="Total Realized P&L across open positions"
           >
-            <span className="text-[10px] text-[#7e8aaa] uppercase font-semibold tracking-wide">Realized:</span>
+            <span className="text-[10px] text-[var(--text-secondary)] uppercase font-semibold tracking-wide">Realized:</span>
             <span className={`mono font-bold text-xs tabular-nums ${totalRealized >= 0 ? 'text-green-400' : 'text-red-400'}`}>
               {fmtPnl(totalRealized)}
             </span>
           </div>
 
           <div
-            className="kpi-card kpi-card-strip bg-[#0e1015] border border-[#1f2335] px-2.5 py-1 rounded-md flex items-center gap-1.5 shadow-sm"
+            className="kpi-card kpi-card-strip bg-[var(--bg-page)] border border-[var(--border)] px-2.5 py-1 rounded-md flex items-center gap-1.5 shadow-sm"
             data-tone={dailyPnl >= 0 ? 'positive' : 'negative'}
             title="Daily P&L (session-realized + unrealized)"
           >
-            <span className="text-[10px] text-[#7e8aaa] uppercase font-semibold tracking-wide">Daily PnL:</span>
+            <span className="text-[10px] text-[var(--text-secondary)] uppercase font-semibold tracking-wide">Daily PnL:</span>
             <span className={`mono font-bold text-xs tabular-nums ${dailyPnl >= 0 ? 'text-green-400' : 'text-red-400'}`}>
               {fmtPnl(dailyPnl)}
             </span>
@@ -495,7 +495,7 @@ function PositionsPanel({
         // skeleton is aria-hidden because the status text + spinner
         // already announce the loading state for screen readers.
         <div className="flex flex-col py-3 gap-2">
-          <div className="flex items-center justify-center text-xs text-[#7e8aaa]">
+          <div className="flex items-center justify-center text-xs text-[var(--text-secondary)]">
             <span className="spinner mr-2" aria-hidden="true" />
             Loading positions…
           </div>
@@ -531,7 +531,7 @@ function PositionsPanel({
           The search input's .relative wrapper is preserved so the
           existing test that walks `input.closest('.relative')` to find
           the clear ✕ button still passes. */}
-      <div className="positions-toolbar flex items-center gap-2 mb-2 bg-[#0e1015] border border-[#1f2335] rounded-md px-2 py-1.5">
+      <div className="positions-toolbar flex items-center gap-2 mb-2 bg-[var(--bg-page)] border border-[var(--border)] rounded-md px-2 py-1.5">
         {/* Search group */}
         <div className="relative flex-1 min-w-[160px] max-w-xs">
           <input
@@ -540,12 +540,12 @@ function PositionsPanel({
             value={filterQuery}
             onChange={(e) => setFilterQuery(e.target.value)}
             aria-label="Search positions by market name or contract token ID"
-            className="w-full bg-[#13161e] border border-[#1f2335] focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 rounded text-xs px-2.5 py-1.5 text-[#dde1ed] placeholder-[#3e4560] outline-none transition-all"
+            className="w-full bg-[var(--bg-surface)] border border-[var(--border)] focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 rounded text-xs px-2.5 py-1.5 text-[var(--text-primary)] placeholder-[var(--text-dim)] outline-none transition-all"
           />
           {filterQuery && (
             <button
               onClick={() => setFilterQuery('')}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-[#7e8aaa] hover:text-white transition-colors"
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-[var(--text-secondary)] hover:text-white transition-colors"
               aria-label="Clear search filter"
             >
               ✕
@@ -554,10 +554,10 @@ function PositionsPanel({
         </div>
 
         {/* Divider between search and outcome filter */}
-        <div className="w-px h-5 bg-[#1f2335] flex-shrink-0" aria-hidden="true" />
+        <div className="w-px h-5 bg-[var(--border)] flex-shrink-0" aria-hidden="true" />
 
         {/* Outcome filter group */}
-        <div className="inline-flex bg-[#13161e] border border-[#1f2335] rounded p-0.5 text-[10px]" role="group" aria-label="Filter positions by outcome">
+        <div className="inline-flex bg-[var(--bg-surface)] border border-[var(--border)] rounded p-0.5 text-[10px]" role="group" aria-label="Filter positions by outcome">
           {(['ALL', 'YES', 'NO'] as const).map((side) => (
             <button
               key={side}
@@ -566,7 +566,7 @@ function PositionsPanel({
               className={`px-2 py-0.5 rounded font-bold transition-all ${
                 outcomeFilter === side
                   ? 'bg-blue-500/20 text-cyan-300 shadow-sm'
-                  : 'text-[#7e8aaa] hover:text-[#dde1ed]'
+                  : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
               }`}
             >
               {side}
@@ -575,14 +575,14 @@ function PositionsPanel({
         </div>
 
         {/* Divider between outcome filter and sort */}
-        <div className="w-px h-5 bg-[#1f2335] flex-shrink-0" aria-hidden="true" />
+        <div className="w-px h-5 bg-[var(--border)] flex-shrink-0" aria-hidden="true" />
 
         {/* Sort group */}
         <select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value as 'size' | 'pnl' | 'market')}
           aria-label="Sort positions by"
-          className="bg-[#13161e] border border-[#1f2335] text-[#7e8aaa] rounded text-[10px] font-semibold px-2 py-1 outline-none cursor-pointer focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 transition-all"
+          className="bg-[var(--bg-surface)] border border-[var(--border)] text-[var(--text-secondary)] rounded text-[10px] font-semibold px-2 py-1 outline-none cursor-pointer focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 transition-all"
         >
           <option value="size">Sort: Size ($)</option>
           <option value="pnl">Sort: Realized P&amp;L</option>
@@ -593,13 +593,13 @@ function PositionsPanel({
         <div className="flex-1" aria-hidden="true" />
 
         {/* Divider between sort and CSV export */}
-        <div className="w-px h-5 bg-[#1f2335] flex-shrink-0" aria-hidden="true" />
+        <div className="w-px h-5 bg-[var(--border)] flex-shrink-0" aria-hidden="true" />
 
         {/* CSV export (moved from header in W51-2b) */}
         <button
           onClick={handleExportCsv}
           disabled={positions.length === 0}
-          className="btn btn-ghost btn-sm text-[10px] px-2 py-0.5 border border-[#1f2335] text-[#7e8aaa] hover:text-white hover:border-[#2d3450] flex items-center gap-1 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          className="btn btn-ghost btn-sm text-[10px] px-2 py-0.5 border border-[var(--border)] text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-strong)] flex items-center gap-1 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           title="Export Positions CSV"
         >
           <span aria-hidden="true">📥</span> CSV
@@ -631,10 +631,10 @@ function PositionsPanel({
                   text-[11px] font-semibold` classes reinforce the
                   typographic treatment at the Tailwind layer (in case
                   the cascade resolves Tailwind utilities above the
-                  component-layer rule). The dimmed color (`text-[#7e8aaa]`)
+                  component-layer rule). The dimmed color (`text-[var(--text-secondary)]`)
                   + tight `py-1.5` keeps the header visually subordinate
                   to the row data. */}
-              <tr className="border-b border-[#1f2335] text-[#7e8aaa] text-[11px] uppercase tracking-wider font-semibold">
+              <tr className="border-b border-[var(--border)] text-[var(--text-secondary)] text-[11px] uppercase tracking-wider font-semibold">
                 {/* W51-2b — Token sortable (sortBy='market', asc). */}
                 <th scope="col" className="min-w-[190px] py-1.5 text-left">
                   <span className="inline-flex items-baseline">
@@ -686,7 +686,7 @@ function PositionsPanel({
                 <th scope="col" className="text-center">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#1f2335]/50">
+            <tbody className="divide-y divide-[var(--border)]/50">
               {filteredPositions.map((p) => {
                 const info = formatHierarchicalMarket(p.slug)
                 const utilizationPct = Math.min((p.total_invested / MAX_PER_MARKET) * 100, 100)
@@ -737,7 +737,7 @@ function PositionsPanel({
                             </span>
                           </div>
                           <span
-                            className="text-[#dde1ed] group-hover:text-cyan-300 font-medium leading-snug text-xs block whitespace-normal transition-colors"
+                            className="text-[var(--text-primary)] group-hover:text-cyan-300 font-medium leading-snug text-xs block whitespace-normal transition-colors"
                             title={info.fullLabel}
                           >
                             {info.question}
@@ -777,20 +777,20 @@ function PositionsPanel({
                     {/* W49-5/W51-2b — Size (Shares). tabular-nums
                         ensures the decimal points line up across rows
                         for clean vertical scanning. */}
-                    <td className="mono text-right font-semibold text-[#dde1ed] tabular-nums">
+                    <td className="mono text-right font-semibold text-[var(--text-primary)] tabular-nums">
                       {p.yes_shares > 0 ? p.yes_shares.toFixed(1) : (p.no_shares ?? 0).toFixed(1)}
                     </td>
 
                     {/* W49-5/W51-2b — Entry (Avg Entry). */}
-                    <td className="mono text-right text-[#7e8aaa] text-xs tabular-nums">
+                    <td className="mono text-right text-[var(--text-secondary)] text-xs tabular-nums">
                       ${p.avg_entry_price.toFixed(3)}
                     </td>
 
                     {/* W49-5/W51-2b — Current (Mark) with flash class. */}
-                    <td className={`mono text-right text-[#dde1ed] text-xs tabular-nums${flashClass}`}>
+                    <td className={`mono text-right text-[var(--text-primary)] text-xs tabular-nums${flashClass}`}>
                       {typeof p.current_price === 'number'
                         ? `$${p.current_price.toFixed(3)}`
-                        : <span className="text-[#3e4560]">—</span>}
+                        : <span className="text-[var(--text-dim)]">—</span>}
                     </td>
 
                     {/* W51-2b — Cost Basis. tabular-nums for decimal
@@ -802,7 +802,7 @@ function PositionsPanel({
                     {/* Exposure Utilization Gauge. */}
                     <td className="text-center px-2">
                       <div className="flex flex-col gap-1 items-center">
-                        <div className="w-full bg-[#0e1015] border border-[#1f2335] h-1.5 rounded-full overflow-hidden">
+                        <div className="w-full bg-[var(--bg-page)] border border-[var(--border)] h-1.5 rounded-full overflow-hidden">
                           <div
                             className={`h-full rounded-full transition-all ${
                               isNearCap ? 'bg-amber-400' : 'bg-cyan-400'
@@ -810,7 +810,7 @@ function PositionsPanel({
                             style={{ width: `${utilizationPct}%` }}
                           />
                         </div>
-                        <span className="text-[9px] mono text-[#7e8aaa]">
+                        <span className="text-[9px] mono text-[var(--text-secondary)]">
                           {utilizationPct.toFixed(0)}% (${p.total_invested.toFixed(2)}/$3)
                         </span>
                       </div>
@@ -833,7 +833,7 @@ function PositionsPanel({
                             ? unrealizedProfit
                               ? 'text-green-400'
                               : 'text-red-400'
-                            : 'text-[#3e4560]'
+                            : 'text-[var(--text-dim)]'
                         }`}
                       >
                         {hasUnrealized ? (
@@ -856,7 +856,7 @@ function PositionsPanel({
                             ? unrealizedPct >= 0
                               ? 'text-green-400'
                               : 'text-red-400'
-                            : 'text-[#3e4560]'
+                            : 'text-[var(--text-dim)]'
                         }`}
                       >
                         {unrealizedPct !== null ? (
@@ -893,7 +893,7 @@ function PositionsPanel({
                         {p.strategy ? (
                           <StrategyBadge strategy={p.strategy} />
                         ) : (
-                          <span className="text-[#3e4560]">—</span>
+                          <span className="text-[var(--text-dim)]">—</span>
                         )}
                       </td>
                     )}
@@ -905,7 +905,7 @@ function PositionsPanel({
                         context. */}
                     {showAgeColumn && (
                       <td
-                        className="mono text-right text-[#7e8aaa] text-[10.5px] tabular-nums"
+                        className="mono text-right text-[var(--text-secondary)] text-[10.5px] tabular-nums"
                         title={typeof p.opened_at === 'number' ? fmtTimeAbs(p.opened_at) : undefined}
                       >
                         {typeof p.opened_at === 'number' ? fmtDurationHm(p.opened_at) : '—'}
@@ -917,7 +917,7 @@ function PositionsPanel({
                       <div className="flex items-center justify-center gap-1">
                         <button
                           onClick={() => onSelectMarket?.({ tokenId: p.token_id, slug: p.slug })}
-                          className="btn btn-ghost btn-sm text-[10px] px-2 py-0.5 border border-[#1f2335] text-cyan-400 hover:text-white hover:border-cyan-500/50"
+                          className="btn btn-ghost btn-sm text-[10px] px-2 py-0.5 border border-[var(--border)] text-cyan-400 hover:text-white hover:border-cyan-500/50"
                           title="Open Depth & Trade Modal"
                         >
                           Trade

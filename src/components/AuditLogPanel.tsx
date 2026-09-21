@@ -114,7 +114,7 @@ const TONE: Record<Tone, ToneConfig> = {
   poor:      { bg: 'bg-red-500/[0.06]',     border: 'border-red-500/25',     text: 'text-red-400',      bar: 'bg-red-500',      dot: 'bg-red-400',      label: 'text-red-400/80',      halo: 'shadow-red-500/10',      rowHover: 'hover:shadow-[inset_3px_0_0_0_rgba(239,68,68,0.55)]' },
   info:      { bg: 'bg-cyan-500/[0.06]',    border: 'border-cyan-500/25',    text: 'text-cyan-400',     bar: 'bg-cyan-500',     dot: 'bg-cyan-400',     label: 'text-cyan-400/80',     halo: 'shadow-cyan-500/10',     rowHover: 'hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.55)]' },
   critical:  { bg: 'bg-fuchsia-500/[0.06]', border: 'border-fuchsia-500/25', text: 'text-fuchsia-400',  bar: 'bg-fuchsia-500',  dot: 'bg-fuchsia-400',  label: 'text-fuchsia-400/80',  halo: 'shadow-fuchsia-500/10',  rowHover: 'hover:shadow-[inset_3px_0_0_0_rgba(232,121,249,0.55)]' },
-  neutral:   { bg: 'bg-[#0e1015]',          border: 'border-[#1f2335]',      text: 'text-[#dde1ed]',    bar: 'bg-[#5a637a]',    dot: 'bg-[#5a637a]',    label: 'text-[#7e8aaa]',       halo: '',                        rowHover: 'hover:shadow-[inset_3px_0_0_0_rgba(125,138,170,0.35)]' },
+  neutral:   { bg: 'bg-[var(--bg-page)]',          border: 'border-[var(--border)]',      text: 'text-[var(--text-primary)]',    bar: 'bg-[var(--text-secondary)]',    dot: 'bg-[var(--text-secondary)]',    label: 'text-[var(--text-secondary)]',       halo: '',                        rowHover: 'hover:shadow-[inset_3px_0_0_0_rgba(125,138,170,0.35)]' },
 }
 
 /** Map an inferred Severity to a Tone so the badge / row / hover accent
@@ -325,7 +325,7 @@ function buildTimeline(logs: AuditLog[], windowMin = 30): number[] {
 function SeverityTimeline({
   data,
   height = 28,
-  color = '#60a5fa',
+  color = 'var(--accent-fg)',
 }: {
   data: number[]
   height?: number
@@ -348,7 +348,7 @@ function SeverityTimeline({
           y1={H / 2}
           x2={W}
           y2={H / 2}
-          stroke="#3e4560"
+          stroke="var(--text-dim)"
           strokeWidth={1}
           strokeDasharray="2 2"
         />
@@ -428,11 +428,11 @@ function SectionHeader({
   return (
     <div className="flex items-center gap-1.5 mb-1.5">
       <Icon className={`size-3 ${TONE[tone].text}`} aria-hidden="true" />
-      <span className="text-[10.5px] uppercase tracking-wider font-bold text-[#5a637a]">
+      <span className="text-[10.5px] uppercase tracking-wider font-bold text-[var(--text-secondary)]">
         {title}
       </span>
       {description && (
-        <span className="text-[9px] text-[#5a637a] italic truncate">{description}</span>
+        <span className="text-[9px] text-[var(--text-secondary)] italic truncate">{description}</span>
       )}
       {trailing && <span className="ml-auto shrink-0">{trailing}</span>}
     </div>
@@ -468,11 +468,11 @@ function StatChip({
   const cfg = tone ? TONE[tone] : null
   return (
     <div
-      className={`bg-[#0e1015] border px-2.5 py-1 rounded-md flex items-center gap-1.5 ${cfg ? cfg.border : 'border-[#1f2335]'} ${cfg ? cfg.bg : ''}`}
+      className={`bg-[var(--bg-page)] border px-2.5 py-1 rounded-md flex items-center gap-1.5 ${cfg ? cfg.border : 'border-[var(--border)]'} ${cfg ? cfg.bg : ''}`}
       title={title}
       data-tone={tone ?? 'neutral'}
     >
-      <span className="text-[10px] text-[#7e8aaa] uppercase font-semibold whitespace-nowrap">
+      <span className="text-[10px] text-[var(--text-secondary)] uppercase font-semibold whitespace-nowrap">
         {label}:
       </span>
       <span
@@ -481,7 +481,7 @@ function StatChip({
       >
         {value}
       </span>
-      {sub && <span className="text-[9.5px] text-[#5a637a]">{sub}</span>}
+      {sub && <span className="text-[9.5px] text-[var(--text-secondary)]">{sub}</span>}
     </div>
   )
 }
@@ -544,7 +544,7 @@ function EventDetailPanel({ log, severity, onClose }: EventDetailPanelProps) {
             <button
               type="button"
               onClick={onClose}
-              className="text-[#7e8aaa] hover:text-white transition-colors p-1 rounded"
+              className="text-[var(--text-secondary)] hover:text-white transition-colors p-1 rounded"
               aria-label="Close audit event detail panel"
             >
               <X size={14} />
@@ -554,12 +554,12 @@ function EventDetailPanel({ log, severity, onClose }: EventDetailPanelProps) {
       />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-3">
         <div className="text-[10.5px] mono tabular-nums">
-          <span className="text-[#5a637a]">id:</span>{' '}
+          <span className="text-[var(--text-secondary)]">id:</span>{' '}
           <span className="text-[#c8cfe0]">{log.id}</span>
         </div>
         {log.token_id && (
           <div className="text-[10.5px] mono truncate">
-            <span className="text-[#5a637a]">token_id:</span>{' '}
+            <span className="text-[var(--text-secondary)]">token_id:</span>{' '}
             <span className="text-[#c8cfe0]" title={log.token_id}>
               {log.token_id}
             </span>
@@ -567,19 +567,19 @@ function EventDetailPanel({ log, severity, onClose }: EventDetailPanelProps) {
         )}
         {log.slug && (
           <div className="text-[10.5px] mono truncate">
-            <span className="text-[#5a637a]">slug:</span>{' '}
+            <span className="text-[var(--text-secondary)]">slug:</span>{' '}
             <span className="text-[#c8cfe0]">{log.slug}</span>
           </div>
         )}
         {log.strategy && (
           <div className="text-[10.5px] mono">
-            <span className="text-[#5a637a]">strategy:</span>{' '}
+            <span className="text-[var(--text-secondary)]">strategy:</span>{' '}
             <span className="text-[#c8cfe0]">{log.strategy}</span>
           </div>
         )}
         {log.pnl != null && log.pnl !== 0 && (
           <div className="text-[10.5px] mono tabular-nums">
-            <span className="text-[#5a637a]">pnl:</span>{' '}
+            <span className="text-[var(--text-secondary)]">pnl:</span>{' '}
             <span
               className={
                 log.pnl >= 0 ? 'text-green-400' : 'text-red-400'
@@ -592,26 +592,26 @@ function EventDetailPanel({ log, severity, onClose }: EventDetailPanelProps) {
         )}
         {log.idempotency_key && (
           <div className="text-[10.5px] mono truncate">
-            <span className="text-[#5a637a]">idempotency_key:</span>{' '}
+            <span className="text-[var(--text-secondary)]">idempotency_key:</span>{' '}
             <span className="text-[#c8cfe0]" title={log.idempotency_key}>
               {log.idempotency_key}
             </span>
           </div>
         )}
         <div className="text-[10.5px] mono tabular-nums">
-          <span className="text-[#5a637a]">timestamp:</span>{' '}
+          <span className="text-[var(--text-secondary)]">timestamp:</span>{' '}
           <span className="text-[#c8cfe0]">{ts.toFixed(3)}</span>
         </div>
       </div>
       {parsedDetails && Object.keys(parsedDetails).length > 0 ? (
         <pre
-          className="text-[10.5px] mono text-[#c8cfe0] bg-[#080910] border border-[#1f2335] rounded p-2.5 overflow-auto max-h-64 scrollbar-thin"
+          className="text-[10.5px] mono text-[#c8cfe0] bg-[var(--bg-base)] border border-[var(--border)] rounded p-2.5 overflow-auto max-h-64 scrollbar-thin"
           aria-label="Audit event metadata JSON"
         >
           {JSON.stringify(parsedDetails, null, 2)}
         </pre>
       ) : (
-        <div className="text-[10.5px] text-[#5a637a] italic">
+        <div className="text-[10.5px] text-[var(--text-secondary)] italic">
           No metadata payload recorded.
         </div>
       )}
@@ -633,13 +633,13 @@ function EventDetailPanel({ log, severity, onClose }: EventDetailPanelProps) {
 function AuditLogSkeleton() {
   return (
     <div
-      className="card h-full flex flex-col p-3 bg-[#13161e] border border-[#1f2335] shadow-xl"
+      className="card h-full flex flex-col p-3 bg-[var(--bg-surface)] border border-[var(--border)] shadow-xl"
       data-testid="audit-log-panel"
     >
-      <div className="card-header pb-2 mb-3 border-b border-[#1f2335] flex items-center justify-between">
+      <div className="card-header pb-2 mb-3 border-b border-[var(--border)] flex items-center justify-between">
         <div className="flex items-center gap-2">
           <PulseDot tone="info" />
-          <span className="card-title text-xs font-bold text-[#dde1ed]">
+          <span className="card-title text-xs font-bold text-[var(--text-primary)]">
             📋 AUDIT LOG
           </span>
           <span className="badge badge-cyan text-[9.5px]">
@@ -655,7 +655,7 @@ function AuditLogSkeleton() {
         {Array.from({ length: 5 }).map((_, i) => (
           <div
             key={i}
-            className="bg-[#0e1015] border border-[#1f2335] px-2.5 py-1 rounded-md flex items-center gap-1.5"
+            className="bg-[var(--bg-page)] border border-[var(--border)] px-2.5 py-1 rounded-md flex items-center gap-1.5"
           >
             <ShimmerBlock className="w-10" />
             <ShimmerBlock className="w-6 !h-3" />
@@ -674,7 +674,7 @@ function AuditLogSkeleton() {
         {Array.from({ length: 8 }).map((_, i) => (
           <div
             key={i}
-            className="flex items-center gap-2 px-2 py-1.5 rounded border border-[#1f2335]"
+            className="flex items-center gap-2 px-2 py-1.5 rounded border border-[var(--border)]"
           >
             <ShimmerBlock className="w-32" />
             <ShimmerBlock className="w-16 !h-3 !rounded-md" />
@@ -699,7 +699,7 @@ function AuditEmptyState({ hasLogs }: { hasLogs: boolean }) {
   return (
     <div className="empty-state py-10" role="status" data-testid="audit-log-empty-state">
       <ScrollText
-        className="empty-state-icon text-[#5a637a]"
+        className="empty-state-icon text-[var(--text-secondary)]"
         size={28}
         aria-hidden="true"
       />
@@ -732,13 +732,13 @@ function AuditErrorState({
 }) {
   return (
     <div
-      className="card h-full flex flex-col p-3 bg-[#13161e] border border-[#1f2335] shadow-xl"
+      className="card h-full flex flex-col p-3 bg-[var(--bg-surface)] border border-[var(--border)] shadow-xl"
       data-testid="audit-log-panel"
     >
-      <div className="card-header pb-2 mb-2 border-b border-[#1f2335] flex items-center justify-between">
+      <div className="card-header pb-2 mb-2 border-b border-[var(--border)] flex items-center justify-between">
         <div className="flex items-center gap-2">
           <PulseDot tone="poor" pulse={false} />
-          <span className="card-title text-xs font-bold text-[#dde1ed]">
+          <span className="card-title text-xs font-bold text-[var(--text-primary)]">
             📋 AUDIT LOG
           </span>
           <span className="badge badge-red text-[9.5px]">Offline</span>
@@ -1025,7 +1025,7 @@ export default function AuditLogPanel() {
             <ChevronRight
               size={12}
               style={{
-                color: '#7e8aaa',
+                color: 'var(--text-secondary)',
                 flexShrink: 0,
                 transition: 'transform 0.15s',
                 transform: expandedId === log.id ? 'rotate(90deg)' : 'none',
@@ -1033,15 +1033,15 @@ export default function AuditLogPanel() {
             />
             <span
               className="tabular-nums"
-              style={{ fontSize: '10.5px', fontFamily: 'JetBrains Mono, monospace', color: '#7e8aaa' }}
+              style={{ fontSize: '10.5px', fontFamily: 'JetBrains Mono, monospace', color: 'var(--text-secondary)' }}
               title={new Date(ts * 1000).toLocaleString()}
             >
               {timeStr}
             </span>
-            <span style={{ color: '#3e4560' }}>·</span>
+            <span style={{ color: 'var(--text-dim)' }}>·</span>
             <span
               className="tabular-nums"
-              style={{ fontSize: '10.5px', fontFamily: 'JetBrains Mono, monospace', color: '#5a637a' }}
+              style={{ fontSize: '10.5px', fontFamily: 'JetBrains Mono, monospace', color: 'var(--text-secondary)' }}
             >
               {dateStr}
             </span>
@@ -1063,9 +1063,9 @@ export default function AuditLogPanel() {
             fontSize: '9.5px',
             fontFamily: 'JetBrains Mono, monospace',
             fontWeight: 600,
-            background: '#0e1015',
-            border: '1px solid #1f2335',
-            color: '#7e8aaa',
+            background: 'var(--bg-page)',
+            border: '1px solid var(--border)',
+            color: 'var(--text-secondary)',
             textTransform: 'uppercase',
           }}
           title={`Category: ${log.category}`}
@@ -1101,7 +1101,7 @@ export default function AuditLogPanel() {
         <span
           style={{
             fontSize: '11px',
-            color: '#dde1ed',
+            color: 'var(--text-primary)',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',
@@ -1122,7 +1122,7 @@ export default function AuditLogPanel() {
       render: (log: AuditLog) => (
         <span
           className="tabular-nums"
-          style={{ fontSize: '10px', fontFamily: 'JetBrains Mono, monospace', color: '#5a637a' }}
+          style={{ fontSize: '10px', fontFamily: 'JetBrains Mono, monospace', color: 'var(--text-secondary)' }}
         >
           {fmtAge(log.timestamp)}
         </span>
@@ -1154,15 +1154,15 @@ export default function AuditLogPanel() {
   // ── Main render ───────────────────────────────────────────────────────
   return (
     <div
-      className="card h-full flex flex-col p-3 bg-[#13161e] border border-[#1f2335] shadow-xl"
+      className="card h-full flex flex-col p-3 bg-[var(--bg-surface)] border border-[var(--border)] shadow-xl"
       data-testid="audit-log-panel"
     >
       {/* Header with Stats Strip */}
-      <div className="card-header pb-2 mb-2 border-b border-[#1f2335] flex flex-wrap items-center justify-between gap-2">
+      <div className="card-header pb-2 mb-2 border-b border-[var(--border)] flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <PulseDot tone={headerTone} />
           <span
-            className="card-title text-xs font-bold text-[#dde1ed] tracking-wide"
+            className="card-title text-xs font-bold text-[var(--text-primary)] tracking-wide"
             aria-label="Audit Log panel header"
           >
             📋 AUDIT LOG
@@ -1216,10 +1216,10 @@ export default function AuditLogPanel() {
           />
           {/* Severity timeline */}
           <div
-            className="bg-[#0e1015] border border-[#1f2335] px-2 py-1 rounded-md flex items-center gap-1.5"
+            className="bg-[var(--bg-page)] border border-[var(--border)] px-2 py-1 rounded-md flex items-center gap-1.5"
             title="Event count per minute (last 30 minutes)"
           >
-            <span className="text-[9.5px] text-[#7e8aaa] uppercase font-semibold">
+            <span className="text-[9.5px] text-[var(--text-secondary)] uppercase font-semibold">
               Rate
             </span>
             <div style={{ width: 80 }}>
@@ -1228,7 +1228,7 @@ export default function AuditLogPanel() {
           </div>
           {lastUpdated && (
             <span
-              className="text-[9.5px] text-[#5a637a] mono ml-1 flex items-center gap-1 tabular-nums"
+              className="text-[9.5px] text-[var(--text-secondary)] mono ml-1 flex items-center gap-1 tabular-nums"
               title={`Last refresh: ${new Date(lastUpdated).toLocaleString()}`}
             >
               <Clock size={10} />
@@ -1246,7 +1246,7 @@ export default function AuditLogPanel() {
           tone="info"
           description="action type · category · date range · text"
           trailing={
-            <span className="text-[9.5px] text-[#7e8aaa] mono tabular-nums">
+            <span className="text-[9.5px] text-[var(--text-secondary)] mono tabular-nums">
               {filteredLogs.length} / {logs.length} shown
             </span>
           }
@@ -1256,7 +1256,7 @@ export default function AuditLogPanel() {
           <div className="relative flex-1 min-w-[200px] max-w-xs">
             <Search
               size={12}
-              className="absolute left-2 top-1/2 -translate-y-1/2 text-[#5a637a] pointer-events-none"
+              className="absolute left-2 top-1/2 -translate-y-1/2 text-[var(--text-secondary)] pointer-events-none"
               aria-hidden="true"
             />
             <Input
@@ -1264,14 +1264,14 @@ export default function AuditLogPanel() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search message, details, token, slug…"
-              className="h-7 pl-7 pr-7 text-xs bg-[#0e1015] border-[#1f2335] text-[#dde1ed] placeholder-[#3e4560] focus-visible:border-blue-500/50 focus-visible:ring-1 focus-visible:ring-cyan-400/40"
+              className="h-7 pl-7 pr-7 text-xs bg-[var(--bg-page)] border-[var(--border)] text-[var(--text-primary)] placeholder-[var(--text-dim)] focus-visible:border-blue-500/50 focus-visible:ring-1 focus-visible:ring-cyan-400/40"
               aria-label="Search audit events"
             />
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery('')}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-[#7e8aaa] hover:text-white"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-[var(--text-secondary)] hover:text-white"
                 aria-label="Clear search"
               >
                 ✕
@@ -1282,7 +1282,7 @@ export default function AuditLogPanel() {
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value as CategoryFilter)}
-            className="bg-[#0e1015] border border-[#1f2335] text-[#7e8aaa] rounded text-[10px] font-semibold px-2 py-1 outline-none cursor-pointer hover:border-[#2d3450] h-7 focus-visible:border-cyan-500/50 focus-visible:ring-1 focus-visible:ring-cyan-400/40"
+            className="bg-[var(--bg-page)] border border-[var(--border)] text-[var(--text-secondary)] rounded text-[10px] font-semibold px-2 py-1 outline-none cursor-pointer hover:border-[var(--border-strong)] h-7 focus-visible:border-cyan-500/50 focus-visible:ring-1 focus-visible:ring-cyan-400/40"
             aria-label="Filter by category"
           >
             {CATEGORY_OPTIONS.map((o) => (
@@ -1297,7 +1297,7 @@ export default function AuditLogPanel() {
             onChange={(e) =>
               setSeverityFilter(e.target.value as SeverityFilter)
             }
-            className="bg-[#0e1015] border border-[#1f2335] text-[#7e8aaa] rounded text-[10px] font-semibold px-2 py-1 outline-none cursor-pointer hover:border-[#2d3450] h-7 focus-visible:border-cyan-500/50 focus-visible:ring-1 focus-visible:ring-cyan-400/40"
+            className="bg-[var(--bg-page)] border border-[var(--border)] text-[var(--text-secondary)] rounded text-[10px] font-semibold px-2 py-1 outline-none cursor-pointer hover:border-[var(--border-strong)] h-7 focus-visible:border-cyan-500/50 focus-visible:ring-1 focus-visible:ring-cyan-400/40"
             aria-label="Filter by severity"
           >
             {SEVERITY_OPTIONS.map((o) => (
@@ -1312,15 +1312,15 @@ export default function AuditLogPanel() {
               type="date"
               value={dateFrom}
               onChange={(e) => setDateFrom(e.target.value)}
-              className="bg-[#0e1015] border border-[#1f2335] text-[#7e8aaa] rounded text-[10px] px-2 py-1 outline-none cursor-pointer hover:border-[#2d3450] h-7 tabular-nums focus-visible:border-cyan-500/50 focus-visible:ring-1 focus-visible:ring-cyan-400/40"
+              className="bg-[var(--bg-page)] border border-[var(--border)] text-[var(--text-secondary)] rounded text-[10px] px-2 py-1 outline-none cursor-pointer hover:border-[var(--border-strong)] h-7 tabular-nums focus-visible:border-cyan-500/50 focus-visible:ring-1 focus-visible:ring-cyan-400/40"
               aria-label="Filter from date"
             />
-            <span className="text-[10px] text-[#5a637a]">→</span>
+            <span className="text-[10px] text-[var(--text-secondary)]">→</span>
             <input
               type="date"
               value={dateTo}
               onChange={(e) => setDateTo(e.target.value)}
-              className="bg-[#0e1015] border border-[#1f2335] text-[#7e8aaa] rounded text-[10px] px-2 py-1 outline-none cursor-pointer hover:border-[#2d3450] h-7 tabular-nums focus-visible:border-cyan-500/50 focus-visible:ring-1 focus-visible:ring-cyan-400/40"
+              className="bg-[var(--bg-page)] border border-[var(--border)] text-[var(--text-secondary)] rounded text-[10px] px-2 py-1 outline-none cursor-pointer hover:border-[var(--border-strong)] h-7 tabular-nums focus-visible:border-cyan-500/50 focus-visible:ring-1 focus-visible:ring-cyan-400/40"
               aria-label="Filter to date"
             />
           </div>
@@ -1333,7 +1333,7 @@ export default function AuditLogPanel() {
             <Button
               variant="ghost"
               size="sm"
-              className="h-7 text-[10px] px-2 text-[#7e8aaa] hover:text-white hover:border-cyan-500/30 hover:bg-cyan-500/[0.04]"
+              className="h-7 text-[10px] px-2 text-[var(--text-secondary)] hover:text-white hover:border-cyan-500/30 hover:bg-cyan-500/[0.04]"
               onClick={() => {
                 setCategoryFilter('all')
                 setSeverityFilter('all')
@@ -1351,7 +1351,7 @@ export default function AuditLogPanel() {
             variant="outline"
             size="sm"
             onClick={fetchLogs}
-            className="h-7 text-[10px] px-2 gap-1 border-[#1f2335] text-[#7e8aaa] hover:text-white hover:border-cyan-500/30 hover:bg-cyan-500/[0.04]"
+            className="h-7 text-[10px] px-2 gap-1 border-[var(--border)] text-[var(--text-secondary)] hover:text-white hover:border-cyan-500/30 hover:bg-cyan-500/[0.04]"
             title="Refresh now"
           >
             <RefreshCw size={11} /> Refresh
@@ -1362,7 +1362,7 @@ export default function AuditLogPanel() {
             size="sm"
             onClick={exportCSV}
             disabled={exporting || filteredLogs.length === 0}
-            className="h-7 text-[10px] px-2 gap-1 border-[#1f2335] text-[#7e8aaa] hover:text-white hover:border-cyan-500/30 hover:bg-cyan-500/[0.04]"
+            className="h-7 text-[10px] px-2 gap-1 border-[var(--border)] text-[var(--text-secondary)] hover:text-white hover:border-cyan-500/30 hover:bg-cyan-500/[0.04]"
             title="Export filtered logs as CSV"
             aria-label="Export CSV"
           >
@@ -1373,7 +1373,7 @@ export default function AuditLogPanel() {
             size="sm"
             onClick={exportJSON}
             disabled={exporting || filteredLogs.length === 0}
-            className="h-7 text-[10px] px-2 gap-1 border-[#1f2335] text-[#7e8aaa] hover:text-white hover:border-cyan-500/30 hover:bg-cyan-500/[0.04]"
+            className="h-7 text-[10px] px-2 gap-1 border-[var(--border)] text-[var(--text-secondary)] hover:text-white hover:border-cyan-500/30 hover:bg-cyan-500/[0.04]"
             title="Export filtered logs as JSON"
             aria-label="Export JSON"
           >
@@ -1396,12 +1396,12 @@ export default function AuditLogPanel() {
           tone="info"
           description="newest-first · click row for metadata"
           trailing={
-            <span className="text-[9.5px] text-[#7e8aaa] mono tabular-nums">
+            <span className="text-[9.5px] text-[var(--text-secondary)] mono tabular-nums">
               {filteredLogs.length} of {logs.length} events
             </span>
           }
         />
-        <div ref={tableContainerRef} className="flex-1 min-h-[200px] overflow-hidden border border-[#1f2335] rounded">
+        <div ref={tableContainerRef} className="flex-1 min-h-[200px] overflow-hidden border border-[var(--border)] rounded">
           {filteredLogs.length === 0 ? (
             <AuditEmptyState hasLogs={logs.length > 0} />
           ) : (
@@ -1437,7 +1437,7 @@ export default function AuditLogPanel() {
           <span>
             {filteredLogs.length} of {logs.length} events
             {logs.length === LIST_LIMIT && (
-              <span className="text-[#5a637a]"> (cap)</span>
+              <span className="text-[var(--text-secondary)]"> (cap)</span>
             )}
           </span>
         </span>

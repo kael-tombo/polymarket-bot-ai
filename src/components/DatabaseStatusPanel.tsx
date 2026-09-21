@@ -35,7 +35,7 @@
 //     → { success: boolean; backend: string; message: string; attempted_at: number }
 //
 // Visual language mirrors SystemHealthView.tsx + ObservabilityPanel.tsx
-// (dark `#13161e` card surface, `#1f2335` borders, `#dde1ed` primary
+// (dark `var(--bg-surface)` card surface, `var(--border)` borders, `var(--text-primary)` primary
 // text) but uses shadcn/ui primitives (Card, Badge, Table, Button) per
 // the W21-7 spec. Polls every 15s and pauses when the document is
 // hidden (matches the visibility-aware polling pattern established
@@ -179,7 +179,7 @@ const TONE: Record<Tone, ToneConfig> = {
   warn:    { bg: 'bg-amber-500/[0.06]',   border: 'border-amber-500/25',   text: 'text-amber-400',   bar: 'bg-amber-500',   dot: 'bg-amber-400',   label: 'text-amber-400/80',   halo: 'shadow-amber-500/10',   rowHover: 'hover:shadow-[inset_3px_0_0_0_rgba(251,191,36,0.55)]' },
   poor:    { bg: 'bg-red-500/[0.06]',     border: 'border-red-500/25',     text: 'text-red-400',     bar: 'bg-red-500',     dot: 'bg-red-400',     label: 'text-red-400/80',     halo: 'shadow-red-500/10',     rowHover: 'hover:shadow-[inset_3px_0_0_0_rgba(239,68,68,0.55)]' },
   info:    { bg: 'bg-cyan-500/[0.06]',    border: 'border-cyan-500/25',    text: 'text-cyan-400',    bar: 'bg-cyan-500',    dot: 'bg-cyan-400',    label: 'text-cyan-400/80',    halo: 'shadow-cyan-500/10',    rowHover: 'hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.55)]' },
-  neutral: { bg: 'bg-[#0e1015]',          border: 'border-[#1f2335]',      text: 'text-[#dde1ed]',   bar: 'bg-[#5a637a]',   dot: 'bg-[#5a637a]',   label: 'text-[#7e8aaa]',      halo: '',                       rowHover: 'hover:shadow-[inset_3px_0_0_0_rgba(125,138,170,0.35)]' },
+  neutral: { bg: 'bg-[var(--bg-page)]',          border: 'border-[var(--border)]',      text: 'text-[var(--text-primary)]',   bar: 'bg-[var(--text-secondary)]',   dot: 'bg-[var(--text-secondary)]',   label: 'text-[var(--text-secondary)]',      halo: '',                       rowHover: 'hover:shadow-[inset_3px_0_0_0_rgba(125,138,170,0.35)]' },
 }
 
 /** Map a PgHealthStatus to a Tone for the health-grid + PulseDot + KPI
@@ -272,11 +272,11 @@ function SectionHeader({
   return (
     <div className="flex items-center gap-1.5 mb-1.5">
       <Icon className={`size-3 ${TONE[tone].text}`} aria-hidden="true" />
-      <span className="text-[10.5px] uppercase tracking-wider font-bold text-[#5a637a]">
+      <span className="text-[10.5px] uppercase tracking-wider font-bold text-[var(--text-secondary)]">
         {title}
       </span>
       {description && (
-        <span className="text-[9px] text-[#5a637a] italic truncate">{description}</span>
+        <span className="text-[9px] text-[var(--text-secondary)] italic truncate">{description}</span>
       )}
       {trailing && <span className="ml-auto shrink-0">{trailing}</span>}
     </div>
@@ -381,7 +381,7 @@ function KpiTile({
   const cfg = tone ? TONE[tone] : null
   const cardCls = cfg
     ? `kpi-card relative rounded p-2 border ${cfg.border} ${cfg.bg} overflow-hidden transition-colors`
-    : 'kpi-card relative rounded p-2 border border-[#1f2335] bg-[#0e1015] overflow-hidden transition-colors'
+    : 'kpi-card relative rounded p-2 border border-[var(--border)] bg-[var(--bg-page)] overflow-hidden transition-colors'
   return (
     <div className={cardCls} data-testid="db-kpi-card" data-tone={tone ?? 'neutral'}>
       <span className={`kpi-label flex items-center gap-1.5 ${cfg ? cfg.label : ''}`}>
@@ -395,9 +395,9 @@ function KpiTile({
       </span>
       {sub && <span className="kpi-sub">{sub}</span>}
       {quality != null && quality > 0 && (
-        <div className="h-0.5 bg-[#1f2335] rounded-full mt-1 overflow-hidden">
+        <div className="h-0.5 bg-[var(--border)] rounded-full mt-1 overflow-hidden">
           <div
-            className={`h-full rounded-full transition-all duration-500 ${cfg ? cfg.bar : 'bg-[#5a637a]'}`}
+            className={`h-full rounded-full transition-all duration-500 ${cfg ? cfg.bar : 'bg-[var(--text-secondary)]'}`}
             style={{ width: `${Math.max(0, Math.min(100, quality))}%` }}
             aria-hidden="true"
           />
@@ -418,7 +418,7 @@ function PolishedEmptyState() {
   return (
     <div className="empty-state py-8" role="status" data-testid="db-tables-empty-state">
       <Database
-        className="empty-state-icon text-[#5a637a]"
+        className="empty-state-icon text-[var(--text-secondary)]"
         size={28}
         aria-hidden="true"
       />
@@ -494,7 +494,7 @@ function DbStatusSkeleton() {
       data-testid="db-status-loading-skeleton"
     >
       {/* Skeleton header bar */}
-      <div className="flex items-center gap-2 pb-2 border-b border-[#1f2335]">
+      <div className="flex items-center gap-2 pb-2 border-b border-[var(--border)]">
         <ShimmerBlock className="w-4 h-4 !rounded-full" />
         <ShimmerBlock className="w-44 h-3" />
         <div className="ml-auto flex items-center gap-2">
@@ -508,13 +508,13 @@ function DbStatusSkeleton() {
         {Array.from({ length: 4 }).map((_, i) => (
           <div
             key={i}
-            className="kpi-card rounded p-2 border border-[#1f2335] bg-[#0e1015] space-y-1.5"
+            className="kpi-card rounded p-2 border border-[var(--border)] bg-[var(--bg-page)] space-y-1.5"
             aria-hidden="true"
           >
             <ShimmerBlock className="w-1/2" />
             <ShimmerBlock className="w-3/4 !h-4" />
             <ShimmerBlock className="w-2/3 !h-2" />
-            <div className="h-0.5 w-full bg-[#1f2335] rounded-full overflow-hidden">
+            <div className="h-0.5 w-full bg-[var(--border)] rounded-full overflow-hidden">
               <div
                 className="h-full w-1/2 rounded-full"
                 style={{
@@ -529,8 +529,8 @@ function DbStatusSkeleton() {
         ))}
       </div>
       {/* Skeleton PG Connection Health card */}
-      <div className="rounded-md border border-[#1f2335] bg-[#0e1015] overflow-hidden">
-        <div className="flex items-center gap-2 px-3 py-2.5 border-b border-[#1f2335]">
+      <div className="rounded-md border border-[var(--border)] bg-[var(--bg-page)] overflow-hidden">
+        <div className="flex items-center gap-2 px-3 py-2.5 border-b border-[var(--border)]">
           <ShimmerBlock className="w-3 h-3 !rounded-full" />
           <ShimmerBlock className="w-40 h-3" />
           <div className="ml-auto">
@@ -545,13 +545,13 @@ function DbStatusSkeleton() {
             </div>
           ))}
         </div>
-        <div className="px-3 pb-3 pt-2 mt-2 border-t border-[#1f2335]">
+        <div className="px-3 pb-3 pt-2 mt-2 border-t border-[var(--border)]">
           <ShimmerBlock className="w-32 h-5 !rounded-md" />
         </div>
       </div>
       {/* Skeleton Database Tables card */}
-      <div className="rounded-md border border-[#1f2335] bg-[#0e1015] overflow-hidden">
-        <div className="flex items-center gap-2 px-3 py-2.5 border-b border-[#1f2335]">
+      <div className="rounded-md border border-[var(--border)] bg-[var(--bg-page)] overflow-hidden">
+        <div className="flex items-center gap-2 px-3 py-2.5 border-b border-[var(--border)]">
           <ShimmerBlock className="w-3 h-3 !rounded-full" />
           <ShimmerBlock className="w-32 h-3" />
           <div className="ml-auto">
@@ -562,7 +562,7 @@ function DbStatusSkeleton() {
           {Array.from({ length: 3 }).map((_, i) => (
             <div
               key={i}
-              className="flex items-center gap-2 px-2 py-1.5 rounded border border-[#1f2335]"
+              className="flex items-center gap-2 px-2 py-1.5 rounded border border-[var(--border)]"
             >
               <ShimmerBlock className="w-32" />
               <ShimmerBlock className="w-10 h-3 !rounded-md" />
@@ -576,8 +576,8 @@ function DbStatusSkeleton() {
         </div>
       </div>
       {/* Skeleton Recent Errors card */}
-      <div className="rounded-md border border-[#1f2335] bg-[#0e1015] overflow-hidden">
-        <div className="flex items-center gap-2 px-3 py-2.5 border-b border-[#1f2335]">
+      <div className="rounded-md border border-[var(--border)] bg-[var(--bg-page)] overflow-hidden">
+        <div className="flex items-center gap-2 px-3 py-2.5 border-b border-[var(--border)]">
           <ShimmerBlock className="w-3 h-3 !rounded-full" />
           <ShimmerBlock className="w-36 h-3" />
         </div>
@@ -585,7 +585,7 @@ function DbStatusSkeleton() {
           {Array.from({ length: 2 }).map((_, i) => (
             <div
               key={i}
-              className="flex items-start gap-2 px-2 py-2 rounded border border-[#1f2335] bg-[#13161e]"
+              className="flex items-start gap-2 px-2 py-2 rounded border border-[var(--border)] bg-[var(--bg-surface)]"
             >
               <ShimmerBlock className="w-3 h-3 !rounded-full mt-0.5" />
               <div className="flex-1 space-y-1">
@@ -729,15 +729,15 @@ export default function DatabaseStatusPanel() {
   if (loading && !status) {
     return (
       <div
-        className="flex flex-col h-full bg-[#13161e] border border-[#1f2335] rounded-lg overflow-hidden"
+        className="flex flex-col h-full bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg overflow-hidden"
         role="status"
         aria-live="polite"
         aria-label="Loading database status…"
         data-testid="database-status-panel"
       >
-        <div className="card-header px-3.5 py-2.5 border-b border-[#1f2335] flex items-center gap-2 bg-[#0e1015]/80">
+        <div className="card-header px-3.5 py-2.5 border-b border-[var(--border)] flex items-center gap-2 bg-[var(--bg-page)]/80">
           <span className="spinner" aria-hidden="true" />
-          <span className="text-xs font-bold text-[#dde1ed] tracking-wide">
+          <span className="text-xs font-bold text-[var(--text-primary)] tracking-wide">
             Loading Database Status…
           </span>
         </div>
@@ -749,7 +749,7 @@ export default function DatabaseStatusPanel() {
   if (error && !status) {
     return (
       <div
-        className="flex flex-col h-full bg-[#13161e] border border-[#1f2335] rounded-lg overflow-hidden p-4"
+        className="flex flex-col h-full bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg overflow-hidden p-4"
         data-testid="database-status-panel"
       >
         <ErrorState message={error} onRetry={handleManualRefresh} />
@@ -783,19 +783,19 @@ export default function DatabaseStatusPanel() {
 
   return (
     <div
-      className="flex flex-col h-full bg-[#13161e] border border-[#1f2335] rounded-lg overflow-hidden p-4 space-y-3 overflow-y-auto scrollbar-thin"
+      className="flex flex-col h-full bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg overflow-hidden p-4 space-y-3 overflow-y-auto scrollbar-thin"
       data-testid="database-status-panel"
     >
       {/* ── Header ─────────────────────────────────────────────────────── */}
-      <div className="flex flex-wrap justify-between items-center pb-2 border-b border-[#1f2335] gap-2">
+      <div className="flex flex-wrap justify-between items-center pb-2 border-b border-[var(--border)] gap-2">
         <div>
           <div className="flex items-center gap-2">
             <Database size={18} className="text-cyan-400" aria-hidden="true" />
-            <span className="text-sm font-bold text-[#dde1ed]">
+            <span className="text-sm font-bold text-[var(--text-primary)]">
               Database Backend Status
             </span>
           </div>
-          <p className="text-xs text-[#7e8aaa]">
+          <p className="text-xs text-[var(--text-secondary)]">
             PostgreSQL primary · SQLite fallback · pool health, table stats &amp; recent errors
           </p>
         </div>
@@ -806,7 +806,7 @@ export default function DatabaseStatusPanel() {
             variant="outline"
             size="sm"
             onClick={handleManualRefresh}
-            className="h-7 px-2 text-xs border-[#1f2335] text-[#7e8aaa] hover:text-white hover:border-cyan-500/30 hover:bg-cyan-500/[0.04]"
+            className="h-7 px-2 text-xs border-[var(--border)] text-[var(--text-secondary)] hover:text-white hover:border-cyan-500/30 hover:bg-cyan-500/[0.04]"
             aria-label="Refresh database status"
             disabled={retrying}
           >
@@ -844,7 +844,7 @@ export default function DatabaseStatusPanel() {
           }
           valueClass={
             !pgHealth
-              ? 'text-[#7e8aaa]'
+              ? 'text-[var(--text-secondary)]'
               : pgHealth.uptime_pct >= 99
                 ? 'text-green-400'
                 : pgHealth.uptime_pct >= 90
@@ -886,9 +886,9 @@ export default function DatabaseStatusPanel() {
       </div>
 
       {/* ── PG Connection Health ──────────────────────────────────────── */}
-      <Card className="bg-[#0e1015] border-[#1f2335] py-0 gap-0">
-        <CardHeader className="px-3 py-2.5 border-b border-[#1f2335]">
-          <CardTitle className="text-xs font-bold text-[#dde1ed] flex items-center gap-2">
+      <Card className="bg-[var(--bg-page)] border-[var(--border)] py-0 gap-0">
+        <CardHeader className="px-3 py-2.5 border-b border-[var(--border)]">
+          <CardTitle className="text-xs font-bold text-[var(--text-primary)] flex items-center gap-2">
             <Server size={12} className="text-green-400" aria-hidden="true" />
             PostgreSQL Connection Health
             {pgHealth && <HealthBadge status={healthStatus} />}
@@ -907,7 +907,7 @@ export default function DatabaseStatusPanel() {
             tone={pgHealth ? healthT : 'neutral'}
             trailing={
               pgHealth ? (
-                <span className="inline-flex items-center gap-1.5 text-[10px] mono text-[#7e8aaa]">
+                <span className="inline-flex items-center gap-1.5 text-[10px] mono text-[var(--text-secondary)]">
                   <PulseDot tone={healthT} pulse={healthStatus === 'healthy'} />
                   <span className={TONE[healthT].text}>
                     {healthStatus.charAt(0).toUpperCase() + healthStatus.slice(1)}
@@ -919,7 +919,7 @@ export default function DatabaseStatusPanel() {
           {pgHealth ? (
             <div className="grid-kpi text-xs">
               <div data-tone={healthT}>
-                <div className="text-[10px] uppercase tracking-wider text-[#7e8aaa] mb-0.5">
+                <div className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] mb-0.5">
                   Status
                 </div>
                 <div
@@ -929,7 +929,7 @@ export default function DatabaseStatusPanel() {
                 </div>
               </div>
               <div data-tone={uptimeTone}>
-                <div className="text-[10px] uppercase tracking-wider text-[#7e8aaa] mb-0.5">
+                <div className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] mb-0.5">
                   Uptime
                 </div>
                 <div className={`font-bold mono tabular-nums ${TONE[uptimeTone].text}`}>
@@ -937,7 +937,7 @@ export default function DatabaseStatusPanel() {
                 </div>
               </div>
               <div data-tone="info">
-                <div className="text-[10px] uppercase tracking-wider text-[#7e8aaa] mb-0.5">
+                <div className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] mb-0.5">
                   Avg Latency
                 </div>
                 <div className="font-bold mono tabular-nums text-cyan-400">
@@ -945,10 +945,10 @@ export default function DatabaseStatusPanel() {
                 </div>
               </div>
               <div data-tone="neutral">
-                <div className="text-[10px] uppercase tracking-wider text-[#7e8aaa] mb-0.5">
+                <div className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] mb-0.5">
                   Pool In-Use
                 </div>
-                <div className="font-bold mono tabular-nums text-[#dde1ed]">
+                <div className="font-bold mono tabular-nums text-[var(--text-primary)]">
                   {pgHealth.pool_in_use}/{pgHealth.pool_size}
                 </div>
               </div>
@@ -961,7 +961,7 @@ export default function DatabaseStatusPanel() {
                       : 'poor'
                 }
               >
-                <div className="text-[10px] uppercase tracking-wider text-[#7e8aaa] mb-0.5">
+                <div className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] mb-0.5">
                   Consecutive Failures
                 </div>
                 <div
@@ -978,7 +978,7 @@ export default function DatabaseStatusPanel() {
               </div>
             </div>
           ) : (
-            <div className="text-xs text-[#7e8aaa] py-2">
+            <div className="text-xs text-[var(--text-secondary)] py-2">
               <Clock size={14} className="inline mr-1.5 -mt-0.5" aria-hidden="true" />
               PostgreSQL pool is not configured — operating on the SQLite
               standby backend. Last status check:{' '}
@@ -990,13 +990,13 @@ export default function DatabaseStatusPanel() {
           )}
 
           {/* Manual retry button + result banner */}
-          <div className="mt-3 flex flex-wrap items-center gap-2 pt-3 border-t border-[#1f2335]">
+          <div className="mt-3 flex flex-wrap items-center gap-2 pt-3 border-t border-[var(--border)]">
             <Button
               variant="outline"
               size="sm"
               onClick={handleRetryPg}
               disabled={retrying}
-              className="h-7 px-3 text-xs border-[#1f2335] text-[#dde1ed] hover:bg-cyan-500/[0.06] hover:border-cyan-500/30 hover:text-white"
+              className="h-7 px-3 text-xs border-[var(--border)] text-[var(--text-primary)] hover:bg-cyan-500/[0.06] hover:border-cyan-500/30 hover:text-white"
               aria-label="Retry PostgreSQL connection"
             >
               {retrying ? (
@@ -1026,12 +1026,12 @@ export default function DatabaseStatusPanel() {
       </Card>
 
       {/* ── Database Tables ───────────────────────────────────────────── */}
-      <Card className="bg-[#0e1015] border-[#1f2335] py-0 gap-0">
-        <CardHeader className="px-3 py-2.5 border-b border-[#1f2335]">
-          <CardTitle className="text-xs font-bold text-[#dde1ed] flex items-center gap-2">
+      <Card className="bg-[var(--bg-page)] border-[var(--border)] py-0 gap-0">
+        <CardHeader className="px-3 py-2.5 border-b border-[var(--border)]">
+          <CardTitle className="text-xs font-bold text-[var(--text-primary)] flex items-center gap-2">
             <Layers size={12} className="text-cyan-400" aria-hidden="true" />
             Database Tables
-            <span className="text-[10px] text-[#7e8aaa] font-normal mono tabular-nums">
+            <span className="text-[10px] text-[var(--text-secondary)] font-normal mono tabular-nums">
               ({tables.length} tables · {formatRowCount(totalRows)} rows ·{' '}
               {formatBytes(totalSizeMb)})
             </span>
@@ -1049,7 +1049,7 @@ export default function DatabaseStatusPanel() {
             }
             tone={tables.length === 0 ? 'neutral' : 'info'}
             trailing={
-              <span className="text-[10px] mono tabular-nums text-[#5a637a]">
+              <span className="text-[10px] mono tabular-nums text-[var(--text-secondary)]">
                 {formatBytes(totalSizeMb)} total
               </span>
             }
@@ -1060,20 +1060,20 @@ export default function DatabaseStatusPanel() {
             <div className="max-h-72 overflow-y-auto scrollbar-thin">
               <Table>
                 <TableHeader>
-                  <TableRow className="border-[#1f2335] hover:bg-transparent">
-                    <TableHead className="text-[10px] uppercase tracking-wider font-bold text-[#5a637a] h-8 px-2">
+                  <TableRow className="border-[var(--border)] hover:bg-transparent">
+                    <TableHead className="text-[10px] uppercase tracking-wider font-bold text-[var(--text-secondary)] h-8 px-2">
                       Table
                     </TableHead>
-                    <TableHead className="text-[10px] uppercase tracking-wider font-bold text-[#5a637a] h-8 px-2">
+                    <TableHead className="text-[10px] uppercase tracking-wider font-bold text-[var(--text-secondary)] h-8 px-2">
                       Database
                     </TableHead>
-                    <TableHead className="text-[10px] uppercase tracking-wider font-bold text-[#5a637a] h-8 px-2 text-right">
+                    <TableHead className="text-[10px] uppercase tracking-wider font-bold text-[var(--text-secondary)] h-8 px-2 text-right">
                       Rows
                     </TableHead>
-                    <TableHead className="text-[10px] uppercase tracking-wider font-bold text-[#5a637a] h-8 px-2 text-right">
+                    <TableHead className="text-[10px] uppercase tracking-wider font-bold text-[var(--text-secondary)] h-8 px-2 text-right">
                       Size
                     </TableHead>
-                    <TableHead className="text-[10px] uppercase tracking-wider font-bold text-[#5a637a] h-8 px-2">
+                    <TableHead className="text-[10px] uppercase tracking-wider font-bold text-[var(--text-secondary)] h-8 px-2">
                       Last Modified
                     </TableHead>
                   </TableRow>
@@ -1084,11 +1084,11 @@ export default function DatabaseStatusPanel() {
                     return (
                       <TableRow
                         key={`${t.name}-${i}`}
-                        className={`border-[#1f2335] hover:bg-cyan-500/[0.04] ${TONE[tTone].rowHover}`}
+                        className={`border-[var(--border)] hover:bg-cyan-500/[0.04] ${TONE[tTone].rowHover}`}
                         data-tone={tTone}
                       >
                         <TableCell
-                          className="mono text-xs text-[#dde1ed] px-2 py-1.5"
+                          className="mono text-xs text-[var(--text-primary)] px-2 py-1.5"
                           title={`Table ${t.name}`}
                         >
                           {t.name}
@@ -1108,13 +1108,13 @@ export default function DatabaseStatusPanel() {
                           {formatRowCount(t.row_count)}
                         </TableCell>
                         <TableCell
-                          className="mono text-xs text-[#7e8aaa] px-2 py-1.5 text-right tabular-nums"
+                          className="mono text-xs text-[var(--text-secondary)] px-2 py-1.5 text-right tabular-nums"
                           title={`${formatBytes(t.size_mb)} on-disk`}
                         >
                           {formatBytes(t.size_mb)}
                         </TableCell>
                         <TableCell
-                          className="mono text-[10px] text-[#7e8aaa] px-2 py-1.5 tabular-nums"
+                          className="mono text-[10px] text-[var(--text-secondary)] px-2 py-1.5 tabular-nums"
                           title={`Last modified ${formatRelativeTime(t.last_modified)}`}
                         >
                           {formatRelativeTime(t.last_modified)}
@@ -1130,16 +1130,16 @@ export default function DatabaseStatusPanel() {
       </Card>
 
       {/* ── Recent Errors ────────────────────────────────────────────── */}
-      <Card className="bg-[#0e1015] border-[#1f2335] py-0 gap-0">
-        <CardHeader className="px-3 py-2.5 border-b border-[#1f2335]">
-          <CardTitle className="text-xs font-bold text-[#dde1ed] flex items-center gap-2">
+      <Card className="bg-[var(--bg-page)] border-[var(--border)] py-0 gap-0">
+        <CardHeader className="px-3 py-2.5 border-b border-[var(--border)]">
+          <CardTitle className="text-xs font-bold text-[var(--text-primary)] flex items-center gap-2">
             <AlertTriangle
               size={12}
               className="text-red-400"
               aria-hidden="true"
             />
             Recent Connection Errors
-            <span className="text-[10px] text-[#7e8aaa] font-normal mono tabular-nums">
+            <span className="text-[10px] text-[var(--text-secondary)] font-normal mono tabular-nums">
               (last {Math.min(recentErrors.length, 5)})
             </span>
           </CardTitle>
@@ -1182,7 +1182,7 @@ export default function DatabaseStatusPanel() {
               {recentErrors.slice(0, 5).map((e, i) => (
                 <div
                   key={`${e.timestamp}-${i}`}
-                  className="flex items-start gap-2 bg-[#13161e] p-2 rounded border border-[#1f2335] text-xs hover:bg-red-500/[0.04] hover:shadow-[inset_3px_0_0_0_rgba(239,68,68,0.45)] transition-shadow"
+                  className="flex items-start gap-2 bg-[var(--bg-surface)] p-2 rounded border border-[var(--border)] text-xs hover:bg-red-500/[0.04] hover:shadow-[inset_3px_0_0_0_rgba(239,68,68,0.45)] transition-shadow"
                   data-tone="poor"
                 >
                   <XCircle
@@ -1191,8 +1191,8 @@ export default function DatabaseStatusPanel() {
                     aria-hidden="true"
                   />
                   <div className="flex-1 min-w-0">
-                    <div className="text-[#dde1ed] break-words">{e.error}</div>
-                    <div className="text-[10px] text-[#7e8aaa] mono mt-0.5 tabular-nums">
+                    <div className="text-[var(--text-primary)] break-words">{e.error}</div>
+                    <div className="text-[10px] text-[var(--text-secondary)] mono mt-0.5 tabular-nums">
                       <span>{formatRelativeTime(e.timestamp)}</span>
                       {e.backend && <span> · backend: {e.backend}</span>}
                       {e.retry_attempt > 0 && (
@@ -1208,7 +1208,7 @@ export default function DatabaseStatusPanel() {
       </Card>
 
       {/* ── Footer ───────────────────────────────────────────────────── */}
-      <div className="text-[10px] text-[#7e8aaa] mono tabular-nums text-center pt-1">
+      <div className="text-[10px] text-[var(--text-secondary)] mono tabular-nums text-center pt-1">
         Generated at {formatRelativeTime(status?.generated_at)} · endpoint:{' '}
         <span className="text-cyan-400">{STATUS_ENDPOINT}</span>
       </div>

@@ -137,7 +137,7 @@ function formatTime(ts?: number): string {
 
 // ── SectionHeader — Lucide icon + uppercase title + optional dim description
 // Mirrors the W52-b OrderFlowPanel / W51-2d SectionHeader pattern: icon at
-// 12px, uppercase 9.5px tracking-wider bold title in muted text-[#5a637a],
+// 12px, uppercase 9.5px tracking-wider bold title in muted text-[var(--text-secondary)],
 // optional dim italic 8.5px description, optional trailing node. The title
 // is rendered in its own `<span>` so RTL's `getByText` matches the span,
 // not the wrapper div (icon is SVG with no text content; trailing node is a
@@ -155,12 +155,12 @@ function SectionHeader({
 }) {
   return (
     <div className="flex items-center gap-1.5 mb-2">
-      <Icon className="size-3 text-[#5a637a]" aria-hidden="true" />
-      <span className="text-[9.5px] uppercase tracking-wider font-bold text-[#5a637a]">
+      <Icon className="size-3 text-[var(--text-secondary)]" aria-hidden="true" />
+      <span className="text-[9.5px] uppercase tracking-wider font-bold text-[var(--text-secondary)]">
         {title}
       </span>
       {description && (
-        <span className="text-[8.5px] text-[#5a637a] italic truncate">
+        <span className="text-[8.5px] text-[var(--text-secondary)] italic truncate">
           {description}
         </span>
       )}
@@ -186,13 +186,13 @@ function TypingIndicator() {
       aria-live="polite"
       data-testid="ai-copilot-typing"
     >
-      <div className="flex items-center gap-1.5 px-1 text-[10px] text-[#7e8aaa]">
+      <div className="flex items-center gap-1.5 px-1 text-[10px] text-[var(--text-secondary)]">
         <Bot className="size-3 text-cyan-400" aria-hidden="true" />
         <span className="font-semibold tracking-wide">Copilot</span>
         <span aria-hidden="true">•</span>
         <span className="italic">typing…</span>
       </div>
-      <div className="flex items-center gap-1.5 bg-[#0e1015] border border-[#1f2335] rounded-xl rounded-bl-none p-3.5 shadow-md">
+      <div className="flex items-center gap-1.5 bg-[var(--bg-base)] border border-[var(--border)] rounded-xl rounded-bl-none p-3.5 shadow-md">
         <span
           className="size-1.5 rounded-full bg-cyan-400/80 animate-bounce"
           style={{ animationDelay: '0ms' }}
@@ -208,7 +208,7 @@ function TypingIndicator() {
           style={{ animationDelay: '300ms' }}
           aria-hidden="true"
         />
-        <span className="ml-2 text-[10px] text-[#7e8aaa] italic animate-pulse">
+        <span className="ml-2 text-[10px] text-[var(--text-secondary)] italic animate-pulse">
           Analyzing 38-feature vectors &amp; semantic index…
         </span>
       </div>
@@ -249,12 +249,12 @@ function EmptyConversation() {
 function StartConversationHint() {
   return (
     <div
-      className="mt-2 flex items-center gap-2 px-3 py-2 rounded-lg border border-dashed border-[#2a2f45] bg-[#0e1015]/60 text-[10.5px] text-[#7e8aaa]"
+      className="mt-2 flex items-center gap-2 px-3 py-2 rounded-lg border border-dashed border-[var(--border-strong)] bg-[var(--bg-base)]/60 text-[10.5px] text-[var(--text-secondary)]"
       role="status"
     >
       <MessageSquarePlus className="size-3.5 text-cyan-400/70 shrink-0" aria-hidden="true" />
       <span>
-        <span className="text-[#dde1ed] font-semibold">Start a conversation</span>
+        <span className="text-[var(--text-primary)] font-semibold">Start a conversation</span>
         <span className="mx-1">—</span>
         <span>type a question below or tap a quick prompt above.</span>
       </span>
@@ -291,7 +291,7 @@ function MessageBubble({
   return (
     <div className={`flex flex-col ${isUser ? 'items-end' : 'items-start'}`}>
       {/* Sender + timestamp strip */}
-      <div className="flex items-center gap-1.5 mb-1 px-1 text-[10px] text-[#7e8aaa]">
+      <div className="flex items-center gap-1.5 mb-1 px-1 text-[10px] text-[var(--text-secondary)]">
         {isUser ? (
           <UserIcon className="size-3 text-cyan-400/80" aria-hidden="true" />
         ) : (
@@ -323,7 +323,7 @@ function MessageBubble({
         className={`max-w-[88%] rounded-xl p-3.5 shadow-md ${
           isUser
             ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-br-none'
-            : `bg-[#0e1015] text-[#dde1ed] border rounded-bl-none ${cfg ? `${cfg.border} ${cfg.bg}` : 'border-[#1f2335]'}`
+            : `bg-[var(--bg-base)] text-[var(--text-primary)] border rounded-bl-none ${cfg ? `${cfg.border} ${cfg.bg}` : 'border-[var(--border)]'}`
         }`}
         data-tone={isUser ? 'neutral' : tone}
         data-role={m.role}
@@ -339,8 +339,8 @@ function MessageBubble({
             direct text is the only exact-match candidate). Mono font on the
             whole pill preserves the existing numerics styling. */}
         {m.matched_markets && m.matched_markets.length > 0 && (
-          <div className="mt-3 pt-2.5 border-t border-[#1f2335] flex flex-col gap-1.5">
-            <span className="text-[10px] text-[#7e8aaa] font-semibold uppercase tracking-wider">
+          <div className="mt-3 pt-2.5 border-t border-[var(--border)] flex flex-col gap-1.5">
+            <span className="text-[10px] text-[var(--text-secondary)] font-semibold uppercase tracking-wider">
               Matched Contracts (Click to Inspect):
             </span>
             <div className="flex flex-wrap gap-1.5">
@@ -350,7 +350,7 @@ function MessageBubble({
                   onClick={() =>
                     onSelectMarket?.({ tokenId: mkt.token_id, slug: mkt.slug })
                   }
-                  className="group text-[10px] bg-[#13161e] text-cyan-300 hover:text-white border border-[#1f2335] hover:border-cyan-500 px-2.5 py-1 rounded-md mono transition-all flex items-center gap-1.5"
+                  className="group text-[10px] bg-[var(--bg-surface)] text-cyan-300 hover:text-white border border-[var(--border)] hover:border-cyan-500 px-2.5 py-1 rounded-md mono transition-all flex items-center gap-1.5"
                 >
                   <span className="truncate max-w-[180px]">{mkt.title || mkt.slug}</span>
                   {mkt.mid_price !== undefined && (
@@ -358,11 +358,11 @@ function MessageBubble({
                       {(mkt.mid_price * 100).toFixed(0)}¢
                     </span>
                   )}
-                  <span className="text-[9px] text-[#7e8aaa] tabular-nums">
+                  <span className="text-[9px] text-[var(--text-secondary)] tabular-nums">
                     ({(mkt.similarity * 100).toFixed(0)}%)
                   </span>
                   <ArrowUpRight
-                    className="size-2.5 text-[#5a637a] group-hover:text-cyan-300 transition-colors"
+                    className="size-2.5 text-[var(--text-secondary)] group-hover:text-cyan-300 transition-colors"
                     aria-hidden="true"
                   />
                 </button>
@@ -466,9 +466,9 @@ export default function AICopilotPanel({
     messages[0].role === 'assistant'
 
   return (
-    <div className="card flex flex-col h-full bg-[#13161e] border border-[#1f2335] rounded-lg overflow-hidden shadow-2xl">
+    <div className="card flex flex-col h-full bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg overflow-hidden shadow-2xl">
       {/* Header — Lucide Sparkles icon + uppercase title + dim subtitle + status badges */}
-      <div className="card-header flex flex-wrap justify-between items-center px-4 py-3 border-b border-[#1f2335] bg-[#0e1015]">
+      <div className="card-header flex flex-wrap justify-between items-center px-4 py-3 border-b border-[var(--border)] bg-[var(--bg-base)]">
         <div className="flex items-center gap-2">
           <span
             className="inline-flex items-center justify-center size-7 rounded-md bg-cyan-500/10 border border-cyan-500/30 shadow-[0_0_8px_rgba(34,211,238,0.18)]"
@@ -477,10 +477,10 @@ export default function AICopilotPanel({
             <Sparkles className="size-3.5 text-cyan-300" aria-hidden="true" />
           </span>
           <div>
-            <span className="card-title text-sm font-bold text-[#dde1ed] uppercase tracking-wider block">
+            <span className="card-title text-sm font-bold text-[var(--text-primary)] uppercase tracking-wider block">
               Market Intelligence &amp; Quant Copilot
             </span>
-            <span className="text-[10.5px] text-[#7e8aaa]">
+            <span className="text-[10.5px] text-[var(--text-secondary)]">
               TF/IDF Semantic Search + 4-Member Calibrated ML Insights
             </span>
           </div>
@@ -492,13 +492,13 @@ export default function AICopilotPanel({
       </div>
 
       {/* Quick Prompts Bar — refined suggestion chips with focus ring */}
-      <div className="px-4 py-2 bg-[#0e1015] border-b border-[#1f2335] flex flex-wrap gap-1.5 overflow-x-auto scrollbar-thin">
+      <div className="px-4 py-2 bg-[var(--bg-base)] border-b border-[var(--border)] flex flex-wrap gap-1.5 overflow-x-auto scrollbar-thin">
         {QUICK_PROMPTS.map((prompt, i) => (
           <button
             key={i}
             onClick={() => handleSendQuery(prompt)}
             disabled={loading}
-            className="text-[10.5px] bg-[#13161e] text-[#dde1ed] hover:text-cyan-300 border border-[#1f2335] hover:border-cyan-500/40 focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 px-2.5 py-1 rounded-full transition-all whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+            className="text-[10.5px] bg-[var(--bg-surface)] text-[var(--text-primary)] hover:text-cyan-300 border border-[var(--border)] hover:border-cyan-500/40 focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 px-2.5 py-1 rounded-full transition-all whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {prompt}
           </button>
@@ -512,7 +512,7 @@ export default function AICopilotPanel({
           title="Conversation"
           description="Hybrid GenAI + TF/IDF retrieval pipeline"
           trailing={
-            <span className="text-[8.5px] text-[#5a637a] tabular-nums">
+            <span className="text-[8.5px] text-[var(--text-secondary)] tabular-nums">
               {messages.length} message{messages.length === 1 ? '' : 's'}
             </span>
           }
@@ -535,11 +535,11 @@ export default function AICopilotPanel({
       {/* Input Box — leading icon + focus ring + refined Send button with Lucide glyph */}
       <form
         onSubmit={handleFormSubmit}
-        className="p-3 border-t border-[#1f2335] bg-[#0e1015] flex gap-2"
+        className="p-3 border-t border-[var(--border)] bg-[var(--bg-base)] flex gap-2"
       >
         <div className="relative flex-1">
           <MessageSquarePlus
-            className="size-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-[#5a637a] pointer-events-none"
+            className="size-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-[var(--text-secondary)] pointer-events-none"
             aria-hidden="true"
           />
           <input
@@ -547,7 +547,7 @@ export default function AICopilotPanel({
             placeholder="Ask Copilot about any market contract, probability edge, or strategy rule..."
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            className="w-full bg-[#13161e] border border-[#1f2335] focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 rounded-lg text-xs pl-8 pr-3 py-2 text-[#dde1ed] placeholder-[#3e4560] outline-none transition-all"
+            className="w-full bg-[var(--bg-surface)] border border-[var(--border)] focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 rounded-lg text-xs pl-8 pr-3 py-2 text-[var(--text-primary)] placeholder-[var(--text-dim)] outline-none transition-all"
             aria-label="Ask copilot message"
           />
         </div>

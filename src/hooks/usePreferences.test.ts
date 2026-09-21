@@ -154,13 +154,14 @@ describe('usePreferences', () => {
 
     // A is now back to DEFAULTS.
     expect(a.current.preferences).toEqual(getDefaults())
-    expect(a.current.preferences.theme).toBe('dark')
+    // W63-b — DEFAULTS.theme flipped to 'light' (see lib/preferences.ts).
+    expect(a.current.preferences.theme).toBe('light')
     expect(a.current.preferences.locale).toBe('en')
     expect(a.current.preferences.soundEnabled).toBe(false)
 
     // B sees the reset too (via the event subscription).
     await waitFor(() => {
-      expect(b.current.preferences.theme).toBe('dark')
+      expect(b.current.preferences.theme).toBe('light')
     })
     expect(b.current.preferences).toEqual(getDefaults())
 

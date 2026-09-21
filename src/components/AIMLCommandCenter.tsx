@@ -141,7 +141,7 @@ const TONE: Record<Tone, ToneConfig> = {
   warn:    { bg: 'bg-amber-500/[0.06]',   border: 'border-amber-500/25',   text: 'text-amber-400',   bar: 'bg-amber-500',   dot: 'bg-amber-400',   label: 'text-amber-400/80',   halo: 'shadow-amber-500/10' },
   poor:    { bg: 'bg-red-500/[0.06]',     border: 'border-red-500/25',     text: 'text-red-400',     bar: 'bg-red-500',     dot: 'bg-red-400',     label: 'text-red-400/80',     halo: 'shadow-red-500/10' },
   info:    { bg: 'bg-purple-500/[0.06]',  border: 'border-purple-500/25', text: 'text-purple-400', bar: 'bg-purple-500', dot: 'bg-purple-400',  label: 'text-purple-400/80',  halo: 'shadow-purple-500/10' },
-  neutral: { bg: 'bg-[#0e1015]',          border: 'border-[#1f2335]',     text: 'text-[#dde1ed]',   bar: 'bg-[#5a637a]',   dot: 'bg-[#5a637a]',   label: 'text-[#7e8aaa]',      halo: '' },
+  neutral: { bg: 'bg-[var(--bg-base)]',          border: 'border-[var(--border)]',     text: 'text-[var(--text-primary)]',   bar: 'bg-[var(--text-secondary)]',   dot: 'bg-[var(--text-secondary)]',   label: 'text-[var(--text-secondary)]',      halo: '' },
 }
 
 // ── PulseDot — small status dot with halo + ping animation ──────────────────
@@ -174,11 +174,11 @@ function SectionHeader({
   return (
     <div className="flex items-center gap-1.5 mb-2">
       <Icon className={`size-3.5 ${TONE[tone].text}`} aria-hidden="true" />
-      <span className="text-[11px] font-bold text-[#dde1ed] uppercase tracking-wider">
+      <span className="text-[11px] font-bold text-[var(--text-primary)] uppercase tracking-wider">
         {title}
       </span>
       {description && (
-        <span className="text-[9.5px] text-[#7e8aaa] italic truncate">{description}</span>
+        <span className="text-[9.5px] text-[var(--text-secondary)] italic truncate">{description}</span>
       )}
       {trailing && <span className="ml-auto shrink-0">{trailing}</span>}
     </div>
@@ -216,9 +216,9 @@ function KpiTile({ label, value, hint, tone, quality, trend, trailingTop, bottom
         {trend === 'up' && <TrendingUp className="size-3 inline-block" aria-hidden="true" />}
         {trend === 'down' && <TrendingDown className="size-3 inline-block" aria-hidden="true" />}
       </div>
-      <div className="text-[9.5px] text-[#7e8aaa] leading-tight">{hint}</div>
+      <div className="text-[9.5px] text-[var(--text-secondary)] leading-tight">{hint}</div>
       {quality != null && quality > 0 && (
-        <div className="h-1 bg-[#1f2335] rounded-full mt-1 overflow-hidden">
+        <div className="h-1 bg-[var(--border)] rounded-full mt-1 overflow-hidden">
           <div
             className={`h-full rounded-full transition-all duration-500 ${cfg.bar}`}
             style={{ width: `${Math.max(0, Math.min(100, quality))}%` }}
@@ -241,7 +241,7 @@ function PsiGauge({ psi }: { psi: number }) {
   const cfg = TONE[tone]
   return (
     <div className="space-y-0.5 mt-2" title={`PSI ${psi.toFixed(4)} — thresholds: <0.1 healthy, 0.1–0.25 moderate, >0.25 significant`}>
-      <div className="relative h-2 bg-[#1f2335] rounded-full overflow-hidden">
+      <div className="relative h-2 bg-[var(--border)] rounded-full overflow-hidden">
         {/* zones */}
         <div className="absolute inset-y-0 left-0 bg-emerald-500/30" style={{ width: '20%' }} aria-hidden="true" />
         <div className="absolute inset-y-0 bg-amber-500/30" style={{ left: '20%', width: '30%' }} aria-hidden="true" />
@@ -253,7 +253,7 @@ function PsiGauge({ psi }: { psi: number }) {
           aria-hidden="true"
         />
       </div>
-      <div className="flex justify-between text-[8px] text-[#5a637a] mono">
+      <div className="flex justify-between text-[8px] text-[var(--text-secondary)] mono">
         <span>0.00</span>
         <span className="text-emerald-400/70">0.10</span>
         <span className="text-amber-400/70">0.25</span>
@@ -528,14 +528,14 @@ export default function AIMLCommandCenter() {
   const eceTone: Tone = metrics ? (metrics.ece < 0.03 ? 'good' : metrics.ece < 0.06 ? 'warn' : 'poor') : 'neutral'
 
   return (
-    <div className="flex flex-col h-full bg-[#13161e] border border-[#1f2335] rounded-lg overflow-hidden p-4 space-y-3.5 overflow-y-auto scrollbar-thin shadow-2xl">
+    <div className="flex flex-col h-full bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg overflow-hidden p-4 space-y-3.5 overflow-y-auto scrollbar-thin shadow-2xl">
       {/* W49-7 Header — AI / ML Engine. The new headline is "AI / ML Engine"
           with a purple Brain icon, an Active/Training/Error status badge,
           a monospace model-version badge, and a dim "Trained Xh ago"
           timestamp. The legacy "AI / ML Quantitative Telemetry & Gated
           Model Registry" caption is preserved as a subtitle so existing
           tests that match against that string continue to pass. */}
-      <div className="flex flex-wrap justify-between items-center pb-3 border-b border-[#1f2335] gap-3">
+      <div className="flex flex-wrap justify-between items-center pb-3 border-b border-[var(--border)] gap-3">
         <div className="min-w-0">
           {/* Row 1 — icon + new title + status + version + trained + secondary badges */}
           <div className="flex items-center gap-2.5 flex-wrap">
@@ -545,7 +545,7 @@ export default function AIMLCommandCenter() {
               data-testid="aiml-header-icon"
             />
             <span
-              className="text-base font-bold text-[#dde1ed] tracking-wide"
+              className="text-base font-bold text-[var(--text-primary)] tracking-wide"
               data-testid="aiml-header-title"
             >
               AI / ML Engine
@@ -564,7 +564,7 @@ export default function AIMLCommandCenter() {
             >
               {modelVersion}
             </span>
-            <span className="text-[10px] text-[#7e8aaa]">
+            <span className="text-[10px] text-[var(--text-secondary)]">
               Trained <span className="mono">{trainedAge}</span>
             </span>
             <span className="badge badge-green text-[10px] font-bold">38-Feature Pipeline</span>
@@ -573,8 +573,8 @@ export default function AIMLCommandCenter() {
             )}
           </div>
           {/* Row 2 — subtitle preserving the legacy title text (test contract). */}
-          <p className="text-xs text-[#7e8aaa] mt-1">
-            <span className="text-[#dde1ed] font-semibold">
+          <p className="text-xs text-[var(--text-secondary)] mt-1">
+            <span className="text-[var(--text-primary)] font-semibold">
               AI / ML Quantitative Telemetry &amp; Gated Model Registry
             </span>
             {' '}— Calibrated 4-Member Ensemble (RF + GB + SGD + LightGBM) · Isotonic Regression · Continuous Drift Supervision
@@ -687,10 +687,10 @@ export default function AIMLCommandCenter() {
               {bannerCfg.tag}
             </span>
           </div>
-          <div className="text-[10.5px] text-[#7e8aaa] truncate mt-0.5">{bannerCfg.desc}</div>
+          <div className="text-[10.5px] text-[var(--text-secondary)] truncate mt-0.5">{bannerCfg.desc}</div>
         </div>
-        <div className="hidden sm:flex flex-col items-end text-[9.5px] text-[#7e8aaa] shrink-0">
-          <span className="mono text-[#dde1ed] font-bold">{modelVersion}</span>
+        <div className="hidden sm:flex flex-col items-end text-[9.5px] text-[var(--text-secondary)] shrink-0">
+          <span className="mono text-[var(--text-primary)] font-bold">{modelVersion}</span>
           <span>Trained <span className="mono">{trainedAge}</span></span>
         </div>
       </div>
@@ -706,7 +706,7 @@ export default function AIMLCommandCenter() {
       />
 
       {/* 4-Member Ensemble Weights Strip */}
-      <div className="bg-[#0e1015] border border-[#1f2335] rounded-lg p-3">
+      <div className="bg-[var(--bg-base)] border border-[var(--border)] rounded-lg p-3">
         <SectionHeader
           icon={Cpu}
           title="⚖️ Adaptive Ensemble Blend Weights"
@@ -717,53 +717,53 @@ export default function AIMLCommandCenter() {
           }
           tone="info"
           trailing={
-            <span className="text-[10px] text-[#7e8aaa] mono">O(1) Rolling Deque</span>
+            <span className="text-[10px] text-[var(--text-secondary)] mono">O(1) Rolling Deque</span>
           }
         />
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
-          <div className="bg-[#13161e] border border-blue-500/20 rounded p-2 flex flex-col justify-between">
+          <div className="bg-[var(--bg-surface)] border border-blue-500/20 rounded p-2 flex flex-col justify-between">
             <div className="flex justify-between items-center text-xs">
               <span className="font-semibold text-blue-400">Random Forest</span>
               <span className="mono font-bold text-white">{(weights.rf * 100).toFixed(1)}%</span>
             </div>
-            <div className="w-full bg-[#080910] h-1.5 rounded-full overflow-hidden mt-1.5">
+            <div className="w-full bg-[var(--bg-base)] h-1.5 rounded-full overflow-hidden mt-1.5">
               <div className="h-full bg-blue-500 rounded-full transition-all duration-300" style={{ width: `${weights.rf * 100}%` }} />
             </div>
-            <span className="text-[9px] text-[#7e8aaa] mt-1">150 Trees · Isotonic Calibrated</span>
+            <span className="text-[9px] text-[var(--text-secondary)] mt-1">150 Trees · Isotonic Calibrated</span>
           </div>
 
-          <div className="bg-[#13161e] border border-green-500/20 rounded p-2 flex flex-col justify-between">
+          <div className="bg-[var(--bg-surface)] border border-green-500/20 rounded p-2 flex flex-col justify-between">
             <div className="flex justify-between items-center text-xs">
               <span className="font-semibold text-green-400">Gradient Boost</span>
               <span className="mono font-bold text-white">{(weights.gb * 100).toFixed(1)}%</span>
             </div>
-            <div className="w-full bg-[#080910] h-1.5 rounded-full overflow-hidden mt-1.5">
+            <div className="w-full bg-[var(--bg-base)] h-1.5 rounded-full overflow-hidden mt-1.5">
               <div className="h-full bg-green-500 rounded-full transition-all duration-300" style={{ width: `${weights.gb * 100}%` }} />
             </div>
-            <span className="text-[9px] text-[#7e8aaa] mt-1">100 Estimators · lr=0.06</span>
+            <span className="text-[9px] text-[var(--text-secondary)] mt-1">100 Estimators · lr=0.06</span>
           </div>
 
-          <div className="bg-[#13161e] border border-purple-500/20 rounded p-2 flex flex-col justify-between">
+          <div className="bg-[var(--bg-surface)] border border-purple-500/20 rounded p-2 flex flex-col justify-between">
             <div className="flex justify-between items-center text-xs">
               <span className="font-semibold text-purple-400">LightGBM</span>
               <span className="mono font-bold text-white">{(weights.lgbm * 100).toFixed(1)}%</span>
             </div>
-            <div className="w-full bg-[#080910] h-1.5 rounded-full overflow-hidden mt-1.5">
+            <div className="w-full bg-[var(--bg-base)] h-1.5 rounded-full overflow-hidden mt-1.5">
               <div className="h-full bg-purple-500 rounded-full transition-all duration-300" style={{ width: `${weights.lgbm * 100}%` }} />
             </div>
-            <span className="text-[9px] text-[#7e8aaa] mt-1">Fast GBDT · Subsample 0.85</span>
+            <span className="text-[9px] text-[var(--text-secondary)] mt-1">Fast GBDT · Subsample 0.85</span>
           </div>
 
-          <div className="bg-[#13161e] border border-amber-500/20 rounded p-2 flex flex-col justify-between">
+          <div className="bg-[var(--bg-surface)] border border-amber-500/20 rounded p-2 flex flex-col justify-between">
             <div className="flex justify-between items-center text-xs">
               <span className="font-semibold text-amber-400">Online SGD</span>
               <span className="mono font-bold text-white">{(weights.sgd * 100).toFixed(1)}%</span>
             </div>
-            <div className="w-full bg-[#080910] h-1.5 rounded-full overflow-hidden mt-1.5">
+            <div className="w-full bg-[var(--bg-base)] h-1.5 rounded-full overflow-hidden mt-1.5">
               <div className="h-full bg-amber-500 rounded-full transition-all duration-300" style={{ width: `${weights.sgd * 100}%` }} />
             </div>
-            <span className="text-[9px] text-[#7e8aaa] mt-1">
+            <span className="text-[9px] text-[var(--text-secondary)] mt-1">
               {metrics ? metrics.n_online_updates : 0} live market updates
             </span>
           </div>
@@ -855,14 +855,14 @@ export default function AIMLCommandCenter() {
                 className={`inline-block w-2 h-2 rounded-full ${TONE[driftTone].dot} animate-pulse`}
                 aria-hidden="true"
               />
-              <span className="mono text-base font-bold tabular-nums text-[#dde1ed]">
+              <span className="mono text-base font-bold tabular-nums text-[var(--text-primary)]">
                 PSI: {drift ? drift.psi.toFixed(4) : '0.0000'}
               </span>
             </div>
-            <div className="text-[9.5px] text-[#7e8aaa] leading-tight">
+            <div className="text-[9.5px] text-[var(--text-secondary)] leading-tight">
               Status: <span className="font-semibold text-cyan-300">{drift?.status || 'HEALTHY'}</span>
               {drift?.ewma_brier !== null && drift?.ewma_brier !== undefined && (
-                <span className="ml-1 text-[#5a637a]">· EWMA {drift.ewma_brier.toFixed(4)}</span>
+                <span className="ml-1 text-[var(--text-secondary)]">· EWMA {drift.ewma_brier.toFixed(4)}</span>
               )}
             </div>
             <PsiGauge psi={drift?.psi ?? 0} />
@@ -906,8 +906,8 @@ export default function AIMLCommandCenter() {
       {/* Main 2-Column Analytics Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
         {/* Left: 38-Feature Importance Ranking */}
-        <div className="card p-3 bg-[#0e1015] border border-[#1f2335] flex flex-col">
-          <div className="card-header pb-2 mb-2 border-b border-[#1f2335] flex flex-wrap justify-between items-center gap-2">
+        <div className="card p-3 bg-[var(--bg-base)] border border-[var(--border)] flex flex-col">
+          <div className="card-header pb-2 mb-2 border-b border-[var(--border)] flex flex-wrap justify-between items-center gap-2">
             <SectionHeader
               icon={Layers}
               title="📊 38-Feature Pipeline Importances"
@@ -916,7 +916,7 @@ export default function AIMLCommandCenter() {
             />
 
             {/* Category Filter */}
-            <div className="inline-flex bg-[#13161e] border border-[#1f2335] rounded p-0.5 text-[9.5px]">
+            <div className="inline-flex bg-[var(--bg-surface)] border border-[var(--border)] rounded p-0.5 text-[9.5px]">
               {(['ALL', 'MICRO', 'REGIME', 'FUNDAMENTAL'] as const).map((cat) => (
                 <button
                   key={cat}
@@ -924,7 +924,7 @@ export default function AIMLCommandCenter() {
                   className={`px-2 py-0.5 rounded font-bold transition-all ${
                     featureCategory === cat
                       ? 'bg-blue-500/20 text-cyan-300'
-                      : 'text-[#7e8aaa] hover:text-[#dde1ed]'
+                      : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                   }`}
                 >
                   {cat}
@@ -956,14 +956,14 @@ export default function AIMLCommandCenter() {
               return (
                 <div
                   key={name}
-                  className="flex items-center gap-2 text-xs hover:bg-[#13161e] px-1.5 py-0.5 rounded transition-colors"
+                  className="flex items-center gap-2 text-xs hover:bg-[var(--bg-surface)] px-1.5 py-0.5 rounded transition-colors"
                   title={tooltip}
                   data-testid="aiml-feature-row"
                 >
-                  <span className="text-[#7e8aaa] w-44 truncate shrink-0 mono text-[10.5px]">
+                  <span className="text-[var(--text-secondary)] w-44 truncate shrink-0 mono text-[10.5px]">
                     {name}
                   </span>
-                  <div className="flex-1 h-1.5 bg-[#13161e] rounded-full overflow-hidden">
+                  <div className="flex-1 h-1.5 bg-[var(--bg-surface)] rounded-full overflow-hidden">
                     <div
                       className={`h-full rounded-full bg-gradient-to-r ${barColor} transition-all duration-300`}
                       style={{ width: `${(imp / maxImp) * 100}%` }}
@@ -977,7 +977,7 @@ export default function AIMLCommandCenter() {
             })}
             {/* W51-2d — Legend for the SHAP direction coloring. */}
             {sortedFeatures.length > 0 && (
-              <div className="flex items-center gap-3 pt-2 mt-1 border-t border-[#1f2335] text-[9px] text-[#5a637a] uppercase tracking-wider font-bold">
+              <div className="flex items-center gap-3 pt-2 mt-1 border-t border-[var(--border)] text-[9px] text-[var(--text-secondary)] uppercase tracking-wider font-bold">
                 <span className="inline-flex items-center gap-1">
                   <span className="inline-block w-3 h-1 rounded-sm bg-gradient-to-r from-blue-600 to-cyan-400" aria-hidden="true" />
                   Bullish
@@ -986,7 +986,7 @@ export default function AIMLCommandCenter() {
                   <span className="inline-block w-3 h-1 rounded-sm bg-gradient-to-r from-red-600 to-amber-400" aria-hidden="true" />
                   Bearish
                 </span>
-                <span className="text-[#5a637a] italic normal-case tracking-normal">SHAP direction synthesised from feature name</span>
+                <span className="text-[var(--text-secondary)] italic normal-case tracking-normal">SHAP direction synthesised from feature name</span>
               </div>
             )}
           </div>
@@ -1006,8 +1006,8 @@ export default function AIMLCommandCenter() {
         {/* Right: Calibration & Search */}
         <div className="flex flex-col gap-3">
           {/* Reliability Diagram */}
-          <div className="card p-3 bg-[#0e1015] border border-[#1f2335]">
-            <div className="card-header pb-1.5 mb-1.5 border-b border-[#1f2335] flex justify-between items-center">
+          <div className="card p-3 bg-[var(--bg-base)] border border-[var(--border)]">
+            <div className="card-header pb-1.5 mb-1.5 border-b border-[var(--border)] flex justify-between items-center">
               <SectionHeader
                 icon={LineChart}
                 title="📈 Isotonic Calibration Reliability Curve"
@@ -1024,30 +1024,30 @@ export default function AIMLCommandCenter() {
                     to make room for the x-axis tick labels. */}
                 {/* y-axis tick labels (0.0, 0.25, 0.5, 0.75, 1.0) */}
                 {[0, 0.25, 0.5, 0.75, 1.0].map((v) => (
-                  <text key={`y-${v}`} x={3} y={107 - v * 90} fontSize="7" fill="#5a637a" textAnchor="start">
+                  <text key={`y-${v}`} x={3} y={107 - v * 90} fontSize="7" fill="var(--text-secondary)" textAnchor="start">
                     {v.toFixed(2)}
                   </text>
                 ))}
                 {/* x-axis tick labels */}
                 {[0, 0.25, 0.5, 0.75, 1.0].map((v) => (
-                  <text key={`x-${v}`} x={15 + v * 230} y={118} fontSize="7" fill="#5a637a" textAnchor="middle">
+                  <text key={`x-${v}`} x={15 + v * 230} y={118} fontSize="7" fill="var(--text-secondary)" textAnchor="middle">
                     {v.toFixed(2)}
                   </text>
                 ))}
                 {/* faint gridlines */}
                 {[0.25, 0.5, 0.75].map((v) => (
                   <g key={`grid-${v}`}>
-                    <line x1={15} y1={105 - v * 90} x2={245} y2={105 - v * 90} stroke="#1f2335" strokeWidth="0.5" />
-                    <line x1={15 + v * 230} y1={15} x2={15 + v * 230} y2={105} stroke="#1f2335" strokeWidth="0.5" />
+                    <line x1={15} y1={105 - v * 90} x2={245} y2={105 - v * 90} stroke="var(--border)" strokeWidth="0.5" />
+                    <line x1={15 + v * 230} y1={15} x2={15 + v * 230} y2={105} stroke="var(--border)" strokeWidth="0.5" />
                   </g>
                 ))}
                 {/* axis frame */}
-                <line x1="15" y1="105" x2="245" y2="105" stroke="#3b4054" strokeWidth="0.75" />
-                <line x1="15" y1="15" x2="15" y2="105" stroke="#3b4054" strokeWidth="0.75" />
+                <line x1="15" y1="105" x2="245" y2="105" stroke="var(--text-dim)" strokeWidth="0.75" />
+                <line x1="15" y1="15" x2="15" y2="105" stroke="var(--text-dim)" strokeWidth="0.75" />
                 {/* Diagonal baseline (perfect calibration) */}
-                <line x1="15" y1="105" x2="245" y2="15" stroke="#3b4054" strokeWidth="1" strokeDasharray="3 3" />
+                <line x1="15" y1="105" x2="245" y2="15" stroke="var(--text-dim)" strokeWidth="1" strokeDasharray="3 3" />
                 {/* W49-7 — explicit reference-line label */}
-                <text x="240" y="22" fontSize="8" fill="#5a637a" textAnchor="end">
+                <text x="240" y="22" fontSize="8" fill="var(--text-secondary)" textAnchor="end">
                   y = x (perfect)
                 </text>
                 {/* empirical-frequency polyline */}
@@ -1074,7 +1074,7 @@ export default function AIMLCommandCenter() {
                     cx={15 + pt.bin_center * 230}
                     cy={105 - pt.empirical_freq * 90}
                     r="4"
-                    fill="#3b82f6"
+                    fill="var(--accent)"
                     stroke="#ffffff"
                     strokeWidth="1.5"
                     data-testid="aiml-calibration-point"
@@ -1086,7 +1086,7 @@ export default function AIMLCommandCenter() {
                 ))}
               </svg>
             </div>
-            <div className="flex justify-between text-[9.5px] text-[#7e8aaa] mono px-2">
+            <div className="flex justify-between text-[9.5px] text-[var(--text-secondary)] mono px-2">
               <span>0.0 (Predicted)</span>
               <span className="text-green-400">Green = Empirical | Dashed = Perfect (y=x)</span>
               <span>1.0 (Predicted)</span>
@@ -1094,8 +1094,8 @@ export default function AIMLCommandCenter() {
           </div>
 
           {/* Semantic TF-IDF Vector Search */}
-          <div className="card p-3 bg-[#0e1015] border border-[#1f2335]">
-            <div className="card-header pb-1.5 mb-1.5 border-b border-[#1f2335] flex justify-between items-center">
+          <div className="card p-3 bg-[var(--bg-base)] border border-[var(--border)]">
+            <div className="card-header pb-1.5 mb-1.5 border-b border-[var(--border)] flex justify-between items-center">
               <SectionHeader
                 icon={Search}
                 title="🔍 Semantic Vector &amp; Market Intelligence Search"
@@ -1111,7 +1111,7 @@ export default function AIMLCommandCenter() {
                 placeholder="Search market metadata (e.g. 'fed rate cut', 'senate election')…"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="input input-sm flex-1 text-xs bg-[#13161e] border border-[#1f2335] rounded px-2.5 py-1 text-[#dde1ed]"
+                className="input input-sm flex-1 text-xs bg-[var(--bg-surface)] border border-[var(--border)] rounded px-2.5 py-1 text-[var(--text-primary)]"
                 aria-label="Semantic search query"
               />
               <button type="submit" disabled={searching} className="btn btn-primary btn-sm px-3 py-1 font-bold">
@@ -1122,8 +1122,8 @@ export default function AIMLCommandCenter() {
             <div className="space-y-1 max-h-24 overflow-y-auto scrollbar-thin">
               {searchResults.length > 0 ? (
                 searchResults.map((res, i) => (
-                  <div key={i} className="flex justify-between items-center bg-[#13161e] px-2.5 py-1 rounded text-xs hover:bg-[#1a1f2e] transition-colors border border-blue-500/10">
-                    <span className="text-[#dde1ed] truncate max-w-[240px] font-medium">{res.market.title || res.market.slug}</span>
+                  <div key={i} className="flex justify-between items-center bg-[var(--bg-surface)] px-2.5 py-1 rounded text-xs hover:bg-[var(--bg-elevated)] transition-colors border border-blue-500/10">
+                    <span className="text-[var(--text-primary)] truncate max-w-[240px] font-medium">{res.market.title || res.market.slug}</span>
                     {/* W39-6 — AI-labeled match score with confidence color. */}
                     <span className="inline-flex items-center gap-1.5">
                       <AIPredictionLabel label="AI Match:" size="sm" className="text-[8.5px]" />
@@ -1142,7 +1142,7 @@ export default function AIMLCommandCenter() {
                   </div>
                 ))
               ) : (
-                <div className="text-[10.5px] text-[#7e8aaa] text-center py-1">
+                <div className="text-[10.5px] text-[var(--text-secondary)] text-center py-1">
                   Indexed {metrics ? '100% of discovered markets' : 'active prediction contracts'}. Enter a query to retrieve semantic embeddings.
                 </div>
               )}
@@ -1153,21 +1153,21 @@ export default function AIMLCommandCenter() {
 
       {/* Model Registry Version Lineage */}
       {registry && registry.versions.length > 0 && (
-        <div className="card p-3 bg-[#0e1015] border border-[#1f2335]">
-          <div className="card-header pb-2 mb-2 border-b border-[#1f2335] flex justify-between items-center">
+        <div className="card p-3 bg-[var(--bg-base)] border border-[var(--border)]">
+          <div className="card-header pb-2 mb-2 border-b border-[var(--border)] flex justify-between items-center">
             <SectionHeader
               icon={GitBranch}
               title="📜 Champion/Challenger Model Lineage &amp; Safety Gating"
               description="versioned promotion history"
               tone="info"
-              trailing={<span className="text-[10px] text-[#7e8aaa] mono">Promotion Rule: Challenger Brier &lt; Champion Brier × 0.98</span>}
+              trailing={<span className="text-[10px] text-[var(--text-secondary)] mono">Promotion Rule: Challenger Brier &lt; Champion Brier × 0.98</span>}
             />
           </div>
 
           <div className="table-responsive scrollbar-thin">
             <table className="data-table text-xs w-full" role="table" aria-label="Model version registry">
             <thead>
-              <tr className="border-b border-[#1f2335] text-[#7e8aaa] text-[10.5px]">
+              <tr className="border-b border-[var(--border)] text-[var(--text-secondary)] text-[10.5px]">
                 <th scope="col" className="py-1 text-left">Version</th>
                 <th scope="col" className="text-right">Brier Score</th>
                 <th scope="col" className="text-right">ROC-AUC</th>
@@ -1176,13 +1176,13 @@ export default function AIMLCommandCenter() {
                 <th scope="col" className="text-center">Gate Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#1f2335]/50">
+            <tbody className="divide-y divide-[var(--border)]/50">
               {registry.versions.map((v) => (
                 <tr key={v.version} className="hover:bg-blue-500/5 transition-colors">
-                  <td className="mono font-bold text-[#dde1ed] py-2">{v.version}</td>
+                  <td className="mono font-bold text-[var(--text-primary)] py-2">{v.version}</td>
                   <td className="mono text-right text-green-400 font-semibold">{v.brier_score.toFixed(4)}</td>
                   <td className="mono text-right text-cyan-400">{(v.roc_auc * 100).toFixed(1)}%</td>
-                  <td className="mono text-right text-[#7e8aaa]">{v.ece.toFixed(4)}</td>
+                  <td className="mono text-right text-[var(--text-secondary)]">{v.ece.toFixed(4)}</td>
                   <td className="mono text-right text-amber-400 font-medium">{v.sharpe_ratio.toFixed(2)}</td>
                   <td className="text-center">
                     <span

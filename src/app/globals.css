@@ -4,13 +4,13 @@
    ║  interface. Single source of truth: every color, spacing, motion, and     ║
    ║  typography value flows from the design tokens below.                     ║
    ╚══════════════════════════════════════════════════════════════════════════╝
-   GOALS
-   • Deep, layered dark palette with a 5-tier elevation ladder.
-   • Professional blue accent (#3b82f6) used consistently across focus,
-     selection, links, and primary actions.
+   GOALS (W63-a — light + green accent is the new default)
+   • Light, layered slate canvas with a 5-tier elevation ladder.
+   • Professional green accent (#059669) used consistently across focus,
+     selection, links, and primary actions. Dark mode preserved via `.dark`.
    • 1.250 ratio type scale (10 → 32px) with named weights.
    • WCAG AA contrast for all body text and UI labels.
-   • Light theme that flips cleanly via the `.light` class on <html>.
+   • Dark theme flips cleanly via the `.dark` class on <html>.
    • All existing class names preserved so existing components continue
      to render correctly — old token names are aliased to the new ones.
    ═══════════════════════════════════════════════════════════════════════════ */
@@ -25,80 +25,87 @@
 /* xs breakpoint registered via standard media query */
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   DESIGN TOKENS — DARK THEME (default :root)
+   DESIGN TOKENS — LIGHT THEME (default :root) — W63-a GREEN VARIANT
    ═══════════════════════════════════════════════════════════════════════════
    Five-tier elevation ladder: base → page → surface → elevated → overlay.
-   Each tier is one shade lighter than the previous, giving cards / panels /
-   popovers / modals a clear depth hierarchy. */
+   Each tier uses a layered slate palette (slate-50 → white) so cards,
+   panels, popovers, and modals have a clear depth hierarchy. The accent
+   is emerald-600 (#059669). Dark mode is preserved via the `.dark` block
+   below — next-themes' defaultTheme="light" adds `.light` to <html> on
+   first paint so the cascade resolves to these values automatically. */
 :root {
-  /* ── Backgrounds — deep, layered dark ─────────────────────────────────── */
-  --bg-base:      #0a0b0f;   /* Darkest — app shell background */
-  --bg-page:      #0e1015;   /* Page background */
-  --bg-surface:   #14161c;   /* Cards, panels */
-  --bg-elevated:  #1a1d26;   /* Hover, active, sticky headers */
-  --bg-overlay:   #1f2330;   /* Modals, dropdowns, popovers */
+  /* ── Backgrounds — light, layered slate ────────────────────────────────── */
+  --bg-base:      #f8fafc;   /* slate-50 — app shell background */
+  --bg-page:      #ffffff;   /* white — page background */
+  --bg-surface:   #ffffff;   /* Cards, panels */
+  --bg-elevated:  #f1f5f9;   /* Hover, active, sticky headers */
+  --bg-overlay:   rgba(255, 255, 255, 0.85);   /* Modals w/ glassmorphism */
 
   /* Legacy aliases — keep old class names working. */
   --bg-card:      var(--bg-surface);     /* cards use the surface tier */
-  --bg-card-alt:  #111420;                /* slightly cooler alt surface */
+  --bg-card-alt:  #f1f5f9;                /* alt surface (slate-100) */
   --bg-hover:     var(--bg-elevated);    /* row / item hover */
-  --bg-selected:  #1e2540;                /* selected row tint (blue-leaning) */
+  --bg-selected:  rgba(5, 150, 105, 0.08);   /* green-tinted selection */
   --bg-input:     var(--bg-page);        /* input fields sit on the page tier */
 
-  /* ── Borders — subtle but visible ─────────────────────────────────────── */
-  --border:           #1e2129;   /* default border */
-  --border-strong:    #2a2e3a;   /* emphasized border (popovers, dialog edges) */
-  --border-accent:    #3b82f6;   /* accent border (focus, active state) */
-  --border-dim:       #181c28;   /* subtle divider */
+  /* ── Body / shell radial-glow tints (W63-a — green-leaning) ─────────── */
+  --bg-glow-primary:   rgba(5, 150, 105, 0.04);    /* emerald halo */
+  --bg-glow-secondary: rgba(8, 145, 178, 0.03);    /* cyan halo */
+
+  /* ── Borders — subtle but visible on white ────────────────────────────── */
+  --border:           #e2e8f0;   /* slate-200 — default border */
+  --border-strong:    #cbd5e1;   /* slate-300 — emphasized (popovers, dialogs) */
+  --border-accent:    #059669;   /* emerald-600 — accent border (focus, active) */
+  --border-dim:       #f1f5f9;   /* slate-100 — subtle divider */
   --border-focus:     var(--border-accent);
   --border-hover:     var(--border-strong);
 
-  /* ── Text — clear hierarchy ───────────────────────────────────────────── */
-  --text-primary:    #e8eaed;   /* headlines, values */
-  --text-secondary:  #a1a8b5;   /* labels, secondary text */
-  --text-dim:        #6b7280;   /* tertiary, hints */
-  --text-muted:      #4b5563;   /* placeholders, disabled */
-  --text-link:       #60a5fa;   /* links */
-  --text-mono:       #c8cfe0;   /* monospace data values */
+  /* ── Text — high contrast on white (WCAG AA+) ─────────────────────────── */
+  --text-primary:    #0f172a;   /* slate-900 — headlines, values */
+  --text-secondary:  #475569;   /* slate-600 — labels, secondary text */
+  --text-dim:        #94a3b8;   /* slate-400 — tertiary, hints */
+  --text-muted:      #cbd5e1;   /* slate-300 — placeholders, disabled */
+  --text-link:       #059669;   /* emerald-600 — links */
+  --text-mono:       #1e293b;   /* slate-800 — monospace data values */
 
-  /* ── Accent — professional blue ──────────────────────────────────────── */
-  --accent:           #3b82f6;
-  --accent-hover:     #2563eb;
-  --accent-fg:        #60a5fa;
-  --accent-muted:     rgba(59, 130, 246, 0.15);
-  --accent-bd:        rgba(59, 130, 246, 0.35);
+  /* ── Accent — primary green (emerald-600) ─────────────────────────────── */
+  --accent:           #059669;
+  --accent-hover:     #047857;   /* emerald-700 */
+  --accent-fg:        #047857;
+  --accent-muted:     rgba(5, 150, 105, 0.10);
+  --accent-bd:        rgba(5, 150, 105, 0.30);
   --text-on-accent:   #ffffff;
 
-  /* ── Semantic colors — clear, distinct ────────────────────────────────── */
-  --color-green:    #10b981;
-  --color-green-fg:  #34d399;
-  --color-green-bg:  rgba(16, 185, 129, 0.12);
-  --color-green-bd:  rgba(16, 185, 129, 0.30);
+  /* ── Semantic colors — green is the PRIMARY, others are secondary ─────── */
+  --color-green:    #059669;   /* emerald-600 — hero green */
+  --color-green-fg: #047857;
+  --color-green-bg: rgba(5, 150, 105, 0.10);
+  --color-green-bd: rgba(5, 150, 105, 0.30);
 
-  --color-red:      #ef4444;
-  --color-red-fg:   #f87171;
-  --color-red-bg:   rgba(239, 68, 68, 0.12);
-  --color-red-bd:   rgba(239, 68, 68, 0.30);
+  --color-red:      #dc2626;   /* red-600 */
+  --color-red-fg:   #b91c1c;
+  --color-red-bg:   rgba(220, 38, 38, 0.08);
+  --color-red-bd:   rgba(220, 38, 38, 0.30);
 
-  --color-amber:    #f59e0b;
-  --color-amber-fg: #fbbf24;
-  --color-amber-bg: rgba(245, 158, 11, 0.12);
-  --color-amber-bd: rgba(245, 158, 11, 0.30);
+  --color-amber:    #d97706;   /* amber-600 */
+  --color-amber-fg: #b45309;
+  --color-amber-bg: rgba(217, 119, 6, 0.10);
+  --color-amber-bd: rgba(217, 119, 6, 0.30);
 
-  --color-blue:     #3b82f6;
-  --color-blue-fg:  #60a5fa;
-  --color-blue-bg:  rgba(59, 130, 246, 0.12);
-  --color-blue-bd:  rgba(59, 130, 246, 0.30);
+  --color-blue:     #0284c7;   /* sky-600 — secondary info color */
+  --color-blue-fg:  #0369a1;
+  --color-blue-bg:  rgba(2, 132, 199, 0.10);
+  --color-blue-bd:  rgba(2, 132, 199, 0.30);
 
-  --color-cyan:     #06b6d4;
-  --color-cyan-fg:  #22d3ee;
-  --color-cyan-bg:  rgba(6, 182, 212, 0.12);
-  --color-cyan-bd:  rgba(6, 182, 212, 0.30);
+  --color-cyan:     #0891b2;   /* cyan-600 */
+  --color-cyan-fg:  #0e7490;
+  --color-cyan-bg:  rgba(8, 145, 178, 0.10);
+  --color-cyan-bd:  rgba(8, 145, 178, 0.30);
 
-  --color-purple:   #8b5cf6;
-  --color-purple-fg: #a78bfa;
-  --color-purple-bg: rgba(139, 92, 246, 0.12);
-  --color-purple-bd: rgba(139, 92, 246, 0.30);
+  --color-purple:   #7c3aed;   /* violet-600 */
+  --color-purple-fg: #6d28d9;
+  --color-purple-bg: rgba(124, 58, 237, 0.08);
+  --color-purple-bd: rgba(124, 58, 237, 0.30);
 
   /* Semantic intent aliases — intent → hue.
      Both naming systems work; --color-success ≡ --color-green. */
@@ -118,28 +125,28 @@
   --color-info-fg:       var(--color-blue-fg);
   --color-info-muted:    var(--color-blue-bg);
 
-  /* ── Mode tokens — paper / live / shadow / backtest ───────────────────── */
-  --mode-paper-color:    #f59e0b;
-  --mode-paper-bg:       rgba(245, 158, 11, 0.12);
-  --mode-paper-bd:       rgba(245, 158, 11, 0.35);
+  /* ── Mode tokens — paper / live / shadow / backtest (light variants) ── */
+  --mode-paper-color:    #d97706;
+  --mode-paper-bg:       rgba(217, 119, 6, 0.12);
+  --mode-paper-bd:       rgba(217, 119, 6, 0.40);
 
-  --mode-live-color:     #ef4444;
-  --mode-live-bg:        rgba(239, 68, 68, 0.12);
-  --mode-live-bd:        rgba(239, 68, 68, 0.40);
+  --mode-live-color:     #dc2626;
+  --mode-live-bg:        rgba(220, 38, 38, 0.12);
+  --mode-live-bd:        rgba(220, 38, 38, 0.45);
 
-  --mode-shadow-color:   #06b6d4;
-  --mode-shadow-bg:      rgba(6, 182, 212, 0.12);
-  --mode-shadow-bd:      rgba(6, 182, 212, 0.30);
+  --mode-shadow-color:   #0891b2;
+  --mode-shadow-bg:      rgba(8, 145, 178, 0.12);
+  --mode-shadow-bd:      rgba(8, 145, 178, 0.35);
 
-  --mode-backtest-color: #8b5cf6;
-  --mode-backtest-bg:    rgba(139, 92, 246, 0.12);
-  --mode-backtest-bd:    rgba(139, 92, 246, 0.30);
+  --mode-backtest-color: #7c3aed;
+  --mode-backtest-bg:    rgba(124, 58, 237, 0.10);
+  --mode-backtest-bd:    rgba(124, 58, 237, 0.35);
 
-  /* ── Status tokens ────────────────────────────────────────────────────── */
-  --status-healthy:      #10b981;
-  --status-warning:      #f59e0b;
-  --status-critical:     #ef4444;
-  --status-info:         #3b82f6;
+  /* ── Status tokens — saturated hues legible on white ─────────────────── */
+  --status-healthy:      #059669;
+  --status-warning:      #d97706;
+  --status-critical:     #dc2626;
+  --status-info:         #0284c7;
   --status-degraded:     var(--status-warning);
   --status-unavailable:  var(--status-critical);
   --status-stale:       var(--status-warning);
@@ -225,24 +232,24 @@
   --transition-panel:  opacity var(--transition-base),
                       transform var(--transition-base);
 
-  /* ── Shadows — five-tier elevation system ─────────────────────────────── */
-  --shadow-xs: 0 1px 2px  rgba(0, 0, 0, 0.30);
-  --shadow-sm: 0 2px 4px  rgba(0, 0, 0, 0.35);
-  --shadow-md: 0 4px 10px rgba(0, 0, 0, 0.40);
-  --shadow-lg: 0 10px 24px rgba(0, 0, 0, 0.45);
-  --shadow-xl: 0 20px 48px rgba(0, 0, 0, 0.55);
+  /* ── Shadows — light theme: darker, more visible on white ────────────── */
+  --shadow-xs: 0 1px 2px  rgba(0, 0, 0, 0.08);
+  --shadow-sm: 0 2px 4px  rgba(0, 0, 0, 0.10);
+  --shadow-md: 0 4px 10px rgba(0, 0, 0, 0.12);
+  --shadow-lg: 0 10px 24px rgba(0, 0, 0, 0.16);
+  --shadow-xl: 0 20px 48px rgba(0, 0, 0, 0.22);
 
-  /* Component shadow bundles. */
-  --shadow-card:     var(--shadow-md);
-  --shadow-popover:  var(--shadow-lg);
-  --shadow-modal:    var(--shadow-xl);
+  /* Component shadow bundles (W63-a: explicit light-mode layered). */
+  --shadow-card:     0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-popover:  0 4px 12px rgba(0,0,0,0.10), 0 2px 4px rgba(0,0,0,0.06);
+  --shadow-modal:    0 20px 40px rgba(0,0,0,0.15), 0 8px 16px rgba(0,0,0,0.08);
   --shadow-dropdown: var(--shadow-md);
 
-  /* ── Focus rings — accent halo on focus-visible ───────────────────────── */
-  --ring-focus:    0 0 0 3px rgba(59, 130, 246, 0.20);
-  --ring-danger:   0 0 0 3px rgba(239, 68, 68, 0.20);
-  --ring-success:  0 0 0 3px rgba(16, 185, 129, 0.20);
-  --ring-warning:  0 0 0 3px rgba(245, 158, 11, 0.22);
+  /* ── Focus rings — green halo on focus-visible (W63-a) ──────────────── */
+  --ring-focus:    0 0 0 3px rgba(5, 150, 105, 0.25);
+  --ring-danger:   0 0 0 3px rgba(220, 38, 38, 0.20);
+  --ring-success:  0 0 0 3px rgba(5, 150, 105, 0.25);
+  --ring-warning:  0 0 0 3px rgba(217, 119, 6, 0.22);
 
   /* ── Z-index ──────────────────────────────────────────────────────────── */
   --z-sidebar:    10;
@@ -272,32 +279,32 @@
   --surface-elevated: var(--bg-elevated);
   --surface-overlay:  var(--bg-overlay);
 
-  /* ── Chart palette — mirrors src/components/charts/theme.ts ──────────── */
-  --chart-primary:   #3b82f6;
-  --chart-success:   #10b981;
-  --chart-danger:    #ef4444;
-  --chart-warning:   #f59e0b;
-  --chart-info:      #06b6d4;
-  --chart-muted:     #6b7280;
+  /* ── Chart palette — green-primary for light theme (W63-a) ──────────── */
+  --chart-primary:   #059669;
+  --chart-success:   #059669;
+  --chart-danger:    #dc2626;
+  --chart-warning:   #d97706;
+  --chart-info:      #0284c7;
+  --chart-muted:     #475569;
   --chart-positive:  var(--chart-success);
   --chart-negative:  var(--chart-danger);
   --chart-ai:        var(--chart-primary);
   --chart-ml:        var(--color-purple);
 
-  --chart-series-1: #3b82f6;
-  --chart-series-2: #10b981;
-  --chart-series-3: #f59e0b;
-  --chart-series-4: #ef4444;
-  --chart-series-5: #8b5cf6;
-  --chart-series-6: #06b6d4;
-  --chart-series-7: #ec4899;
-  --chart-series-8: #84cc16;
+  --chart-series-1: #059669;
+  --chart-series-2: #0284c7;
+  --chart-series-3: #d97706;
+  --chart-series-4: #dc2626;
+  --chart-series-5: #7c3aed;
+  --chart-series-6: #0891b2;
+  --chart-series-7: #db2777;
+  --chart-series-8: #65a30d;
 
-  --chart-grid:          rgba(255, 255, 255, 0.05);
-  --chart-axis:          #8b949e;
-  --chart-tooltip-bg:     var(--bg-elevated);
-  --chart-tooltip-border: var(--border-strong);
-  --chart-tooltip-text:   var(--text-primary);
+  --chart-grid:          rgba(15, 23, 42, 0.08);
+  --chart-axis:          #475569;
+  --chart-tooltip-bg:     #ffffff;
+  --chart-tooltip-border: #e2e8f0;
+  --chart-tooltip-text:   #0f172a;
 
   /* ── KPI card tokens ───────────────────────────────────────────────────── */
   --kpi-card-bg:            var(--bg-surface);
@@ -323,33 +330,182 @@
   --kpi-sub-size:  var(--text-2xs);
 
   /* ── Sonner / popover tokens consumed by shadcn ui/sonner.tsx ─────────── */
-  --popover:           var(--bg-elevated);
-  --popover-foreground: var(--text-primary);
+  --popover:           #ffffff;
+  --popover-foreground: #0f172a;
 
   /* ═══════════════════════════════════════════════════════════════════════
-     SHADCN/UI HSL TOKEN MAPPING
+     SHADCN/UI HSL TOKEN MAPPING (light + green accent — W63-a)
      ═══════════════════════════════════════════════════════════════════════
      shadcn/ui components reference HSL variables (--background, --foreground,
      --card, --primary, --accent, --muted, --border, --input, --ring, etc.).
-     Map each to the equivalent HSL conversion of the new palette so every
-     shadcn primitive (Dialog, DropdownMenu, Tooltip, Toast, Select, etc.)
-     re-themes automatically with the new design system. */
+     Map each to the equivalent HSL conversion of the new light + green
+     palette so every shadcn primitive (Dialog, DropdownMenu, Tooltip, Toast,
+     Select, etc.) re-themes automatically with the new design system. */
+  --background:              210 40% 98%;   /* #f8fafc */
+  --foreground:              222 47% 11%;   /* #0f172a */
+  --card:                    0 0% 100%;     /* #ffffff */
+  --card-foreground:         222 47% 11%;   /* #0f172a */
+  --popover:                 0 0% 100%;     /* #ffffff */
+  --popover-foreground:      222 47% 11%;   /* #0f172a */
+  --primary:                 160 84% 39%;   /* #059669 — emerald-600 */
+  --primary-foreground:      0 0% 100%;     /* #ffffff */
+  --secondary:               210 40% 96%;   /* #f1f5f9 */
+  --secondary-foreground:    222 47% 11%;   /* #0f172a */
+  --muted:                   210 40% 96%;   /* #f1f5f9 */
+  --muted-foreground:        215 16% 31%;   /* #475569 */
+  --accent:                  160 84% 39%;   /* #059669 */
+  --accent-foreground:       0 0% 100%;     /* #ffffff */
+  --destructive:             0 72% 51%;     /* #dc2626 */
+  --destructive-foreground:  0 0% 100%;     /* #ffffff */
+  --border:                  214 32% 91%;   /* #e2e8f0 */
+  --input:                   214 32% 91%;   /* #e2e8f0 */
+  --ring:                    160 84% 39%;   /* #059669 */
+  --chart-1:                 160 84% 39%;    /* green */
+  --chart-2:                 197 98% 41%;    /* sky */
+  --chart-3:                 33 92% 50%;     /* amber */
+  --chart-4:                 0 72% 51%;      /* red */
+  --chart-5:                 258 90% 66%;    /* purple */
+  --radius:                  0.5rem;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   DARK THEME OVERRIDES (.dark) — W63-a
+   ═══════════════════════════════════════════════════════════════════════════
+   `next-themes` (attribute="class", defaultTheme="light") toggles a `dark`
+   or `light` class on <html>. The `:root` block above is the LIGHT green
+   default; this `.dark` block re-declares every design token for the dark
+   theme (the original W49-1 Bloomberg-terminal palette) so any consumer
+   of `var(--…)` re-themes automatically when the trader toggles to dark. */
+.dark {
+  /* ── Backgrounds — deep, layered dark ─────────────────────────────────── */
+  --bg-base:      #0a0b0f;
+  --bg-page:      #0e1015;
+  --bg-surface:   #14161c;
+  --bg-elevated:  #1a1d26;
+  --bg-overlay:   #1f2330;
+  --bg-card-alt:  #111420;
+  --bg-selected:  #1e2540;
+  --bg-glow-primary:   rgba(59, 130, 246, 0.04);
+  --bg-glow-secondary: rgba(6, 182, 212, 0.03);
+
+  /* ── Borders ──────────────────────────────────────────────────────────── */
+  --border:           #1e2129;
+  --border-strong:    #2a2e3a;
+  --border-accent:    #3b82f6;
+  --border-dim:       #181c28;
+
+  /* ── Text ─────────────────────────────────────────────────────────────── */
+  --text-primary:    #e8eaed;
+  --text-secondary:  #a1a8b5;
+  --text-dim:        #6b7280;
+  --text-muted:      #4b5563;
+  --text-link:       #60a5fa;
+  --text-mono:       #c8cfe0;
+
+  /* ── Accent — professional blue (dark mode keeps the W49-1 blue) ─────── */
+  --accent:           #3b82f6;
+  --accent-hover:     #2563eb;
+  --accent-fg:        #60a5fa;
+  --accent-muted:     rgba(59, 130, 246, 0.15);
+  --accent-bd:        rgba(59, 130, 246, 0.35);
+  --text-on-accent:   #ffffff;
+
+  /* ── Semantic colors ────────────────────────────────────────────────── */
+  --color-green:    #10b981;  --color-green-fg: #34d399;
+  --color-green-bg: rgba(16, 185, 129, 0.12);  --color-green-bd: rgba(16, 185, 129, 0.30);
+  --color-red:      #ef4444;  --color-red-fg:   #f87171;
+  --color-red-bg:   rgba(239, 68, 68, 0.12);  --color-red-bd:   rgba(239, 68, 68, 0.30);
+  --color-amber:    #f59e0b;  --color-amber-fg: #fbbf24;
+  --color-amber-bg: rgba(245, 158, 11, 0.12);  --color-amber-bd: rgba(245, 158, 11, 0.30);
+  --color-blue:     #3b82f6;  --color-blue-fg:  #60a5fa;
+  --color-blue-bg:  rgba(59, 130, 246, 0.12);  --color-blue-bd:  rgba(59, 130, 246, 0.30);
+  --color-cyan:     #06b6d4;  --color-cyan-fg:  #22d3ee;
+  --color-cyan-bg:  rgba(6, 182, 212, 0.12);  --color-cyan-bd:  rgba(6, 182, 212, 0.30);
+  --color-purple:   #8b5cf6;  --color-purple-fg: #a78bfa;
+  --color-purple-bg: rgba(139, 92, 246, 0.12);  --color-purple-bd: rgba(139, 92, 246, 0.30);
+
+  /* ── Mode tokens ──────────────────────────────────────────────────────── */
+  --mode-paper-color:    #f59e0b;  --mode-paper-bg: rgba(245, 158, 11, 0.12);
+  --mode-paper-bd:       rgba(245, 158, 11, 0.35);
+  --mode-live-color:     #ef4444;  --mode-live-bg: rgba(239, 68, 68, 0.12);
+  --mode-live-bd:        rgba(239, 68, 68, 0.40);
+  --mode-shadow-color:   #06b6d4;  --mode-shadow-bg: rgba(6, 182, 212, 0.12);
+  --mode-shadow-bd:      rgba(6, 182, 212, 0.30);
+  --mode-backtest-color: #8b5cf6;  --mode-backtest-bg: rgba(139, 92, 246, 0.12);
+  --mode-backtest-bd:    rgba(139, 92, 246, 0.30);
+
+  /* ── Status ───────────────────────────────────────────────────────────── */
+  --status-healthy:  #10b981;  --status-warning: #f59e0b;
+  --status-critical: #ef4444;  --status-info:    #3b82f6;
+
+  /* ── Shadows — dark-mode deeper blacks ────────────────────────────────── */
+  --shadow-xs: 0 1px 2px  rgba(0, 0, 0, 0.30);
+  --shadow-sm: 0 2px 4px  rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 4px 10px rgba(0, 0, 0, 0.40);
+  --shadow-lg: 0 10px 24px rgba(0, 0, 0, 0.45);
+  --shadow-xl: 0 20px 48px rgba(0, 0, 0, 0.55);
+  --shadow-card:     var(--shadow-md);
+  --shadow-popover:  var(--shadow-lg);
+  --shadow-modal:    var(--shadow-xl);
+  --shadow-dropdown: var(--shadow-md);
+
+  /* ── Premium shadow bundles (W50-2a) — dark-mode inset rims ─────────── */
+  --shadow-ambient: 0 12px 32px -10px rgba(0, 0, 0, 0.55);
+  --shadow-key:     0 4px 12px -2px  rgba(0, 0, 0, 0.40);
+  --shadow-contact: 0 1px 2px   0     rgba(0, 0, 0, 0.30);
+  --shadow-card-premium:
+    0 1px 0 0 rgba(255, 255, 255, 0.04) inset,
+    var(--shadow-contact), var(--shadow-key), var(--shadow-ambient);
+  --shadow-popover-premium:
+    0 1px 0 0 rgba(255, 255, 255, 0.05) inset,
+    0 2px 4px rgba(0, 0, 0, 0.35), 0 12px 28px rgba(0, 0, 0, 0.50);
+  --shadow-modal-premium:
+    0 1px 0 0 rgba(255, 255, 255, 0.06) inset,
+    0 4px 8px rgba(0, 0, 0, 0.40), 0 24px 56px rgba(0, 0, 0, 0.60);
+  --ring-focus-layered: 0 0 0 2px var(--bg-base), 0 0 0 4px var(--accent);
+
+  /* ── Focus rings — blue halo for dark mode ─────────────────────────────── */
+  --ring-focus:    0 0 0 3px rgba(59, 130, 246, 0.20);
+  --ring-danger:   0 0 0 3px rgba(239, 68, 68, 0.20);
+  --ring-success:  0 0 0 3px rgba(16, 185, 129, 0.20);
+  --ring-warning:  0 0 0 3px rgba(245, 158, 11, 0.22);
+
+  /* ── Chart palette — dark-mode brighter variants ─────────────────────── */
+  --chart-primary:   #3b82f6;  --chart-success:   #10b981;
+  --chart-danger:    #ef4444;  --chart-warning:   #f59e0b;
+  --chart-info:      #06b6d4;  --chart-muted:     #6b7280;
+  --chart-ai:        #3b82f6;  --chart-ml:        #8b5cf6;
+  --chart-series-1: #3b82f6;  --chart-series-2: #10b981;
+  --chart-series-3: #f59e0b;  --chart-series-4: #ef4444;
+  --chart-series-5: #8b5cf6;  --chart-series-6: #06b6d4;
+  --chart-series-7: #ec4899;  --chart-series-8: #84cc16;
+  --chart-grid:          rgba(255, 255, 255, 0.05);
+  --chart-axis:          #8b949e;
+  --chart-tooltip-bg:     var(--bg-elevated);
+  --chart-tooltip-border: var(--border-strong);
+  --chart-tooltip-text:   var(--text-primary);
+
+  /* ── Popover / Sonner tokens ──────────────────────────────────────────── */
+  --popover:            var(--bg-elevated);
+  --popover-foreground: var(--text-primary);
+
+  /* ── shadcn HSL variables — dark variants ────────────────────────────── */
   --background:              228 25% 5%;     /* #0a0b0f */
-  --foreground:               216 14% 92%;   /* #e8eaed */
-  --card:                     226 17% 9%;    /* #14161c */
-  --card-foreground:          216 14% 92%;   /* #e8eaed */
-  --popover:                 224 21% 15%;    /* #1f2330 */
+  --foreground:              216 14% 92%;    /* #e8eaed */
+  --card:                    226 17% 9%;      /* #14161c */
+  --card-foreground:         216 14% 92%;    /* #e8eaed */
+  --popover:                 224 21% 15%;     /* #1f2330 */
   --popover-foreground:      216 14% 92%;    /* #e8eaed */
   --primary:                 217 91% 60%;    /* #3b82f6 */
   --primary-foreground:      0 0% 100%;      /* #ffffff */
-  --secondary:               225 19% 13%;   /* #1a1d26 */
+  --secondary:               225 19% 13%;    /* #1a1d26 */
   --secondary-foreground:    216 14% 92%;    /* #e8eaed */
   --muted:                   225 19% 13%;    /* #1a1d26 */
   --muted-foreground:        219 11% 67%;    /* #a1a8b5 */
   --accent:                  217 91% 60%;    /* #3b82f6 */
   --accent-foreground:       0 0% 100%;      /* #ffffff */
   --destructive:             0 84% 60%;      /* #ef4444 */
-  --destructive-foreground:  0 0% 100%;     /* #ffffff */
+  --destructive-foreground:  0 0% 100%;      /* #ffffff */
   --border:                  222 16% 14%;    /* #1e2129 */
   --input:                   222 16% 14%;    /* #1e2129 */
   --ring:                    217 91% 60%;    /* #3b82f6 */
@@ -358,165 +514,21 @@
   --chart-3:                 38 92% 50%;     /* amber */
   --chart-4:                 0 84% 60%;      /* red */
   --chart-5:                 258 90% 66%;    /* purple */
-  --radius:                  0.5rem;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   LIGHT THEME OVERRIDES
+   `.light` REDUNDANT OVERRIDE — safety net (W63-a)
    ═══════════════════════════════════════════════════════════════════════════
-   `next-themes` (attribute="class") toggles a `dark` / `light` class on
-   <html>. The `:root` block above is the dark default; this `.light` block
-   re-defines every design token for the light theme so any consumer of
-   `var(--…)` re-themes automatically. */
+   Light theme is now the default in `:root` above. When `next-themes` adds
+   the `.light` class to <html> (the default first-paint state), the cascade
+   resolves to the same values as `:root`. This block is intentionally a
+   minimal no-op — only the body radial-glow tint tokens are re-asserted
+   for explicitness. The `.light .xxx` selectors further below continue to
+   flip hardcoded Tailwind arbitrary-value classes (e.g. `bg-[#0e1015]`)
+   so they render correctly in light mode. */
 .light {
-  /* ── Backgrounds — cool slate / white ────────────────────────────────── */
-  --bg-base:      #f8fafc;   /* slate-50 */
-  --bg-page:      #ffffff;   /* white */
-  --bg-surface:   #ffffff;   /* cards / panels */
-  --bg-elevated:  #f1f5f9;   /* hover, sticky headers */
-  --bg-overlay:   #ffffff;   /* modals */
-
-  --bg-card:      var(--bg-surface);
-  --bg-card-alt:  #f1f5f9;
-  --bg-hover:     var(--bg-elevated);
-  --bg-selected:  #dbeafe;   /* blue-100 */
-  --bg-input:     var(--bg-page);
-
-  /* ── Borders ──────────────────────────────────────────────────────────── */
-  --border:           #e2e8f0;   /* slate-200 */
-  --border-strong:    #cbd5e1;   /* slate-300 */
-  --border-accent:    #2563eb;   /* blue-600 — darker for white bg */
-  --border-dim:       #f1f5f9;
-  --border-focus:     var(--border-accent);
-  --border-hover:     var(--border-strong);
-
-  /* ── Text ─────────────────────────────────────────────────────────────── */
-  --text-primary:    #0f172a;   /* slate-900 */
-  --text-secondary:  #475569;   /* slate-600 */
-  --text-dim:        #94a3b8;   /* slate-400 */
-  --text-muted:      #cbd5e1;   /* slate-300 */
-  --text-link:       #2563eb;
-  --text-mono:       #1e293b;   /* slate-800 */
-
-  /* ── Accent ───────────────────────────────────────────────────────────── */
-  --accent:        #2563eb;   /* blue-600 */
-  --accent-hover:  #1d4ed8;
-  --accent-fg:     #1d4ed8;
-  --accent-muted:  rgba(37, 99, 235, 0.10);
-  --accent-bd:     rgba(37, 99, 235, 0.30);
-  --text-on-accent: #ffffff;
-
-  /* ── Semantic colors — each `-fg` shifts darker so it's readable on white */
-  --color-green:    #16a34a;  --color-green-fg: #15803d;
-  --color-green-bg: rgba(22, 163, 74, 0.10);
-  --color-green-bd: rgba(22, 163, 74, 0.30);
-
-  --color-red:    #dc2626;  --color-red-fg: #b91c1c;
-  --color-red-bg: rgba(220, 38, 38, 0.08);
-  --color-red-bd: rgba(220, 38, 38, 0.30);
-
-  --color-amber:    #d97706;  --color-amber-fg: #b45309;
-  --color-amber-bg: rgba(217, 119, 6, 0.10);
-  --color-amber-bd: rgba(217, 119, 6, 0.30);
-
-  --color-blue:    #2563eb;  --color-blue-fg: #1d4ed8;
-  --color-blue-bg: rgba(37, 99, 235, 0.08);
-  --color-blue-bd: rgba(37, 99, 235, 0.25);
-
-  --color-cyan:    #0891b2;  --color-cyan-fg: #0e7490;
-  --color-cyan-bg: rgba(8, 145, 178, 0.10);
-  --color-cyan-bd: rgba(8, 145, 178, 0.30);
-
-  --color-purple:    #9333ea;  --color-purple-fg: #7e22ce;
-  --color-purple-bg: rgba(147, 51, 234, 0.08);
-  --color-purple-bd: rgba(147, 51, 234, 0.30);
-
-  /* ── Mode tokens ──────────────────────────────────────────────────────── */
-  --mode-paper-color:    #d97706;
-  --mode-paper-bg:       rgba(217, 119, 6, 0.12);
-  --mode-paper-bd:       rgba(217, 119, 6, 0.40);
-
-  --mode-live-color:     #dc2626;
-  --mode-live-bg:        rgba(220, 38, 38, 0.12);
-  --mode-live-bd:        rgba(220, 38, 38, 0.45);
-
-  --mode-shadow-color:   #0891b2;
-  --mode-shadow-bg:      rgba(8, 145, 178, 0.12);
-  --mode-shadow-bd:      rgba(8, 145, 178, 0.35);
-
-  --mode-backtest-color: #9333ea;
-  --mode-backtest-bg:    rgba(147, 51, 234, 0.10);
-  --mode-backtest-bd:    rgba(147, 51, 234, 0.35);
-
-  /* ── Status — saturated hues stay legible on white ────────────────────── */
-  --status-healthy:     #16a34a;
-  --status-warning:     #d97706;
-  --status-critical:    #dc2626;
-  --status-info:        #2563eb;
-
-  /* ── Shadows — W61-d: darker slate-900 shadows for crisper depth on white ── */
-  --shadow-xs: 0 1px 2px  rgba(15, 23, 42, 0.10);
-  --shadow-sm: 0 2px 4px  rgba(15, 23, 42, 0.12);
-  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.15);
-  --shadow-lg: 0 10px 28px rgba(15, 23, 42, 0.20);
-  --shadow-xl: 0 24px 56px rgba(15, 23, 42, 0.26);
-
-  /* ── Chart palette — darker variants for white-bg legibility ─────────── */
-  --chart-primary:   #2563eb;
-  --chart-success:   #059669;
-  --chart-danger:    #dc2626;
-  --chart-warning:   #d97706;
-  --chart-info:      #0891b2;
-  --chart-muted:     #4b5563;
-
-  --chart-series-1: #2563eb;
-  --chart-series-2: #16a34a;
-  --chart-series-3: #d97706;
-  --chart-series-4: #dc2626;
-  --chart-series-5: #9333ea;
-  --chart-series-6: #0891b2;
-  --chart-series-7: #db2777;
-  --chart-series-8: #65a30d;
-
-  --chart-ai:        #2563eb;
-  --chart-ml:        #9333ea;
-
-  --chart-grid:          rgba(15, 23, 42, 0.08);
-  --chart-axis:          #475569;
-  --chart-tooltip-bg:     #ffffff;
-  --chart-tooltip-border: #e2e8f0;
-  --chart-tooltip-text:   #0f172a;
-
-  /* ── Focus rings — slightly stronger alpha for white bg ────────────────── */
-  --ring-focus:    0 0 0 3px rgba(37, 99, 235, 0.20);
-  --ring-danger:   0 0 0 3px rgba(220, 38, 38, 0.20);
-  --ring-success:  0 0 0 3px rgba(22, 163, 74, 0.20);
-  --ring-warning:  0 0 0 3px rgba(217, 119, 6, 0.22);
-
-  /* ── Popover / Sonner tokens ──────────────────────────────────────────── */
-  --popover:            #ffffff;
-  --popover-foreground: #0f172a;
-
-  /* ── shadcn HSL variables — light variants ────────────────────────────── */
-  --background:              210 40% 98%;   /* #f8fafc */
-  --foreground:              222 47% 11%;   /* #0f172a */
-  --card:                    0 0% 100%;     /* #ffffff */
-  --card-foreground:         222 47% 11%;   /* #0f172a */
-  --popover:                 0 0% 100%;     /* #ffffff */
-  --popover-foreground:      222 47% 11%;   /* #0f172a */
-  --primary:                 221 83% 53%;    /* #2563eb */
-  --primary-foreground:      0 0% 100%;     /* #ffffff */
-  --secondary:               210 40% 96%;   /* #f1f5f9 */
-  --secondary-foreground:    222 47% 11%;   /* #0f172a */
-  --muted:                   210 40% 96%;   /* #f1f5f9 */
-  --muted-foreground:        215 16% 31%;   /* #475569 */
-  --accent:                  221 83% 53%;   /* #2563eb */
-  --accent-foreground:       0 0% 100%;     /* #ffffff */
-  --destructive:             0 84% 60%;     /* #dc2626 */
-  --destructive-foreground:  0 0% 100%;    /* #ffffff */
-  --border:                  214 32% 91%;   /* #e2e8f0 */
-  --input:                   214 32% 91%;   /* #e2e8f0 */
-  --ring:                    221 83% 53%;   /* #2563eb */
+  --bg-glow-primary:   rgba(5, 150, 105, 0.04);
+  --bg-glow-secondary: rgba(8, 145, 178, 0.03);
 }
 
 /* ── Light theme: arbitrary Tailwind value overrides ───────────────────────
@@ -532,7 +544,7 @@
 .light .bg-\[\#13161e\]      { background-color: #ffffff !important; }
 .light .bg-\[\#111420\]      { background-color: #f1f5f9 !important; }
 .light .bg-\[\#1a1f2e\]      { background-color: #f1f5f9 !important; }
-.light .bg-\[\#1e2540\]      { background-color: #dbeafe !important; }
+.light .bg-\[\#1e2540\]      { background-color: #d1fae5 !important; }   /* W63-a: emerald-100 selection tint */
 .light .bg-\[\#14161c\]      { background-color: #ffffff !important; }
 .light .bg-\[\#1a1d26\]      { background-color: #f1f5f9 !important; }
 .light .bg-\[\#1f2330\]      { background-color: #ffffff !important; }
@@ -604,10 +616,13 @@ html {
 body {
   height: 100%;
   background: var(--bg-page);
-  /* Subtle radial gradient halo — adds depth without distracting from data. */
+  /* W63-a — subtle green + cyan radial halo (light theme default).
+     The literal rgba values match `--bg-glow-primary` / `--bg-glow-secondary`
+     so the body picks up the new accent without needing a CSS var lookup in
+     the gradient (some browsers don't resolve vars inside gradients well). */
   background-image:
-    radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.04) 0px, transparent 40%),
-    radial-gradient(at 100% 100%, rgba(6, 182, 212, 0.03) 0px, transparent 40%);
+    radial-gradient(at 0% 0%, var(--bg-glow-primary) 0px, transparent 40%),
+    radial-gradient(at 100% 100%, var(--bg-glow-secondary) 0px, transparent 40%);
   color: var(--text-primary);
   font-family: var(--font-sans);
   font-size: var(--text-base);
@@ -635,11 +650,11 @@ button, a, input, select, textarea, .btn, .card, .badge, .filter-chip,
     color var(--duration-fast) var(--easing-std);
 }
 
-/* ── Selection highlight (accent blue) ──────────────────────────────────── */
+/* ── Selection highlight (accent green — W63-a) ────────────────────────── */
 ::selection,
 ::-moz-selection {
-  background: rgba(59, 130, 246, 0.35);
-  color: #ffffff;
+  background: rgba(5, 150, 105, 0.25);
+  color: #0f172a;
   text-shadow: none;
 }
 
@@ -849,7 +864,7 @@ button, a, input, select, textarea, .btn, .card, .badge, .filter-chip,
   background: var(--accent-muted);
   color: var(--accent-fg);
   border-color: var(--accent-bd);
-  box-shadow: inset 0 0 28px rgba(59, 130, 246, 0.06);
+  box-shadow: inset 0 0 28px rgba(5, 150, 105, 0.06);
 }
 
 /* Accent left border on the active item — terminal-style active marker. */
@@ -862,7 +877,7 @@ button, a, input, select, textarea, .btn, .card, .badge, .filter-chip,
   width: 3px;
   background: linear-gradient(180deg, var(--accent-fg), var(--accent));
   border-radius: 0 2px 2px 0;
-  box-shadow: 2px 0 8px rgba(59, 130, 246, 0.4);
+  box-shadow: 2px 0 8px rgba(5, 150, 105, 0.4);
 }
 
 .sidebar-icon {
@@ -913,8 +928,8 @@ button, a, input, select, textarea, .btn, .card, .badge, .filter-chip,
   border-radius: var(--radius-lg);
   border: 1px solid var(--border);
   background: var(--bg-surface);
-  /* Subtle top-down accent gradient — adds depth without distracting. */
-  background-image: linear-gradient(180deg, rgba(59, 130, 246, 0.03) 0%, transparent 55%);
+  /* W63-a — subtle top-down accent gradient (green tint) adds depth. */
+  background-image: linear-gradient(180deg, rgba(5, 150, 105, 0.03) 0%, transparent 55%);
   box-shadow: var(--shadow-card);
 }
 
@@ -982,7 +997,7 @@ button, a, input, select, textarea, .btn, .card, .badge, .filter-chip,
 /* ── Primary KPI card (Command Center hero row) ─────────────────────────── */
 .kpi-card {
   background: var(--kpi-card-bg);
-  background-image: linear-gradient(180deg, rgba(59, 130, 246, 0.035) 0%, transparent 55%);
+  background-image: linear-gradient(180deg, rgba(5, 150, 105, 0.035) 0%, transparent 55%);
   border: 1px solid var(--kpi-card-border);
   border-radius: var(--kpi-card-radius);
   padding: var(--kpi-card-padding);
@@ -2728,32 +2743,34 @@ svg[tabindex="0"]:focus-visible,
   border: 1px solid transparent; background-clip: padding-box;
   transition: background-color var(--duration-fast) var(--easing-std);
 }
-.scrollbar-thin::-webkit-scrollbar-thumb:hover { background: rgba(59, 130, 246, 0.55); background-clip: padding-box; }
+.scrollbar-thin::-webkit-scrollbar-thumb:hover { background: rgba(5, 150, 105, 0.55); background-clip: padding-box; }
 .scrollbar-thin { scrollbar-width: thin; scrollbar-color: rgba(161, 168, 181, 0.22) transparent; }
 .light .scrollbar-thin { scrollbar-color: rgba(71, 85, 105, 0.35) transparent; }
 .light .scrollbar-thin::-webkit-scrollbar-thumb { background: rgba(71, 85, 105, 0.30); }
-.light .scrollbar-thin::-webkit-scrollbar-thumb:hover { background: rgba(37, 99, 235, 0.55); }
+.light .scrollbar-thin::-webkit-scrollbar-thumb:hover { background: rgba(5, 150, 105, 0.55); }
 
 ::-webkit-scrollbar              { width: 10px; height: 10px; }
 ::-webkit-scrollbar-thumb {
   background: rgba(161, 168, 181, 0.18); border-radius: 9999px;
   border: 2px solid transparent; background-clip: padding-box;
 }
-::-webkit-scrollbar-thumb:hover { background: rgba(59, 130, 246, 0.50); background-clip: padding-box; }
+::-webkit-scrollbar-thumb:hover { background: rgba(5, 150, 105, 0.50); background-clip: padding-box; }
 * { scrollbar-color: rgba(161, 168, 181, 0.22) transparent; }
 .light * { scrollbar-color: rgba(71, 85, 105, 0.30) transparent; }
 
-/* 4. Subtle background texture on .app-shell — two-stop radial glow. */
+/* 4. Subtle background texture on .app-shell — two-stop radial glow.
+   W63-a — uses the body glow tokens (green + cyan) so the app shell
+   matches the body halo in light mode. */
 .app-shell {
   background-color: var(--bg-base);
   background-image:
-    radial-gradient(circle at 20% 0%, rgba(59, 130, 246, 0.04), transparent 50%),
-    radial-gradient(circle at 80% 100%, rgba(6, 182, 212, 0.03), transparent 55%);
+    radial-gradient(circle at 20% 0%, var(--bg-glow-primary), transparent 50%),
+    radial-gradient(circle at 80% 100%, var(--bg-glow-secondary), transparent 55%);
   background-attachment: fixed;
 }
 .light .app-shell {
   background-image:
-    radial-gradient(circle at 20% 0%, rgba(37, 99, 235, 0.05), transparent 50%),
+    radial-gradient(circle at 20% 0%, rgba(5, 150, 105, 0.05), transparent 50%),
     radial-gradient(circle at 80% 100%, rgba(8, 145, 178, 0.04), transparent 55%);
 }
 
@@ -2840,12 +2857,12 @@ svg[tabindex="0"]:focus-visible,
 .btn-primary {
   box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.20) inset,
               0 1px 2px rgba(0, 0, 0, 0.30),
-              0 4px 12px rgba(59, 130, 246, 0.20);
+              0 4px 12px rgba(5, 150, 105, 0.20);
 }
 .btn-primary:hover {
   box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.25) inset,
               0 2px 4px rgba(0, 0, 0, 0.30),
-              0 6px 18px rgba(59, 130, 246, 0.30);
+              0 6px 18px rgba(5, 150, 105, 0.30);
 }
 .btn-primary:active {
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.30) inset,
@@ -3260,7 +3277,7 @@ summary:focus-visible,
     border: 1px solid transparent; background-clip: padding-box;
   }
   .table-responsive::-webkit-scrollbar-thumb:hover {
-    background: rgba(59,130,246,0.55); background-clip: padding-box;
+    background: rgba(5, 150, 105, 0.55); background-clip: padding-box;
   }
   /* Sticky first column — header sits at z-10, first-cell at z-11,
      corner cell at z-12 so both axes can scroll independently. */
@@ -3473,8 +3490,8 @@ summary:focus-visible,
   100% { background-color: transparent; }
 }
 @keyframes w61c-value-flash-bg {
-  0%   { box-shadow: 0 0 0 0   rgba(59, 130, 246, 0.30); }
-  100% { box-shadow: 0 0 0 6px rgba(59, 130, 246, 0); }
+  0%   { box-shadow: 0 0 0 0   rgba(5, 150, 105, 0.30); }
+  100% { box-shadow: 0 0 0 6px rgba(5, 150, 105, 0); }
 }
 .value-updated.value-up   { animation: w61c-value-flash-up   var(--duration-flash) var(--easing-std); }
 .value-updated.value-down { animation: w61c-value-flash-down var(--duration-flash) var(--easing-std); }
@@ -3764,12 +3781,12 @@ html {
    win via later cascade + `.light` prefix specificity.
    ═══════════════════════════════════════════════════════════════════════════ */
 
-/* 1. Light theme — selection highlight uses a darker accent tint so
+/* 1. Light theme — selection highlight uses a green-tinted accent so
    selected text is still legible on white. Dark mode keeps the W49-1
-   default (rgba(59,130,246,0.35) + white text). */
+   default (rgba(59,130,246,0.35) + white text). W63-a: green accent. */
 .light ::selection,
 .light ::-moz-selection {
-  background: rgba(37, 99, 235, 0.22);
+  background: rgba(5, 150, 105, 0.22);
   color: #0f172a;
   text-shadow: none;
 }
@@ -3807,13 +3824,13 @@ html {
   box-shadow:
     0 1px 0 0 rgba(255, 255, 255, 0.35) inset,
     0 1px 2px rgba(15, 23, 42, 0.18),
-    0 4px 12px rgba(37, 99, 235, 0.30);
+    0 4px 12px rgba(5, 150, 105, 0.30);
 }
 .light .btn-primary:hover {
   box-shadow:
     0 1px 0 0 rgba(255, 255, 255, 0.40) inset,
     0 2px 4px rgba(15, 23, 42, 0.20),
-    0 6px 18px rgba(37, 99, 235, 0.40);
+    0 6px 18px rgba(5, 150, 105, 0.40);
 }
 .light .btn-primary:active {
   box-shadow:
@@ -3832,11 +3849,11 @@ html {
 }
 
 /* 4. Light theme — status-dot halos use the darker light-mode semantic
-   hues (#16a34a / #dc2626 / #d97706) for crisp visibility on white.
+   hues (#059669 / #dc2626 / #d97706) for crisp visibility on white.
    Keyframes can't be scoped by .light, so swap the animation-name to
-   light-specific variants. */
+   light-specific variants. W63-a: green hero color. */
 .light .status-dot.healthy {
-  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.22);
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.22);
   animation: status-dot-live-light 2.4s var(--easing-std) infinite;
 }
 .light .status-dot.connecting {
@@ -3846,16 +3863,16 @@ html {
 .light .status-dot.degraded    { box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.24); }
 .light .status-dot.unavailable { box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.24); }
 @keyframes status-dot-live-light {
-  0%, 100% { box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.22); }
-  50%      { box-shadow: 0 0 0 5px rgba(22, 163, 74, 0.12); }
+  0%, 100% { box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.22); }
+  50%      { box-shadow: 0 0 0 5px rgba(5, 150, 105, 0.12); }
 }
 
-/* 5. Light theme — sidebar-status-dot halo uses darker light green
-   (#16a34a) for visibility on white. The .is-stale variant uses
+/* 5. Light theme — sidebar-status-dot halo uses the new hero green
+   (#059669) for visibility on white. The .is-stale variant uses
    the darker amber (#d97706). */
 .light .sidebar-status-dot {
   background: var(--color-green);
-  box-shadow: 0 0 6px rgba(22, 163, 74, 0.55);
+  box-shadow: 0 0 6px rgba(5, 150, 105, 0.55);
   animation: sidebar-status-pulse-light 2.2s var(--easing-std) infinite;
 }
 .light .sidebar-status-dot.is-stale {
@@ -3864,8 +3881,8 @@ html {
   animation: sidebar-status-pulse-light-stale 1.4s var(--easing-std) infinite;
 }
 @keyframes sidebar-status-pulse-light {
-  0%, 100% { opacity: 1;    box-shadow: 0 0 6px rgba(22, 163, 74, 0.55); }
-  50%      { opacity: 0.60; box-shadow: 0 0 4px rgba(22, 163, 74, 0.30); }
+  0%, 100% { opacity: 1;    box-shadow: 0 0 6px rgba(5, 150, 105, 0.55); }
+  50%      { opacity: 0.60; box-shadow: 0 0 4px rgba(5, 150, 105, 0.30); }
 }
 @keyframes sidebar-status-pulse-light-stale {
   0%, 100% { opacity: 1;    box-shadow: 0 0 6px rgba(217, 119, 6, 0.55); }
@@ -3885,11 +3902,11 @@ html {
   border-radius: var(--radius-md);
 }
 
-/* 7. Light theme — premium scrollbar hover state uses the darker
-   accent (#2563eb) instead of the dark-mode #3b82f6 so the hover
+/* 7. Light theme — premium scrollbar hover state uses the green
+   accent (#059669) instead of the dark-mode blue so the hover
    affordance stays consistent with the rest of the light palette. */
 .light .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-  background: rgba(37, 99, 235, 0.55);
+  background: rgba(5, 150, 105, 0.55);
   background-clip: padding-box;
 }
 

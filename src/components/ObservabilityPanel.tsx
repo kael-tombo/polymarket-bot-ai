@@ -6,8 +6,8 @@
 // by a Prometheus-style registry + structured logging downstream that feeds
 // Grafana dashboards out-of-band.
 //
-// Visual language mirrors SystemHealthView.tsx (dark `#13161e` card surface,
-// `#1f2335` borders, `#dde1ed` primary text) but layers in richer per-metric
+// Visual language mirrors SystemHealthView.tsx (dark `var(--bg-surface)` card surface,
+// `var(--border)` borders, `var(--text-primary)` primary text) but layers in richer per-metric
 // cards with sparklines, severity colour-coding, and a collapsible category
 // section per source bucket. Polls `/api/observability` every 30s and pauses
 // when the document is hidden.
@@ -188,7 +188,7 @@ const CATEGORY_META: CategoryMeta[] = [
     textClass: 'text-blue-400',
     badgeClass: 'badge-blue',
     borderClass: 'border-l-blue-500/50',
-    stroke: '#60a5fa',
+    stroke: 'var(--accent-fg)',
   },
   {
     key: 'bot',
@@ -325,7 +325,7 @@ const TONE: Record<Tone, ToneConfig> = {
   warn:    { bg: 'bg-amber-500/[0.06]',   border: 'border-amber-500/25',   text: 'text-amber-400',   bar: 'bg-amber-500',   dot: 'bg-amber-400',   label: 'text-amber-400/80',   halo: 'shadow-amber-500/10' },
   poor:    { bg: 'bg-red-500/[0.06]',     border: 'border-red-500/25',     text: 'text-red-400',     bar: 'bg-red-500',     dot: 'bg-red-400',     label: 'text-red-400/80',     halo: 'shadow-red-500/10' },
   info:    { bg: 'bg-cyan-500/[0.06]',    border: 'border-cyan-500/25',    text: 'text-cyan-400',    bar: 'bg-cyan-500',    dot: 'bg-cyan-400',    label: 'text-cyan-400/80',    halo: 'shadow-cyan-500/10' },
-  neutral: { bg: 'bg-[#0e1015]',          border: 'border-[#1f2335]',      text: 'text-[#dde1ed]',   bar: 'bg-[#5a637a]',   dot: 'bg-[#5a637a]',   label: 'text-[#7e8aaa]',     halo: '' },
+  neutral: { bg: 'bg-[var(--bg-page)]',          border: 'border-[var(--border)]',      text: 'text-[var(--text-primary)]',   bar: 'bg-[var(--text-secondary)]',   dot: 'bg-[var(--text-secondary)]',   label: 'text-[var(--text-secondary)]',     halo: '' },
 }
 
 /** Map the legacy `Severity` vocabulary onto the W56-e Tone palette. */
@@ -361,7 +361,7 @@ function severityTextClass(s: Severity): string {
     case 'normal':   return 'text-emerald-400'
     case 'warning':  return 'text-amber-400'
     case 'critical': return 'text-red-400'
-    default:         return 'text-[#dde1ed]'
+    default:         return 'text-[var(--text-primary)]'
   }
 }
 
@@ -473,7 +473,7 @@ function Sparkline({
   samples,
   width = 60,
   height = 24,
-  color = '#60a5fa',
+  color = 'var(--accent-fg)',
 }: SparklineProps) {
   // API returns newest-first; we draw oldest→newest (left→right).
   const ordered = samples ? [...samples].reverse() : []
@@ -532,16 +532,16 @@ function SectionHeader({
     <div className="flex items-center justify-between gap-2">
       <div className="flex items-center gap-1.5 min-w-0">
         <Icon className={`size-3.5 shrink-0 ${TONE[tone].text}`} aria-hidden="true" />
-        <span className="text-[10px] uppercase tracking-wider font-bold text-[#dde1ed] truncate">
+        <span className="text-[10px] uppercase tracking-wider font-bold text-[var(--text-primary)] truncate">
           {title}
         </span>
         {description && (
-          <span className="text-[9px] text-[#5a637a] italic truncate hidden md:inline">
+          <span className="text-[9px] text-[var(--text-secondary)] italic truncate hidden md:inline">
             {description}
           </span>
         )}
       </div>
-      {trailing && <span className="shrink-0 text-[10px] text-[#7e8aaa] mono tabular-nums">{trailing}</span>}
+      {trailing && <span className="shrink-0 text-[10px] text-[var(--text-secondary)] mono tabular-nums">{trailing}</span>}
     </div>
   )
 }
@@ -582,7 +582,7 @@ function KpiTile({ label, value, hint, tone, quality, trend, testId }: KpiTilePr
       </div>
       <div className="kpi-sub tabular-nums">{hint}</div>
       {quality != null && quality > 0 && (
-        <div className="h-0.5 bg-[#1f2335] rounded-full mt-1 overflow-hidden">
+        <div className="h-0.5 bg-[var(--border)] rounded-full mt-1 overflow-hidden">
           <div
             className={`h-full rounded-full transition-all duration-500 ${cfg.bar}`}
             style={{ width: `${Math.max(0, Math.min(100, quality))}%` }}
@@ -617,7 +617,7 @@ function PolishedEmptyState({ icon: Icon, title, description, className = '', te
   return (
     <div className={`empty-state py-8 ${className}`} role="status" data-testid={testId ?? 'observability-empty-state'}>
       <span className="empty-state-icon" aria-hidden="true">
-        <Icon className="w-10 h-10 text-[#3e4560]" strokeWidth={1.5} />
+        <Icon className="w-10 h-10 text-[var(--text-dim)]" strokeWidth={1.5} />
       </span>
       <span className="empty-state-title text-sm font-semibold">{title}</span>
       {description && (
@@ -674,17 +674,17 @@ function ErrorCard({
 function ObservabilitySkeleton() {
   return (
     <div
-      className="flex flex-col h-full bg-[#13161e] border border-[#1f2335] rounded-lg overflow-hidden"
+      className="flex flex-col h-full bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg overflow-hidden"
       role="status"
       aria-live="polite"
       aria-label="Loading system observability…"
       data-testid="observability-loading-skeleton"
     >
       {/* Header skeleton */}
-      <div className="flex items-center justify-between p-4 pb-2 border-b border-[#1f2335]">
+      <div className="flex items-center justify-between p-4 pb-2 border-b border-[var(--border)]">
         <div className="flex items-center gap-2">
           <Activity className="w-4 h-4 text-blue-400" aria-hidden="true" />
-          <span className="text-sm font-bold text-[#dde1ed]">System Observability</span>
+          <span className="text-sm font-bold text-[var(--text-primary)]">System Observability</span>
           <span className="badge badge-dim text-[9.5px]">30s poll</span>
         </div>
         <div className="flex items-center gap-2">
@@ -724,7 +724,7 @@ function ObservabilitySkeleton() {
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
               {Array.from({ length: 4 }).map((_, j) => (
-                <div key={j} className="bg-[#0e1015] border border-[#1f2335] rounded-md p-2.5 space-y-2">
+                <div key={j} className="bg-[var(--bg-page)] border border-[var(--border)] rounded-md p-2.5 space-y-2">
                   <ShimmerBlock className="w-3/4" />
                   <div className="h-4 rounded-sm skeleton-line-md" />
                   <ShimmerBlock className="w-1/2" />
@@ -771,7 +771,7 @@ function AlertFeed({
   return (
     <div className="px-4">
       <Collapsible open={open} onOpenChange={setOpen} className={`card border-l-2 ${TONE[tone].border}`}>
-        <CollapsibleTrigger className="w-full flex items-center justify-between p-2.5 cursor-pointer hover:bg-[#1a1f2e]/50 transition-colors">
+        <CollapsibleTrigger className="w-full flex items-center justify-between p-2.5 cursor-pointer hover:bg-[var(--bg-elevated)]/50 transition-colors">
           <SectionHeader
             icon={Bell}
             title="Active Alerts"
@@ -783,7 +783,7 @@ function AlertFeed({
                   {critCount > 0 ? `${critCount} crit` : `${warnCount} warn`}
                 </span>
                 <ChevronDown
-                  className={`size-3.5 text-[#7e8aaa] transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+                  className={`size-3.5 text-[var(--text-secondary)] transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
                   aria-hidden="true"
                 />
               </span>
@@ -793,7 +793,7 @@ function AlertFeed({
         <CollapsibleContent>
           <div className="p-2.5 pt-1 max-h-72 overflow-y-auto scrollbar-thin space-y-1">
             {/* Uppercase header row — mirrors the W53-c metric table pattern */}
-            <div className="grid grid-cols-[1fr_auto_auto] gap-3 px-1 pb-1 mb-1 border-b border-[#1f2335] text-[9.5px] uppercase tracking-wider font-bold text-[#5a637a]">
+            <div className="grid grid-cols-[1fr_auto_auto] gap-3 px-1 pb-1 mb-1 border-b border-[var(--border)] text-[9.5px] uppercase tracking-wider font-bold text-[var(--text-secondary)]">
               <span>Metric</span>
               <span className="text-right">Value</span>
               <span className="text-right w-20">Age</span>
@@ -806,7 +806,7 @@ function AlertFeed({
                   key={`${a.category}:${a.name}`}
                   type="button"
                   onClick={() => onJump?.(a.name)}
-                  className={`w-full text-left grid grid-cols-[1fr_auto_auto] gap-3 items-center px-2 py-1.5 rounded-md bg-[#0e1015] border border-[#1f2335] hover:bg-cyan-500/[0.04] hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.45)] hover:border-[#2d3450] transition-all`}
+                  className={`w-full text-left grid grid-cols-[1fr_auto_auto] gap-3 items-center px-2 py-1.5 rounded-md bg-[var(--bg-page)] border border-[var(--border)] hover:bg-cyan-500/[0.04] hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.45)] hover:border-[var(--border-strong)] transition-all`}
                   title={`${a.name} · ${severityContext(a.name)}`}
                 >
                   <div className="flex items-center gap-1.5 min-w-0">
@@ -824,7 +824,7 @@ function AlertFeed({
                   >
                     {formatMetricValue(a.name, a.value)}
                   </span>
-                  <span className="text-right text-[10px] text-[#7e8aaa] mono tabular-nums w-20" title="Sample age">
+                  <span className="text-right text-[10px] text-[var(--text-secondary)] mono tabular-nums w-20" title="Sample age">
                     {formatAge(a.timestamp)}
                   </span>
                 </button>
@@ -856,10 +856,10 @@ function MetricCard({ name, entry, sev, meta, history }: MetricCardProps) {
   const cfg = TONE[tone]
   // Tone-tinted border for non-neutral metrics so warning/critical cards
   // pop out of the grid without an explicit colour stripe.
-  const toneBorder = tone === 'neutral' ? 'border-[#1f2335]' : cfg.border
+  const toneBorder = tone === 'neutral' ? 'border-[var(--border)]' : cfg.border
   return (
     <div
-      className={`bg-[#0e1015] border ${toneBorder} rounded-md p-2.5 flex flex-col gap-1.5 hover:bg-cyan-500/[0.04] hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.45)] hover:border-[#2d3450] transition-all`}
+      className={`bg-[var(--bg-page)] border ${toneBorder} rounded-md p-2.5 flex flex-col gap-1.5 hover:bg-cyan-500/[0.04] hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.45)] hover:border-[var(--border-strong)] transition-all`}
       data-tone={tone}
     >
       <div className="flex items-center justify-between gap-2">
@@ -887,7 +887,7 @@ function MetricCard({ name, entry, sev, meta, history }: MetricCardProps) {
               {formatMetricValue(name, entry.value)}
             </span>
           </div>
-          <span className="text-[9.5px] text-[#3e4560] mono uppercase tracking-wider mt-0.5">
+          <span className="text-[9.5px] text-[var(--text-dim)] mono uppercase tracking-wider mt-0.5">
             {getUnitLabel(name)}
           </span>
         </div>
@@ -895,7 +895,7 @@ function MetricCard({ name, entry, sev, meta, history }: MetricCardProps) {
             wrapper, which now delegates to @/components/charts Sparkline). */}
         <Sparkline samples={history} color={meta.stroke} />
       </div>
-      <div className="flex items-center justify-between text-[9.5px] text-[#7e8aaa] mt-0.5">
+      <div className="flex items-center justify-between text-[9.5px] text-[var(--text-secondary)] mt-0.5">
         <span className="mono tabular-nums" title="Sample timestamp (UTC)">
           <Clock className="inline-block w-2.5 h-2.5 mr-0.5 -mt-0.5" aria-hidden="true" />
           {formatClock(entry.timestamp)}
@@ -1147,11 +1147,11 @@ export default function ObservabilityPanel() {
 
   if (error && !report) {
     return (
-      <div className="flex flex-col h-full bg-[#13161e] border border-[#1f2335] rounded-lg overflow-hidden">
-        <div className="flex items-center justify-between p-4 pb-2 border-b border-[#1f2335]">
+      <div className="flex flex-col h-full bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg overflow-hidden">
+        <div className="flex items-center justify-between p-4 pb-2 border-b border-[var(--border)]">
           <div className="flex items-center gap-2">
             <Activity className="w-4 h-4 text-blue-400" aria-hidden="true" />
-            <span className="text-sm font-bold text-[#dde1ed]">System Observability</span>
+            <span className="text-sm font-bold text-[var(--text-primary)]">System Observability</span>
             <span className="badge badge-dim text-[9.5px]">30s poll</span>
           </div>
         </div>
@@ -1170,20 +1170,20 @@ export default function ObservabilityPanel() {
 
   if (report && report.metric_count === 0) {
     return (
-      <div className="flex flex-col h-full bg-[#13161e] border border-[#1f2335] rounded-lg overflow-hidden">
-        <div className="flex items-center justify-between p-4 pb-2 border-b border-[#1f2335]">
+      <div className="flex flex-col h-full bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg overflow-hidden">
+        <div className="flex items-center justify-between p-4 pb-2 border-b border-[var(--border)]">
           <div>
             <div className="flex items-center gap-2">
               <Activity className="w-4 h-4 text-blue-400" aria-hidden="true" />
-              <span className="text-sm font-bold text-[#dde1ed]">System Observability</span>
+              <span className="text-sm font-bold text-[var(--text-primary)]">System Observability</span>
               <span className="badge badge-dim text-[9.5px]">30s poll</span>
             </div>
-            <p className="text-xs text-[#7e8aaa] mt-0.5">
+            <p className="text-xs text-[var(--text-secondary)] mt-0.5">
               Auto-collected system metrics · {report.category_count} categories tracked
             </p>
           </div>
         </div>
-        <div className="flex-1 flex flex-col items-center justify-center gap-2 py-12 text-xs text-[#7e8aaa]">
+        <div className="flex-1 flex flex-col items-center justify-center gap-2 py-12 text-xs text-[var(--text-secondary)]">
           <PolishedEmptyState
             icon={Inbox}
             title="No metrics collected yet"
@@ -1205,13 +1205,13 @@ export default function ObservabilityPanel() {
   // ── Render: main panel ─────────────────────────────────────────────────
 
   return (
-    <div className="flex flex-col h-full bg-[#13161e] border border-[#1f2335] rounded-lg overflow-hidden">
+    <div className="flex flex-col h-full bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg overflow-hidden">
       {/* ── Header ─────────────────────────────────────────────────────── */}
-      <header className="flex flex-wrap justify-between items-center gap-2 p-4 pb-2 border-b border-[#1f2335]">
+      <header className="flex flex-wrap justify-between items-center gap-2 p-4 pb-2 border-b border-[var(--border)]">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <Activity className="w-4 h-4 text-blue-400 flex-shrink-0" aria-hidden="true" />
-            <h2 className="text-sm font-bold text-[#dde1ed]">System Observability</h2>
+            <h2 className="text-sm font-bold text-[var(--text-primary)]">System Observability</h2>
             <span className="badge badge-dim text-[9.5px]">30s poll</span>
             {/* W56-e — PulseDot LIVE indicator. Pings emerald when the
                 poller is mid-flight; renders a solid emerald dot when idle
@@ -1228,13 +1228,13 @@ export default function ObservabilityPanel() {
               </span>
             )}
           </div>
-          <p className="text-xs text-[#7e8aaa] mt-0.5 truncate">
+          <p className="text-xs text-[var(--text-secondary)] mt-0.5 truncate">
             Auto-collected metrics · {report?.metric_count ?? 0} metrics ·{' '}
             {populatedCats.size} active categories
           </p>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
-          <label className="flex items-center gap-1.5 text-[10.5px] text-[#7e8aaa] font-semibold uppercase tracking-wider">
+          <label className="flex items-center gap-1.5 text-[10.5px] text-[var(--text-secondary)] font-semibold uppercase tracking-wider">
             <span>Range</span>
             <Select
               value={timeRange}
@@ -1242,22 +1242,22 @@ export default function ObservabilityPanel() {
             >
               <SelectTrigger
                 size="sm"
-                className="h-7 text-xs bg-[#0e1015] border-[#1f2335] text-[#dde1ed] hover:border-[#2d3450] data-[size=sm]:h-7 w-[100px] focus-visible:ring-1 focus-visible:ring-cyan-400/40"
+                className="h-7 text-xs bg-[var(--bg-page)] border-[var(--border)] text-[var(--text-primary)] hover:border-[var(--border-strong)] data-[size=sm]:h-7 w-[100px] focus-visible:ring-1 focus-visible:ring-cyan-400/40"
                 aria-label="Sparkline time range"
               >
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-[#0e1015] border-[#1f2335] text-[#dde1ed]">
-                <SelectItem value="1h" className="text-xs focus:bg-[#1a1f2e] focus:text-[#dde1ed]">
+              <SelectContent className="bg-[var(--bg-page)] border-[var(--border)] text-[var(--text-primary)]">
+                <SelectItem value="1h" className="text-xs focus:bg-[var(--bg-elevated)] focus:text-[var(--text-primary)]">
                   Last 1h
                 </SelectItem>
-                <SelectItem value="6h" className="text-xs focus:bg-[#1a1f2e] focus:text-[#dde1ed]">
+                <SelectItem value="6h" className="text-xs focus:bg-[var(--bg-elevated)] focus:text-[var(--text-primary)]">
                   Last 6h
                 </SelectItem>
-                <SelectItem value="24h" className="text-xs focus:bg-[#1a1f2e] focus:text-[#dde1ed]">
+                <SelectItem value="24h" className="text-xs focus:bg-[var(--bg-elevated)] focus:text-[var(--text-primary)]">
                   Last 24h
                 </SelectItem>
-                <SelectItem value="7d" className="text-xs focus:bg-[#1a1f2e] focus:text-[#dde1ed]">
+                <SelectItem value="7d" className="text-xs focus:bg-[var(--bg-elevated)] focus:text-[var(--text-primary)]">
                   Last 7d
                 </SelectItem>
               </SelectContent>
@@ -1318,14 +1318,14 @@ export default function ObservabilityPanel() {
       {/* ── Filter bar (search + category toggles) ───────────────────── */}
       <div className="flex flex-wrap items-center gap-2 px-4 pb-2">
         <div className="relative flex-1 min-w-[180px] max-w-md">
-          <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-[#7e8aaa] pointer-events-none" aria-hidden="true" />
+          <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-[var(--text-secondary)] pointer-events-none" aria-hidden="true" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search metrics by name…"
             aria-label="Filter metrics by name"
-            className="input input-sm pl-8 bg-[#0e1015] border-[#1f2335] text-[#dde1ed] placeholder:text-[#3e4560] focus-visible:ring-1 focus-visible:ring-cyan-400/40"
+            className="input input-sm pl-8 bg-[var(--bg-page)] border-[var(--border)] text-[var(--text-primary)] placeholder:text-[var(--text-dim)] focus-visible:ring-1 focus-visible:ring-cyan-400/40"
           />
         </div>
         <div className="flex items-center gap-1 flex-wrap" role="group" aria-label="Category filters">
@@ -1385,7 +1385,7 @@ export default function ObservabilityPanel() {
       {/* ── Metric categories (collapsible sections) ──────────────────── */}
       <div className="flex-1 overflow-y-auto scrollbar-thin px-4 pb-4 space-y-2">
         {filteredGroups.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-12 text-xs text-[#7e8aaa] gap-2">
+          <div className="flex flex-col items-center justify-center py-12 text-xs text-[var(--text-secondary)] gap-2">
             <Search className="w-5 h-5 opacity-30" aria-hidden="true" />
             <div>No metrics match the current filter.</div>
             {search && (
@@ -1416,14 +1416,14 @@ export default function ObservabilityPanel() {
               onOpenChange={() => toggleSection(meta.key)}
               className={`card border-l-2 ${meta.borderClass}`}
             >
-              <CollapsibleTrigger className="w-full flex items-center justify-between p-2.5 cursor-pointer hover:bg-[#1a1f2e]/50 transition-colors">
+              <CollapsibleTrigger className="w-full flex items-center justify-between p-2.5 cursor-pointer hover:bg-[var(--bg-elevated)]/50 transition-colors">
                 <div className="flex items-center gap-2 min-w-0">
                   <Icon className={`w-4 h-4 ${meta.textClass}`} aria-hidden="true" />
-                  <span className="text-[10px] uppercase tracking-wider font-bold text-[#dde1ed] truncate">
+                  <span className="text-[10px] uppercase tracking-wider font-bold text-[var(--text-primary)] truncate">
                     {meta.label}
                   </span>
                   <span className="badge badge-dim text-[9px] tabular-nums">{metrics.length}</span>
-                  <span className="text-[9px] text-[#5a637a] italic hidden md:inline truncate">
+                  <span className="text-[9px] text-[var(--text-secondary)] italic hidden md:inline truncate">
                     {metrics.length} metric{metrics.length === 1 ? '' : 's'}
                   </span>
                 </div>
@@ -1434,7 +1434,7 @@ export default function ObservabilityPanel() {
                     </span>
                   )}
                   <ChevronDown
-                    className={`w-4 h-4 text-[#7e8aaa] transition-transform duration-200 ${
+                    className={`w-4 h-4 text-[var(--text-secondary)] transition-transform duration-200 ${
                       isOpen ? 'rotate-180' : ''
                     }`}
                     aria-hidden="true"

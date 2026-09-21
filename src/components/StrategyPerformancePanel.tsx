@@ -209,7 +209,7 @@ const STRATEGY_COLORS = [
   '#a855f7', // purple
   '#ec4899', // pink
   '#84cc16', // lime
-  '#3b82f6', // blue (only used after the first 6 are taken)
+  'var(--accent)', // blue (only used after the first 6 are taken)
   '#f97316', // orange
 ]
 
@@ -264,7 +264,7 @@ const TONE: Record<Tone, ToneConfig> = {
   warn:    { bg: 'bg-amber-500/[0.06]',   border: 'border-amber-500/25',   text: 'text-amber-400',   bar: 'bg-amber-500',   dot: 'bg-amber-400',   label: 'text-amber-400/80',   halo: 'shadow-amber-500/10' },
   poor:    { bg: 'bg-red-500/[0.06]',     border: 'border-red-500/25',     text: 'text-red-400',     bar: 'bg-red-500',     dot: 'bg-red-400',     label: 'text-red-400/80',     halo: 'shadow-red-500/10' },
   info:    { bg: 'bg-cyan-500/[0.06]',    border: 'border-cyan-500/25',   text: 'text-cyan-400',   bar: 'bg-cyan-500',   dot: 'bg-cyan-400',   label: 'text-cyan-400/80',   halo: 'shadow-cyan-500/10' },
-  neutral: { bg: 'bg-[#0e1015]',          border: 'border-[#1f2335]',     text: 'text-[#dde1ed]',   bar: 'bg-[#5a637a]',   dot: 'bg-[#5a637a]',   label: 'text-[#7e8aaa]',      halo: '' },
+  neutral: { bg: 'bg-[var(--bg-base)]',          border: 'border-[var(--border)]',     text: 'text-[var(--text-primary)]',   bar: 'bg-[var(--text-secondary)]',   dot: 'bg-[var(--text-secondary)]',   label: 'text-[var(--text-secondary)]',      halo: '' },
 }
 
 // Tone helpers — map a numeric metric value to a Tone for KPI / row tinting.
@@ -401,9 +401,9 @@ function KpiTile({ label, value, hint, tone, quality, trend, testId }: KpiTilePr
         {trend === 'up' && <TrendingUp className="size-3 inline-block" aria-hidden="true" />}
         {trend === 'down' && <TrendingDown className="size-3 inline-block" aria-hidden="true" />}
       </div>
-      <div className="text-[8.5px] text-[#5a637a] mt-0.5 italic truncate">{hint}</div>
+      <div className="text-[8.5px] text-[var(--text-secondary)] mt-0.5 italic truncate">{hint}</div>
       {quality != null && quality > 0 && (
-        <div className="h-0.5 bg-[#1f2335] rounded-full mt-1 overflow-hidden">
+        <div className="h-0.5 bg-[var(--border)] rounded-full mt-1 overflow-hidden">
           <div
             className={`h-full rounded-full transition-all duration-500 ${cfg.bar}`}
             style={{ width: `${Math.max(0, Math.min(100, quality))}%` }}
@@ -428,7 +428,7 @@ function PolishedEmptyState({ icon: Icon, title, description, className = '', te
   return (
     <div className={`empty-state py-8 ${className}`} role="status" data-testid={testId ?? 'strategy-empty-state'}>
       <span className="empty-state-icon" aria-hidden="true">
-        <Icon className="w-10 h-10 text-[#3e4560]" strokeWidth={1.5} />
+        <Icon className="w-10 h-10 text-[var(--text-dim)]" strokeWidth={1.5} />
       </span>
       <span className="empty-state-title text-sm font-semibold">{title}</span>
       {description && (
@@ -480,13 +480,13 @@ function ComparisonTableSkeleton({ rowCount = 5 }: { rowCount?: number }) {
       aria-label="Loading performance comparison table…"
       data-testid="strategy-table-skeleton"
     >
-      <div className="skeleton-row" style={{ borderBottom: '1px solid #1f2335' }}>
+      <div className="skeleton-row" style={{ borderBottom: '1px solid var(--border)' }}>
         {Array.from({ length: 12 }).map((_, i) => (
           <div key={i} className="skeleton-cell" style={{ height: '18px' }} />
         ))}
       </div>
       {Array.from({ length: rowCount }).map((_, r) => (
-        <div key={r} className="skeleton-row" style={{ borderBottom: '1px solid #1f2335' }}>
+        <div key={r} className="skeleton-row" style={{ borderBottom: '1px solid var(--border)' }}>
           {Array.from({ length: 12 }).map((_, i) => (
             <div
               key={i}
@@ -556,7 +556,7 @@ function PnlValue({ value, className = '', digits = 2 }: PnlValueProps) {
     ? 'text-green-400'
     : isNeg
       ? 'text-red-400'
-      : 'text-[#7e8aaa]'
+      : 'text-[var(--text-secondary)]'
   return (
     <span
       className={`mono font-semibold tabular-nums ${cls} ${className}`}
@@ -577,14 +577,14 @@ interface StatTileProps {
 function StatTile({ label, value, valueClass = '', hint }: StatTileProps) {
   return (
     <div
-      className="flex flex-col gap-0.5 px-2.5 py-1.5 bg-[#0e1015] rounded border border-[#1f2335]"
+      className="flex flex-col gap-0.5 px-2.5 py-1.5 bg-[var(--bg-base)] rounded border border-[var(--border)]"
       data-testid="stat-tile"
     >
-      <span className="text-[9px] uppercase tracking-wider text-[#5a637a] font-bold">
+      <span className="text-[9px] uppercase tracking-wider text-[var(--text-secondary)] font-bold">
         {label}
       </span>
       <span className={`mono text-xs font-bold tabular-nums ${valueClass}`}>{value}</span>
-      {hint && <span className="text-[9px] text-[#5a637a] tabular-nums">{hint}</span>}
+      {hint && <span className="text-[9px] text-[var(--text-secondary)] tabular-nums">{hint}</span>}
     </div>
   )
 }
@@ -600,15 +600,15 @@ function StrategyCard({ row, color, onToggle, toggling }: StrategyCardProps) {
   const implemented = row.status === 'IMPLEMENTED'
   return (
     <Card
-      className={`bg-[#141724] border rounded-lg overflow-hidden ${
+      className={`bg-[var(--bg-surface)] border rounded-lg overflow-hidden ${
         row.is_running && implemented
           ? 'border-blue-500/40 shadow-sm shadow-blue-500/10'
-          : 'border-[#1f2335]'
+          : 'border-[var(--border)]'
       }`}
       data-testid="strategy-card"
       data-strategy-id={row.strategy_id}
     >
-      <CardHeader className="px-3 py-2.5 border-b border-[#1f2335]">
+      <CardHeader className="px-3 py-2.5 border-b border-[var(--border)]">
         <div className="flex justify-between items-start gap-2">
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5 mb-0.5">
@@ -617,11 +617,11 @@ function StrategyCard({ row, color, onToggle, toggling }: StrategyCardProps) {
                 style={{ backgroundColor: color }}
                 aria-hidden="true"
               />
-              <span className="font-semibold text-xs text-[#dde1ed] truncate">
+              <span className="font-semibold text-xs text-[var(--text-primary)] truncate">
                 {row.name}
               </span>
             </div>
-            <span className="mono text-[9.5px] text-[#7e8aaa] block truncate tabular-nums">
+            <span className="mono text-[9.5px] text-[var(--text-secondary)] block truncate tabular-nums">
               {row.strategy_id} · v{row.version}
             </span>
           </div>
@@ -636,7 +636,7 @@ function StrategyCard({ row, color, onToggle, toggling }: StrategyCardProps) {
       <CardContent className="px-3 py-2.5 space-y-2">
         {/* Top row: P&L headline */}
         <div className="flex items-baseline justify-between gap-2">
-          <span className="text-[10px] uppercase tracking-wider text-[#5a637a] font-bold">
+          <span className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] font-bold">
             Net P&amp;L
           </span>
           <PnlValue value={row.net_pnl} className="text-base" />
@@ -664,7 +664,7 @@ function StrategyCard({ row, color, onToggle, toggling }: StrategyCardProps) {
             value={row.profit_factor === null ? '—' : row.profit_factor.toFixed(2)}
             valueClass={
               row.profit_factor === null
-                ? 'text-[#7e8aaa]'
+                ? 'text-[var(--text-secondary)]'
                 : row.profit_factor >= 1.5
                   ? 'text-green-400'
                   : row.profit_factor >= 1
@@ -684,7 +684,7 @@ function StrategyCard({ row, color, onToggle, toggling }: StrategyCardProps) {
             value={fmtNum(row.sharpe_ratio)}
             valueClass={
               row.sharpe_ratio === null
-                ? 'text-[#7e8aaa]'
+                ? 'text-[var(--text-secondary)]'
                 : row.sharpe_ratio >= 1.5
                   ? 'text-green-400'
                   : row.sharpe_ratio >= 0.5
@@ -706,17 +706,17 @@ function StrategyCard({ row, color, onToggle, toggling }: StrategyCardProps) {
         </div>
 
         {/* Toggle */}
-        <div className="flex justify-between items-center pt-1.5 border-t border-[#1f2335] gap-2">
+        <div className="flex justify-between items-center pt-1.5 border-t border-[var(--border)] gap-2">
           <div className="flex items-center gap-1.5 min-w-0">
             <RiskLevelBadge level={row.risk_level} />
-            <span className="text-[9.5px] text-[#7e8aaa] uppercase mono truncate">
+            <span className="text-[9.5px] text-[var(--text-secondary)] uppercase mono truncate">
               {row.category.replace('_', ' ')}
             </span>
           </div>
           <div className="flex items-center gap-1.5 shrink-0">
             <span
               className={`text-[9.5px] mono font-semibold ${
-                row.is_enabled ? 'text-green-400' : 'text-[#7e8aaa]'
+                row.is_enabled ? 'text-green-400' : 'text-[var(--text-secondary)]'
               }`}
             >
               {row.is_enabled ? 'Enabled' : 'Disabled'}
@@ -731,7 +731,7 @@ function StrategyCard({ row, color, onToggle, toggling }: StrategyCardProps) {
           </div>
         </div>
         {!implemented && (
-          <div className="text-[9px] text-[#5a637a] italic">
+          <div className="text-[9px] text-[var(--text-secondary)] italic">
             Research stub — toggle disabled (no execution loop)
           </div>
         )}
@@ -950,7 +950,7 @@ function PerformanceTable({ rows, colors }: PerformanceTableProps) {
 
   const renderSortHeader = (k: SortKey, children: React.ReactNode, align: 'left' | 'right' = 'right') => (
     <TableHead
-      className="cursor-pointer select-none hover:bg-[#1a1e2c] text-[10px] uppercase tracking-wider text-[#7e8aaa] font-bold tabular-nums"
+      className="cursor-pointer select-none hover:bg-[var(--bg-elevated)] text-[10px] uppercase tracking-wider text-[var(--text-secondary)] font-bold tabular-nums"
       onClick={() => handleSort(k)}
       style={{ textAlign: align }}
     >
@@ -964,8 +964,8 @@ function PerformanceTable({ rows, colors }: PerformanceTableProps) {
   return (
     <div className="max-h-96 overflow-y-auto scrollbar-thin" data-testid="performance-table">
       <Table>
-        <TableHeader className="sticky top-0 bg-[#0e1015] z-10">
-          <TableRow className="border-[#1f2335] hover:bg-transparent">
+        <TableHeader className="sticky top-0 bg-[var(--bg-base)] z-10">
+          <TableRow className="border-[var(--border)] hover:bg-transparent">
             {renderSortHeader('name', 'Strategy', 'left')}
             {renderSortHeader('status', 'Status', 'left')}
             {renderSortHeader('net_pnl', 'Net P&L')}
@@ -982,11 +982,11 @@ function PerformanceTable({ rows, colors }: PerformanceTableProps) {
         </TableHeader>
         <TableBody>
           {sorted.map((r) => {
-            const color = colors[r.strategy_id] ?? '#7e8aaa'
+            const color = colors[r.strategy_id] ?? 'var(--text-secondary)'
             return (
               <TableRow
                 key={r.strategy_id}
-                className="border-[#1f2335] hover:bg-[#141724] text-xs border-l-2 border-l-transparent hover:border-l-cyan-400/60 transition-colors"
+                className="border-[var(--border)] hover:bg-[var(--bg-surface)] text-xs border-l-2 border-l-transparent hover:border-l-cyan-400/60 transition-colors"
                 data-testid="performance-table-row"
               >
                 <TableCell className="py-1.5 px-2">
@@ -997,10 +997,10 @@ function PerformanceTable({ rows, colors }: PerformanceTableProps) {
                       aria-hidden="true"
                     />
                     <div className="min-w-0">
-                      <div className="text-[11px] text-[#dde1ed] font-semibold truncate">
+                      <div className="text-[11px] text-[var(--text-primary)] font-semibold truncate">
                         {r.name}
                       </div>
-                      <div className="mono text-[9px] text-[#7e8aaa] truncate">
+                      <div className="mono text-[9px] text-[var(--text-secondary)] truncate">
                         {r.strategy_id}
                       </div>
                     </div>
@@ -1012,31 +1012,31 @@ function PerformanceTable({ rows, colors }: PerformanceTableProps) {
                 <TableCell className="py-1.5 px-2 text-right mono tabular-nums">
                   <PnlValue value={r.net_pnl} />
                 </TableCell>
-                <TableCell className="py-1.5 px-2 text-right mono tabular-nums text-[#dde1ed]">
+                <TableCell className="py-1.5 px-2 text-right mono tabular-nums text-[var(--text-primary)]">
                   {fmtPct(r.win_rate, 0)}
                 </TableCell>
-                <TableCell className="py-1.5 px-2 text-right mono tabular-nums text-[#dde1ed]">
+                <TableCell className="py-1.5 px-2 text-right mono tabular-nums text-[var(--text-primary)]">
                   {r.profit_factor === null ? '—' : r.profit_factor.toFixed(2)}
                 </TableCell>
                 <TableCell className={`py-1.5 px-2 text-right mono tabular-nums ${r.expectancy >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                   {fmtNum(r.expectancy)}
                 </TableCell>
-                <TableCell className={`py-1.5 px-2 text-right mono tabular-nums ${r.sharpe_ratio === null ? 'text-[#7e8aaa]' : r.sharpe_ratio >= 1 ? 'text-green-400' : r.sharpe_ratio >= 0 ? 'text-amber-400' : 'text-red-400'}`}>
+                <TableCell className={`py-1.5 px-2 text-right mono tabular-nums ${r.sharpe_ratio === null ? 'text-[var(--text-secondary)]' : r.sharpe_ratio >= 1 ? 'text-green-400' : r.sharpe_ratio >= 0 ? 'text-amber-400' : 'text-red-400'}`}>
                   {fmtNum(r.sharpe_ratio)}
                 </TableCell>
-                <TableCell className={`py-1.5 px-2 text-right mono tabular-nums ${r.sortino_ratio === null ? 'text-[#7e8aaa]' : r.sortino_ratio >= 1 ? 'text-green-400' : r.sortino_ratio >= 0 ? 'text-amber-400' : 'text-red-400'}`}>
+                <TableCell className={`py-1.5 px-2 text-right mono tabular-nums ${r.sortino_ratio === null ? 'text-[var(--text-secondary)]' : r.sortino_ratio >= 1 ? 'text-green-400' : r.sortino_ratio >= 0 ? 'text-amber-400' : 'text-red-400'}`}>
                   {fmtNum(r.sortino_ratio)}
                 </TableCell>
-                <TableCell className={`py-1.5 px-2 text-right mono tabular-nums ${r.calmar_ratio === null ? 'text-[#7e8aaa]' : r.calmar_ratio >= 1 ? 'text-green-400' : r.calmar_ratio >= 0 ? 'text-amber-400' : 'text-red-400'}`}>
+                <TableCell className={`py-1.5 px-2 text-right mono tabular-nums ${r.calmar_ratio === null ? 'text-[var(--text-secondary)]' : r.calmar_ratio >= 1 ? 'text-green-400' : r.calmar_ratio >= 0 ? 'text-amber-400' : 'text-red-400'}`}>
                   {fmtNum(r.calmar_ratio)}
                 </TableCell>
                 <TableCell className="py-1.5 px-2 text-right mono tabular-nums text-red-400">
                   {r.max_drawdown > 0 ? `−${r.max_drawdown.toFixed(2)}` : '—'}
                 </TableCell>
-                <TableCell className="py-1.5 px-2 text-right mono tabular-nums text-[#dde1ed]">
+                <TableCell className="py-1.5 px-2 text-right mono tabular-nums text-[var(--text-primary)]">
                   {r.closed_trades}
                 </TableCell>
-                <TableCell className="py-1.5 px-2 text-right mono tabular-nums text-[#7e8aaa]">
+                <TableCell className="py-1.5 px-2 text-right mono tabular-nums text-[var(--text-secondary)]">
                   {fmtHours(r.avg_hold_hours)}
                 </TableCell>
               </TableRow>
@@ -1093,7 +1093,7 @@ function RiskRankingPanel({ rows }: RiskRankingPanelProps) {
             className={`px-2 py-1 text-[10px] font-semibold rounded border transition-colors ${
               metric === m.id
                 ? 'bg-cyan-500/15 text-cyan-300 border-cyan-500/40'
-                : 'bg-[#0e1015] text-[#7e8aaa] border-[#1f2335] hover:border-[#2d3450]'
+                : 'bg-[var(--bg-base)] text-[var(--text-secondary)] border-[var(--border)] hover:border-[var(--border-strong)]'
             }`}
             aria-pressed={metric === m.id}
             title={m.help}
@@ -1102,7 +1102,7 @@ function RiskRankingPanel({ rows }: RiskRankingPanelProps) {
           </button>
         ))}
       </div>
-      <div className="text-[9.5px] text-[#5a637a] mb-2">{activeMetric.help}</div>
+      <div className="text-[9.5px] text-[var(--text-secondary)] mb-2">{activeMetric.help}</div>
       <div className="space-y-1">
         {ranked.length === 0 && (
           <PolishedEmptyState
@@ -1118,7 +1118,7 @@ function RiskRankingPanel({ rows }: RiskRankingPanelProps) {
           const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`
           const valCls =
             value === null
-              ? 'text-[#7e8aaa]'
+              ? 'text-[var(--text-secondary)]'
               : value >= 1
                 ? 'text-green-400'
                 : value >= 0
@@ -1127,20 +1127,20 @@ function RiskRankingPanel({ rows }: RiskRankingPanelProps) {
           return (
             <div
               key={r.strategy_id}
-              className="flex items-center justify-between bg-[#0e1015] px-2.5 py-1.5 rounded border border-[#1f2335] hover:border-cyan-500/30 transition-colors text-xs border-l-2 border-l-transparent hover:border-l-cyan-400/60"
+              className="flex items-center justify-between bg-[var(--bg-base)] px-2.5 py-1.5 rounded border border-[var(--border)] hover:border-cyan-500/30 transition-colors text-xs border-l-2 border-l-transparent hover:border-l-cyan-400/60"
               data-testid="risk-ranking-row"
             >
               <div className="flex items-center gap-2 min-w-0">
                 <span className="w-5 text-center text-xs font-bold shrink-0 tabular-nums">{medal}</span>
-                <span className="truncate font-semibold text-[#dde1ed] text-[11px]">
+                <span className="truncate font-semibold text-[var(--text-primary)] text-[11px]">
                   {r.name}
                 </span>
-                <span className="mono text-[9px] text-[#7e8aaa] truncate hidden md:inline">
+                <span className="mono text-[9px] text-[var(--text-secondary)] truncate hidden md:inline">
                   {r.strategy_id}
                 </span>
               </div>
               <div className="flex items-center gap-2 shrink-0">
-                <span className="text-[9.5px] text-[#7e8aaa] mono tabular-nums">
+                <span className="text-[9.5px] text-[var(--text-secondary)] mono tabular-nums">
                   {r.closed_trades}T
                 </span>
                 <span className={`mono font-bold text-xs tabular-nums ${valCls}`}>
@@ -1350,15 +1350,15 @@ export default function StrategyPerformancePanel() {
   if (loading && !data) {
     return (
       <div
-        className="flex flex-col h-full bg-[#13161e] border border-[#1f2335] rounded-lg overflow-hidden"
+        className="flex flex-col h-full bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg overflow-hidden"
         role="status"
         aria-live="polite"
         aria-label="Loading strategy performance…"
         data-testid="strategy-performance-panel"
       >
-        <div className="card-header px-3.5 py-2.5 border-b border-[#1f2335] flex items-center gap-2 bg-[#0e1015]/80">
+        <div className="card-header px-3.5 py-2.5 border-b border-[var(--border)] flex items-center gap-2 bg-[var(--bg-base)]/80">
           <span className="spinner" aria-hidden="true" />
-          <span className="text-xs font-bold text-[#dde1ed] tracking-wide">
+          <span className="text-xs font-bold text-[var(--text-primary)] tracking-wide">
             Loading Strategy Performance…
           </span>
         </div>
@@ -1370,7 +1370,7 @@ export default function StrategyPerformancePanel() {
   if (error && !data) {
     return (
       <div
-        className="flex flex-col h-full bg-[#13161e] border border-[#1f2335] rounded-lg overflow-hidden p-4"
+        className="flex flex-col h-full bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg overflow-hidden p-4"
         data-testid="strategy-performance-panel"
       >
         <ErrorState message={error} onRetry={fetchPerformance} />
@@ -1380,19 +1380,19 @@ export default function StrategyPerformancePanel() {
 
   return (
     <div
-      className="flex flex-col h-full bg-[#13161e] border border-[#1f2335] rounded-lg overflow-hidden overflow-y-auto scrollbar-thin p-4 space-y-4"
+      className="flex flex-col h-full bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg overflow-hidden overflow-y-auto scrollbar-thin p-4 space-y-4"
       data-testid="strategy-performance-panel"
     >
       {/* ── Header ─────────────────────────────────────────────────────── */}
-      <div className="flex flex-wrap justify-between items-center pb-2 border-b border-[#1f2335] gap-2">
+      <div className="flex flex-wrap justify-between items-center pb-2 border-b border-[var(--border)] gap-2">
         <div>
           <div className="flex items-center gap-2">
             <LayoutGrid size={18} className="text-cyan-400" aria-hidden="true" />
-            <span className="text-sm font-bold text-[#dde1ed]">
+            <span className="text-sm font-bold text-[var(--text-primary)]">
               Strategy Performance Dashboard
             </span>
           </div>
-          <p className="text-xs text-[#7e8aaa]">
+          <p className="text-xs text-[var(--text-secondary)]">
             Per-strategy P&amp;L · win rate · Sharpe / Sortino / Calmar · equity overlay · risk-adjusted ranking
           </p>
         </div>
@@ -1406,7 +1406,7 @@ export default function StrategyPerformancePanel() {
             variant="outline"
             size="sm"
             onClick={fetchPerformance}
-            className="h-7 px-2 text-xs border-[#1f2335] text-[#7e8aaa] hover:text-white hover:border-[#2d3450]"
+            className="h-7 px-2 text-xs border-[var(--border)] text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-strong)]"
             aria-label="Refresh strategy performance"
             disabled={togglingId !== null}
           >
@@ -1444,10 +1444,10 @@ export default function StrategyPerformancePanel() {
       <section>
         <div className="flex items-center gap-1.5 mb-2">
           <Trophy size={12} className="text-amber-400" aria-hidden="true" />
-          <h2 className="text-xs font-bold text-[#dde1ed] uppercase tracking-wider">
+          <h2 className="text-xs font-bold text-[var(--text-primary)] uppercase tracking-wider">
             Risk-Adjusted KPIs
           </h2>
-          <span className="text-[9.5px] text-[#7e8aaa]">
+          <span className="text-[9.5px] text-[var(--text-secondary)]">
             (across {implementedRows.length} implemented strategies)
           </span>
         </div>
@@ -1494,11 +1494,11 @@ export default function StrategyPerformancePanel() {
       {/* ── Strategy Overview Cards ─────────────────────────────────────── */}
       <section>
         <div className="flex items-center gap-1.5 mb-2">
-          <LayoutGrid size={12} className="text-[#7e8aaa]" aria-hidden="true" />
-          <h2 className="text-xs font-bold text-[#dde1ed] uppercase tracking-wider">
+          <LayoutGrid size={12} className="text-[var(--text-secondary)]" aria-hidden="true" />
+          <h2 className="text-xs font-bold text-[var(--text-primary)] uppercase tracking-wider">
             Strategy Overview
           </h2>
-          <span className="text-[9.5px] text-[#7e8aaa]">
+          <span className="text-[9.5px] text-[var(--text-secondary)]">
             ({activeRows.length} strategies with activity)
           </span>
         </div>
@@ -1517,7 +1517,7 @@ export default function StrategyPerformancePanel() {
             <StrategyCard
               key={r.strategy_id}
               row={r}
-              color={colorMap[r.strategy_id] ?? '#7e8aaa'}
+              color={colorMap[r.strategy_id] ?? 'var(--text-secondary)'}
               onToggle={handleToggle}
               toggling={togglingId === r.strategy_id}
             />
@@ -1527,11 +1527,11 @@ export default function StrategyPerformancePanel() {
 
       {/* ── Attribution + Risk-Adjusted Ranking ────────────────────────── */}
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <Card className="lg:col-span-2 bg-[#13161e] border-[#1f2335]">
-          <CardHeader className="px-4 py-3 border-b border-[#1f2335]">
+        <Card className="lg:col-span-2 bg-[var(--bg-surface)] border-[var(--border)]">
+          <CardHeader className="px-4 py-3 border-b border-[var(--border)]">
             <div className="flex items-center gap-2">
               <BarChart3 size={14} className="text-cyan-400" aria-hidden="true" />
-              <CardTitle className="text-xs font-bold text-[#dde1ed] uppercase tracking-wider">
+              <CardTitle className="text-xs font-bold text-[var(--text-primary)] uppercase tracking-wider">
                 P&amp;L Attribution by Strategy
               </CardTitle>
             </div>
@@ -1541,11 +1541,11 @@ export default function StrategyPerformancePanel() {
           </CardContent>
         </Card>
 
-        <Card className="bg-[#13161e] border-[#1f2335]">
-          <CardHeader className="px-4 py-3 border-b border-[#1f2335]">
+        <Card className="bg-[var(--bg-surface)] border-[var(--border)]">
+          <CardHeader className="px-4 py-3 border-b border-[var(--border)]">
             <div className="flex items-center gap-2">
               <Trophy size={14} className="text-amber-400" aria-hidden="true" />
-              <CardTitle className="text-xs font-bold text-[#dde1ed] uppercase tracking-wider">
+              <CardTitle className="text-xs font-bold text-[var(--text-primary)] uppercase tracking-wider">
                 Risk-Adjusted Ranking
               </CardTitle>
             </div>
@@ -1558,11 +1558,11 @@ export default function StrategyPerformancePanel() {
 
       {/* ── Equity Curves Overlay ──────────────────────────────────────── */}
       <section>
-        <Card className="bg-[#13161e] border-[#1f2335]">
-          <CardHeader className="px-4 py-3 border-b border-[#1f2335]">
+        <Card className="bg-[var(--bg-surface)] border-[var(--border)]">
+          <CardHeader className="px-4 py-3 border-b border-[var(--border)]">
             <div className="flex items-center gap-2">
               <LineChartIcon size={14} className="text-green-400" aria-hidden="true" />
-              <CardTitle className="text-xs font-bold text-[#dde1ed] uppercase tracking-wider">
+              <CardTitle className="text-xs font-bold text-[var(--text-primary)] uppercase tracking-wider">
                 Equity Curves Overlay (cumulative P&amp;L)
               </CardTitle>
             </div>
@@ -1575,14 +1575,14 @@ export default function StrategyPerformancePanel() {
 
       {/* ── Performance Comparison Table ───────────────────────────────── */}
       <section>
-        <Card className="bg-[#13161e] border-[#1f2335]">
-          <CardHeader className="px-4 py-3 border-b border-[#1f2335]">
+        <Card className="bg-[var(--bg-surface)] border-[var(--border)]">
+          <CardHeader className="px-4 py-3 border-b border-[var(--border)]">
             <div className="flex items-center gap-2">
               <Table2 size={14} className="text-cyan-400" aria-hidden="true" />
-              <CardTitle className="text-xs font-bold text-[#dde1ed] uppercase tracking-wider">
+              <CardTitle className="text-xs font-bold text-[var(--text-primary)] uppercase tracking-wider">
                 Performance Comparison
               </CardTitle>
-              <span className="text-[9.5px] text-[#7e8aaa] ml-auto">
+              <span className="text-[9.5px] text-[var(--text-secondary)] ml-auto">
                 Click any column header to sort
               </span>
             </div>
@@ -1594,7 +1594,7 @@ export default function StrategyPerformancePanel() {
       </section>
 
       {/* ── Footer ─────────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between text-[9.5px] text-[#5a637a] pt-1 border-t border-[#1f2335]">
+      <div className="flex items-center justify-between text-[9.5px] text-[var(--text-secondary)] pt-1 border-t border-[var(--border)]">
         <span className="flex items-center gap-1">
           <Power size={10} aria-hidden="true" />
           Toggle POST {TOGGLE_ENDPOINT} · metrics GET {PERF_ENDPOINT}

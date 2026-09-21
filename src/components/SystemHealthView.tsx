@@ -82,7 +82,7 @@ const TONE: Record<Tone, ToneConfig> = {
   warn:    { bg: 'bg-amber-500/[0.06]',   border: 'border-amber-500/25',   text: 'text-amber-400',   bar: 'bg-amber-500',   dot: 'bg-amber-400',   label: 'text-amber-400/80',   halo: 'shadow-amber-500/10' },
   poor:    { bg: 'bg-red-500/[0.06]',     border: 'border-red-500/25',     text: 'text-red-400',     bar: 'bg-red-500',     dot: 'bg-red-400',     label: 'text-red-400/80',     halo: 'shadow-red-500/10' },
   info:    { bg: 'bg-cyan-500/[0.06]',    border: 'border-cyan-500/25',   text: 'text-cyan-400',   bar: 'bg-cyan-500',   dot: 'bg-cyan-400',   label: 'text-cyan-400/80',   halo: 'shadow-cyan-500/10' },
-  neutral: { bg: 'bg-[#0e1015]',          border: 'border-[#1f2335]',     text: 'text-[#dde1ed]',   bar: 'bg-[#5a637a]',   dot: 'bg-[#5a637a]',   label: 'text-[#7e8aaa]',      halo: '' },
+  neutral: { bg: 'bg-[var(--bg-page)]',          border: 'border-[var(--border)]',     text: 'text-[var(--text-primary)]',   bar: 'bg-[var(--text-secondary)]',   dot: 'bg-[var(--text-secondary)]',   label: 'text-[var(--text-secondary)]',      halo: '' },
 }
 
 // ── Tone helpers ────────────────────────────────────────────────────────────
@@ -166,16 +166,16 @@ function SectionHeader({
     <div className="flex items-center justify-between gap-2 mb-2">
       <div className="flex items-center gap-1.5 min-w-0">
         <Icon className={`size-3.5 shrink-0 ${TONE[tone].text}`} aria-hidden="true" />
-        <span className="text-[10px] uppercase tracking-wider font-bold text-[#dde1ed] truncate">
+        <span className="text-[10px] uppercase tracking-wider font-bold text-[var(--text-primary)] truncate">
           {title}
         </span>
         {description && (
-          <span className="text-[9px] text-[#5a637a] italic truncate hidden md:inline">
+          <span className="text-[9px] text-[var(--text-secondary)] italic truncate hidden md:inline">
             {description}
           </span>
         )}
       </div>
-      {trailing && <span className="shrink-0 text-[10px] text-[#7e8aaa] mono">{trailing}</span>}
+      {trailing && <span className="shrink-0 text-[10px] text-[var(--text-secondary)] mono">{trailing}</span>}
     </div>
   )
 }
@@ -220,7 +220,7 @@ function KpiTile({ label, value, hint, tone, icon: Icon, quality, trend, testId 
       </div>
       <div className="kpi-sub tabular-nums">{hint}</div>
       {quality != null && quality > 0 && (
-        <div className="h-0.5 bg-[#1f2335] rounded-full mt-1 overflow-hidden">
+        <div className="h-0.5 bg-[var(--border)] rounded-full mt-1 overflow-hidden">
           <div
             className={`h-full rounded-full transition-all duration-500 ${cfg.bar}`}
             style={{ width: `${Math.max(0, Math.min(100, quality))}%` }}
@@ -248,7 +248,7 @@ function ShimmerBlock({ className = '' }: { className?: string }) {
 function SystemHealthSkeleton() {
   return (
     <div
-      className="card flex flex-col bg-[#13161e] border border-[#1f2335] rounded-lg overflow-hidden p-4 space-y-3 overflow-y-auto scrollbar-thin"
+      className="card flex flex-col bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg overflow-hidden p-4 space-y-3 overflow-y-auto scrollbar-thin"
       role="status"
       aria-live="polite"
       data-testid="system-health-loading-skeleton"
@@ -256,15 +256,15 @@ function SystemHealthSkeleton() {
       {/* Header skeleton — title preserved verbatim so getByText resolves
           across the loading / loaded branches (mirrors the W55-a
           LeaderboardPanel unified-header pattern). */}
-      <div className="flex flex-wrap justify-between items-center pb-2 border-b border-[#1f2335] gap-2">
+      <div className="flex flex-wrap justify-between items-center pb-2 border-b border-[var(--border)] gap-2">
         <div>
           <div className="flex items-center gap-2">
             <span className="text-lg" aria-hidden="true">🩺</span>
-            <span className="text-sm font-bold text-[#dde1ed]">
+            <span className="text-sm font-bold text-[var(--text-primary)]">
               Platform Subsystem Health &amp; Process Telemetry
             </span>
           </div>
-          <p className="text-xs text-[#7e8aaa]">
+          <p className="text-xs text-[var(--text-secondary)]">
             Order Book Poller, Supervisor Watchdog, TimescaleDB Storage &amp; Risk Sizing ($100 Operating / $200 Ceiling)
           </p>
         </div>
@@ -276,7 +276,7 @@ function SystemHealthSkeleton() {
 
       {/* Loading caption — text preserved verbatim so the W22-1 test
           contract `getByText(/Gathering pipeline health/)` resolves. */}
-      <div className="text-[10.5px] text-[#7e8aaa] flex items-center gap-2 pb-1">
+      <div className="text-[10.5px] text-[var(--text-secondary)] flex items-center gap-2 pb-1">
         <span className="spinner" aria-hidden="true" />
         <span>Gathering pipeline health &amp; supervisor telemetry…</span>
       </div>
@@ -293,8 +293,8 @@ function SystemHealthSkeleton() {
       </div>
 
       {/* Services table skeleton */}
-      <div className="card p-3 bg-[#0e1015] border border-[#1f2335] space-y-2">
-        <div className="flex items-center justify-between pb-1.5 border-b border-[#1f2335]">
+      <div className="card p-3 bg-[var(--bg-page)] border border-[var(--border)] space-y-2">
+        <div className="flex items-center justify-between pb-1.5 border-b border-[var(--border)]">
           <ShimmerBlock className="w-44" />
           <ShimmerBlock className="w-20" />
         </div>
@@ -328,7 +328,7 @@ function PolishedEmptyState() {
         strokeWidth={1.5}
         aria-hidden="true"
       />
-      <span className="empty-state-title text-sm font-semibold text-[#dde1ed]">
+      <span className="empty-state-title text-sm font-semibold text-[var(--text-primary)]">
         System health telemetry endpoint unavailable.
       </span>
       <span className="empty-state-desc text-xs max-w-sm text-center">
@@ -446,7 +446,7 @@ export default function SystemHealthView() {
   if (!health) {
     return (
       <div
-        className="flex flex-col items-center justify-center h-full text-xs text-[#7e8aaa] gap-3 px-4 py-8 bg-[#13161e] border border-[#1f2335] rounded-lg overflow-y-auto scrollbar-thin"
+        className="flex flex-col items-center justify-center h-full text-xs text-[var(--text-secondary)] gap-3 px-4 py-8 bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg overflow-y-auto scrollbar-thin"
         role="alert"
       >
         <PolishedEmptyState />
@@ -468,21 +468,21 @@ export default function SystemHealthView() {
   const driftTileTone = driftTone(health.ml_engine.psi_drift)
 
   return (
-    <div className="flex flex-col h-full bg-[#13161e] border border-[#1f2335] rounded-lg overflow-hidden p-4 space-y-3 overflow-y-auto scrollbar-thin">
+    <div className="flex flex-col h-full bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg overflow-hidden p-4 space-y-3 overflow-y-auto scrollbar-thin">
       {/* Top Header — title text "Platform Subsystem Health & Process
           Telemetry" preserved verbatim as a leaf text node so the W22-1
           test contract `getByText(/Platform Subsystem Health & Process
           Telemetry/)` resolves. The 🩺 emoji is preserved as a sibling
           span so it doesn't pollute the title's text node. */}
-      <div className="flex flex-wrap justify-between items-center pb-2 border-b border-[#1f2335] gap-2">
+      <div className="flex flex-wrap justify-between items-center pb-2 border-b border-[var(--border)] gap-2">
         <div>
           <div className="flex items-center gap-2">
             <span className="text-lg" aria-hidden="true">🩺</span>
-            <span className="text-sm font-bold text-[#dde1ed]">
+            <span className="text-sm font-bold text-[var(--text-primary)]">
               Platform Subsystem Health &amp; Process Telemetry
             </span>
           </div>
-          <p className="text-xs text-[#7e8aaa]">
+          <p className="text-xs text-[var(--text-secondary)]">
             Order Book Poller, Supervisor Watchdog, TimescaleDB Storage &amp; Risk Sizing ($100 Operating / $200 Ceiling)
           </p>
         </div>
@@ -568,7 +568,7 @@ export default function SystemHealthView() {
       </div>
 
       {/* ── Supervised Processes table ──────────────────────────────────── */}
-      <div className="card p-3 bg-[#0e1015] border border-[#1f2335]">
+      <div className="card p-3 bg-[var(--bg-page)] border border-[var(--border)]">
         <SectionHeader
           icon={ServerCog}
           title="Supervised Processes & Loops"
@@ -584,7 +584,7 @@ export default function SystemHealthView() {
         {/* Uppercase header row — tabular-nums on numeric columns so
             values align cleanly when the trader scans the table. */}
         <div
-          className="grid grid-cols-[minmax(0,1fr)_110px_90px_70px] gap-2 px-2.5 py-1.5 border-b border-[#1f2335] text-[10px] uppercase tracking-wider font-bold text-[#5a637a]"
+          className="grid grid-cols-[minmax(0,1fr)_110px_90px_70px] gap-2 px-2.5 py-1.5 border-b border-[var(--border)] text-[10px] uppercase tracking-wider font-bold text-[var(--text-secondary)]"
           role="row"
         >
           <span role="columnheader">Service</span>
@@ -597,7 +597,7 @@ export default function SystemHealthView() {
             row hover (subtle background lift + left-edge accent bar via
             inset shadow so layout doesn't shift on hover). */}
         <div
-          className="divide-y divide-[#1f2335]/60 max-h-72 overflow-y-auto scrollbar-thin"
+          className="divide-y divide-[var(--border)]/60 max-h-72 overflow-y-auto scrollbar-thin"
           role="rowgroup"
         >
           {health.services.map((s, i) => {
@@ -614,7 +614,7 @@ export default function SystemHealthView() {
                 <div className="flex items-center gap-2 min-w-0">
                   <PulseDot tone={sTone} pulse={sTone !== 'poor'} />
                   <span
-                    className="font-semibold text-[#dde1ed] truncate"
+                    className="font-semibold text-[var(--text-primary)] truncate"
                     title={s.name}
                     role="cell"
                   >
@@ -630,7 +630,7 @@ export default function SystemHealthView() {
                   </span>
                 </div>
                 <span
-                  className="text-[10px] text-[#7e8aaa] mono tabular-nums"
+                  className="text-[10px] text-[var(--text-secondary)] mono tabular-nums"
                   role="cell"
                 >
                   {s.frequency ?? '—'}

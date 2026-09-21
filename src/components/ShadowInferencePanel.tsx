@@ -58,8 +58,8 @@
 //   GET  /api/shadow/trades         — recent counterfactual trades
 //   GET  /api/shadow/comparison     — shadow-vs-live side-by-side aggregate
 //
-// Visual style mirrors MLPanel.tsx — dark card backgrounds (#13161e), border
-// tokens (#1f2335), .mono / .badge / .spinner / .card design-system classes.
+// Visual style mirrors MLPanel.tsx — dark card backgrounds (var(--bg-surface)), border
+// tokens (var(--border)), .mono / .badge / .spinner / .card design-system classes.
 //
 // NOTE: the in-memory shadow_inference registry (per-challenger call counts
 // + recent comparisons ring buffer) does NOT yet expose an HTTP surface —
@@ -439,7 +439,7 @@ const TONE: Record<Tone, ToneConfig> = {
   warn:    { bg: 'bg-amber-500/[0.06]',   border: 'border-amber-500/25',   text: 'text-amber-400',   bar: 'bg-amber-500',   dot: 'bg-amber-400',   label: 'text-amber-400/80',   halo: 'shadow-amber-500/10' },
   poor:    { bg: 'bg-red-500/[0.06]',     border: 'border-red-500/25',     text: 'text-red-400',     bar: 'bg-red-500',     dot: 'bg-red-400',     label: 'text-red-400/80',     halo: 'shadow-red-500/10' },
   info:    { bg: 'bg-cyan-500/[0.06]',    border: 'border-cyan-500/25',    text: 'text-cyan-400',    bar: 'bg-cyan-500',    dot: 'bg-cyan-400',    label: 'text-cyan-400/80',    halo: 'shadow-cyan-500/10' },
-  neutral: { bg: 'bg-[#0e1015]',          border: 'border-[#1f2335]',     text: 'text-[#dde1ed]',   bar: 'bg-[#5a637a]',   dot: 'bg-[#5a637a]',   label: 'text-[#7e8aaa]',      halo: '' },
+  neutral: { bg: 'bg-[var(--bg-base)]',          border: 'border-[var(--border)]',     text: 'text-[var(--text-primary)]',   bar: 'bg-[var(--text-secondary)]',   dot: 'bg-[var(--text-secondary)]',   label: 'text-[var(--text-secondary)]',      halo: '' },
 }
 
 // Tone helpers — mirror W53-c thresholds so KPI tiles + table cells share
@@ -491,10 +491,10 @@ function SectionHeader({
     <div className={`flex items-center justify-between mb-2 gap-2 ${className}`}>
       <div className="flex items-center gap-1.5 min-w-0">
         <Icon className={`size-3.5 shrink-0 ${TONE[tone].text}`} aria-hidden="true" />
-        <h3 className="text-[11px] font-bold text-[#dde1ed] uppercase tracking-wider flex items-center gap-1.5 min-w-0">
+        <h3 className="text-[11px] font-bold text-[var(--text-primary)] uppercase tracking-wider flex items-center gap-1.5 min-w-0">
           <span className="truncate">{title}</span>
           {description && (
-            <span className="text-[#5a637a] font-normal normal-case tracking-normal italic">
+            <span className="text-[var(--text-secondary)] font-normal normal-case tracking-normal italic">
               {description}
             </span>
           )}
@@ -515,7 +515,7 @@ function SortIndicator({
   direction?: 'asc' | 'desc'
 }) {
   if (!active) {
-    return <ArrowUpDown className="size-3 text-[#3e4560] inline-block ml-0.5" aria-hidden="true" />
+    return <ArrowUpDown className="size-3 text-[var(--text-dim)] inline-block ml-0.5" aria-hidden="true" />
   }
   return direction === 'asc' ? (
     <ArrowUp className="size-3 text-cyan-400 inline-block ml-0.5" aria-hidden="true" />
@@ -556,9 +556,9 @@ function KpiTile({ label, value, hint, tone, quality, trend, testId }: KpiTilePr
         {trend === 'up' && <TrendingUp className="size-3 inline-block" aria-hidden="true" />}
         {trend === 'down' && <TrendingDown className="size-3 inline-block" aria-hidden="true" />}
       </div>
-      <div className="text-[8.5px] text-[#5a637a] mt-0.5 italic truncate">{hint}</div>
+      <div className="text-[8.5px] text-[var(--text-secondary)] mt-0.5 italic truncate">{hint}</div>
       {quality != null && quality > 0 && (
-        <div className="h-0.5 bg-[#1f2335] rounded-full mt-1 overflow-hidden">
+        <div className="h-0.5 bg-[var(--border)] rounded-full mt-1 overflow-hidden">
           <div
             className={`h-full rounded-full transition-all duration-500 ${cfg.bar}`}
             style={{ width: `${Math.max(0, Math.min(100, quality))}%` }}
@@ -583,7 +583,7 @@ function PolishedEmptyState({ icon: Icon, title, description, className = '', te
   return (
     <div className={`empty-state py-8 ${className}`} role="status" data-testid={testId ?? 'shadow-empty-state'}>
       <span className="empty-state-icon" aria-hidden="true">
-        <Icon className="w-10 h-10 text-[#3e4560]" strokeWidth={1.5} />
+        <Icon className="w-10 h-10 text-[var(--text-dim)]" strokeWidth={1.5} />
       </span>
       <span className="empty-state-title text-sm font-semibold">{title}</span>
       {description && (
@@ -630,7 +630,7 @@ function ErrorCard({
             {title}
           </div>
           {subtitle && (
-            <div className="error-state-desc text-[9.5px] mt-0.5 text-[#7e8aaa] max-w-full leading-relaxed">
+            <div className="error-state-desc text-[9.5px] mt-0.5 text-[var(--text-secondary)] max-w-full leading-relaxed">
               {subtitle}
             </div>
           )}
@@ -640,7 +640,7 @@ function ErrorCard({
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-6 text-[9.5px] px-2 border-[var(--color-red-bd)] bg-[#0e1015] hover:bg-[#1a1f2e] text-[var(--color-red-fg)] hover:text-red-200 gap-1"
+                  className="h-6 text-[9.5px] px-2 border-[var(--color-red-bd)] bg-[var(--bg-base)] hover:bg-[var(--bg-elevated)] text-[var(--color-red-fg)] hover:text-red-200 gap-1"
                   onClick={onRetry}
                   data-testid={testId ? `${testId}-retry` : 'shadow-error-retry'}
                 >
@@ -651,7 +651,7 @@ function ErrorCard({
               {onDismiss && (
                 <button
                   type="button"
-                  className="inline-flex items-center justify-center size-6 rounded text-[#7e8aaa] hover:text-[#dde1ed] hover:bg-[#1a1f2e] transition-colors"
+                  className="inline-flex items-center justify-center size-6 rounded text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] transition-colors"
                   aria-label={dismissLabel}
                   onClick={onDismiss}
                   data-testid={testId ? `${testId}-dismiss` : 'shadow-error-dismiss'}
@@ -684,8 +684,8 @@ function ShadowKpiSkeleton() {
           <div className="skeleton-line-sm w-20" />
           <div className="skeleton-line-lg w-24" />
           <div className="skeleton-line-sm w-28" />
-          <div className="h-0.5 bg-[#1f2335] rounded-full mt-2 overflow-hidden">
-            <div className="h-full w-2/3 rounded-full bg-[#1f2335]" />
+          <div className="h-0.5 bg-[var(--border)] rounded-full mt-2 overflow-hidden">
+            <div className="h-full w-2/3 rounded-full bg-[var(--border)]" />
           </div>
         </div>
       ))}
@@ -705,13 +705,13 @@ function ShadowTableSkeleton({ rowCount = 6 }: { rowCount?: number }) {
       aria-label="Loading shadow trades…"
       data-testid="shadow-table-skeleton"
     >
-      <div className="skeleton-row" style={{ borderBottom: '1px solid #1f2335' }}>
+      <div className="skeleton-row" style={{ borderBottom: '1px solid var(--border)' }}>
         {Array.from({ length: 9 }).map((_, i) => (
           <div key={i} className="skeleton-cell" style={{ height: '18px' }} />
         ))}
       </div>
       {Array.from({ length: rowCount }).map((_, r) => (
-        <div key={r} className="skeleton-row" style={{ borderBottom: '1px solid #1f2335' }}>
+        <div key={r} className="skeleton-row" style={{ borderBottom: '1px solid var(--border)' }}>
           {Array.from({ length: 9 }).map((_, i) => (
             <div key={i} className="skeleton-cell" style={{ height: '24px' }} />
           ))}
@@ -1069,11 +1069,11 @@ export default function ShadowInferencePanel() {
   if (loading && !versions) {
     return (
       <div
-        className="card flex flex-col bg-[#13161e] border border-[#1f2335] shadow-md"
+        className="card flex flex-col bg-[var(--bg-surface)] border border-[var(--border)] shadow-md"
         data-testid="shadow-loading-skeleton"
       >
-        <div className="card-header p-3 border-b border-[#1f2335] flex items-center justify-between">
-          <span className="card-title text-xs font-bold text-[#dde1ed] flex items-center gap-2">
+        <div className="card-header p-3 border-b border-[var(--border)] flex items-center justify-between">
+          <span className="card-title text-xs font-bold text-[var(--text-primary)] flex items-center gap-2">
             <Ghost className="size-3.5 text-cyan-400" />
             Shadow Inference
           </span>
@@ -1127,12 +1127,12 @@ export default function ShadowInferencePanel() {
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
-    <div className="card flex flex-col bg-[#13161e] border border-[#1f2335] shadow-md">
+    <div className="card flex flex-col bg-[var(--bg-surface)] border border-[var(--border)] shadow-md">
       {/* ── Header ── */}
-      <div className="card-header p-3 border-b border-[#1f2335] flex flex-wrap items-center justify-between gap-2">
+      <div className="card-header p-3 border-b border-[var(--border)] flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0">
           <Ghost className="size-3.5 text-cyan-400 shrink-0" />
-          <span className="card-title text-xs font-bold text-[#dde1ed]">
+          <span className="card-title text-xs font-bold text-[var(--text-primary)]">
             Shadow Inference + Counterfactual Journal
           </span>
           {champion && (
@@ -1156,7 +1156,7 @@ export default function ShadowInferencePanel() {
             </span>
           )}
           {lastRefresh && (
-            <span className="text-[9.5px] text-[#5a637a] flex items-center gap-1 tabular-nums">
+            <span className="text-[9.5px] text-[var(--text-secondary)] flex items-center gap-1 tabular-nums">
               <Clock className="size-3" />
               {fmtAge(lastRefresh.getTime() / 1000)} ago
             </span>
@@ -1177,7 +1177,7 @@ export default function ShadowInferencePanel() {
           <Button
             variant="outline"
             size="icon"
-            className="h-6 w-6 border-[#1f2335] bg-[#0e1015] hover:bg-[#1a1f2e] text-[#7e8aaa] hover:text-[#dde1ed]"
+            className="h-6 w-6 border-[var(--border)] bg-[var(--bg-base)] hover:bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
             onClick={() => fetchAll()}
             title="Refresh now"
           >
@@ -1303,7 +1303,7 @@ export default function ShadowInferencePanel() {
               <Button
                 variant="outline"
                 size="sm"
-                className="h-7 text-[10.5px] border-[#1f2335] bg-[#0e1015] hover:bg-[#1a1f2e] text-[#7e8aaa] hover:text-[#dde1ed] gap-1.5"
+                className="h-7 text-[10.5px] border-[var(--border)] bg-[var(--bg-base)] hover:bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] gap-1.5"
                 onClick={() => setRegisterOpen((o) => !o)}
               >
                 <PlusCircle className="size-3" />
@@ -1313,7 +1313,7 @@ export default function ShadowInferencePanel() {
           />
 
           {/* Legend */}
-          <div className="flex items-center gap-3 mb-2 text-[9.5px] text-[#5a637a]">
+          <div className="flex items-center gap-3 mb-2 text-[9.5px] text-[var(--text-secondary)]">
             <span className="flex items-center gap-1">
               <span className="inline-block size-2 rounded-full bg-emerald-400" />
               Champion (active)
@@ -1330,32 +1330,32 @@ export default function ShadowInferencePanel() {
 
           {/* Register new challenger form (collapsible) */}
           {registerOpen && (
-            <Card className="mb-3 bg-[#0e1015] border-[#1f2335] p-3">
+            <Card className="mb-3 bg-[var(--bg-base)] border-[var(--border)] p-3">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <div>
-                  <label className="text-[9.5px] uppercase tracking-wider text-[#5a637a] font-bold block mb-1">
+                  <label className="text-[9.5px] uppercase tracking-wider text-[var(--text-secondary)] font-bold block mb-1">
                     Model Name *
                   </label>
                   <Input
                     value={regForm.name}
                     onChange={(e) => setRegForm((f) => ({ ...f, name: e.target.value }))}
                     placeholder="e.g. logistic_baseline_v2"
-                    className="h-8 text-[11px] bg-[#13161e] border-[#1f2335]"
+                    className="h-8 text-[11px] bg-[var(--bg-surface)] border-[var(--border)]"
                   />
                 </div>
                 <div>
-                  <label className="text-[9.5px] uppercase tracking-wider text-[#5a637a] font-bold block mb-1">
+                  <label className="text-[9.5px] uppercase tracking-wider text-[var(--text-secondary)] font-bold block mb-1">
                     Path / Module
                   </label>
                   <Input
                     value={regForm.path}
                     onChange={(e) => setRegForm((f) => ({ ...f, path: e.target.value }))}
                     placeholder="e.g. ml.challengers.logistic_v2"
-                    className="h-8 text-[11px] bg-[#13161e] border-[#1f2335]"
+                    className="h-8 text-[11px] bg-[var(--bg-surface)] border-[var(--border)]"
                   />
                 </div>
                 <div>
-                  <label className="text-[9.5px] uppercase tracking-wider text-[#5a637a] font-bold block mb-1">
+                  <label className="text-[9.5px] uppercase tracking-wider text-[var(--text-secondary)] font-bold block mb-1">
                     Ensemble Weight
                   </label>
                   <Input
@@ -1366,7 +1366,7 @@ export default function ShadowInferencePanel() {
                     step="0.1"
                     min="0"
                     max="1"
-                    className="h-8 text-[11px] bg-[#13161e] border-[#1f2335]"
+                    className="h-8 text-[11px] bg-[var(--bg-surface)] border-[var(--border)]"
                   />
                 </div>
               </div>
@@ -1380,7 +1380,7 @@ export default function ShadowInferencePanel() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-7 text-[10.5px] text-[#7e8aaa] hover:text-[#dde1ed]"
+                  className="h-7 text-[10.5px] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
                   onClick={() => {
                     setRegisterOpen(false)
                     setRegisterError(null)
@@ -1410,43 +1410,43 @@ export default function ShadowInferencePanel() {
             </Card>
           )}
 
-          <div className="rounded-md border border-[#1f2335] overflow-hidden">
+          <div className="rounded-md border border-[var(--border)] overflow-hidden">
             <Table>
               <TableHeader>
-                <TableRow className="bg-[#0e1015] hover:bg-[#0e1015] border-[#1f2335]">
-                  <TableHead className="h-7 text-[9.5px] uppercase tracking-wider text-[#5a637a] font-bold py-1.5 px-2">
+                <TableRow className="bg-[var(--bg-base)] hover:bg-[var(--bg-base)] border-[var(--border)]">
+                  <TableHead className="h-7 text-[9.5px] uppercase tracking-wider text-[var(--text-secondary)] font-bold py-1.5 px-2">
                     Model
                   </TableHead>
-                  <TableHead className="h-7 text-[9.5px] uppercase tracking-wider text-[#5a637a] font-bold py-1.5 px-2">
+                  <TableHead className="h-7 text-[9.5px] uppercase tracking-wider text-[var(--text-secondary)] font-bold py-1.5 px-2">
                     Version
                   </TableHead>
-                  <TableHead className="h-7 text-[9.5px] uppercase tracking-wider text-[#5a637a] font-bold py-1.5 px-2">
+                  <TableHead className="h-7 text-[9.5px] uppercase tracking-wider text-[var(--text-secondary)] font-bold py-1.5 px-2">
                     Status
                   </TableHead>
-                  <TableHead className="h-7 text-[9.5px] uppercase tracking-wider text-[#5a637a] font-bold py-1.5 px-2 text-right">
+                  <TableHead className="h-7 text-[9.5px] uppercase tracking-wider text-[var(--text-secondary)] font-bold py-1.5 px-2 text-right">
                     Preds
                   </TableHead>
-                  <TableHead className="h-7 text-[9.5px] uppercase tracking-wider text-[#5a637a] font-bold py-1.5 px-2 text-right">
+                  <TableHead className="h-7 text-[9.5px] uppercase tracking-wider text-[var(--text-secondary)] font-bold py-1.5 px-2 text-right">
                     Accuracy
                   </TableHead>
-                  <TableHead className="h-7 text-[9.5px] uppercase tracking-wider text-[#5a637a] font-bold py-1.5 px-2 text-right">
+                  <TableHead className="h-7 text-[9.5px] uppercase tracking-wider text-[var(--text-secondary)] font-bold py-1.5 px-2 text-right">
                     Log Loss
                   </TableHead>
-                  <TableHead className="h-7 text-[9.5px] uppercase tracking-wider text-[#5a637a] font-bold py-1.5 px-2 text-right">
+                  <TableHead className="h-7 text-[9.5px] uppercase tracking-wider text-[var(--text-secondary)] font-bold py-1.5 px-2 text-right">
                     Brier ↓
                   </TableHead>
-                  <TableHead className="h-7 text-[9.5px] uppercase tracking-wider text-[#5a637a] font-bold py-1.5 px-2 text-right">
+                  <TableHead className="h-7 text-[9.5px] uppercase tracking-wider text-[var(--text-secondary)] font-bold py-1.5 px-2 text-right">
                     AUC
                   </TableHead>
-                  <TableHead className="h-7 text-[9.5px] uppercase tracking-wider text-[#5a637a] font-bold py-1.5 px-2 text-right">
+                  <TableHead className="h-7 text-[9.5px] uppercase tracking-wider text-[var(--text-secondary)] font-bold py-1.5 px-2 text-right">
                     Action
                   </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {challengers.length === 0 && (
-                  <TableRow className="border-[#1f2335]">
-                    <TableCell colSpan={9} className="text-center text-[10.5px] text-[#5a637a] py-4">
+                  <TableRow className="border-[var(--border)]">
+                    <TableCell colSpan={9} className="text-center text-[10.5px] text-[var(--text-secondary)] py-4">
                       No challenger models registered.
                     </TableCell>
                   </TableRow>
@@ -1470,7 +1470,7 @@ export default function ShadowInferencePanel() {
                   ) : isDemoted ? (
                     <Badge
                       variant="outline"
-                      className="border-[#3e4560] bg-[#1a1f2e] text-[#7e8aaa] text-[9px] gap-1"
+                      className="border-[var(--text-dim)] bg-[var(--bg-elevated)] text-[var(--text-secondary)] text-[9px] gap-1"
                     >
                       <TrendingDown className="size-2.5" />
                       Demoted
@@ -1491,16 +1491,16 @@ export default function ShadowInferencePanel() {
                   return (
                     <TableRow
                       key={c.version.version}
-                      className={`border-[#1f2335] hover:bg-[#0e1015] transition-colors ${rowBorderClass}`}
+                      className={`border-[var(--border)] hover:bg-[var(--bg-base)] transition-colors ${rowBorderClass}`}
                     >
-                      <TableCell className="py-1.5 px-2 text-[10.5px] text-[#dde1ed] mono tabular-nums">
+                      <TableCell className="py-1.5 px-2 text-[10.5px] text-[var(--text-primary)] mono tabular-nums">
                         {String(c.version.parameters?.model_name ?? c.version.version.split('.')[0] ?? '—')}
                       </TableCell>
                       <TableCell className="py-1.5 px-2 text-[10.5px] mono text-cyan-300 tabular-nums">
                         {c.version.version}
                       </TableCell>
                       <TableCell className="py-1.5 px-2">{statusBadge}</TableCell>
-                      <TableCell className="py-1.5 px-2 text-right mono text-[10.5px] text-[#dde1ed] tabular-nums">
+                      <TableCell className="py-1.5 px-2 text-right mono text-[10.5px] text-[var(--text-primary)] tabular-nums">
                         {c.version.n_samples.toLocaleString()}
                       </TableCell>
                       <TableCell
@@ -1515,7 +1515,7 @@ export default function ShadowInferencePanel() {
                       >
                         {fmtPct(c.accuracyProxy, 1)}
                       </TableCell>
-                      <TableCell className="py-1.5 px-2 text-right mono text-[10.5px] text-[#dde1ed] tabular-nums">
+                      <TableCell className="py-1.5 px-2 text-right mono text-[10.5px] text-[var(--text-primary)] tabular-nums">
                         {c.logLoss !== null ? fmtNum(c.logLoss, 3) : '—'}
                       </TableCell>
                       <TableCell className="py-1.5 px-2 text-right">
@@ -1556,7 +1556,7 @@ export default function ShadowInferencePanel() {
                       </TableCell>
                       <TableCell className="py-1.5 px-2 text-right">
                         {isChamp ? (
-                          <span className="text-[9px] text-[#5a637a] italic">— active —</span>
+                          <span className="text-[9px] text-[var(--text-secondary)] italic">— active —</span>
                         ) : (
                           <Button
                             variant="outline"
@@ -1596,21 +1596,21 @@ export default function ShadowInferencePanel() {
         {/* ── §2 + §4 Side-by-side: Scatter + Shadow-vs-real comparison ── */}
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-3">
           {/* Prediction comparison scatter */}
-          <Card className="bg-[#0e1015] border-[#1f2335] p-3">
+          <Card className="bg-[var(--bg-base)] border-[var(--border)] p-3">
             <SectionHeader
               icon={Target}
               title="Champion vs Challenger P(YES)"
               tone="info"
               className="mb-2"
               trailing={
-                <span className="text-[9px] text-[#5a637a] tabular-nums">
+                <span className="text-[9px] text-[var(--text-secondary)] tabular-nums">
                   {challengerScatter.length} pts · seeded by brier
                 </span>
               }
             />
             <div className="h-[220px] w-full">
               {challengerScatter.length === 0 ? (
-                <div className="h-full flex items-center justify-center text-[10.5px] text-[#5a637a]">
+                <div className="h-full flex items-center justify-center text-[10.5px] text-[var(--text-secondary)]">
                   {mlMetrics?.reliability_curve?.length
                     ? 'No challenger models to compare.'
                     : 'Awaiting reliability curve from /api/ml/metrics…'}
@@ -1618,18 +1618,18 @@ export default function ShadowInferencePanel() {
               ) : (
                 <ResponsiveContainer width="100%" height="100%">
                   <ScatterChart margin={{ top: 8, right: 12, bottom: 24, left: -12 }}>
-                    <CartesianGrid stroke="#1f2335" strokeDasharray="3 3" />
+                    <CartesianGrid stroke="var(--border)" strokeDasharray="3 3" />
                     <XAxis
                       type="number"
                       dataKey="x"
                       domain={[0, 1]}
-                      tick={{ fill: '#5a637a', fontSize: 9 }}
-                      stroke="#1f2335"
+                      tick={{ fill: 'var(--text-secondary)', fontSize: 9 }}
+                      stroke="var(--border)"
                       label={{
                         value: 'Champion P(YES)',
                         position: 'insideBottom',
                         offset: -12,
-                        fill: '#7e8aaa',
+                        fill: 'var(--text-secondary)',
                         fontSize: 9.5,
                       }}
                     />
@@ -1637,13 +1637,13 @@ export default function ShadowInferencePanel() {
                       type="number"
                       dataKey="y"
                       domain={[0, 1]}
-                      tick={{ fill: '#5a637a', fontSize: 9 }}
-                      stroke="#1f2335"
+                      tick={{ fill: 'var(--text-secondary)', fontSize: 9 }}
+                      stroke="var(--border)"
                       label={{
                         value: 'Challenger P(YES)',
                         angle: -90,
                         position: 'insideLeft',
-                        fill: '#7e8aaa',
+                        fill: 'var(--text-secondary)',
                         fontSize: 9.5,
                       }}
                     />
@@ -1653,26 +1653,26 @@ export default function ShadowInferencePanel() {
                         { x: 0, y: 0 },
                         { x: 1, y: 1 },
                       ]}
-                      stroke="#3e4560"
+                      stroke="var(--text-dim)"
                       strokeDasharray="4 4"
                       ifOverflow="extendDomain"
                       label={{
                         value: 'perfect = diagonal',
                         position: 'insideTopLeft',
-                        fill: '#5a637a',
+                        fill: 'var(--text-secondary)',
                         fontSize: 8.5,
                       }}
                     />
                     <Tooltip
-                      cursor={{ strokeDasharray: '3 3', stroke: '#3e4560' }}
+                      cursor={{ strokeDasharray: '3 3', stroke: 'var(--text-dim)' }}
                       contentStyle={{
-                        background: '#13161e',
-                        border: '1px solid #1f2335',
+                        background: 'var(--bg-surface)',
+                        border: '1px solid var(--border)',
                         borderRadius: 6,
                         fontSize: 10.5,
                       }}
-                      labelStyle={{ color: '#7e8aaa' }}
-                      itemStyle={{ color: '#dde1ed' }}
+                      labelStyle={{ color: 'var(--text-secondary)' }}
+                      itemStyle={{ color: 'var(--text-primary)' }}
                       formatter={(value: number, name: string) => [
                         typeof value === 'number' ? value.toFixed(3) : String(value),
                         name === 'x' ? 'Champion' : name === 'y' ? 'Challenger' : name,
@@ -1694,7 +1694,7 @@ export default function ShadowInferencePanel() {
                 </ResponsiveContainer>
               )}
             </div>
-            <div className="mt-1.5 flex items-center justify-between text-[9px] text-[#5a637a]">
+            <div className="mt-1.5 flex items-center justify-between text-[9px] text-[var(--text-secondary)]">
               <span className="flex items-center gap-2">
                 <span className="flex items-center gap-1">
                   <span className="inline-block size-2 rounded-full bg-emerald-500" />
@@ -1712,14 +1712,14 @@ export default function ShadowInferencePanel() {
           </Card>
 
           {/* Shadow vs Real performance comparison */}
-          <Card className="bg-[#0e1015] border-[#1f2335] p-3">
+          <Card className="bg-[var(--bg-base)] border-[var(--border)] p-3">
             <SectionHeader
               icon={Activity}
               title="Shadow vs Real Performance"
               tone="info"
               className="mb-2"
               trailing={
-                <span className="text-[9px] text-[#5a637a] tabular-nums">
+                <span className="text-[9px] text-[var(--text-secondary)] tabular-nums">
                   shadow {comparison?.shadow?.count ?? 0} · live {comparison?.live?.count ?? 0}
                 </span>
               }
@@ -1791,7 +1791,7 @@ export default function ShadowInferencePanel() {
             trailing={
               <div className="relative">
                 <Search
-                  className="absolute left-2 top-1/2 -translate-y-1/2 size-3 text-[#5a637a] pointer-events-none"
+                  className="absolute left-2 top-1/2 -translate-y-1/2 size-3 text-[var(--text-secondary)] pointer-events-none"
                   aria-hidden="true"
                 />
                 <Input
@@ -1799,31 +1799,31 @@ export default function ShadowInferencePanel() {
                   onChange={(e) => setTradeFilter(e.target.value)}
                   placeholder="Filter token / strategy / side"
                   aria-label="Filter shadow trades"
-                  className="h-7 w-56 pl-7 text-[10.5px] bg-[#0e1015] border-[#1f2335] text-[#dde1ed] placeholder:text-[#3e4560] focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 transition-colors"
+                  className="h-7 w-56 pl-7 text-[10.5px] bg-[var(--bg-base)] border-[var(--border)] text-[var(--text-primary)] placeholder:text-[var(--text-dim)] focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 transition-colors"
                 />
               </div>
             }
           />
-          <div className="rounded-md border border-dashed border-cyan-900/60 overflow-hidden bg-[#0c0e14]">
+          <div className="rounded-md border border-dashed border-cyan-900/60 overflow-hidden bg-[var(--bg-base)]">
             <Table>
               <TableHeader>
-                <TableRow className="bg-[#0e1015] hover:bg-[#0e1015] border-[#1f2335]">
-                  <TableHead className="h-7 text-[9.5px] uppercase tracking-wider text-[#5a637a] font-bold py-1.5 px-2 whitespace-nowrap">
+                <TableRow className="bg-[var(--bg-base)] hover:bg-[var(--bg-base)] border-[var(--border)]">
+                  <TableHead className="h-7 text-[9.5px] uppercase tracking-wider text-[var(--text-secondary)] font-bold py-1.5 px-2 whitespace-nowrap">
                     <span className="inline-flex items-center">
                       Age
                       <SortIndicator active direction="desc" />
                     </span>
                   </TableHead>
-                  <TableHead className="h-7 text-[9.5px] uppercase tracking-wider text-[#5a637a] font-bold py-1.5 px-2">
+                  <TableHead className="h-7 text-[9.5px] uppercase tracking-wider text-[var(--text-secondary)] font-bold py-1.5 px-2">
                     Token
                   </TableHead>
-                  <TableHead className="h-7 text-[9.5px] uppercase tracking-wider text-[#5a637a] font-bold py-1.5 px-2">
+                  <TableHead className="h-7 text-[9.5px] uppercase tracking-wider text-[var(--text-secondary)] font-bold py-1.5 px-2">
                     Side
                   </TableHead>
-                  <TableHead className="h-7 text-[9.5px] uppercase tracking-wider text-[#5a637a] font-bold py-1.5 px-2 text-right tabular-nums">
+                  <TableHead className="h-7 text-[9.5px] uppercase tracking-wider text-[var(--text-secondary)] font-bold py-1.5 px-2 text-right tabular-nums">
                     Int. Price
                   </TableHead>
-                  <TableHead className="h-7 text-[9.5px] uppercase tracking-wider text-[#5a637a] font-bold py-1.5 px-2 text-right tabular-nums">
+                  <TableHead className="h-7 text-[9.5px] uppercase tracking-wider text-[var(--text-secondary)] font-bold py-1.5 px-2 text-right tabular-nums">
                     Size
                   </TableHead>
                   {/* W54-d — "Shadow Prediction" column (formerly "AI Pred.
@@ -1845,7 +1845,7 @@ export default function ShadowInferencePanel() {
                       AI Conf.
                     </span>
                   </TableHead>
-                  <TableHead className="h-7 text-[9.5px] uppercase tracking-wider text-[#5a637a] font-bold py-1.5 px-2">
+                  <TableHead className="h-7 text-[9.5px] uppercase tracking-wider text-[var(--text-secondary)] font-bold py-1.5 px-2">
                     Strategy
                   </TableHead>
                   {/* W54-d — "Actual Outcome" column (formerly "What would have
@@ -1864,7 +1864,7 @@ export default function ShadowInferencePanel() {
               </TableHeader>
               <TableBody>
                 {shadowTrades.length === 0 ? (
-                  <TableRow className="border-[#1f2335]">
+                  <TableRow className="border-[var(--border)]">
                     <TableCell colSpan={9} className="py-2 px-2">
                       <PolishedEmptyState
                         icon={Inbox}
@@ -1875,7 +1875,7 @@ export default function ShadowInferencePanel() {
                     </TableCell>
                   </TableRow>
                 ) : filteredShadowTrades.length === 0 ? (
-                  <TableRow className="border-[#1f2335]">
+                  <TableRow className="border-[var(--border)]">
                     <TableCell colSpan={9} className="py-2 px-2">
                       <PolishedEmptyState
                         icon={Search}
@@ -1924,7 +1924,7 @@ export default function ShadowInferencePanel() {
                     ) : (
                       <Badge
                         variant="outline"
-                        className="border-[#1f2335] bg-[#0e1015] text-[#7e8aaa] text-[9px] gap-1"
+                        className="border-[var(--border)] bg-[var(--bg-base)] text-[var(--text-secondary)] text-[9px] gap-1"
                       >
                         <Clock className="size-2.5" />
                         {outcome.label}
@@ -1933,22 +1933,22 @@ export default function ShadowInferencePanel() {
                   return (
                     <TableRow
                       key={t.id}
-                      className="border-[#1f2335] hover:bg-[#0e1015] border-l-2 border-l-transparent hover:border-l-cyan-400/60 transition-colors"
+                      className="border-[var(--border)] hover:bg-[var(--bg-base)] border-l-2 border-l-transparent hover:border-l-cyan-400/60 transition-colors"
                     >
                       <TableCell
-                        className="py-1.5 px-2 text-[10px] text-[#7e8aaa] mono whitespace-nowrap tabular-nums"
+                        className="py-1.5 px-2 text-[10px] text-[var(--text-secondary)] mono whitespace-nowrap tabular-nums"
                         title={fmtTimestamp(t.timestamp)}
                       >
                         {fmtAge(t.timestamp)}
                       </TableCell>
-                      <TableCell className="py-1.5 px-2 text-[10px] mono text-[#dde1ed] tabular-nums">
+                      <TableCell className="py-1.5 px-2 text-[10px] mono text-[var(--text-primary)] tabular-nums">
                         {truncateToken(t.token_id)}
                       </TableCell>
                       <TableCell className="py-1.5 px-2">{sideBadge}</TableCell>
-                      <TableCell className="py-1.5 px-2 text-right mono text-[10.5px] text-[#dde1ed] tabular-nums border-l border-blue-900/20">
+                      <TableCell className="py-1.5 px-2 text-right mono text-[10.5px] text-[var(--text-primary)] tabular-nums border-l border-blue-900/20">
                         {fmtNum(t.price, 4)}
                       </TableCell>
-                      <TableCell className="py-1.5 px-2 text-right mono text-[10.5px] text-[#dde1ed] tabular-nums">
+                      <TableCell className="py-1.5 px-2 text-right mono text-[10.5px] text-[var(--text-primary)] tabular-nums">
                         {t.size.toFixed(1)}
                       </TableCell>
                       {/* W39-6 — AI-labeled predicted_edge value. Rendered in
@@ -1962,7 +1962,7 @@ export default function ShadowInferencePanel() {
                             ? 'text-blue-300'
                             : (t.predicted_edge || 0) < 0
                               ? 'text-purple-300'
-                              : 'text-[#dde1ed]'
+                              : 'text-[var(--text-primary)]'
                         }`}
                         title="AI Prediction: model-generated predicted edge (NOT A GUARANTEE)"
                       >
@@ -1981,7 +1981,7 @@ export default function ShadowInferencePanel() {
                       <TableCell className="py-1.5 px-2 text-right">
                         <ConfidenceBadge value={t.confidence} showLabel={false} />
                       </TableCell>
-                      <TableCell className="py-1.5 px-2 text-[10px] text-[#7e8aaa] mono">
+                      <TableCell className="py-1.5 px-2 text-[10px] text-[var(--text-secondary)] mono">
                         {t.strategy || '—'}
                       </TableCell>
                       <TableCell className="py-1.5 px-2 border-l border-emerald-900/20">{outcomeBadge}</TableCell>
@@ -2003,41 +2003,41 @@ export default function ShadowInferencePanel() {
               tone="info"
               description={`${comparison.strategies.length} strategies`}
             />
-            <div className="rounded-md border border-[#1f2335] overflow-hidden">
+            <div className="rounded-md border border-[var(--border)] overflow-hidden">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-[#0e1015] hover:bg-[#0e1015] border-[#1f2335]">
-                    <TableHead className="h-7 text-[9.5px] uppercase tracking-wider text-[#5a637a] font-bold py-1.5 px-2">
+                  <TableRow className="bg-[var(--bg-base)] hover:bg-[var(--bg-base)] border-[var(--border)]">
+                    <TableHead className="h-7 text-[9.5px] uppercase tracking-wider text-[var(--text-secondary)] font-bold py-1.5 px-2">
                       Strategy
                     </TableHead>
-                    <TableHead className="h-7 text-[9.5px] uppercase tracking-wider text-[#5a637a] font-bold py-1.5 px-2 text-right tabular-nums">
+                    <TableHead className="h-7 text-[9.5px] uppercase tracking-wider text-[var(--text-secondary)] font-bold py-1.5 px-2 text-right tabular-nums">
                       Shadow #  / Live #
                     </TableHead>
-                    <TableHead className="h-7 text-[9.5px] uppercase tracking-wider text-[#5a637a] font-bold py-1.5 px-2 text-right tabular-nums">
+                    <TableHead className="h-7 text-[9.5px] uppercase tracking-wider text-[var(--text-secondary)] font-bold py-1.5 px-2 text-right tabular-nums">
                       Shadow Avg Edge
                     </TableHead>
-                    <TableHead className="h-7 text-[9.5px] uppercase tracking-wider text-[#5a637a] font-bold py-1.5 px-2 text-right tabular-nums">
+                    <TableHead className="h-7 text-[9.5px] uppercase tracking-wider text-[var(--text-secondary)] font-bold py-1.5 px-2 text-right tabular-nums">
                       Live Avg P&L
                     </TableHead>
-                    <TableHead className="h-7 text-[9.5px] uppercase tracking-wider text-[#5a637a] font-bold py-1.5 px-2 text-right tabular-nums">
+                    <TableHead className="h-7 text-[9.5px] uppercase tracking-wider text-[var(--text-secondary)] font-bold py-1.5 px-2 text-right tabular-nums">
                       Shadow Size  / Live P&L
                     </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {comparison.strategies.map((s) => (
-                    <TableRow key={s.strategy} className="border-[#1f2335] hover:bg-[#0e1015] border-l-2 border-l-transparent hover:border-l-cyan-400/60 transition-colors">
-                      <TableCell className="py-1.5 px-2 text-[10.5px] mono text-[#dde1ed] tabular-nums">
+                    <TableRow key={s.strategy} className="border-[var(--border)] hover:bg-[var(--bg-base)] border-l-2 border-l-transparent hover:border-l-cyan-400/60 transition-colors">
+                      <TableCell className="py-1.5 px-2 text-[10.5px] mono text-[var(--text-primary)] tabular-nums">
                         {s.strategy}
                       </TableCell>
                       <TableCell className="py-1.5 px-2 text-right text-[10.5px] tabular-nums">
                         <span className="mono text-cyan-300">{s.shadow_count}</span>
-                        <span className="text-[#3e4560] mx-1">/</span>
-                        <span className="mono text-[#dde1ed]">{s.live_count}</span>
+                        <span className="text-[var(--text-dim)] mx-1">/</span>
+                        <span className="mono text-[var(--text-primary)]">{s.live_count}</span>
                       </TableCell>
                       <TableCell
                         className={`py-1.5 px-2 text-right mono text-[10.5px] tabular-nums ${
-                          s.shadow_avg_edge > 0 ? 'text-emerald-400' : 'text-[#dde1ed]'
+                          s.shadow_avg_edge > 0 ? 'text-emerald-400' : 'text-[var(--text-primary)]'
                         }`}
                       >
                         {s.shadow_avg_edge >= 0 ? '+' : ''}
@@ -2049,7 +2049,7 @@ export default function ShadowInferencePanel() {
                             ? 'text-emerald-400'
                             : s.live_avg_pnl < 0
                               ? 'text-red-400'
-                              : 'text-[#dde1ed]'
+                              : 'text-[var(--text-primary)]'
                         }`}
                       >
                         {fmtUsd(s.live_avg_pnl)}
@@ -2058,7 +2058,7 @@ export default function ShadowInferencePanel() {
                         <span className="mono text-cyan-300">
                           {s.shadow_total_size.toFixed(0)}
                         </span>
-                        <span className="text-[#3e4560] mx-1">/</span>
+                        <span className="text-[var(--text-dim)] mx-1">/</span>
                         <span
                           className={`mono tabular-nums ${
                             s.live_total_pnl >= 0 ? 'text-emerald-400' : 'text-red-400'
@@ -2076,7 +2076,7 @@ export default function ShadowInferencePanel() {
         )}
 
         {/* ── Footer note ── */}
-        <div className="text-[9px] text-[#3e4560] italic border-t border-[#1f2335] pt-2">
+        <div className="text-[9px] text-[var(--text-dim)] italic border-t border-[var(--border)] pt-2">
           Shadow inference registry: <code>ml/shadow_inference.py</code> ·
           Counterfactual trades: <code>core/shadow_trading.py</code> ·
           Promote via <code>POST /api/ml/rollback</code> ·
@@ -2094,13 +2094,13 @@ export default function ShadowInferencePanel() {
           }
         }}
       >
-        <AlertDialogContent className="bg-[#13161e] border-[#1f2335] text-[#dde1ed]">
+        <AlertDialogContent className="bg-[var(--bg-surface)] border-[var(--border)] text-[var(--text-primary)]">
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2 text-base">
               <ArrowUpCircle className="size-4 text-emerald-400" />
               Promote challenger to champion?
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-[11px] text-[#7e8aaa]">
+            <AlertDialogDescription className="text-[11px] text-[var(--text-secondary)]">
               {promoteTarget && (
                 <>
                   This will roll the active model version from{' '}
@@ -2115,18 +2115,18 @@ export default function ShadowInferencePanel() {
                   change is recorded in the durable audit log.
                   <br />
                   <br />
-                  <span className="text-[#dde1ed]">Target metrics:</span>
+                  <span className="text-[var(--text-primary)]">Target metrics:</span>
                   <br />
                   Brier ={' '}
-                  <span className="mono text-[#dde1ed]">
+                  <span className="mono text-[var(--text-primary)]">
                     {promoteTarget.brier_score.toFixed(4)}
                   </span>{' '}
                   · AUC ={' '}
-                  <span className="mono text-[#dde1ed]">
+                  <span className="mono text-[var(--text-primary)]">
                     {promoteTarget.roc_auc.toFixed(4)}
                   </span>{' '}
                   · ECE ={' '}
-                  <span className="mono text-[#dde1ed]">
+                  <span className="mono text-[var(--text-primary)]">
                     {promoteTarget.ece.toFixed(4)}
                   </span>
                   {promoteTarget.status === 'REJECTED' && (
@@ -2147,7 +2147,7 @@ export default function ShadowInferencePanel() {
             </div>
           )}
           <AlertDialogFooter className="mt-3">
-            <AlertDialogCancel className="h-8 text-[11px] bg-[#0e1015] border-[#1f2335] text-[#7e8aaa] hover:bg-[#1a1f2e] hover:text-[#dde1ed]">
+            <AlertDialogCancel className="h-8 text-[11px] bg-[var(--bg-base)] border-[var(--border)] text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)]">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
@@ -2205,23 +2205,23 @@ function ComparisonRow({
       ? 'text-emerald-400'
       : tone === 'negative'
         ? 'text-red-400'
-        : 'text-[#dde1ed]'
+        : 'text-[var(--text-primary)]'
 
   const toneAttr = (tone: ComparisonRowProps['shadowTone']) =>
     tone === 'positive' ? 'positive' : tone === 'negative' ? 'negative' : 'neutral'
 
   return (
     <div
-      className="grid grid-cols-[1fr_1fr_1fr] items-stretch gap-px bg-[#1f2335] rounded-md overflow-hidden border border-[#1f2335]"
+      className="grid grid-cols-[1fr_1fr_1fr] items-stretch gap-px bg-[var(--border)] rounded-md overflow-hidden border border-[var(--border)]"
       title={hint}
       data-testid="shadow-comparison-row"
     >
       {/* Label column */}
-      <div className="flex flex-col justify-center bg-[#0e1015] px-2 py-1.5">
-        <span className="text-[9.5px] uppercase tracking-wider text-[#5a637a] font-bold">
+      <div className="flex flex-col justify-center bg-[var(--bg-base)] px-2 py-1.5">
+        <span className="text-[9.5px] uppercase tracking-wider text-[var(--text-secondary)] font-bold">
           {label}
         </span>
-        {hint && <span className="text-[8.5px] text-[#3e4560] truncate mt-0.5">{hint}</span>}
+        {hint && <span className="text-[8.5px] text-[var(--text-dim)] truncate mt-0.5">{hint}</span>}
       </div>
       {/* Shadow prediction column (cyan tint) */}
       <div

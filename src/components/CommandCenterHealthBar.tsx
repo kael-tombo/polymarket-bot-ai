@@ -68,13 +68,13 @@ const TONE_CLASS: Record<IndicatorProps['tone'], string> = {
   healthy: 'bg-green-400 shadow-sm shadow-green-500/50',
   warning: 'bg-amber-400 shadow-sm shadow-amber-500/50',
   critical: 'bg-red-400 shadow-sm shadow-red-500/50',
-  neutral: 'bg-[#5a637a]',
+  neutral: 'bg-[var(--text-dim)]',
 }
 
 function Indicator({ label, value, tone, sub, pulse, title }: IndicatorProps) {
   return (
     <div
-      className="flex items-center gap-2 bg-[#0e1015] border border-[#1f2335] rounded-md px-2.5 py-1.5 min-w-0"
+      className="flex items-center gap-2 bg-[var(--bg-page)] border border-[var(--border)] rounded-md px-2.5 py-1.5 min-w-0"
       title={title}
       role="status"
       aria-label={`${label}: ${value}${sub ? ` (${sub})` : ''}`}
@@ -84,13 +84,13 @@ function Indicator({ label, value, tone, sub, pulse, title }: IndicatorProps) {
         aria-hidden="true"
       />
       <div className="flex flex-col min-w-0">
-        <span className="text-[9.5px] uppercase tracking-wider text-[#7e8aaa] font-semibold leading-tight">
+        <span className="text-[9.5px] uppercase tracking-wider text-[var(--text-secondary)] font-semibold leading-tight">
           {label}
         </span>
-        <span className="text-[11.5px] mono font-bold text-[#dde1ed] leading-tight truncate">
+        <span className="text-[11.5px] mono font-bold text-[var(--text-primary)] leading-tight truncate">
           {value}
           {sub && (
-            <span className="ml-1 text-[9.5px] font-normal text-[#7e8aaa]">
+            <span className="ml-1 text-[9.5px] font-normal text-[var(--text-secondary)]">
               {sub}
             </span>
           )}
@@ -213,13 +213,13 @@ export default function CommandCenterHealthBar({
 
   return (
     <div
-      className="flex items-center gap-2 flex-wrap bg-[#13161e] border border-[#1f2335] rounded-lg px-2.5 py-2 shadow-sm"
+      className="flex items-center gap-2 flex-wrap bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg px-2.5 py-2 shadow-sm"
       role="region"
       aria-label="Command Center system health summary"
       data-testid="command-center-health-bar"
     >
-      <div className="flex items-center gap-1.5 pr-2 border-r border-[#1f2335] mr-1 hidden md:flex">
-        <span className="text-[10px] uppercase tracking-wider text-[#7e8aaa] font-bold">
+      <div className="flex items-center gap-1.5 pr-2 border-r border-[var(--border)] mr-1 hidden md:flex">
+        <span className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] font-bold">
           System
         </span>
       </div>
@@ -270,13 +270,13 @@ export default function CommandCenterHealthBar({
       />
 
       <div
-        className="flex items-center gap-1.5 ml-auto pl-2 border-l border-[#1f2335] min-w-0"
+        className="flex items-center gap-1.5 ml-auto pl-2 border-l border-[var(--border)] min-w-0"
         title={`Last snapshot received at ${lastUpdateValue}`}
       >
-        <span className="text-[9.5px] uppercase tracking-wider text-[#7e8aaa] font-semibold leading-tight">
+        <span className="text-[9.5px] uppercase tracking-wider text-[var(--text-secondary)] font-semibold leading-tight">
           Updated
         </span>
-        <span className="text-[11px] mono font-bold text-[#dde1ed] leading-tight truncate">
+        <span className="text-[11px] mono font-bold text-[var(--text-primary)] leading-tight truncate">
           {lastUpdateValue}
         </span>
       </div>

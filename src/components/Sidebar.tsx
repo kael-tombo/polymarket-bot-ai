@@ -320,10 +320,10 @@ export default function Sidebar({ active, onChange, mobileOpen, onMobileClose }:
               aria-hidden="true"
               style={{ flexShrink: 0 }}
             >
-              <circle cx="12" cy="12" r="10.5" stroke="#3b82f6" strokeWidth="1.5" />
-              <circle cx="12" cy="12" r="5.5" stroke="#3b82f6" strokeWidth="1" strokeOpacity="0.5" />
-              <line x1="12" y1="2" x2="12" y2="22" stroke="#3b82f6" strokeWidth="1" strokeOpacity="0.35" />
-              <line x1="2" y1="12" x2="22" y2="12" stroke="#3b82f6" strokeWidth="1" strokeOpacity="0.35" />
+              <circle cx="12" cy="12" r="10.5" stroke="var(--accent)" strokeWidth="1.5" />
+              <circle cx="12" cy="12" r="5.5" stroke="var(--accent)" strokeWidth="1" strokeOpacity="0.5" />
+              <line x1="12" y1="2" x2="12" y2="22" stroke="var(--accent)" strokeWidth="1" strokeOpacity="0.35" />
+              <line x1="2" y1="12" x2="22" y2="12" stroke="var(--accent)" strokeWidth="1" strokeOpacity="0.35" />
             </svg>
             <span
               className="app-name"
@@ -348,7 +348,7 @@ export default function Sidebar({ active, onChange, mobileOpen, onMobileClose }:
               <span
                 style={{
                   marginLeft: '3px',
-                  background: 'linear-gradient(135deg, #60a5fa 0%, #93c5fd 50%, #bfdbfe 100%)',
+                  background: 'linear-gradient(135deg, var(--accent-fg) 0%, color-mix(in srgb, var(--accent-fg) 60%, white 40%) 50%, color-mix(in srgb, var(--accent-fg) 30%, white 70%) 100%)',
                   WebkitBackgroundClip: 'text',
                   backgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',

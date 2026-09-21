@@ -206,9 +206,9 @@ function TradesPanel({ trades: tradesOverride, isRealtime: isRealtimeOverride, o
   )
 
   return (
-    <div className="card h-full flex flex-col p-3 bg-[#13161e] border border-[#1f2335] shadow-xl">
+    <div className="card h-full flex flex-col p-3 bg-[var(--bg-surface)] border border-[var(--border)] shadow-xl">
       {/* Header — section title + count badge + KPI strip */}
-      <div className="card-header pb-2 mb-2 border-b border-[#1f2335] flex flex-wrap items-center justify-between gap-2">
+      <div className="card-header pb-2 mb-2 border-b border-[var(--border)] flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2 flex-wrap">
           {/* W49-5 — section title renamed to "Trade History" per the
               spec. The previous "Recent Executions" header text is
@@ -216,7 +216,7 @@ function TradesPanel({ trades: tradesOverride, isRealtime: isRealtimeOverride, o
               existing test contract (`getByText(/Recent Executions
               \(2\)/)`) keeps matching — both strings coexist in the
               header. */}
-          <span className="card-title text-xs font-bold text-[#dde1ed]">
+          <span className="card-title text-xs font-bold text-[var(--text-primary)]">
             ⚡ Trade History
           </span>
           <span className="badge badge-dim text-[9.5px]">
@@ -239,12 +239,12 @@ function TradesPanel({ trades: tradesOverride, isRealtime: isRealtimeOverride, o
             slippage, Net P&L) + an optional Fees card (only when at
             least one trade exposes the optional `fee` field). */}
         <div className="flex items-center gap-2 text-xs flex-wrap">
-          <div className="bg-[#0e1015] border border-[#1f2335] px-2 py-0.5 rounded flex items-center gap-1" title="Total volume traded (size × price) across the visible set">
-            <span className="text-[9.5px] text-[#7e8aaa] uppercase font-semibold">Vol:</span>
+          <div className="bg-[var(--bg-page)] border border-[var(--border)] px-2 py-0.5 rounded flex items-center gap-1" title="Total volume traded (size × price) across the visible set">
+            <span className="text-[9.5px] text-[var(--text-secondary)] uppercase font-semibold">Vol:</span>
             <span className="mono font-bold text-cyan-400 text-xs tabular-nums">{fmtUsd(stats.totalVol)}</span>
           </div>
-          <div className="bg-[#0e1015] border border-[#1f2335] px-2 py-0.5 rounded flex items-center gap-1">
-            <span className="text-[9.5px] text-[#7e8aaa] uppercase font-semibold">Net P&amp;L:</span>
+          <div className="bg-[var(--bg-page)] border border-[var(--border)] px-2 py-0.5 rounded flex items-center gap-1">
+            <span className="text-[9.5px] text-[var(--text-secondary)] uppercase font-semibold">Net P&amp;L:</span>
             <span className={`mono font-bold text-xs tabular-nums ${stats.netPnl >= 0 ? 'text-green-400' : 'text-red-400'}`}>
               {fmtPnl(stats.netPnl)}
             </span>
@@ -254,8 +254,8 @@ function TradesPanel({ trades: tradesOverride, isRealtime: isRealtimeOverride, o
               doesn't show a misleading "$0.00" for paper-trading
               snapshots. */}
           {hasFees && (
-            <div className="bg-[#0e1015] border border-[#1f2335] px-2 py-0.5 rounded flex items-center gap-1" title="Total fees paid on the visible trade set">
-              <span className="text-[9.5px] text-[#7e8aaa] uppercase font-semibold">Fees:</span>
+            <div className="bg-[var(--bg-page)] border border-[var(--border)] px-2 py-0.5 rounded flex items-center gap-1" title="Total fees paid on the visible trade set">
+              <span className="text-[9.5px] text-[var(--text-secondary)] uppercase font-semibold">Fees:</span>
               <span className="mono font-bold text-amber-300 text-xs tabular-nums">{fmtUsd(totalFees)}</span>
             </div>
           )}
@@ -263,8 +263,8 @@ function TradesPanel({ trades: tradesOverride, isRealtime: isRealtimeOverride, o
               exposes `slippage_bps` (paper-trading snapshots don't
               currently measure slippage vs. the quoted mid). */}
           {avgSlippageBps !== null && (
-            <div className="bg-[#0e1015] border border-[#1f2335] px-2 py-0.5 rounded flex items-center gap-1" title="Average slippage vs. quoted mid (basis points)">
-              <span className="text-[9.5px] text-[#7e8aaa] uppercase font-semibold">Avg Slip:</span>
+            <div className="bg-[var(--bg-page)] border border-[var(--border)] px-2 py-0.5 rounded flex items-center gap-1" title="Average slippage vs. quoted mid (basis points)">
+              <span className="text-[9.5px] text-[var(--text-secondary)] uppercase font-semibold">Avg Slip:</span>
               <span className={`mono font-bold text-xs tabular-nums ${avgSlippageBps >= 0 ? 'text-amber-300' : 'text-green-400'}`}>
                 {avgSlippageBps >= 0 ? '+' : '−'}{Math.abs(avgSlippageBps).toFixed(1)} bps
               </span>
@@ -273,7 +273,7 @@ function TradesPanel({ trades: tradesOverride, isRealtime: isRealtimeOverride, o
           <button
             onClick={handleExportCsv}
             disabled={trades.length === 0}
-            className="btn btn-ghost btn-sm text-[10px] px-2 py-0.5 border border-[#1f2335] text-[#7e8aaa] hover:text-white hover:border-[#2d3450] flex items-center gap-1"
+            className="btn btn-ghost btn-sm text-[10px] px-2 py-0.5 border border-[var(--border)] text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-strong)] flex items-center gap-1"
             title="Export CSV Audit Trail"
           >
             📥 CSV
@@ -286,7 +286,7 @@ function TradesPanel({ trades: tradesOverride, isRealtime: isRealtimeOverride, o
           cohesive row (matches the OrdersPanel + PositionsPanel
           toolbar shape). */}
       <div className="flex items-center justify-between gap-2 mb-2">
-        <div className="inline-flex bg-[#0e1015] border border-[#1f2335] rounded p-0.5 text-[10px]">
+        <div className="inline-flex bg-[var(--bg-page)] border border-[var(--border)] rounded p-0.5 text-[10px]">
           {(['ALL', 'BUY', 'SELL'] as const).map((s) => (
             <button
               key={s}
@@ -294,7 +294,7 @@ function TradesPanel({ trades: tradesOverride, isRealtime: isRealtimeOverride, o
               className={`px-2 py-0.5 rounded font-bold transition-all ${
                 sideFilter === s
                   ? 'bg-blue-500/20 text-cyan-300 shadow-sm'
-                  : 'text-[#7e8aaa] hover:text-[#dde1ed]'
+                  : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
               }`}
             >
               {s}
@@ -304,7 +304,7 @@ function TradesPanel({ trades: tradesOverride, isRealtime: isRealtimeOverride, o
 
         <div className="relative flex-1 max-w-xs">
           <SearchIcon
-            className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#7e8aaa] pointer-events-none"
+            className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-secondary)] pointer-events-none"
             aria-hidden="true"
           />
           <input
@@ -312,13 +312,13 @@ function TradesPanel({ trades: tradesOverride, isRealtime: isRealtimeOverride, o
             placeholder="Search fills by market, strategy, or trade ID…"
             value={filterQuery}
             onChange={(e) => setFilterQuery(e.target.value)}
-            className="w-full text-xs bg-[#0e1015] border border-[#1f2335] focus:border-cyan-500/50 rounded pl-7 pr-7 py-1 text-[#dde1ed] placeholder-[#3e4560] outline-none"
+            className="w-full text-xs bg-[var(--bg-page)] border border-[var(--border)] focus:border-cyan-500/50 rounded pl-7 pr-7 py-1 text-[var(--text-primary)] placeholder-[var(--text-dim)] outline-none"
             aria-label="Search trade fills"
           />
           {filterQuery && (
             <button
               onClick={() => setFilterQuery('')}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-[#7e8aaa] hover:text-white"
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-[var(--text-secondary)] hover:text-white"
               aria-label="Clear search"
             >
               <ClearIcon className="w-3 h-3" aria-hidden="true" />
@@ -335,7 +335,7 @@ function TradesPanel({ trades: tradesOverride, isRealtime: isRealtimeOverride, o
           // executions…" text (preserves the existing test contract
           // `getByText(/Loading recent executions/)`).
           <div className="flex-1 overflow-hidden flex flex-col" role="status" aria-live="polite">
-            <div className="px-3 py-1.5 text-[10px] text-[#7e8aaa] flex items-center gap-2 border-b border-[#1f2335]/50 bg-[#0e1015]/40">
+            <div className="px-3 py-1.5 text-[10px] text-[var(--text-secondary)] flex items-center gap-2 border-b border-[var(--border)]/50 bg-[var(--bg-page)]/40">
               <span className="spinner" aria-hidden="true" />
               Loading recent executions…
             </div>
@@ -343,7 +343,7 @@ function TradesPanel({ trades: tradesOverride, isRealtime: isRealtimeOverride, o
               {Array.from({ length: SKELETON_ROWS }).map((_, i) => (
                 <div
                   key={i}
-                  className="flex items-center gap-3 px-3 py-2 border-b border-[#1f2335]/30"
+                  className="flex items-center gap-3 px-3 py-2 border-b border-[var(--border)]/30"
                   aria-hidden="true"
                 >
                   {/* Token cell skeleton — wider */}
@@ -389,7 +389,7 @@ function TradesPanel({ trades: tradesOverride, isRealtime: isRealtimeOverride, o
           // preserved (the test asserts on the title).
           <div className="empty-state py-6">
             <span className="empty-state-icon" aria-hidden="true">
-              <Receipt className="w-10 h-10 text-[#3e4560]" strokeWidth={1.5} />
+              <Receipt className="w-10 h-10 text-[var(--text-dim)]" strokeWidth={1.5} />
             </span>
             <span className="empty-state-title text-sm font-semibold">No executed trades</span>
             <span className="empty-state-desc text-xs text-center max-w-xs">
@@ -401,7 +401,7 @@ function TradesPanel({ trades: tradesOverride, isRealtime: isRealtimeOverride, o
         ) : (
           <table className="data-table text-xs w-full" role="table" aria-label="Recent trade execution log">
             <thead>
-              <tr className="border-b border-[#1f2335] text-[#7e8aaa] text-[10.5px]">
+              <tr className="border-b border-[var(--border)] text-[var(--text-secondary)] text-[10.5px]">
                 <th scope="col" className="min-w-[180px] text-left">Token</th>
                 <th scope="col" className="text-center">Side</th>
                 <th scope="col" className="text-right">Price</th>
@@ -423,7 +423,7 @@ function TradesPanel({ trades: tradesOverride, isRealtime: isRealtimeOverride, o
                 <th scope="col" className="text-right">Time</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#1f2335]/40">
+            <tbody className="divide-y divide-[var(--border)]/40">
               {displayedTrades.map((t) => {
                 const info = formatHierarchicalMarket(t.slug)
                 const tradeVal = t.size * t.price
@@ -449,12 +449,12 @@ function TradesPanel({ trades: tradesOverride, isRealtime: isRealtimeOverride, o
                         <span className="text-[9px] text-cyan-400 uppercase font-bold tracking-wider truncate">
                           {info.category.icon} {info.eventTitle}
                         </span>
-                        <span className="text-[#dde1ed] group-hover:text-cyan-300 font-medium leading-tight text-xs block whitespace-normal transition-colors" title={info.fullLabel}>
+                        <span className="text-[var(--text-primary)] group-hover:text-cyan-300 font-medium leading-tight text-xs block whitespace-normal transition-colors" title={info.fullLabel}>
                           {info.question}
                         </span>
                         <span
                           onClick={() => copyToClipboard(t.trade_id, t.trade_id)}
-                          className="text-[9px] text-[#5a637a] hover:text-cyan-300 mono cursor-pointer w-fit"
+                          className="text-[9px] text-[var(--text-secondary)] hover:text-cyan-300 mono cursor-pointer w-fit"
                           title="Click to copy Trade ID"
                         >
                           {copiedId === t.trade_id ? '✓ Copied ID' : `ID: ${t.trade_id.slice(0, 10)}…`}
@@ -481,17 +481,17 @@ function TradesPanel({ trades: tradesOverride, isRealtime: isRealtimeOverride, o
                     <td className="mono text-right text-cyan-400 font-bold tabular-nums">
                       {fmtPrice(t.price)}
                     </td>
-                    <td className="mono text-right font-medium text-[#dde1ed] tabular-nums">
+                    <td className="mono text-right font-medium text-[var(--text-primary)] tabular-nums">
                       {t.size.toFixed(1)}
                     </td>
-                    <td className="mono text-right text-[#7e8aaa] text-xs tabular-nums">
+                    <td className="mono text-right text-[var(--text-secondary)] text-xs tabular-nums">
                       {fmtUsd(tradeVal)}
                     </td>
                     {/* W39-5/W49-5 — Fee cell. Falls back to "—" when
                         the snapshot doesn't publish `t.fee`
                         (paper-trading mode today). */}
                     <td className="mono text-right text-[10.5px] text-amber-300 tabular-nums">
-                      {typeof t.fee === 'number' ? fmtUsd(t.fee) : <span className="text-[#3e4560]">—</span>}
+                      {typeof t.fee === 'number' ? fmtUsd(t.fee) : <span className="text-[var(--text-dim)]">—</span>}
                     </td>
                     {/* W49-5 — Slippage cell. Wrapped in a tiered
                         badge when `t.slippage_bps` is published;
@@ -508,7 +508,7 @@ function TradesPanel({ trades: tradesOverride, isRealtime: isRealtimeOverride, o
                           {slipBps >= 0 ? '+' : '−'}{Math.abs(slipBps).toFixed(1)} bps
                         </span>
                       ) : (
-                        <span className="text-[#3e4560]">—</span>
+                        <span className="text-[var(--text-dim)]">—</span>
                       )}
                     </td>
                     {/* W49-5 — P&L cell with direction arrow per the
@@ -518,7 +518,7 @@ function TradesPanel({ trades: tradesOverride, isRealtime: isRealtimeOverride, o
                         regex. */}
                     <td
                       className={`mono text-right font-bold tabular-nums ${
-                        pnlPositive ? 'text-green-400' : pnlNegative ? 'text-red-400' : 'text-[#7e8aaa]'
+                        pnlPositive ? 'text-green-400' : pnlNegative ? 'text-red-400' : 'text-[var(--text-secondary)]'
                       }`}
                     >
                       {t.pnl !== 0 ? (
@@ -533,9 +533,9 @@ function TradesPanel({ trades: tradesOverride, isRealtime: isRealtimeOverride, o
                     {/* W39-5/W49-5 — Strategy tag (audit-trail icon
                         moved to its own column for the W49-5
                         redesign). */}
-                    <td className="mono text-right text-[10px] text-[#7e8aaa]">
+                    <td className="mono text-right text-[10px] text-[var(--text-secondary)]">
                       <span className="inline-flex items-center gap-1">
-                        <span className="px-1.5 py-0.5 rounded bg-[#0e1015] border border-[#1f2335]">
+                        <span className="px-1.5 py-0.5 rounded bg-[var(--bg-page)] border border-[var(--border)]">
                           {t.strategy || 'manual'}
                         </span>
                       </span>
@@ -552,21 +552,21 @@ function TradesPanel({ trades: tradesOverride, isRealtime: isRealtimeOverride, o
                         <button
                           type="button"
                           onClick={() => handleViewAudit(t)}
-                          className="inline-flex items-center justify-center w-5 h-5 rounded border border-[#1f2335] bg-[#0e1015] text-[#7e8aaa] hover:text-cyan-300 hover:border-cyan-500/50 transition-colors mx-auto"
+                          className="inline-flex items-center justify-center w-5 h-5 rounded border border-[var(--border)] bg-[var(--bg-page)] text-[var(--text-secondary)] hover:text-cyan-300 hover:border-cyan-500/50 transition-colors mx-auto"
                           aria-label={`Open decision ledger audit trail for trade ${t.trade_id}`}
                           title={`Audit trail · Decision ID: ${t.decision_id ?? t.trade_id}`}
                         >
                           <span aria-hidden="true" className="text-[10px]">📋</span>
                         </button>
                       ) : (
-                        <span className="text-[#3e4560]">—</span>
+                        <span className="text-[var(--text-dim)]">—</span>
                       )}
                     </td>
                     {/* W39-5/W49-5 — Time rendered in relative format
                         ("3m ago") with the absolute ISO timestamp
                         surfaced via the title attribute for hover
                         + screen-reader context. */}
-                    <td className="mono text-right text-[#7e8aaa] text-[10.5px] tabular-nums" title={`Executed: ${fmtTimeAbs(t.timestamp)}`}>
+                    <td className="mono text-right text-[var(--text-secondary)] text-[10.5px] tabular-nums" title={`Executed: ${fmtTimeAbs(t.timestamp)}`}>
                       {fmtAge(t.timestamp)}
                     </td>
                   </tr>

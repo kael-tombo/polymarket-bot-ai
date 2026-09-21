@@ -185,7 +185,7 @@ const TONE: Record<ValidationTone, ToneConfig> = {
   warn:    { bg: 'bg-amber-500/[0.06]',   border: 'border-amber-500/25',   text: 'text-amber-400',   bar: 'bg-amber-500',   dot: 'bg-amber-400',   label: 'text-amber-400/80',   halo: 'shadow-amber-500/10' },
   fail:    { bg: 'bg-red-500/[0.06]',     border: 'border-red-500/25',     text: 'text-red-400',     bar: 'bg-red-500',     dot: 'bg-red-400',     label: 'text-red-400/80',     halo: 'shadow-red-500/10' },
   info:    { bg: 'bg-cyan-500/[0.06]',    border: 'border-cyan-500/25',    text: 'text-cyan-300',    bar: 'bg-cyan-500',    dot: 'bg-cyan-400',    label: 'text-cyan-300/80',    halo: 'shadow-cyan-500/10' },
-  neutral: { bg: 'bg-[#0e1015]',          border: 'border-[#1f2335]',     text: 'text-[#dde1ed]',   bar: 'bg-[#5a637a]',   dot: 'bg-[#5a637a]',   label: 'text-[#7e8aaa]',      halo: '' },
+  neutral: { bg: 'bg-[var(--bg-base)]',          border: 'border-[var(--border)]',     text: 'text-[var(--text-primary)]',   bar: 'bg-[var(--text-secondary)]',   dot: 'bg-[var(--text-secondary)]',   label: 'text-[var(--text-secondary)]',      halo: '' },
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -279,11 +279,11 @@ function SectionHeader({
   return (
     <div className="flex items-center gap-1.5 mb-1.5">
       <Icon className={`size-3 ${TONE[tone].text}`} aria-hidden="true" />
-      <span className="text-[9.5px] uppercase tracking-wider font-bold text-[#5a637a]">
+      <span className="text-[9.5px] uppercase tracking-wider font-bold text-[var(--text-secondary)]">
         {title}
       </span>
       {description && (
-        <span className="text-[8.5px] text-[#5a637a] italic truncate">{description}</span>
+        <span className="text-[8.5px] text-[var(--text-secondary)] italic truncate">{description}</span>
       )}
       {trailing && <span className="ml-auto shrink-0">{trailing}</span>}
     </div>
@@ -318,9 +318,9 @@ function KpiTile({ label, value, hint, tone, quality, trend, testId }: KpiTilePr
         {trend === 'up' && <TrendingUp className="size-2.5 inline-block" aria-hidden="true" />}
         {trend === 'down' && <TrendingDown className="size-2.5 inline-block" aria-hidden="true" />}
       </div>
-      <div className="kpi-sub text-[8px] text-[#5a637a] mt-0.5 italic truncate">{hint}</div>
+      <div className="kpi-sub text-[8px] text-[var(--text-secondary)] mt-0.5 italic truncate">{hint}</div>
       {quality != null && quality > 0 && (
-        <div className="h-0.5 bg-[#1f2335] rounded-full mt-1 overflow-hidden">
+        <div className="h-0.5 bg-[var(--border)] rounded-full mt-1 overflow-hidden">
           <div
             className={`h-full rounded-full transition-all duration-500 ${cfg.bar}`}
             style={{ width: `${Math.max(0, Math.min(100, quality))}%` }}
@@ -417,13 +417,13 @@ function ValidationSkeleton() {
           <ShimmerBlock className="w-1/6 ml-auto" />
         </div>
         <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-[#0e1015] border border-[#1f2335] rounded-md p-3 space-y-2">
+          <div className="bg-[var(--bg-base)] border border-[var(--border)] rounded-md p-3 space-y-2">
             <ShimmerBlock className="w-1/3" />
             <div className="h-5 rounded-sm skeleton-line-md" />
             <ShimmerBlock className="w-full" />
             <ShimmerBlock className="w-2/3" />
           </div>
-          <div className="bg-[#0e1015] border border-[#1f2335] rounded-md p-3 space-y-2">
+          <div className="bg-[var(--bg-base)] border border-[var(--border)] rounded-md p-3 space-y-2">
             <ShimmerBlock className="w-1/3" />
             <div className="h-8 rounded-md skeleton-line-md" />
             <ShimmerBlock className="w-full" />
@@ -770,19 +770,19 @@ export default function MLValidationPanel() {
   // ── Render ────────────────────────────────────────────────────────────────
 
   return (
-    <div className="flex flex-col h-full bg-[var(--bg-surface)] border border-[#1f2335] rounded-lg overflow-hidden">
+    <div className="flex flex-col h-full bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg overflow-hidden">
       {/* ── Header ─────────────────────────────────────────────────────────── */}
-      <div className="flex flex-wrap justify-between items-center gap-3 p-4 border-b border-[#1f2335] bg-[#13161e]">
+      <div className="flex flex-wrap justify-between items-center gap-3 p-4 border-b border-[var(--border)] bg-[var(--bg-surface)]">
         <div className="flex items-center gap-2.5">
           <div className="p-2 rounded-md bg-[var(--color-cyan-bg)] border border-[var(--color-cyan-bd)]">
             <Brain className="text-[var(--color-cyan-fg)]" size={18} />
           </div>
           <div>
-            <h2 className="text-sm font-bold text-[#dde1ed] flex items-center gap-2">
+            <h2 className="text-sm font-bold text-[var(--text-primary)] flex items-center gap-2">
               ML Validation &amp; Walk-Forward CV
               <span className="badge badge-dim text-[9px]">governance + drift</span>
             </h2>
-            <p className="text-[11px] text-[#7e8aaa] mt-0.5">
+            <p className="text-[11px] text-[var(--text-secondary)] mt-0.5">
               <code className="mono text-[10px]">/api/ml/metrics</code>
               <span className="mx-1">·</span>
               <code className="mono text-[10px]">/api/ml/drift</code>
@@ -930,19 +930,19 @@ export default function MLValidationPanel() {
                 <div className="flex items-center gap-2">
                   <Select value={focusMetric} onValueChange={(v) => setFocusMetric(v as FocusMetric)}>
                     <SelectTrigger
-                      className="h-7 w-[140px] bg-[#13161e] border-[#1f2335] text-[#dde1ed] text-[10.5px]"
+                      className="h-7 w-[140px] bg-[var(--bg-surface)] border-[var(--border)] text-[var(--text-primary)] text-[10.5px]"
                       aria-label="Focus metric for walk-forward folds"
                     >
                       <SelectValue placeholder="Focus metric" />
                     </SelectTrigger>
-                    <SelectContent className="bg-[#13161e] border-[#1f2335]">
+                    <SelectContent className="bg-[var(--bg-surface)] border-[var(--border)]">
                       {FOCUS_METRICS.map((m) => (
                         <SelectItem
                           key={m.value}
                           value={m.value}
-                          className="text-[#dde1ed] focus:bg-[#1f2335] text-[11px]"
+                          className="text-[var(--text-primary)] focus:bg-[var(--border)] text-[11px]"
                         >
-                          <span className="text-[9px] uppercase tracking-wider font-bold text-[#7e8aaa] mr-2">focus</span>
+                          <span className="text-[9px] uppercase tracking-wider font-bold text-[var(--text-secondary)] mr-2">focus</span>
                           {m.label}
                         </SelectItem>
                       ))}
@@ -958,21 +958,21 @@ export default function MLValidationPanel() {
                 <Table className="data-table">
                   <TableHeader>
                     <TableRow className="hover:bg-transparent">
-                      <TableHead className="text-[10px] uppercase tracking-wider font-bold text-[#5a637a]">Fold</TableHead>
-                      <TableHead className="text-[10px] uppercase tracking-wider font-bold text-[#5a637a]">Snapshot</TableHead>
-                      <TableHead className={`text-[10px] uppercase tracking-wider font-bold text-right tabular-nums ${focusMetric === 'psi' ? 'text-cyan-300 bg-cyan-500/[0.06]' : 'text-[#5a637a]'}`}>
+                      <TableHead className="text-[10px] uppercase tracking-wider font-bold text-[var(--text-secondary)]">Fold</TableHead>
+                      <TableHead className="text-[10px] uppercase tracking-wider font-bold text-[var(--text-secondary)]">Snapshot</TableHead>
+                      <TableHead className={`text-[10px] uppercase tracking-wider font-bold text-right tabular-nums ${focusMetric === 'psi' ? 'text-cyan-300 bg-cyan-500/[0.06]' : 'text-[var(--text-secondary)]'}`}>
                         PSI
                       </TableHead>
-                      <TableHead className={`text-[10px] uppercase tracking-wider font-bold text-right tabular-nums ${focusMetric === 'ks' ? 'text-cyan-300 bg-cyan-500/[0.06]' : 'text-[#5a637a]'}`}>
+                      <TableHead className={`text-[10px] uppercase tracking-wider font-bold text-right tabular-nums ${focusMetric === 'ks' ? 'text-cyan-300 bg-cyan-500/[0.06]' : 'text-[var(--text-secondary)]'}`}>
                         KS
                       </TableHead>
-                      <TableHead className={`text-[10px] uppercase tracking-wider font-bold text-right tabular-nums ${focusMetric === 'rolling_brier' ? 'text-cyan-300 bg-cyan-500/[0.06]' : 'text-[#5a637a]'}`}>
+                      <TableHead className={`text-[10px] uppercase tracking-wider font-bold text-right tabular-nums ${focusMetric === 'rolling_brier' ? 'text-cyan-300 bg-cyan-500/[0.06]' : 'text-[var(--text-secondary)]'}`}>
                         Rolling Brier
                       </TableHead>
-                      <TableHead className={`text-[10px] uppercase tracking-wider font-bold text-right tabular-nums ${focusMetric === 'ewma_brier' ? 'text-cyan-300 bg-cyan-500/[0.06]' : 'text-[#5a637a]'}`}>
+                      <TableHead className={`text-[10px] uppercase tracking-wider font-bold text-right tabular-nums ${focusMetric === 'ewma_brier' ? 'text-cyan-300 bg-cyan-500/[0.06]' : 'text-[var(--text-secondary)]'}`}>
                         EWMA Brier
                       </TableHead>
-                      <TableHead className="text-[10px] uppercase tracking-wider font-bold text-right text-[#5a637a]">Status</TableHead>
+                      <TableHead className="text-[10px] uppercase tracking-wider font-bold text-right text-[var(--text-secondary)]">Status</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -997,14 +997,14 @@ export default function MLValidationPanel() {
                               className={`transition-colors hover:bg-cyan-500/[0.04] hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.45)]`}
                             >
                               <TableCell className="label-col">
-                                <span className="mono text-[11px] text-[#7e8aaa] tabular-nums">#{idx + 1}</span>
+                                <span className="mono text-[11px] text-[var(--text-secondary)] tabular-nums">#{idx + 1}</span>
                               </TableCell>
                               <TableCell>
                                 <div className="flex flex-col">
-                                  <span className="text-[11px] text-[#dde1ed] tabular-nums">
+                                  <span className="text-[11px] text-[var(--text-primary)] tabular-nums">
                                     {new Date(h.timestamp * 1000).toLocaleTimeString()}
                                   </span>
-                                  <span className="text-[10px] text-[#5a637a]">{fmtRel(h.timestamp)}</span>
+                                  <span className="text-[10px] text-[var(--text-secondary)]">{fmtRel(h.timestamp)}</span>
                                 </div>
                               </TableCell>
                               <TableCell className={`text-right mono tabular-nums ${focusMetric === 'psi' ? 'bg-cyan-500/[0.05] font-semibold' : ''} ${classifyMetric(h.psi, { good: 0.10, warn: 0.25, higherIsBetter: false })}`}>
@@ -1030,23 +1030,23 @@ export default function MLValidationPanel() {
                           )
                         })}
                         {/* Aggregate row */}
-                        <TableRow className="bg-[#0e1015] border-t-2 border-[var(--color-cyan-bd)] hover:bg-[#0e1015]">
+                        <TableRow className="bg-[var(--bg-base)] border-t-2 border-[var(--color-cyan-bd)] hover:bg-[var(--bg-base)]">
                           <TableCell className="label-col">
                             <span className="text-[11px] font-bold text-[var(--color-cyan-fg)] uppercase tracking-wider">Aggregate</span>
                           </TableCell>
-                          <TableCell className="text-[10px] text-[#7e8aaa] tabular-nums">
+                          <TableCell className="text-[10px] text-[var(--text-secondary)] tabular-nums">
                             n={driftHistory.length} · mean ± std
                           </TableCell>
                           <TableCell className={`text-right mono text-cyan-300 font-bold tabular-nums ${focusMetric === 'psi' ? 'bg-cyan-500/[0.05]' : ''}`}>
                             {fmt(psiMean)} ± {fmt(psiStd)}
                           </TableCell>
-                          <TableCell className={`text-right mono text-[#7e8aaa] tabular-nums ${focusMetric === 'ks' ? 'bg-cyan-500/[0.05]' : ''}`}>
+                          <TableCell className={`text-right mono text-[var(--text-secondary)] tabular-nums ${focusMetric === 'ks' ? 'bg-cyan-500/[0.05]' : ''}`}>
                             {fmt(mean(driftHistory.map((h) => h.ks_stat)))} ± {fmt(std(driftHistory.map((h) => h.ks_stat)))}
                           </TableCell>
                           <TableCell className={`text-right mono text-cyan-300 font-bold tabular-nums ${focusMetric === 'rolling_brier' ? 'bg-cyan-500/[0.05]' : ''}`}>
                             {brierValues.length ? `${fmt(brierMean)} ± ${fmt(brierStd)}` : '—'}
                           </TableCell>
-                          <TableCell className={`text-right mono text-[#7e8aaa] tabular-nums ${focusMetric === 'ewma_brier' ? 'bg-cyan-500/[0.05]' : ''}`}>
+                          <TableCell className={`text-right mono text-[var(--text-secondary)] tabular-nums ${focusMetric === 'ewma_brier' ? 'bg-cyan-500/[0.05]' : ''}`}>
                             {ewmaValues.length ? `${fmt(mean(ewmaValues))} ± ${fmt(std(ewmaValues))}` : '—'}
                           </TableCell>
                           <TableCell className="text-right">
@@ -1156,14 +1156,14 @@ export default function MLValidationPanel() {
                         key={name}
                         className="flex items-center gap-2 rounded-sm px-1 py-0.5 transition-colors hover:bg-cyan-500/[0.04]"
                       >
-                        <span className="text-[10px] text-[#5a637a] w-5 text-right mono tabular-nums">{idx + 1}</span>
+                        <span className="text-[10px] text-[var(--text-secondary)] w-5 text-right mono tabular-nums">{idx + 1}</span>
                         <span
-                          className="text-[10.5px] text-[#dde1ed] flex-1 truncate shrink-0 mono"
+                          className="text-[10.5px] text-[var(--text-primary)] flex-1 truncate shrink-0 mono"
                           title={name}
                         >
                           {name}
                         </span>
-                        <div className="flex-1 h-1.5 bg-[#0e1015] rounded-full overflow-hidden border border-[#1f2335]">
+                        <div className="flex-1 h-1.5 bg-[var(--bg-base)] rounded-full overflow-hidden border border-[var(--border)]">
                           <div
                             className="h-full rounded-full bg-gradient-to-r from-cyan-500 to-cyan-300 transition-all duration-500"
                             style={{ width: `${(imp / maxFeatureImp) * 100}%` }}
@@ -1206,8 +1206,8 @@ export default function MLValidationPanel() {
               </div>
               <div className="p-4 space-y-3">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="bg-[#0e1015] border border-[#1f2335] rounded-md p-3 space-y-2">
-                    <div className="text-[9.5px] uppercase tracking-wider font-bold text-[#5a637a] flex items-center gap-1.5">
+                  <div className="bg-[var(--bg-base)] border border-[var(--border)] rounded-md p-3 space-y-2">
+                    <div className="text-[9.5px] uppercase tracking-wider font-bold text-[var(--text-secondary)] flex items-center gap-1.5">
                       <PulseDot tone="info" pulse={false} />
                       Active model
                     </div>
@@ -1226,40 +1226,40 @@ export default function MLValidationPanel() {
                         </div>
                         <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-[11px]">
                           <div className="flex justify-between">
-                            <span className="text-[#7e8aaa]">Brier</span>
+                            <span className="text-[var(--text-secondary)]">Brier</span>
                             <span className="mono text-cyan-300 tabular-nums">{fmt(activeVersion.brier_score)}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-[#7e8aaa]">AUC</span>
+                            <span className="text-[var(--text-secondary)]">AUC</span>
                             <span className="mono text-cyan-300 tabular-nums">{fmt(activeVersion.roc_auc, 3)}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-[#7e8aaa]">ECE</span>
+                            <span className="text-[var(--text-secondary)]">ECE</span>
                             <span className="mono text-cyan-300 tabular-nums">{fmt(activeVersion.ece)}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-[#7e8aaa]">Sharpe</span>
+                            <span className="text-[var(--text-secondary)]">Sharpe</span>
                             <span className="mono text-cyan-300 tabular-nums">{fmt(activeVersion.sharpe_ratio, 2)}</span>
                           </div>
                           <div className="flex justify-between col-span-2">
-                            <span className="text-[#7e8aaa]">Trained at</span>
-                            <span className="mono text-[#dde1ed] text-[10.5px] tabular-nums">
+                            <span className="text-[var(--text-secondary)]">Trained at</span>
+                            <span className="mono text-[var(--text-primary)] text-[10.5px] tabular-nums">
                               {new Date(activeVersion.created_at * 1000).toLocaleString()}
                             </span>
                           </div>
                           <div className="flex justify-between col-span-2">
-                            <span className="text-[#7e8aaa]">Training samples</span>
+                            <span className="text-[var(--text-secondary)]">Training samples</span>
                             <span className="mono text-cyan-300 tabular-nums">
                               {(activeVersion.n_samples ?? 0).toLocaleString()}
                             </span>
                           </div>
                           <div className="flex justify-between col-span-2">
-                            <span className="text-[#7e8aaa]">Feature count</span>
+                            <span className="text-[var(--text-secondary)]">Feature count</span>
                             <span className="mono text-cyan-300 tabular-nums">
                               {featureEntries.length > 0 ? (
                                 <>
                                   {Object.keys(metrics?.feature_importances ?? {}).length}{' '}
-                                  <span className="text-[#5a637a]">(importance-weighted)</span>
+                                  <span className="text-[var(--text-secondary)]">(importance-weighted)</span>
                                 </>
                               ) : (
                                 '—'
@@ -1267,8 +1267,8 @@ export default function MLValidationPanel() {
                             </span>
                           </div>
                           <div className="flex justify-between col-span-2">
-                            <span className="text-[#7e8aaa]">Training source</span>
-                            <span className="mono text-[#dde1ed] text-[10.5px]">
+                            <span className="text-[var(--text-secondary)]">Training source</span>
+                            <span className="mono text-[var(--text-primary)] text-[10.5px]">
                               {metrics?.training_source === 'real_and_synthetic'
                                 ? '🔵 Real + Synthetic'
                                 : metrics?.training_source === 'synthetic_only'
@@ -1277,8 +1277,8 @@ export default function MLValidationPanel() {
                             </span>
                           </div>
                           <div className="flex justify-between col-span-2">
-                            <span className="text-[#7e8aaa]">Real / synthetic</span>
-                            <span className="mono text-[#dde1ed] text-[10.5px] tabular-nums">
+                            <span className="text-[var(--text-secondary)]">Real / synthetic</span>
+                            <span className="mono text-[var(--text-primary)] text-[10.5px] tabular-nums">
                               {(metrics?.n_real_samples ?? 0).toLocaleString()} / {(metrics?.n_synthetic_samples ?? 0).toLocaleString()}
                             </span>
                           </div>
@@ -1294,37 +1294,37 @@ export default function MLValidationPanel() {
                     )}
                   </div>
 
-                  <div className="bg-[#0e1015] border border-[#1f2335] rounded-md p-3 space-y-3">
-                    <div className="text-[9.5px] uppercase tracking-wider font-bold text-[#5a637a] flex items-center gap-1.5">
+                  <div className="bg-[var(--bg-base)] border border-[var(--border)] rounded-md p-3 space-y-3">
+                    <div className="text-[9.5px] uppercase tracking-wider font-bold text-[var(--text-secondary)] flex items-center gap-1.5">
                       <PulseDot tone="warn" pulse={false} />
                       Trigger immediate retrain
                     </div>
-                    <p className="text-[11px] text-[#7e8aaa] leading-relaxed">
+                    <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed">
                       Calls <code className="mono text-[10px] text-[var(--color-cyan-fg)]">POST /api/ml/retrain</code>{' '}
                       which runs <code className="mono text-[10px]">ml_model.fit_initial</code> +{' '}
                       <code className="mono text-[10px]">save</code>, then logs a retrained event.
                       Model registry safety gate rejects if Brier &gt; 0.22 or AUC &lt; 0.70.
                     </p>
                     {retrainResult && (
-                      <div className="bg-[#13161e] border border-[#1f2335] rounded p-2 text-[11px] space-y-1">
+                      <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded p-2 text-[11px] space-y-1">
                         <div className="flex justify-between">
-                          <span className="text-[#7e8aaa]">New version</span>
+                          <span className="text-[var(--text-secondary)]">New version</span>
                           <code className="mono text-[var(--color-cyan-fg)]">{retrainResult.model_version}</code>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-[#7e8aaa]">Brier</span>
+                          <span className="text-[var(--text-secondary)]">Brier</span>
                           <span className={`mono tabular-nums ${classifyMetric(retrainResult.brier_score, { good: 0.15, warn: 0.20, higherIsBetter: false })}`}>
                             {fmt(retrainResult.brier_score)}
                           </span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-[#7e8aaa]">AUC</span>
+                          <span className="text-[var(--text-secondary)]">AUC</span>
                           <span className={`mono tabular-nums ${classifyMetric(retrainResult.roc_auc, { good: 0.80, warn: 0.70, higherIsBetter: true })}`}>
                             {fmt(retrainResult.roc_auc, 3)}
                           </span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-[#7e8aaa]">ECE</span>
+                          <span className="text-[var(--text-secondary)]">ECE</span>
                           <span className={`mono tabular-nums ${classifyMetric(retrainResult.ece, { good: 0.03, warn: 0.06, higherIsBetter: false })}`}>
                             {fmt(retrainResult.ece)}
                           </span>
@@ -1333,22 +1333,22 @@ export default function MLValidationPanel() {
                     )}
                     {versions && versions.versions.length > 0 && (
                       <div>
-                        <label className="text-[10px] uppercase tracking-wider text-[#5a637a] font-bold mb-1 block">
+                        <label className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] font-bold mb-1 block">
                           Compare against
                         </label>
                         <Select value={selectedVersion} onValueChange={setSelectedVersion}>
-                          <SelectTrigger className="h-8 bg-[#13161e] border-[#1f2335] text-[#dde1ed] text-xs">
+                          <SelectTrigger className="h-8 bg-[var(--bg-surface)] border-[var(--border)] text-[var(--text-primary)] text-xs">
                             <SelectValue placeholder="Select version" />
                           </SelectTrigger>
-                          <SelectContent className="bg-[#13161e] border-[#1f2335]">
+                          <SelectContent className="bg-[var(--bg-surface)] border-[var(--border)]">
                             {versions.versions.map((v) => (
                               <SelectItem
                                 key={v.version}
                                 value={v.version}
-                                className="text-[#dde1ed] focus:bg-[#1f2335]"
+                                className="text-[var(--text-primary)] focus:bg-[var(--border)]"
                               >
                                 <code className="mono text-[11px]">{v.version}</code>
-                                <span className="text-[10px] text-[#7e8aaa] ml-2 tabular-nums">
+                                <span className="text-[10px] text-[var(--text-secondary)] ml-2 tabular-nums">
                                   Brier {fmt(v.brier_score)} · AUC {fmt(v.roc_auc, 3)}
                                 </span>
                                 {v.is_active && (
@@ -1359,7 +1359,7 @@ export default function MLValidationPanel() {
                           </SelectContent>
                         </Select>
                         {selectedVersion && selectedVersion !== activeVersion?.version && (
-                          <div className="mt-2 text-[10px] text-[#5a637a]">
+                          <div className="mt-2 text-[10px] text-[var(--text-secondary)]">
                             Roll back via <code className="mono text-[var(--color-cyan-fg)]">POST /api/ml/rollback?version={selectedVersion}</code>
                           </div>
                         )}
@@ -1391,7 +1391,7 @@ export default function MLValidationPanel() {
       </div>
 
       {/* ── Footer ─────────────────────────────────────────────────────────── */}
-      <div className="flex justify-between items-center px-4 py-2 border-t border-[#1f2335] bg-[#13161e] text-[10px] text-[#5a637a]">
+      <div className="flex justify-between items-center px-4 py-2 border-t border-[var(--border)] bg-[var(--bg-surface)] text-[10px] text-[var(--text-secondary)]">
         <span>
           Auto-refresh: <span className="mono text-[var(--color-cyan-fg)] tabular-nums">30s</span>
           {typeof document !== 'undefined' && document.visibilityState === 'hidden' && ' (paused)'}
@@ -1426,11 +1426,11 @@ function CalibrationPlot({ curve }: { curve: ReliabilityBin[] }) {
         <Table className="data-table">
           <TableHeader>
             <TableRow className="hover:bg-transparent">
-              <TableHead className="text-[10px] uppercase tracking-wider font-bold text-[#5a637a]">Bin</TableHead>
-              <TableHead className="text-[10px] uppercase tracking-wider font-bold text-right tabular-nums text-[#5a637a]">Pred</TableHead>
-              <TableHead className="text-[10px] uppercase tracking-wider font-bold text-right tabular-nums text-[#5a637a]">Actual</TableHead>
-              <TableHead className="text-[10px] uppercase tracking-wider font-bold text-right tabular-nums text-[#5a637a]">|Δ|</TableHead>
-              <TableHead className="text-[10px] uppercase tracking-wider font-bold text-right tabular-nums text-[#5a637a]">n</TableHead>
+              <TableHead className="text-[10px] uppercase tracking-wider font-bold text-[var(--text-secondary)]">Bin</TableHead>
+              <TableHead className="text-[10px] uppercase tracking-wider font-bold text-right tabular-nums text-[var(--text-secondary)]">Pred</TableHead>
+              <TableHead className="text-[10px] uppercase tracking-wider font-bold text-right tabular-nums text-[var(--text-secondary)]">Actual</TableHead>
+              <TableHead className="text-[10px] uppercase tracking-wider font-bold text-right tabular-nums text-[var(--text-secondary)]">|Δ|</TableHead>
+              <TableHead className="text-[10px] uppercase tracking-wider font-bold text-right tabular-nums text-[var(--text-secondary)]">n</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -1452,14 +1452,14 @@ function CalibrationPlot({ curve }: { curve: ReliabilityBin[] }) {
                   <TableCell className={`text-right mono tabular-nums ${TONE[deltaTone].text}`} data-tone={deltaTone}>
                     {fmt(delta, 3)}
                   </TableCell>
-                  <TableCell className="text-right mono text-[#7e8aaa] tabular-nums">{b.count}</TableCell>
+                  <TableCell className="text-right mono text-[var(--text-secondary)] tabular-nums">{b.count}</TableCell>
                 </TableRow>
               )
             })}
           </TableBody>
         </Table>
       </div>
-      <div className="text-[10px] text-[#5a637a]">
+      <div className="text-[10px] text-[var(--text-secondary)]">
         Scatter points colored by |Δ| (green ≤0.03, amber ≤0.08, red &gt;0.08). Dashed diagonal = perfect calibration.
       </div>
     </div>
@@ -1496,7 +1496,7 @@ function DriftStatusView({
           <div className={`mono text-xl font-bold tabular-nums ${TONE[psiTone].text}`}>
             {report.psi.toFixed(4)}
           </div>
-          <div className="text-[9px] text-[#5a637a] mono tabular-nums">
+          <div className="text-[9px] text-[var(--text-secondary)] mono tabular-nums">
             thresholds {report.threshold_moderate_psi}/{report.threshold_critical_psi}
           </div>
         </div>
@@ -1505,7 +1505,7 @@ function DriftStatusView({
           <div className={`mono text-xl font-bold tabular-nums ${TONE[ksTone].text}`}>
             {report.ks_stat.toFixed(4)}
           </div>
-          <div className="text-[9px] text-[#5a637a] mono tabular-nums">
+          <div className="text-[9px] text-[var(--text-secondary)] mono tabular-nums">
             thresholds {report.threshold_moderate_ks}/{report.threshold_critical_ks}
           </div>
         </div>
@@ -1524,7 +1524,7 @@ function DriftStatusView({
           }`}>Rolling Brier</div>
           <div className={`mono text-base font-bold tabular-nums ${
             report.rolling_brier === null
-              ? 'text-[#5a637a]'
+              ? 'text-[var(--text-secondary)]'
               : TONE[report.rolling_brier < 0.15 ? 'pass' : report.rolling_brier < report.threshold_brier_drift ? 'warn' : 'fail'].text
           }`}>
             {report.rolling_brier === null ? 'awaiting ≥20 samples' : report.rolling_brier.toFixed(4)}
@@ -1542,7 +1542,7 @@ function DriftStatusView({
           }`}>EWMA Brier (α={report.ewma_alpha})</div>
           <div className={`mono text-base font-bold tabular-nums ${
             report.ewma_brier === null
-              ? 'text-[#5a637a]'
+              ? 'text-[var(--text-secondary)]'
               : TONE[report.ewma_brier < 0.15 ? 'pass' : report.ewma_brier < report.threshold_brier_drift ? 'warn' : 'fail'].text
           }`}>
             {report.ewma_brier === null ? '—' : report.ewma_brier.toFixed(4)}
@@ -1550,9 +1550,9 @@ function DriftStatusView({
         </div>
       </div>
 
-      <div className="bg-[#0e1015] border border-[#1f2335] rounded-md p-2.5 space-y-2">
+      <div className="bg-[var(--bg-base)] border border-[var(--border)] rounded-md p-2.5 space-y-2">
         <div className="flex items-center justify-between">
-          <span className="text-[9px] uppercase tracking-wider text-[#5a637a] font-bold">
+          <span className="text-[9px] uppercase tracking-wider text-[var(--text-secondary)] font-bold">
             PSI trend (last {recentPsi.length} samples)
           </span>
           {si && (
@@ -1563,12 +1563,12 @@ function DriftStatusView({
           {recentPsi.length > 0 ? (
             <Sparkline values={recentPsi} max={maxPsi} tone={psiTone} />
           ) : (
-            <span className="text-[10px] text-[#5a637a]">awaiting compute_psi() cycles</span>
+            <span className="text-[10px] text-[var(--text-secondary)]">awaiting compute_psi() cycles</span>
           )}
         </div>
-        <div className="flex justify-between text-[10px] text-[#5a637a]">
-          <span>samples in window: <span className="mono text-[#dde1ed] tabular-nums">{report.window_samples}</span></span>
-          <span>resolved outcomes: <span className="mono text-[#dde1ed] tabular-nums">{report.outcome_samples}</span></span>
+        <div className="flex justify-between text-[10px] text-[var(--text-secondary)]">
+          <span>samples in window: <span className="mono text-[var(--text-primary)] tabular-nums">{report.window_samples}</span></span>
+          <span>resolved outcomes: <span className="mono text-[var(--text-primary)] tabular-nums">{report.outcome_samples}</span></span>
         </div>
       </div>
     </>

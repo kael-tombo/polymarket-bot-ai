@@ -20,7 +20,7 @@
 //     is refactored to a refined `<KpiTile>` with tone-tinted bg + ring +
 //     Lucide icon in the label row + large tabular-nums value + `data-tone`
 //     hook. Tone is derived from the existing `valueColor` prop
-//     (`#fbbf24`=warn, `#f87171`=poor, `#4ade80`=good, `#7e8aaa`=neutral,
+//     (`#fbbf24`=warn, `#f87171`=poor, `#4ade80`=good, `var(--text-secondary)`=neutral,
 //     else info) so the existing colour logic is preserved verbatim. The
 //     `data-testid="risk-kpi-<slug>"` is preserved verbatim so the W16-1
 //     test contract continues to resolve.
@@ -140,7 +140,7 @@ const TONE: Record<Tone, ToneConfig> = {
   warn:    { bg: 'bg-amber-500/[0.06]',   border: 'border-amber-500/25',   text: 'text-amber-400',   bar: 'bg-amber-500',   dot: 'bg-amber-400',   label: 'text-amber-400/80',   halo: 'shadow-amber-500/10' },
   poor:    { bg: 'bg-red-500/[0.06]',     border: 'border-red-500/25',     text: 'text-red-400',     bar: 'bg-red-500',     dot: 'bg-red-400',     label: 'text-red-400/80',     halo: 'shadow-red-500/10' },
   info:    { bg: 'bg-cyan-500/[0.06]',    border: 'border-cyan-500/25',    text: 'text-cyan-400',    bar: 'bg-cyan-500',    dot: 'bg-cyan-400',    label: 'text-cyan-400/80',    halo: 'shadow-cyan-500/10' },
-  neutral: { bg: 'bg-[#0e1015]',          border: 'border-[#1f2335]',      text: 'text-[#dde1ed]',   bar: 'bg-[#5a637a]',   dot: 'bg-[#5a637a]',   label: 'text-[#7e8aaa]',     halo: '' },
+  neutral: { bg: 'bg-[var(--bg-page)]',          border: 'border-[var(--border)]',      text: 'text-[var(--text-primary)]',   bar: 'bg-[var(--text-secondary)]',   dot: 'bg-[var(--text-secondary)]',   label: 'text-[var(--text-secondary)]',     halo: '' },
 }
 
 /** Map a hex colour string onto the Tone palette (preserves existing logic). */
@@ -149,7 +149,7 @@ function hexToTone(hex?: string): Tone {
   if (hex === '#4ade80') return 'good'
   if (hex === '#fbbf24') return 'warn'
   if (hex === '#f87171') return 'poor'
-  if (hex === '#7e8aaa') return 'neutral'
+  if (hex === 'var(--text-secondary)') return 'neutral'
   return 'info'
 }
 
@@ -226,16 +226,16 @@ function SectionHeader({
     <div className="flex items-center justify-between gap-2">
       <div className="flex items-center gap-1.5 min-w-0">
         <Icon className={`size-3.5 shrink-0 ${TONE[tone].text}`} aria-hidden="true" />
-        <span className="text-[10px] uppercase tracking-wider font-bold text-[#dde1ed] truncate">
+        <span className="text-[10px] uppercase tracking-wider font-bold text-[var(--text-primary)] truncate">
           {title}
         </span>
         {description && (
-          <span className="text-[9px] text-[#5a637a] italic truncate hidden md:inline">
+          <span className="text-[9px] text-[var(--text-secondary)] italic truncate hidden md:inline">
             {description}
           </span>
         )}
       </div>
-      {trailing && <span className="shrink-0 text-[10px] text-[#7e8aaa] mono tabular-nums">{trailing}</span>}
+      {trailing && <span className="shrink-0 text-[10px] text-[var(--text-secondary)] mono tabular-nums">{trailing}</span>}
     </div>
   )
 }
@@ -309,12 +309,12 @@ function PolishedEmptyState({
       data-testid={testId}
       role="status"
     >
-      <span className="mb-2 inline-flex p-2 rounded-full bg-[#0e1015] border border-[#1f2335]" aria-hidden="true">
+      <span className="mb-2 inline-flex p-2 rounded-full bg-[var(--bg-page)] border border-[var(--border)]" aria-hidden="true">
         <Icon className={`w-7 h-7 ${cfg.text}`} strokeWidth={1.5} />
       </span>
-      <p className="text-xs text-[#7e8aaa] max-w-[260px]">{title}</p>
+      <p className="text-xs text-[var(--text-secondary)] max-w-[260px]">{title}</p>
       {description && (
-        <p className="text-[10px] text-[#5a637a] italic mt-0.5 max-w-[240px]">{description}</p>
+        <p className="text-[10px] text-[var(--text-secondary)] italic mt-0.5 max-w-[240px]">{description}</p>
       )}
     </div>
   )
@@ -364,15 +364,15 @@ function PortfolioRiskSkeleton({ className }: { className?: string }) {
   return (
     <div
       data-testid="portfolio-risk-loading"
-      className={`card flex flex-col bg-[#13161e] border border-[#1f2335] shadow-md ${className ?? ''}`}
+      className={`card flex flex-col bg-[var(--bg-surface)] border border-[var(--border)] shadow-md ${className ?? ''}`}
       role="status"
       aria-live="polite"
       aria-label="Loading portfolio risk matrix"
     >
-      <div className="card-header p-3 border-b border-[#1f2335] flex justify-between items-center">
+      <div className="card-header p-3 border-b border-[var(--border)] flex justify-between items-center">
         <div className="flex items-center gap-2">
           <Layers className="w-3.5 h-3.5 text-[#22d3ee]" aria-hidden="true" />
-          <span className="card-title text-xs font-bold text-[#dde1ed]">
+          <span className="card-title text-xs font-bold text-[var(--text-primary)]">
             Portfolio Risk Matrix
           </span>
         </div>
@@ -391,17 +391,17 @@ function PortfolioRiskSkeleton({ className }: { className?: string }) {
         </div>
         {/* Heatmap + Matrix skeleton */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3" aria-hidden="true">
-          <div className="border border-[#1f2335] bg-[#0e1015] rounded-lg p-3 space-y-2">
+          <div className="border border-[var(--border)] bg-[var(--bg-page)] rounded-lg p-3 space-y-2">
             <ShimmerBlock className="w-1/3" />
             <div className="h-64 rounded-md skeleton-card" />
           </div>
-          <div className="border border-[#1f2335] bg-[#0e1015] rounded-lg p-3 space-y-2">
+          <div className="border border-[var(--border)] bg-[var(--bg-page)] rounded-lg p-3 space-y-2">
             <ShimmerBlock className="w-1/3" />
             <div className="h-64 rounded-md skeleton-card" />
           </div>
         </div>
         {/* Exposure breakdown skeleton */}
-        <div className="border border-[#1f2335] bg-[#0e1015] rounded-lg p-3 space-y-2" aria-hidden="true">
+        <div className="border border-[var(--border)] bg-[var(--bg-page)] rounded-lg p-3 space-y-2" aria-hidden="true">
           <ShimmerBlock className="w-1/4" />
           {[0, 1, 2].map((i) => (
             <div key={i} className="flex items-center gap-2 py-1.5">
@@ -452,7 +452,7 @@ function positionToDatum(p: Position): PnLHeatmapDatum {
 function pnlTextColor(v: number): string {
   if (v > 0) return '#4ade80'
   if (v < 0) return '#f87171'
-  return '#7e8aaa'
+  return 'var(--text-secondary)'
 }
 
 // ── Main panel ───────────────────────────────────────────────────────────
@@ -578,13 +578,13 @@ function PortfolioRiskPanelImpl({
   if (error && !summary) {
     return (
       <div
-        className={`card flex flex-col bg-[#13161e] border border-[#1f2335] shadow-md ${className ?? ''}`}
+        className={`card flex flex-col bg-[var(--bg-surface)] border border-[var(--border)] shadow-md ${className ?? ''}`}
         data-testid="portfolio-risk-error"
       >
-        <div className="card-header p-3 border-b border-[#1f2335] flex justify-between items-center">
+        <div className="card-header p-3 border-b border-[var(--border)] flex justify-between items-center">
           <div className="flex items-center gap-2">
             <Layers className="w-3.5 h-3.5 text-[#22d3ee]" aria-hidden="true" />
-            <span className="card-title text-xs font-bold text-[#dde1ed]">
+            <span className="card-title text-xs font-bold text-[var(--text-primary)]">
               Portfolio Risk Matrix
             </span>
           </div>
@@ -625,13 +625,13 @@ function PortfolioRiskPanelImpl({
   return (
     <div
       data-testid="portfolio-risk-panel"
-      className={`card flex flex-col bg-[#13161e] border border-[#1f2335] shadow-md ${className ?? ''}`}
+      className={`card flex flex-col bg-[var(--bg-surface)] border border-[var(--border)] shadow-md ${className ?? ''}`}
     >
       {/* ── Header ────────────────────────────────────────────────────────── */}
-      <div className="card-header p-3 border-b border-[#1f2335] flex justify-between items-center flex-wrap gap-2">
+      <div className="card-header p-3 border-b border-[var(--border)] flex justify-between items-center flex-wrap gap-2">
         <div className="flex items-center gap-2">
           <Layers className="w-3.5 h-3.5 text-[#22d3ee]" aria-hidden="true" />
-          <span className="card-title text-xs font-bold text-[#dde1ed]">
+          <span className="card-title text-xs font-bold text-[var(--text-primary)]">
             Portfolio Risk Matrix
           </span>
           <span className="badge badge-amber text-[9.5px] tabular-nums">
@@ -649,7 +649,7 @@ function PortfolioRiskPanelImpl({
             </span>
           )}
         </div>
-        <div className="flex items-center gap-2 text-[10px] text-[#7e8aaa]">
+        <div className="flex items-center gap-2 text-[10px] text-[var(--text-secondary)]">
           {lastUpdated && (
             <span
               title={`Last updated: ${new Date(lastUpdated).toLocaleString()}`}
@@ -664,7 +664,7 @@ function PortfolioRiskPanelImpl({
           <button
             type="button"
             onClick={() => doFetch()}
-            className="btn btn-ghost btn-sm text-[10px] px-2 py-0.5 border border-[#1f2335] text-[#7e8aaa] hover:text-white hover:border-[#2d3450] flex items-center gap-1"
+            className="btn btn-ghost btn-sm text-[10px] px-2 py-0.5 border border-[var(--border)] text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-strong)] flex items-center gap-1"
             title="Refresh now"
             aria-label="Refresh risk matrix now"
           >
@@ -700,7 +700,7 @@ function PortfolioRiskPanelImpl({
             sub="Largest position"
             icon={TrendingDown}
             testId="risk-kpi-max-single"
-            valueColor={maxSingleTone === 'poor' ? '#f87171' : maxSingleTone === 'warn' ? '#fbbf24' : '#dde1ed'}
+            valueColor={maxSingleTone === 'poor' ? '#f87171' : maxSingleTone === 'warn' ? '#fbbf24' : 'var(--text-primary)'}
           />
           <KpiTile
             label="Diversification"
@@ -708,7 +708,7 @@ function PortfolioRiskPanelImpl({
             sub="1 − mean|ρ|"
             icon={Shield}
             testId="risk-kpi-diversification"
-            valueColor={diversification === 1 ? '#7e8aaa' : TONE[diversificationTone].text === 'text-emerald-400' ? '#4ade80' : TONE[diversificationTone].text === 'text-amber-400' ? '#fbbf24' : '#f87171'}
+            valueColor={diversification === 1 ? 'var(--text-secondary)' : TONE[diversificationTone].text === 'text-emerald-400' ? '#4ade80' : TONE[diversificationTone].text === 'text-amber-400' ? '#fbbf24' : '#f87171'}
           />
           <KpiTile
             label="VaR 95%"
@@ -716,7 +716,7 @@ function PortfolioRiskPanelImpl({
             sub="1-period historical"
             icon={Gauge}
             testId="risk-kpi-var-95%"
-            valueColor={var95 == null ? '#7e8aaa' : TONE[varTone].text === 'text-red-400' ? '#f87171' : '#fbbf24'}
+            valueColor={var95 == null ? 'var(--text-secondary)' : TONE[varTone].text === 'text-red-400' ? '#f87171' : '#fbbf24'}
           />
           <KpiTile
             label="Expected Shortfall 95%"
@@ -724,7 +724,7 @@ function PortfolioRiskPanelImpl({
             sub="Avg worst-5% tail"
             icon={TrendingDown}
             testId="risk-kpi-expected-shortfall-95%"
-            valueColor={es95 == null ? '#7e8aaa' : TONE[esTone].text === 'text-red-400' ? '#f87171' : '#f87171'}
+            valueColor={es95 == null ? 'var(--text-secondary)' : TONE[esTone].text === 'text-red-400' ? '#f87171' : '#f87171'}
           />
         </div>
 
@@ -739,12 +739,12 @@ function PortfolioRiskPanelImpl({
 
         {/* ── Heatmap + Correlation matrix (2-col on lg+) ───────────────── */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-          <Card className="bg-[#0e1015] border-[#1f2335]">
+          <Card className="bg-[var(--bg-page)] border-[var(--border)]">
             <CardHeader className="p-3 pb-2">
-              <CardTitle className="text-xs flex items-center gap-2 text-[#dde1ed]">
+              <CardTitle className="text-xs flex items-center gap-2 text-[var(--text-primary)]">
                 <span className="text-[#22d3ee]" aria-hidden="true">🔥</span>
                 P&amp;L Heatmap
-                <span className="text-[9.5px] text-[#7e8aaa] font-normal">
+                <span className="text-[9.5px] text-[var(--text-secondary)] font-normal">
                   per-position · green = profit · red = loss
                 </span>
               </CardTitle>
@@ -752,7 +752,7 @@ function PortfolioRiskPanelImpl({
             <CardContent className="p-3 pt-1">
               {heatData.length === 0 ? (
                 positionsLoading && heatData.length === 0 ? (
-                  <div className="flex items-center justify-center text-xs text-[#7e8aaa] py-8">
+                  <div className="flex items-center justify-center text-xs text-[var(--text-secondary)] py-8">
                     <span className="spinner mr-2" aria-hidden="true" />
                     Loading positions…
                   </div>
@@ -771,12 +771,12 @@ function PortfolioRiskPanelImpl({
             </CardContent>
           </Card>
 
-          <Card className="bg-[#0e1015] border-[#1f2335]">
+          <Card className="bg-[var(--bg-page)] border-[var(--border)]">
             <CardHeader className="p-3 pb-2">
-              <CardTitle className="text-xs flex items-center gap-2 text-[#dde1ed]">
+              <CardTitle className="text-xs flex items-center gap-2 text-[var(--text-primary)]">
                 <span className="text-[#22d3ee]" aria-hidden="true">⊞</span>
                 Correlation Matrix
-                <span className="text-[9.5px] text-[#7e8aaa] font-normal">
+                <span className="text-[9.5px] text-[var(--text-secondary)] font-normal">
                   Pearson · ρ ∈ [−1, +1]
                 </span>
               </CardTitle>
@@ -807,7 +807,7 @@ function PortfolioRiskPanelImpl({
         />
 
         {/* ── Exposure breakdown ─────────────────────────────────────────── */}
-        <Card className="bg-[#0e1015] border-[#1f2335]">
+        <Card className="bg-[var(--bg-page)] border-[var(--border)]">
           <CardContent className="p-3 pt-3">
             {heatData.length === 0 ? (
               <PolishedEmptyState
@@ -852,7 +852,7 @@ function ExposureBreakdownImpl({ data, maxMagnitude }: ExposureBreakdownProps) {
   )
   if (maxMagnitude <= 0) {
     return (
-      <div className="text-xs text-[#7e8aaa] py-2">No exposure to break down.</div>
+      <div className="text-xs text-[var(--text-secondary)] py-2">No exposure to break down.</div>
     )
   }
   return (
@@ -869,18 +869,18 @@ function ExposureBreakdownImpl({ data, maxMagnitude }: ExposureBreakdownProps) {
         return (
           <div
             key={d.tokenId}
-            className={`flex items-center gap-2 text-xs px-2 py-1 rounded border border-[#1f2335] hover:bg-cyan-500/[0.04] hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.45)] transition-all ${cfg.bg}`}
+            className={`flex items-center gap-2 text-xs px-2 py-1 rounded border border-[var(--border)] hover:bg-cyan-500/[0.04] hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.45)] transition-all ${cfg.bg}`}
             data-testid={`exposure-row-${d.tokenId}`}
             data-tone={rowTone}
           >
             <span
-              className="mono text-[#7e8aaa] text-[10px] w-6 text-right tabular-nums"
+              className="mono text-[var(--text-secondary)] text-[10px] w-6 text-right tabular-nums"
               aria-hidden="true"
             >
               {i + 1}.
             </span>
             <span
-              className="flex-1 truncate text-[#dde1ed]"
+              className="flex-1 truncate text-[var(--text-primary)]"
               title={d.label}
             >
               {isMax && (
@@ -891,7 +891,7 @@ function ExposureBreakdownImpl({ data, maxMagnitude }: ExposureBreakdownProps) {
               </span>
               {d.label}
             </span>
-            <div className="w-32 h-1.5 bg-[#1f2335] rounded-full overflow-hidden">
+            <div className="w-32 h-1.5 bg-[var(--border)] rounded-full overflow-hidden">
               <div
                 className={`h-full rounded-full transition-all ${cfg.bar}`}
                 style={{

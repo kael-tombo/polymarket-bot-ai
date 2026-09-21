@@ -178,8 +178,8 @@ function PolishedEmptyState() {
       >
         <SearchX className="size-4" strokeWidth={1.5} />
       </span>
-      <span className="text-[13px] font-semibold text-[#dde1ed]">No results found.</span>
-      <span className="text-[11px] text-[#5a637a]">
+      <span className="text-[13px] font-semibold text-[var(--text-primary)]">No results found.</span>
+      <span className="text-[11px] text-[var(--text-secondary)]">
         Try a different keyword — labels, keywords, and section ids are all searchable.
       </span>
     </div>
@@ -194,7 +194,7 @@ function PolishedEmptyState() {
 function KeyboardHintStrip() {
   return (
     <div
-      className="border-t border-[#1f2335] bg-[#0a0c12]/40 px-3 py-2 flex items-center gap-4 text-[10px] text-[#5a637a] select-none"
+      className="border-t border-[var(--border)] bg-[#0a0c12]/40 px-3 py-2 flex items-center gap-4 text-[10px] text-[var(--text-secondary)] select-none"
       aria-hidden="true"
     >
       <span className="flex items-center gap-1.5">
@@ -226,7 +226,7 @@ function KeyboardHintStrip() {
 function Kbd({ children }: { children: ReactNode }) {
   return (
     <kbd
-      className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded bg-[#13161e] border border-[#2a2f47] font-mono text-[9.5px] tabular-nums text-[#7e8aaa] shadow-[inset_0_-1px_0_0_rgba(0,0,0,0.25)]"
+      className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded bg-[var(--bg-surface)] border border-[#2a2f47] font-mono text-[9.5px] tabular-nums text-[var(--text-secondary)] shadow-[inset_0_-1px_0_0_rgba(0,0,0,0.25)]"
     >
       {children}
     </kbd>
@@ -289,7 +289,7 @@ export default function CommandPalette({
         // border, cyan-tinted focus ring. The cmdk Input keeps its
         // existing `placeholder` / `value` / `onValueChange` wiring
         // intact (test contracts resolve via `getByPlaceholderText`).
-        className="font-mono text-[13.5px] text-[#dde1ed] data-[slot=command-input]:placeholder:text-[#5a637a]"
+        className="font-mono text-[13.5px] text-[var(--text-primary)] data-[slot=command-input]:placeholder:text-[var(--text-secondary)]"
       />
       <CommandList
         // Smooth scroll + custom 6px scrollbar (rgba thumb, hover
@@ -307,7 +307,7 @@ export default function CommandPalette({
             // Subtle cyan-tinted top divider between groups (skip on
             // the first group so the list opens cleanly under the
             // search input).
-            className={gi > 0 ? 'border-t border-[#1f2335]/60 pt-1' : undefined}
+            className={gi > 0 ? 'border-t border-[var(--border)]/60 pt-1' : undefined}
           >
             {commands
               .filter((c) => c.group === group)
@@ -332,7 +332,7 @@ export default function CommandPalette({
                   >
                     {cmd.icon && (
                       <span
-                        className="cmd-icon transition-colors duration-100 text-[#7e8aaa] group-data-[selected=true]:text-cyan-300"
+                        className="cmd-icon transition-colors duration-100 text-[var(--text-secondary)] group-data-[selected=true]:text-cyan-300"
                         aria-hidden="true"
                       >
                         {cmd.icon}
@@ -349,7 +349,7 @@ export default function CommandPalette({
                         // row is active. Overrides cmdk's default
                         // `text-muted-foreground ml-auto text-xs
                         // tracking-widest` via tailwind-merge.
-                        className="ml-auto inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded bg-[#13161e] border border-[#2a2f47] font-mono text-[10px] tabular-nums text-[#7e8aaa] shadow-[inset_0_-1px_0_0_rgba(0,0,0,0.25)] transition-colors duration-100 group-data-[selected=true]:bg-cyan-500/15 group-data-[selected=true]:border-cyan-500/35 group-data-[selected=true]:text-cyan-200"
+                        className="ml-auto inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded bg-[var(--bg-surface)] border border-[#2a2f47] font-mono text-[10px] tabular-nums text-[var(--text-secondary)] shadow-[inset_0_-1px_0_0_rgba(0,0,0,0.25)] transition-colors duration-100 group-data-[selected=true]:bg-cyan-500/15 group-data-[selected=true]:border-cyan-500/35 group-data-[selected=true]:text-cyan-200"
                       >
                         {cmd.kbd}
                       </CommandShortcut>

@@ -271,7 +271,7 @@ const TONE: Record<Tone, ToneConfig> = {
   warn:    { bg: 'bg-amber-500/[0.06]',   border: 'border-amber-500/25',   text: 'text-amber-400',   bar: 'bg-amber-500',   dot: 'bg-amber-400',   label: 'text-amber-400/80',   halo: 'shadow-amber-500/10' },
   poor:    { bg: 'bg-red-500/[0.06]',     border: 'border-red-500/25',     text: 'text-red-400',     bar: 'bg-red-500',     dot: 'bg-red-400',     label: 'text-red-400/80',     halo: 'shadow-red-500/10' },
   info:    { bg: 'bg-cyan-500/[0.06]',    border: 'border-cyan-500/25',   text: 'text-cyan-400',   bar: 'bg-cyan-500',   dot: 'bg-cyan-400',   label: 'text-cyan-400/80',   halo: 'shadow-cyan-500/10' },
-  neutral: { bg: 'bg-[#0e1015]',          border: 'border-[#1f2335]',     text: 'text-[#dde1ed]',   bar: 'bg-[#5a637a]',   dot: 'bg-[#5a637a]',   label: 'text-[#7e8aaa]',      halo: '' },
+  neutral: { bg: 'bg-[var(--bg-page)]',          border: 'border-[var(--border)]',     text: 'text-[var(--text-primary)]',   bar: 'bg-[var(--text-secondary)]',   dot: 'bg-[var(--text-secondary)]',   label: 'text-[var(--text-secondary)]',      halo: '' },
 }
 
 // ── Tone helpers ──────────────────────────────────────────────────────────
@@ -315,7 +315,7 @@ const accentBadge: Record<DimensionMeta['accent'], string> = {
 }
 
 const accentText: Record<DimensionMeta['accent'], string> = {
-  blue: 'text-[#60a5fa]',
+  blue: 'text-[var(--accent-fg)]',
   purple: 'text-[#c084fc]',
   cyan: 'text-[#22d3ee]',
   amber: 'text-[#fbbf24]',
@@ -325,7 +325,7 @@ const accentText: Record<DimensionMeta['accent'], string> = {
 function pnlColor(v: number): string {
   if (v > 0) return 'text-[#4ade80]'
   if (v < 0) return 'text-[#f87171]'
-  return 'text-[#7e8aaa]'
+  return 'text-[var(--text-secondary)]'
 }
 
 function humanizeBucket(label: string): string {
@@ -430,16 +430,16 @@ function SectionHeader({
     <div className="flex items-center justify-between gap-2 mb-2">
       <div className="flex items-center gap-1.5 min-w-0">
         <Icon className={`size-3.5 shrink-0 ${TONE[tone].text}`} aria-hidden="true" />
-        <span className="text-[10px] uppercase tracking-wider font-bold text-[#dde1ed] truncate">
+        <span className="text-[10px] uppercase tracking-wider font-bold text-[var(--text-primary)] truncate">
           {title}
         </span>
         {description && (
-          <span className="text-[9px] text-[#5a637a] italic truncate hidden md:inline">
+          <span className="text-[9px] text-[var(--text-secondary)] italic truncate hidden md:inline">
             {description}
           </span>
         )}
       </div>
-      {trailing && <span className="shrink-0 text-[10px] text-[#7e8aaa] mono">{trailing}</span>}
+      {trailing && <span className="shrink-0 text-[10px] text-[var(--text-secondary)] mono">{trailing}</span>}
     </div>
   )
 }
@@ -480,7 +480,7 @@ function KpiTile({ label, value, hint, tone, quality, trend, testId }: KpiTilePr
       </div>
       <div className="kpi-sub tabular-nums">{hint}</div>
       {quality != null && quality > 0 && (
-        <div className="h-0.5 bg-[#1f2335] rounded-full mt-1 overflow-hidden">
+        <div className="h-0.5 bg-[var(--border)] rounded-full mt-1 overflow-hidden">
           <div
             className={`h-full rounded-full transition-all duration-500 ${cfg.bar}`}
             style={{ width: `${Math.max(0, Math.min(100, quality))}%` }}
@@ -516,7 +516,7 @@ function PolishedEmptyState({ icon: Icon, title, description, className = '', te
   return (
     <div className={`empty-state py-8 ${className}`} role="status" data-testid={testId ?? 'attribution-empty-state'}>
       <span className="empty-state-icon" aria-hidden="true">
-        <Icon className="w-10 h-10 text-[#3e4560]" strokeWidth={1.5} />
+        <Icon className="w-10 h-10 text-[var(--text-dim)]" strokeWidth={1.5} />
       </span>
       <span className="empty-state-title text-sm font-semibold">{title}</span>
       {description && (
@@ -574,17 +574,17 @@ function ErrorCard({
 function AttributionSkeleton() {
   return (
     <div
-      className="card flex flex-col bg-[#13161e] border border-[#1f2335] shadow-md"
+      className="card flex flex-col bg-[var(--bg-surface)] border border-[var(--border)] shadow-md"
       role="status"
       aria-live="polite"
       aria-label="Loading attribution analysis…"
       data-testid="attribution-loading-skeleton"
     >
       {/* Header skeleton */}
-      <div className="card-header p-3 border-b border-[#1f2335] flex justify-between items-center">
+      <div className="card-header p-3 border-b border-[var(--border)] flex justify-between items-center">
         <div className="flex items-center gap-2">
           <PieChart className="w-3.5 h-3.5 text-[#22d3ee]" aria-hidden="true" />
-          <span className="card-title text-xs font-bold text-[#dde1ed]">
+          <span className="card-title text-xs font-bold text-[var(--text-primary)]">
             Attribution Analysis
           </span>
         </div>
@@ -714,11 +714,11 @@ export default function AttributionPanel() {
   // ── Error state ──────────────────────────────────────────────────────────
   if (error && !data) {
     return (
-      <div className="card flex flex-col bg-[#13161e] border border-[#1f2335] shadow-md">
-        <div className="card-header p-3 border-b border-[#1f2335] flex justify-between items-center">
+      <div className="card flex flex-col bg-[var(--bg-surface)] border border-[var(--border)] shadow-md">
+        <div className="card-header p-3 border-b border-[var(--border)] flex justify-between items-center">
           <div className="flex items-center gap-2">
             <PieChart className="w-3.5 h-3.5 text-[#22d3ee]" aria-hidden="true" />
-            <span className="card-title text-xs font-bold text-[#dde1ed]">
+            <span className="card-title text-xs font-bold text-[var(--text-primary)]">
               Attribution Analysis
             </span>
           </div>
@@ -734,9 +734,9 @@ export default function AttributionPanel() {
 
   if (!data || !data.summary || Object.keys(data.summary).length === 0) {
     return (
-      <div className="card flex flex-col bg-[#13161e] border border-[#1f2335] shadow-md">
-        <div className="card-header p-3 border-b border-[#1f2335]">
-          <span className="card-title text-xs font-bold text-[#dde1ed]">
+      <div className="card flex flex-col bg-[var(--bg-surface)] border border-[var(--border)] shadow-md">
+        <div className="card-header p-3 border-b border-[var(--border)]">
+          <span className="card-title text-xs font-bold text-[var(--text-primary)]">
             Attribution Analysis
           </span>
         </div>
@@ -804,12 +804,12 @@ export default function AttributionPanel() {
 
   // ── Render ───────────────────────────────────────────────────────────────
   return (
-    <div className="card flex flex-col bg-[#13161e] border border-[#1f2335] shadow-md">
+    <div className="card flex flex-col bg-[var(--bg-surface)] border border-[var(--border)] shadow-md">
       {/* Header */}
-      <div className="card-header p-3 border-b border-[#1f2335] flex flex-wrap items-center justify-between gap-2">
+      <div className="card-header p-3 border-b border-[var(--border)] flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <PieChart className="w-3.5 h-3.5 text-[#22d3ee]" aria-hidden="true" />
-          <span className="card-title text-xs font-bold text-[#dde1ed]">
+          <span className="card-title text-xs font-bold text-[var(--text-primary)]">
             Performance Attribution
           </span>
           <span className="badge badge-cyan text-[9.5px]">7-DIMENSION</span>
@@ -826,18 +826,18 @@ export default function AttributionPanel() {
             onValueChange={(v) => setTimeRange(v as TimeRange)}
           >
             <SelectTrigger
-              className="h-7 w-[110px] text-[11px] bg-[#0e1015] border-[#1f2335] text-[#dde1ed] focus-visible:ring-1 focus-visible:ring-cyan-400/40"
+              className="h-7 w-[110px] text-[11px] bg-[var(--bg-page)] border-[var(--border)] text-[var(--text-primary)] focus-visible:ring-1 focus-visible:ring-cyan-400/40"
               size="sm"
               aria-label="Attribution time range"
             >
               <SelectValue placeholder="Range" />
             </SelectTrigger>
-            <SelectContent className="bg-[#13161e] border-[#1f2335]">
+            <SelectContent className="bg-[var(--bg-surface)] border-[var(--border)]">
               {TIME_RANGES.map((r) => (
                 <SelectItem
                   key={r.value}
                   value={r.value}
-                  className="text-[#dde1ed] text-xs focus:bg-[#1a1f2e]"
+                  className="text-[var(--text-primary)] text-xs focus:bg-[var(--bg-elevated)]"
                 >
                   {r.label}
                 </SelectItem>
@@ -854,18 +854,18 @@ export default function AttributionPanel() {
             onValueChange={(v) => setDimSort(v as DimSortKey)}
           >
             <SelectTrigger
-              className="h-7 w-[110px] text-[11px] bg-[#0e1015] border-[#1f2335] text-[#dde1ed] focus-visible:ring-1 focus-visible:ring-cyan-400/40"
+              className="h-7 w-[110px] text-[11px] bg-[var(--bg-page)] border-[var(--border)] text-[var(--text-primary)] focus-visible:ring-1 focus-visible:ring-cyan-400/40"
               size="sm"
               aria-label="Attribution sort order"
             >
               <SelectValue placeholder="Sort" />
             </SelectTrigger>
-            <SelectContent className="bg-[#13161e] border-[#1f2335]">
+            <SelectContent className="bg-[var(--bg-surface)] border-[var(--border)]">
               {DIM_SORT_OPTIONS.map((o) => (
                 <SelectItem
                   key={o.value}
                   value={o.value}
-                  className="text-[#dde1ed] text-xs focus:bg-[#1a1f2e]"
+                  className="text-[var(--text-primary)] text-xs focus:bg-[var(--bg-elevated)]"
                 >
                   {o.label}
                 </SelectItem>
@@ -886,7 +886,7 @@ export default function AttributionPanel() {
               className={`w-3 h-3 ${isRefreshing ? 'animate-spin' : ''}`}
               aria-hidden="true"
             />
-            <span className="text-[#7e8aaa] hidden sm:inline tabular-nums">{freshnessLabel}</span>
+            <span className="text-[var(--text-secondary)] hidden sm:inline tabular-nums">{freshnessLabel}</span>
           </button>
         </div>
       </div>
@@ -948,24 +948,24 @@ export default function AttributionPanel() {
       {/* Tabs: Dimensions / Waterfall / Strategies */}
       <div className="px-3 pb-3">
         <Tabs defaultValue="dimensions" className="w-full">
-          <TabsList className="bg-[#0e1015] border border-[#1f2335] h-8 w-full">
+          <TabsList className="bg-[var(--bg-page)] border border-[var(--border)] h-8 w-full">
             <TabsTrigger
               value="dimensions"
-              className="text-[11px] data-[state=active]:bg-[#1a1f2e] data-[state=active]:text-[#22d3ee] flex items-center gap-1"
+              className="text-[11px] data-[state=active]:bg-[var(--bg-elevated)] data-[state=active]:text-[#22d3ee] flex items-center gap-1"
             >
               <BarChart3 className="w-3 h-3" aria-hidden="true" />
               Dimensions
             </TabsTrigger>
             <TabsTrigger
               value="waterfall"
-              className="text-[11px] data-[state=active]:bg-[#1a1f2e] data-[state=active]:text-[#22d3ee] flex items-center gap-1"
+              className="text-[11px] data-[state=active]:bg-[var(--bg-elevated)] data-[state=active]:text-[#22d3ee] flex items-center gap-1"
             >
               <TrendingUp className="w-3 h-3" aria-hidden="true" />
               Waterfall
             </TabsTrigger>
             <TabsTrigger
               value="strategies"
-              className="text-[11px] data-[state=active]:bg-[#1a1f2e] data-[state=active]:text-[#22d3ee] flex items-center gap-1"
+              className="text-[11px] data-[state=active]:bg-[var(--bg-elevated)] data-[state=active]:text-[#22d3ee] flex items-center gap-1"
             >
               <Database className="w-3 h-3" aria-hidden="true" />
               Strategies
@@ -1007,12 +1007,12 @@ export default function AttributionPanel() {
                     <button
                       type="button"
                       onClick={() => toggleExpand(dim.key)}
-                      className="w-full flex items-center gap-2.5 p-2.5 text-left hover:bg-[#1a1f2e]/40 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-cyan-400/40"
+                      className="w-full flex items-center gap-2.5 p-2.5 text-left hover:bg-[var(--bg-elevated)]/40 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-cyan-400/40"
                       aria-expanded={isExpanded}
                       aria-controls={`dim-${dim.key}`}
                     >
                       <ChevronRight
-                        className={`w-3 h-3 text-[#7e8aaa] flex-shrink-0 transition-transform ${
+                        className={`w-3 h-3 text-[var(--text-secondary)] flex-shrink-0 transition-transform ${
                           isExpanded ? 'rotate-90' : ''
                         }`}
                         aria-hidden="true"
@@ -1023,10 +1023,10 @@ export default function AttributionPanel() {
                           aria-hidden="true"
                         />
                         <div className="flex flex-col">
-                          <span className="text-[11.5px] font-semibold text-[#dde1ed] leading-tight">
+                          <span className="text-[11.5px] font-semibold text-[var(--text-primary)] leading-tight">
                             {dim.label}
                           </span>
-                          <span className="text-[9.5px] text-[#7e8aaa] leading-tight">
+                          <span className="text-[9.5px] text-[var(--text-secondary)] leading-tight">
                             {dim.description}
                           </span>
                         </div>
@@ -1034,7 +1034,7 @@ export default function AttributionPanel() {
 
                       {/* Bar — refined with Tone system colour (emerald / red / slate) */}
                       <div className="flex-1 flex items-center gap-2 min-w-[100px]">
-                        <div className="flex-1 h-2 bg-[#0e1015] rounded-sm overflow-hidden relative">
+                        <div className="flex-1 h-2 bg-[var(--bg-page)] rounded-sm overflow-hidden relative">
                           <div
                             className={`h-full rounded-sm transition-all duration-300 ${dimCfg.bar} shadow-[0_0_8px] ${dimCfg.halo}`}
                             style={{ width: `${barWidthPct}%` }}
@@ -1047,7 +1047,7 @@ export default function AttributionPanel() {
                         <span className={`mono text-[11.5px] font-bold tabular-nums ${dimCfg.text}`}>
                           {fmtPnl(dimPnl)}
                         </span>
-                        <span className="mono text-[10px] text-[#7e8aaa] w-12 text-right tabular-nums">
+                        <span className="mono text-[10px] text-[var(--text-secondary)] w-12 text-right tabular-nums">
                           {dimPct >= 0 ? '+' : ''}
                           {dimPct.toFixed(1)}%
                         </span>
@@ -1061,10 +1061,10 @@ export default function AttributionPanel() {
                     {isExpanded && (
                       <div
                         id={`dim-${dim.key}`}
-                        className="border-t border-[#1f2335] bg-[#0e1015]/60 p-2 space-y-1"
+                        className="border-t border-[var(--border)] bg-[var(--bg-page)]/60 p-2 space-y-1"
                       >
                         {bestB && worstB && bestB.bucket !== worstB.bucket && (
-                          <div className="flex items-center justify-between text-[10px] text-[#7e8aaa] mb-1.5 px-1">
+                          <div className="flex items-center justify-between text-[10px] text-[var(--text-secondary)] mb-1.5 px-1">
                             <span className="flex items-center gap-1">
                               <TrendingUp className="w-3 h-3 text-emerald-400" aria-hidden="true" />
                               <span className="uppercase tracking-wider text-[9px]">Best</span>
@@ -1091,12 +1091,12 @@ export default function AttributionPanel() {
                           return (
                             <div
                               key={b.bucket}
-                              className="flex items-center gap-2 py-1 px-1.5 rounded hover:bg-[#1a1f2e]/40 transition-colors"
+                              className="flex items-center gap-2 py-1 px-1.5 rounded hover:bg-[var(--bg-elevated)]/40 transition-colors"
                             >
                               <div className="w-[90px] text-[10.5px] text-[#c8cfe0] font-medium truncate">
                                 {humanizeBucket(b.bucket)}
                               </div>
-                              <div className="flex-1 h-1.5 bg-[#0e1015] rounded-sm overflow-hidden">
+                              <div className="flex-1 h-1.5 bg-[var(--bg-page)] rounded-sm overflow-hidden">
                                 <div
                                   className={`h-full ${bCfg.bar} transition-all`}
                                   style={{ width: `${bWidth}%` }}
@@ -1105,20 +1105,20 @@ export default function AttributionPanel() {
                               <div className={`mono text-[10.5px] font-semibold w-16 text-right tabular-nums ${bCfg.text}`} data-tone={bTone}>
                                 {fmtPnl(b.total_pnl)}
                               </div>
-                              <div className="mono text-[9.5px] text-[#7e8aaa] w-10 text-right tabular-nums">
+                              <div className="mono text-[9.5px] text-[var(--text-secondary)] w-10 text-right tabular-nums">
                                 {bPct.toFixed(0)}%
                               </div>
-                              <div className="mono text-[9.5px] text-[#7e8aaa] w-10 text-right tabular-nums">
+                              <div className="mono text-[9.5px] text-[var(--text-secondary)] w-10 text-right tabular-nums">
                                 {b.count}t
                               </div>
-                              <div className="mono text-[9.5px] text-[#7e8aaa] w-12 text-right tabular-nums">
+                              <div className="mono text-[9.5px] text-[var(--text-secondary)] w-12 text-right tabular-nums">
                                 {(b.win_rate * 100).toFixed(0)}% W
                               </div>
                             </div>
                           )
                         })}
                         {positiveCount > 0 && (
-                          <div className="text-[9.5px] text-[#7e8aaa] pt-1 border-t border-[#181c28] mt-1 tabular-nums">
+                          <div className="text-[9.5px] text-[var(--text-secondary)] pt-1 border-t border-[#181c28] mt-1 tabular-nums">
                             <Activity className="w-2.5 h-2.5 inline mr-1" aria-hidden="true" />
                             {positiveCount}/{buckets.length} buckets profitable
                           </div>
@@ -1149,10 +1149,10 @@ export default function AttributionPanel() {
                   proper responsive chart (bars colored green/red by sign). */}
               <div className="mb-4">
                 <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-[9.5px] uppercase tracking-wider text-[#5a637a] font-bold">
+                  <span className="text-[9.5px] uppercase tracking-wider text-[var(--text-secondary)] font-bold">
                     Dimension P&amp;L — Recharts
                   </span>
-                  <span className="text-[9px] text-[#5a637a] mono">
+                  <span className="text-[9px] text-[var(--text-secondary)] mono">
                     green=+ / red=−
                   </span>
                 </div>
@@ -1169,8 +1169,8 @@ export default function AttributionPanel() {
                   formatTooltip={(d) => (
                     <div
                       style={{
-                        backgroundColor: '#13161e',
-                        border: '1px solid #1f2335',
+                        backgroundColor: 'var(--bg-surface)',
+                        border: '1px solid var(--border)',
                         borderRadius: '6px',
                         color: '#e6edf3',
                         fontSize: '12px',
@@ -1240,9 +1240,9 @@ export default function AttributionPanel() {
                         </div>
 
                         {/* Stacked waterfall track — tone-coloured bar */}
-                        <div className="flex-1 h-6 bg-[#0e1015] rounded-sm relative overflow-hidden border border-[#181c28]">
+                        <div className="flex-1 h-6 bg-[var(--bg-page)] rounded-sm relative overflow-hidden border border-[#181c28]">
                           {/* Baseline indicator */}
-                          <div className="absolute left-0 top-0 bottom-0 w-px bg-[#1f2335]" />
+                          <div className="absolute left-0 top-0 bottom-0 w-px bg-[var(--border)]" />
                           {/* Bar segment */}
                           <div
                             className={`absolute top-0 bottom-0 ${itCfg.bar} transition-all duration-300 shadow-[0_0_8px] ${itCfg.halo}`}
@@ -1252,7 +1252,7 @@ export default function AttributionPanel() {
                             }}
                           />
                           {/* Bucket label inside bar */}
-                          <span className="absolute top-1/2 -translate-y-1/2 left-2 text-[9px] text-[#dde1ed] mono tabular-nums pointer-events-none">
+                          <span className="absolute top-1/2 -translate-y-1/2 left-2 text-[9px] text-[var(--text-primary)] mono tabular-nums pointer-events-none">
                             {humanizeBucket(it.bucketLabel)}
                           </span>
                         </div>
@@ -1262,7 +1262,7 @@ export default function AttributionPanel() {
                           <span className={`mono text-[10px] font-bold tabular-nums ${itCfg.text}`}>
                             {fmtPnl(it.pnl)}
                           </span>
-                          <span className="mono text-[9px] text-[#7e8aaa] tabular-nums">
+                          <span className="mono text-[9px] text-[var(--text-secondary)] tabular-nums">
                             cum {fmtPnl(cumulative)}
                           </span>
                         </div>
@@ -1273,10 +1273,10 @@ export default function AttributionPanel() {
               </div>
 
               {/* Total marker */}
-              <div className="mt-3 pt-2 border-t border-[#1f2335] flex items-center justify-between">
+              <div className="mt-3 pt-2 border-t border-[var(--border)] flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Minus className="w-3 h-3 text-[#7e8aaa]" aria-hidden="true" />
-                  <span className="text-[10.5px] text-[#7e8aaa] uppercase font-semibold tracking-wide">
+                  <Minus className="w-3 h-3 text-[var(--text-secondary)]" aria-hidden="true" />
+                  <span className="text-[10.5px] text-[var(--text-secondary)] uppercase font-semibold tracking-wide">
                     Cumulative Total P&amp;L
                   </span>
                 </div>
@@ -1290,7 +1290,7 @@ export default function AttributionPanel() {
                 </div>
               </div>
 
-              <div className="mt-2 text-[9.5px] text-[#7e8aaa] leading-relaxed">
+              <div className="mt-2 text-[9.5px] text-[var(--text-secondary)] leading-relaxed">
                 Each bar represents the leading bucket&apos;s P&amp;L contribution within that
                 dimension, stacked cumulatively. Bars grow right (green) for positive
                 contributions and overlay left (red) for negative ones.
@@ -1320,14 +1320,14 @@ export default function AttributionPanel() {
                 >
                   <thead>
                     <tr>
-                      <th scope="col" className="text-left uppercase tracking-wider text-[10px] text-[#5a637a] font-bold">Strategy</th>
-                      <th scope="col" className="text-right uppercase tracking-wider text-[10px] text-[#5a637a] font-bold">Trades</th>
-                      <th scope="col" className="text-right uppercase tracking-wider text-[10px] text-[#5a637a] font-bold">Win Rate</th>
-                      <th scope="col" className="text-right uppercase tracking-wider text-[10px] text-[#5a637a] font-bold">Total P&amp;L</th>
-                      <th scope="col" className="text-right uppercase tracking-wider text-[10px] text-[#5a637a] font-bold">Avg P&amp;L</th>
-                      <th scope="col" className="text-right uppercase tracking-wider text-[10px] text-[#5a637a] font-bold">Profit Factor</th>
-                      <th scope="col" className="text-right uppercase tracking-wider text-[10px] text-[#5a637a] font-bold">Capital</th>
-                      <th scope="col" className="text-right uppercase tracking-wider text-[10px] text-[#5a637a] font-bold">Avg Hold</th>
+                      <th scope="col" className="text-left uppercase tracking-wider text-[10px] text-[var(--text-secondary)] font-bold">Strategy</th>
+                      <th scope="col" className="text-right uppercase tracking-wider text-[10px] text-[var(--text-secondary)] font-bold">Trades</th>
+                      <th scope="col" className="text-right uppercase tracking-wider text-[10px] text-[var(--text-secondary)] font-bold">Win Rate</th>
+                      <th scope="col" className="text-right uppercase tracking-wider text-[10px] text-[var(--text-secondary)] font-bold">Total P&amp;L</th>
+                      <th scope="col" className="text-right uppercase tracking-wider text-[10px] text-[var(--text-secondary)] font-bold">Avg P&amp;L</th>
+                      <th scope="col" className="text-right uppercase tracking-wider text-[10px] text-[var(--text-secondary)] font-bold">Profit Factor</th>
+                      <th scope="col" className="text-right uppercase tracking-wider text-[10px] text-[var(--text-secondary)] font-bold">Capital</th>
+                      <th scope="col" className="text-right uppercase tracking-wider text-[10px] text-[var(--text-secondary)] font-bold">Avg Hold</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1358,10 +1358,10 @@ export default function AttributionPanel() {
                             <td className="label-col">
                               <div className="flex items-center gap-1.5">
                                 <Layers
-                                  className="w-3 h-3 text-[#60a5fa] flex-shrink-0"
+                                  className="w-3 h-3 text-[var(--accent-fg)] flex-shrink-0"
                                   aria-hidden="true"
                                 />
-                                <span className="font-medium text-[#dde1ed]">
+                                <span className="font-medium text-[var(--text-primary)]">
                                   {humanizeBucket(s.bucket)}
                                 </span>
                               </div>
@@ -1386,7 +1386,7 @@ export default function AttributionPanel() {
                             <td className="text-right text-[#c8cfe0] tabular-nums">
                               {fmtUsd(s.capital_deployed)}
                             </td>
-                            <td className="text-right text-[#7e8aaa] tabular-nums">
+                            <td className="text-right text-[var(--text-secondary)] tabular-nums">
                               {fmtHoldingSeconds(s.avg_holding_seconds)}
                             </td>
                           </tr>

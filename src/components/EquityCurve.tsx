@@ -139,12 +139,12 @@ const TONE: Record<Tone, ToneConfig> = {
     label: 'CYAN',
   },
   neutral: {
-    text: 'text-[#dde1ed]',
-    bg: 'bg-[#1f2335]/40',
-    border: 'border-[#1f2335]',
-    bar: 'bg-[#5a637a]',
-    dot: 'bg-[#5a637a]',
-    halo: 'bg-[#5a637a]/40',
+    text: 'text-[var(--text-primary)]',
+    bg: 'bg-[var(--border)]/40',
+    border: 'border-[var(--border)]',
+    bar: 'bg-[var(--text-secondary)]',
+    dot: 'bg-[var(--text-secondary)]',
+    halo: 'bg-[var(--text-secondary)]/40',
     label: 'NEUTRAL',
   },
 }
@@ -182,11 +182,11 @@ function SectionHeader({
   return (
     <div className="flex items-center gap-1.5">
       <Icon className={`size-3 ${TONE[tone].text}`} aria-hidden="true" />
-      <span className="text-[9.5px] uppercase tracking-wider font-bold text-[#5a637a]">
+      <span className="text-[9.5px] uppercase tracking-wider font-bold text-[var(--text-secondary)]">
         {title}
       </span>
       {description && (
-        <span className="text-[8.5px] text-[#5a637a] italic truncate">{description}</span>
+        <span className="text-[8.5px] text-[var(--text-secondary)] italic truncate">{description}</span>
       )}
       {trailing && <span className="ml-auto shrink-0">{trailing}</span>}
     </div>
@@ -208,13 +208,13 @@ function EquitySkeleton() {
       aria-label="Loading equity timeline"
       data-testid="equity-loading-skeleton"
     >
-      <div className="flex items-center gap-2 text-[10.5px] text-[#7e8aaa]">
+      <div className="flex items-center gap-2 text-[10.5px] text-[var(--text-secondary)]">
         <span className="spinner" aria-hidden="true" />
         <span>Loading equity timeline…</span>
       </div>
       {/* Skeleton chart area — three shimmer lines mirroring the area chart */}
       <div
-        className="h-[85px] rounded-md border border-[#1f2335] bg-[#0e1015] px-2 py-2.5 space-y-2"
+        className="h-[85px] rounded-md border border-[var(--border)] bg-[var(--bg-page)] px-2 py-2.5 space-y-2"
         aria-hidden="true"
       >
         <ShimmerBlock className="w-1/3" />
@@ -223,7 +223,7 @@ function EquitySkeleton() {
       </div>
       {/* Skeleton footer summary line — Base / Min / Peak / lastUpdated */}
       <div
-        className="flex justify-between items-center gap-2 pt-1 border-t border-[#1f2335]"
+        className="flex justify-between items-center gap-2 pt-1 border-t border-[var(--border)]"
         aria-hidden="true"
       >
         <ShimmerBlock className="w-14" />
@@ -249,11 +249,11 @@ function PolishedEmptyState({ currentEquity }: { currentEquity: number | null })
       data-testid="equity-empty-state"
     >
       <TrendingUp
-        className="size-7 text-[#5a637a] mb-1.5"
+        className="size-7 text-[var(--text-secondary)] mb-1.5"
         strokeWidth={1.5}
         aria-hidden="true"
       />
-      <div className="text-xs text-[#dde1ed] font-medium">
+      <div className="text-xs text-[var(--text-primary)] font-medium">
         Accumulating paper execution points…
       </div>
       <div className="text-[10px] text-[#4a5068] mt-1 tabular-nums">
@@ -361,11 +361,11 @@ export default function EquityCurve() {
   // ── Loading state — shimmer skeleton mirroring the chart panel layout ────
   if (isLoading && points.length === 0) {
     return (
-      <div className="card flex flex-col bg-[#13161e] border border-[#1f2335] shadow-md min-h-[160px]">
-        <div className="card-header p-3 border-b border-[#1f2335] flex justify-between items-center">
+      <div className="card flex flex-col bg-[var(--bg-surface)] border border-[var(--border)] shadow-md min-h-[160px]">
+        <div className="card-header p-3 border-b border-[var(--border)] flex justify-between items-center">
           <div className="flex items-center gap-1.5">
             <Activity className="size-3.5 text-cyan-400 shrink-0" aria-hidden="true" />
-            <span className="card-title text-xs font-bold text-[#dde1ed]">📈 Equity Curve</span>
+            <span className="card-title text-xs font-bold text-[var(--text-primary)]">📈 Equity Curve</span>
             {realtimeBadge}
           </div>
           <span className="badge badge-dim text-[10px]">USDC · Paper</span>
@@ -379,11 +379,11 @@ export default function EquityCurve() {
   // ── Empty state — fewer than 2 points → polished TrendingUp icon ────────
   if (points.length < 2) {
     return (
-      <div className="card flex flex-col bg-[#13161e] border border-[#1f2335] shadow-md min-h-[160px]">
-        <div className="card-header p-3 border-b border-[#1f2335] flex justify-between items-center">
+      <div className="card flex flex-col bg-[var(--bg-surface)] border border-[var(--border)] shadow-md min-h-[160px]">
+        <div className="card-header p-3 border-b border-[var(--border)] flex justify-between items-center">
           <div className="flex items-center gap-1.5">
             <Activity className="size-3.5 text-cyan-400 shrink-0" aria-hidden="true" />
-            <span className="card-title text-xs font-bold text-[#dde1ed]">📈 Equity Curve</span>
+            <span className="card-title text-xs font-bold text-[var(--text-primary)]">📈 Equity Curve</span>
             {realtimeBadge}
           </div>
           <div className="flex items-center gap-1.5">
@@ -445,11 +445,11 @@ export default function EquityCurve() {
       point.drawdown != null ? Math.abs(point.drawdown * 100).toFixed(2) : '0.00'
     const tsLabel = new Date(point.timestamp).toISOString().slice(14, 19)
     return (
-      <div className="rounded-md border border-[#1f2335] bg-[#13161e] shadow-[0_4px_12px_rgba(0,0,0,0.35)] px-2.5 py-1.5 text-[11px] min-w-[140px]">
-        <div className="text-[9.5px] text-[#7e8aaa] mb-0.5 mono tabular-nums">
+      <div className="rounded-md border border-[var(--border)] bg-[var(--bg-surface)] shadow-[0_4px_12px_rgba(0,0,0,0.35)] px-2.5 py-1.5 text-[11px] min-w-[140px]">
+        <div className="text-[9.5px] text-[var(--text-secondary)] mb-0.5 mono tabular-nums">
           {tsLabel} UTC
         </div>
-        <div className="font-semibold text-[#dde1ed] mono tabular-nums">
+        <div className="font-semibold text-[var(--text-primary)] mono tabular-nums">
           {fmtUsd(point.equity)}
         </div>
         <div className={`mt-0.5 mono tabular-nums ${pnlColorClass}`}>
@@ -465,11 +465,11 @@ export default function EquityCurve() {
   }
 
   return (
-    <div className="card flex flex-col bg-[#13161e] border border-[#1f2335] shadow-md min-h-[160px]">
-      <div className="card-header p-3 border-b border-[#1f2335] flex justify-between items-center">
+    <div className="card flex flex-col bg-[var(--bg-surface)] border border-[var(--border)] shadow-md min-h-[160px]">
+      <div className="card-header p-3 border-b border-[var(--border)] flex justify-between items-center">
         <div className="flex items-center gap-1.5">
           <Activity className="size-3.5 text-cyan-400 shrink-0" aria-hidden="true" />
-          <span className="card-title text-xs font-bold text-[#dde1ed]">📈 Portfolio Equity</span>
+          <span className="card-title text-xs font-bold text-[var(--text-primary)]">📈 Portfolio Equity</span>
           <span className="badge badge-amber text-[9.5px]">Paper</span>
           {/* W22-5 — Live / Polling badge. */}
           {realtimeBadge}
@@ -503,7 +503,7 @@ export default function EquityCurve() {
 
       {/* W58-a — Section header above the chart area with Lucide icon +
           uppercase title + dim description + trailing "{points} pts" badge. */}
-      <div className="px-3 pt-2.5 pb-1.5 border-b border-[#1f2335]">
+      <div className="px-3 pt-2.5 pb-1.5 border-b border-[var(--border)]">
         <SectionHeader
           icon={TrendingUp}
           title="Equity Curve"
@@ -537,7 +537,7 @@ export default function EquityCurve() {
         />
       </div>
 
-      <div className="flex justify-between items-center text-[10px] text-[#7e8aaa] pt-1 px-3 pb-2 mono border-t border-[#1f2335] tabular-nums">
+      <div className="flex justify-between items-center text-[10px] text-[var(--text-secondary)] pt-1 px-3 pb-2 mono border-t border-[var(--border)] tabular-nums">
         <span>Base: $100.00</span>
         <span>Min: {fmtUsd(minEq)}</span>
         <span>Peak: {fmtUsd(maxEq)}</span>

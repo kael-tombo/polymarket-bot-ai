@@ -9,16 +9,22 @@
 //                            `:root` values) and `.light` overrides, so
 //                            switching the class flips every CSS variable
 //                            that the workstation relies on.
-//   - `defaultTheme="dark"` — the dashboard was designed dark-first; the
-//                            existing palette, contrast ratios, and glow
-//                            effects all assume a dark canvas. Defaulting
-//                            to dark preserves the existing look until
-//                            the trader opts in to light mode.
+//   - `defaultTheme="light"` — W63-b: the workstation now boots into the
+//                            light (green-variant) theme by default. The
+//                            W49-1 / W50-2a / W61-d design passes brought
+//                            the `.light` overrides to production parity
+//                            with the dark Bloomberg-terminal palette
+//                            (semantic colors, shadows, glassmorphism,
+//                            status dots, scrollbars, chart tooltips, and
+//                            inset rim highlights all survive the theme
+//                            flip), so light is now the safer first-run
+//                            choice for a fresh install. The trader can
+//                            still flip to dark via the ThemeToggle.
 //   - `enableSystem={false}` — we don't follow `prefers-color-scheme`
 //                            because the workstation is a trading
 //                            terminal, not a content site. Traders want
-//                            a deterministic, sticky choice (e.g. dark
-//                            always — even in a bright trading room).
+//                            a deterministic, sticky choice (e.g. light
+//                            always — even in a dim trading room).
 //   - `disableTransitionOnChange` — color flip is instant, no fade,
 //                            so a misclick doesn't disorient during
 //                            fast market action.
@@ -36,7 +42,7 @@ export default function ThemeProvider({ children }: ThemeProviderProps) {
   return (
     <NextThemesProvider
       attribute="class"
-      defaultTheme="dark"
+      defaultTheme="light"
       enableSystem={false}
       disableTransitionOnChange
     >

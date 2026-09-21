@@ -22,7 +22,7 @@
 //     accent fill. Consistent with the MarketsPanel W51-2a active
 //     chip pattern. Inactive chips unchanged.
 //   • Table headers polished: the `<tr>` gets `uppercase text-[11px]
-//     tracking-wider font-medium text-[#7e8aaa]` so column labels
+//     tracking-wider font-medium text-[var(--text-secondary)]` so column labels
 //     read as a unified dim caption strip. Sort indicators (Lucide
 //     ArrowUp / ArrowDown at 10px) preserved on sortable columns
 //     (Market Event, 24h Volume, Liquidity, AI Conf, Score, Edge,
@@ -40,7 +40,7 @@
 //     `tabular-nums`.
 //   • Toolbar grouping refined: each filter group (AI Conf · Edge ·
 //     Resolution) gets a leading uppercase label + subtle 1px vertical
-//     dividers between groups (`w-px h-4 bg-[#1f2335] mx-1`) so the
+//     dividers between groups (`w-px h-4 bg-[var(--border)] mx-1`) so the
 //     three groups read as a single cohesive strip. The category
 //     chip row keeps its own dedicated toolbar for at-a-glance scan.
 //   • Error state polished: bare `<div class="banner-danger">`
@@ -494,7 +494,7 @@ function SortIndicator({ active, ascending }: { active: boolean; ascending: bool
 function ScreenerSkeletonRows({ rowCount = 5 }: { rowCount?: number }) {
   return (
     <div
-      className="skeleton-table mx-3 mb-3 rounded-md border border-[#1f2335]"
+      className="skeleton-table mx-3 mb-3 rounded-md border border-[var(--border)]"
       aria-hidden="true"
     >
       {Array.from({ length: rowCount }).map((_, i) => (
@@ -703,11 +703,11 @@ export default function MarketScreener({ onSelectMarket, onQuickTrade }: Props) 
   const ACTIVE_CHIP_GLOW = 'shadow-[0_0_8px_rgba(34,211,238,0.35)] ring-1 ring-cyan-400/30'
 
   return (
-    <div className="card flex flex-col h-full bg-[#13161e] border border-[#1f2335] overflow-hidden shadow-xl">
+    <div className="card flex flex-col h-full bg-[var(--bg-surface)] border border-[var(--border)] overflow-hidden shadow-xl">
       {/* Header & Controls */}
-      <div className="card-header flex flex-wrap justify-between items-center px-4 py-3 border-b border-[#1f2335] gap-3">
+      <div className="card-header flex flex-wrap justify-between items-center px-4 py-3 border-b border-[var(--border)] gap-3">
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="card-title text-sm font-bold text-[#dde1ed]">
+          <span className="card-title text-sm font-bold text-[var(--text-primary)]">
             🔍 Prediction Market Screener
           </span>
           {/* W39-4 — `Showing X of Y markets` counter (badge wording kept
@@ -722,7 +722,7 @@ export default function MarketScreener({ onSelectMarket, onQuickTrade }: Props) 
             Showing {filteredMarkets.length} of {markets.length} Markets
           </span>
           {lastRefreshed && (
-            <span className="text-[10.5px] text-[#7e8aaa] mono tabular-nums">
+            <span className="text-[10.5px] text-[var(--text-secondary)] mono tabular-nums">
               Refreshed {fmtAge(lastRefreshed)}
             </span>
           )}
@@ -745,7 +745,7 @@ export default function MarketScreener({ onSelectMarket, onQuickTrade }: Props) 
         <form onSubmit={handleSearch} className="flex items-center gap-2">
           <div className="relative">
             <SearchIcon
-              className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#7e8aaa] pointer-events-none"
+              className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-secondary)] pointer-events-none"
               aria-hidden="true"
             />
             <input
@@ -753,7 +753,7 @@ export default function MarketScreener({ onSelectMarket, onQuickTrade }: Props) 
               placeholder="Search Polymarket events…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="input input-sm w-56 text-xs bg-[#0e1015] border border-[#1f2335] pl-7 focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 outline-none transition-all"
+              className="input input-sm w-56 text-xs bg-[var(--bg-page)] border border-[var(--border)] pl-7 focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 outline-none transition-all"
               aria-label="Search prediction market events"
               data-testid="screener-search-input"
             />
@@ -779,7 +779,7 @@ export default function MarketScreener({ onSelectMarket, onQuickTrade }: Props) 
           (`shadow-[0_0_8px_rgba(34,211,238,0.35)] ring-1 ring-cyan-400/30`)
           layered on top of `.filter-chip.active`. Inactive chips
           unchanged. Consistent with the MarketsPanel W51-2a pattern. */}
-      <div className="flex items-center gap-1.5 px-4 py-2 bg-[#0e1015] border-b border-[#1f2335] overflow-x-auto scrollbar-thin">
+      <div className="flex items-center gap-1.5 px-4 py-2 bg-[var(--bg-page)] border-b border-[var(--border)] overflow-x-auto scrollbar-thin">
         {CATEGORY_CHIPS.map((cat) => {
           const isActive = selectedCategory === cat
           return (
@@ -798,7 +798,7 @@ export default function MarketScreener({ onSelectMarket, onQuickTrade }: Props) 
         })}
         {loading && markets.length > 0 && (
           <span
-            className="ml-auto inline-flex items-center gap-1 text-[10px] text-[#7e8aaa] mono shrink-0"
+            className="ml-auto inline-flex items-center gap-1 text-[10px] text-[var(--text-secondary)] mono shrink-0"
             aria-label="Refetching markets"
             data-testid="screener-refetch-spinner"
           >
@@ -811,12 +811,12 @@ export default function MarketScreener({ onSelectMarket, onQuickTrade }: Props) 
       {/* W49-4 — Additional factor filter chips via `.filter-chip` class.
           W52-a — refined toolbar grouping: each group has a leading
           uppercase label + subtle 1px vertical divider between groups
-          (`w-px h-4 bg-[#1f2335] mx-1`) so the three groups read as a
+          (`w-px h-4 bg-[var(--border)] mx-1`) so the three groups read as a
           single cohesive strip. Active chips carry the cyan accent
           border glow. */}
-      <div className="flex items-center gap-3 px-4 py-2 bg-[#0e1015]/60 border-b border-[#1f2335] overflow-x-auto scrollbar-thin text-[10px]">
+      <div className="flex items-center gap-3 px-4 py-2 bg-[var(--bg-page)]/60 border-b border-[var(--border)] overflow-x-auto scrollbar-thin text-[10px]">
         <div className="flex items-center gap-1.5">
-          <span className="text-[#7e8aaa] uppercase font-bold tracking-wider mr-0.5" aria-hidden="true">AI Conf</span>
+          <span className="text-[var(--text-secondary)] uppercase font-bold tracking-wider mr-0.5" aria-hidden="true">AI Conf</span>
           {AI_CONFIDENCE_FILTERS.map((f) => {
             const isActive = aiConfidenceFilter === f.key
             return (
@@ -835,9 +835,9 @@ export default function MarketScreener({ onSelectMarket, onQuickTrade }: Props) 
             )
           })}
         </div>
-        <span className="w-px h-4 bg-[#1f2335] mx-1" aria-hidden="true" />
+        <span className="w-px h-4 bg-[var(--border)] mx-1" aria-hidden="true" />
         <div className="flex items-center gap-1.5">
-          <span className="text-[#7e8aaa] uppercase font-bold tracking-wider mr-0.5" aria-hidden="true">Edge</span>
+          <span className="text-[var(--text-secondary)] uppercase font-bold tracking-wider mr-0.5" aria-hidden="true">Edge</span>
           {EDGE_FILTERS.map((f) => {
             const isActive = edgeFilter === f.key
             return (
@@ -856,9 +856,9 @@ export default function MarketScreener({ onSelectMarket, onQuickTrade }: Props) 
             )
           })}
         </div>
-        <span className="w-px h-4 bg-[#1f2335] mx-1" aria-hidden="true" />
+        <span className="w-px h-4 bg-[var(--border)] mx-1" aria-hidden="true" />
         <div className="flex items-center gap-1.5">
-          <span className="text-[#7e8aaa] uppercase font-bold tracking-wider mr-0.5" aria-hidden="true">Resolution</span>
+          <span className="text-[var(--text-secondary)] uppercase font-bold tracking-wider mr-0.5" aria-hidden="true">Resolution</span>
           {RESOLUTION_FILTERS.map((f) => {
             const isActive = resolutionFilter === f.key
             return (
@@ -946,10 +946,10 @@ export default function MarketScreener({ onSelectMarket, onQuickTrade }: Props) 
           contain "clear", so the regex stays happy. */}
       {hasActiveFilters && (
         <div
-          className="flex flex-wrap items-center gap-1.5 px-4 py-1.5 bg-[#0e1015]/60 border-b border-[#1f2335] text-[10.5px]"
+          className="flex flex-wrap items-center gap-1.5 px-4 py-1.5 bg-[var(--bg-page)]/60 border-b border-[var(--border)] text-[10.5px]"
           data-testid="screener-active-filters"
         >
-          <span className="text-[#7e8aaa] uppercase font-bold tracking-wider mr-0.5" aria-hidden="true">
+          <span className="text-[var(--text-secondary)] uppercase font-bold tracking-wider mr-0.5" aria-hidden="true">
             {[
               search ? 1 : 0,
               selectedCategory !== 'ALL' ? 1 : 0,
@@ -1063,7 +1063,7 @@ export default function MarketScreener({ onSelectMarket, onQuickTrade }: Props) 
             aria-live="polite"
             data-testid="screener-loading-skeleton"
           >
-            <div className="flex items-center gap-2 px-4 py-3 text-[#7e8aaa] text-[11px]">
+            <div className="flex items-center gap-2 px-4 py-3 text-[var(--text-secondary)] text-[11px]">
               <span
                 className="animate-pulse"
                 data-testid="screener-loading-text"
@@ -1081,7 +1081,7 @@ export default function MarketScreener({ onSelectMarket, onQuickTrade }: Props) 
                   caption strip above the data rows. Sortable headers
                   keep their cursor-pointer + hover:text-white affordance
                   + Lucide ArrowUp/ArrowDown sort indicator. */}
-              <tr className="uppercase text-[11px] tracking-wider font-medium text-[#7e8aaa] border-b border-[#1f2335]">
+              <tr className="uppercase text-[11px] tracking-wider font-medium text-[var(--text-secondary)] border-b border-[var(--border)]">
                 {/* W49-4 — Market Event header now sortable (alphabetical). */}
                 <th
                   scope="col"
@@ -1204,20 +1204,20 @@ export default function MarketScreener({ onSelectMarket, onQuickTrade }: Props) 
                   <td colSpan={9} className="text-center py-12 align-middle">
                     <div className="flex flex-col items-center gap-2 px-6 max-w-md mx-auto">
                       <SearchX
-                        className="w-7 h-7 text-[#7e8aaa] mb-1"
+                        className="w-7 h-7 text-[var(--text-secondary)] mb-1"
                         aria-hidden="true"
                       />
-                      <div className="text-[#dde1ed] font-semibold text-sm">
+                      <div className="text-[var(--text-primary)] font-semibold text-sm">
                         No markets found{search ? ` for "${search}"` : ''}
                       </div>
-                      <div className="text-[11px] text-[#7e8aaa] leading-relaxed max-w-sm">
+                      <div className="text-[11px] text-[var(--text-secondary)] leading-relaxed max-w-sm">
                         {hasActiveFilters
                           ? 'Try widening the active filters to surface more opportunities.'
                           : 'Try adjusting your search query or category filter.'}
                       </div>
                       {hasActiveFilters ? (
                         <>
-                          <div className="text-[10.5px] mono text-[#5a637a] tabular-nums mt-1">
+                          <div className="text-[10.5px] mono text-[var(--text-secondary)] tabular-nums mt-1">
                             active filters: {[
                               selectedCategory !== 'ALL' && `cat=${selectedCategory}`,
                               aiConfidenceFilter !== 'ALL' && `ai_conf=${aiConfidenceFilter}`,
@@ -1263,13 +1263,13 @@ export default function MarketScreener({ onSelectMarket, onQuickTrade }: Props) 
                       title={`${s.title} — ${s.market.slug}`}
                     >
                       <span
-                        className="text-[#dde1ed] group-hover:text-cyan-300 font-medium block truncate transition-colors min-w-0"
+                        className="text-[var(--text-primary)] group-hover:text-cyan-300 font-medium block truncate transition-colors min-w-0"
                         title={s.title}
                       >
                         {s.title}
                       </span>
                       <span
-                        className="text-[10px] text-[#7e8aaa] mono block truncate min-w-0"
+                        className="text-[10px] text-[var(--text-secondary)] mono block truncate min-w-0"
                         title={s.market.slug}
                       >
                         {s.market.slug}
@@ -1294,7 +1294,7 @@ export default function MarketScreener({ onSelectMarket, onQuickTrade }: Props) 
                       {fmtCompact(s.volume)}
                     </td>
                     <td
-                      className="mono text-[#7e8aaa] text-right tabular-nums align-middle"
+                      className="mono text-[var(--text-secondary)] text-right tabular-nums align-middle"
                       title={`${fmtUsd(s.liquidity, 0)} (full precision)`}
                     >
                       {fmtCompact(s.liquidity)}
@@ -1339,7 +1339,7 @@ export default function MarketScreener({ onSelectMarket, onQuickTrade }: Props) 
                       {s.edgeCents.toFixed(1)}¢
                     </td>
                     {/* W38-4 — Time to resolution */}
-                    <td className="mono text-right text-[#7e8aaa] text-[11px] tabular-nums align-middle">
+                    <td className="mono text-right text-[var(--text-secondary)] text-[11px] tabular-nums align-middle">
                       {s.daysToResolution != null ? `${s.daysToResolution}d` : '—'}
                     </td>
                     <td className="text-right align-middle">

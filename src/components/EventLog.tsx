@@ -130,9 +130,9 @@ const toneClassMap: Record<Tone, { text: string; bar: string; hover: string }> =
     hover: 'hover:bg-cyan-500/[0.06]',
   },
   default: {
-    text: 'text-[#e8eaf0]',
-    bar: 'bg-[#3e4560]',
-    hover: 'hover:bg-[#1a1f2e]',
+    text: 'text-[var(--text-primary)]',
+    bar: 'bg-[var(--text-dim)]',
+    hover: 'hover:bg-[var(--bg-elevated)]',
   },
 }
 
@@ -166,7 +166,7 @@ function LoadingRows() {
       {Array.from({ length: 6 }).map((_, i) => (
         <div
           key={i}
-          className="flex items-center gap-2 px-1.5 py-1 rounded border-l-2 border-[#1f2335]"
+          className="flex items-center gap-2 px-1.5 py-1 rounded border-l-2 border-[var(--border)]"
         >
           <span className="shrink-0 w-4 h-3 rounded-sm skeleton-line-sm" aria-hidden="true" />
           <span className="shrink-0 w-16 h-3 rounded-sm skeleton-line-sm" aria-hidden="true" style={{ width: '4rem' }} />
@@ -177,7 +177,7 @@ function LoadingRows() {
           />
         </div>
       ))}
-      <div className="flex items-center gap-1.5 px-2 py-1 text-[10px] text-[#7e8aaa] mono">
+      <div className="flex items-center gap-1.5 px-2 py-1 text-[10px] text-[var(--text-secondary)] mono">
         <Loader2 className="w-3 h-3 animate-spin" aria-hidden="true" />
         <span>Streaming event log…</span>
       </div>
@@ -199,11 +199,11 @@ function EmptyState({ eventsEmpty }: { eventsEmpty: boolean }) {
       role="status"
     >
       <Icon
-        className="w-7 h-7 text-[#3e4560]"
+        className="w-7 h-7 text-[var(--text-dim)]"
         aria-hidden="true"
         strokeWidth={1.5}
       />
-      <div className="text-[11px] text-[#7e8aaa] mono px-4">
+      <div className="text-[11px] text-[var(--text-secondary)] mono px-4">
         {message}
       </div>
     </div>
@@ -253,12 +253,12 @@ export default function EventLog({ events, loading = false }: Props) {
   const matchCount = filter !== 'all' || search ? filtered.length : null
 
   return (
-    <div className="card flex flex-col h-full min-h-0 bg-[#13161e] border border-[#1f2335] shadow-md">
+    <div className="card flex flex-col h-full min-h-0 bg-[var(--bg-surface)] border border-[var(--border)] shadow-md">
       {/* Header */}
-      <div className="card-header flex flex-wrap justify-between items-center px-3 py-2 border-b border-[#1f2335] gap-2">
+      <div className="card-header flex flex-wrap justify-between items-center px-3 py-2 border-b border-[var(--border)] gap-2">
         <div className="flex items-center gap-2">
-          <span className="card-title text-xs font-bold text-[#dde1ed]">📜 Live System Events</span>
-          <span className="text-[10px] text-[#7e8aaa] mono tabular-nums">
+          <span className="card-title text-xs font-bold text-[var(--text-primary)]">📜 Live System Events</span>
+          <span className="text-[10px] text-[var(--text-secondary)] mono tabular-nums">
             ({matchCount !== null ? `${matchCount}/${events.length}` : events.length})
           </span>
           {matchCount !== null && (
@@ -274,26 +274,26 @@ export default function EventLog({ events, loading = false }: Props) {
               placeholder="Search events…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="input input-sm w-28 text-[10px] py-0.5 bg-[#0e1015] border border-[#1f2335] pr-5 focus:border-blue-500/40"
+              className="input input-sm w-28 text-[10px] py-0.5 bg-[var(--bg-page)] border border-[var(--border)] pr-5 focus:border-blue-500/40"
               aria-label="Filter events"
             />
             {search && (
               <button
                 onClick={() => setSearch('')}
-                className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[#7e8aaa] hover:text-white text-[11px] leading-none"
+                className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[var(--text-secondary)] hover:text-white text-[11px] leading-none"
                 aria-label="Clear search"
               >
                 ×
               </button>
             )}
           </div>
-          <div className="flex items-center gap-1 bg-[#0e1015] p-0.5 rounded border border-[#1f2335]">
+          <div className="flex items-center gap-1 bg-[var(--bg-page)] p-0.5 rounded border border-[var(--border)]">
             {(['all', 'fill', 'order', 'risk', 'ml'] as EventFilter[]).map((f) => (
               <button
                 key={f}
                 onClick={() => setFilter(f)}
                 className={`px-2 py-0.5 rounded text-[10px] uppercase font-semibold transition-all ${
-                  filter === f ? 'bg-blue-500/20 text-cyan-300 border border-blue-500/40' : 'text-[#7e8aaa] hover:text-white'
+                  filter === f ? 'bg-blue-500/20 text-cyan-300 border border-blue-500/40' : 'text-[var(--text-secondary)] hover:text-white'
                 }`}
               >
                 {f}
@@ -302,7 +302,7 @@ export default function EventLog({ events, loading = false }: Props) {
           </div>
           <button
             onClick={handleCopy}
-            className="text-[10px] text-[#7e8aaa] hover:text-white mono bg-[#0e1015] px-2 py-0.5 rounded border border-[#1f2335] transition-colors"
+            className="text-[10px] text-[var(--text-secondary)] hover:text-white mono bg-[var(--bg-page)] px-2 py-0.5 rounded border border-[var(--border)] transition-colors"
             title="Copy all events to clipboard"
           >
             {copied ? '✓' : 'Copy'}
@@ -310,7 +310,7 @@ export default function EventLog({ events, loading = false }: Props) {
           <button
             onClick={handleExportCsv}
             disabled={events.length === 0}
-            className="text-[10px] text-[#7e8aaa] hover:text-white mono bg-[#0e1015] px-2 py-0.5 rounded border border-[#1f2335] transition-colors disabled:opacity-40"
+            className="text-[10px] text-[var(--text-secondary)] hover:text-white mono bg-[var(--bg-page)] px-2 py-0.5 rounded border border-[var(--border)] transition-colors disabled:opacity-40"
             title="Export event log as CSV"
           >
             📥 CSV
@@ -324,7 +324,7 @@ export default function EventLog({ events, loading = false }: Props) {
           preserved (test contract), and a top-gradient fade so rows
           dissolve under the header on overflow. */}
       <div
-        className="relative flex-1 min-h-0 overflow-y-auto scrollbar-thin bg-[#0e1015]"
+        className="relative flex-1 min-h-0 overflow-y-auto scrollbar-thin bg-[var(--bg-page)]"
         role="log"
         aria-live="polite"
         aria-label="System event stream"
@@ -345,7 +345,7 @@ export default function EventLog({ events, loading = false }: Props) {
                 <div
                   key={i}
                   className={`group flex items-start gap-2 px-1.5 py-0.5 rounded-sm border-l-2 ${toneClasses.bar} ${toneClasses.hover} ${
-                    isAlt ? 'bg-[#0e1015]/60' : ''
+                    isAlt ? 'bg-[var(--bg-page)]/60' : ''
                   } transition-colors duration-100`}
                 >
                   {/* Severity icon */}
@@ -354,7 +354,7 @@ export default function EventLog({ events, loading = false }: Props) {
                   </span>
                   {/* Timestamp column — mono + tabular-nums for column alignment */}
                   {timestamp && (
-                    <span className="mono text-[9.5px] text-[#3e4560] shrink-0 mt-[2px] tabular-nums group-hover:text-[#7e8aaa] transition-colors w-16">
+                    <span className="mono text-[9.5px] text-[var(--text-dim)] shrink-0 mt-[2px] tabular-nums group-hover:text-[var(--text-secondary)] transition-colors w-16">
                       {timestamp}
                     </span>
                   )}

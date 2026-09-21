@@ -34,9 +34,9 @@
 //     shared `px-1.5 py-0.5 rounded border tabular-nums` geometry so the
 //     amber/green/gray three-way colour system reads consistently.
 //   • Freshness column: the "3s ago" relative readout already uses dim
-//     styling (`text-[#7e8aaa]` for the neutral bucket, amber/red for
+//     styling (`text-[var(--text-secondary)]` for the neutral bucket, amber/red for
 //     stale/dead) — kept as-is. The dim absolute UTC HH:MM:SS line stays
-//     as the secondary readout with `text-[#3e4560] mono tabular-nums
+//     as the secondary readout with `text-[var(--text-dim)] mono tabular-nums
 //     text-[9px]`. The two-line stack already uses `gap-0.5` vertical
 //     spacing, kept as-is so the column reads as a tight two-line cell.
 //   • Market-name column: the existing single-line `truncate` + `title`
@@ -213,7 +213,7 @@ function classifySpread(spread: number | null | undefined): SpreadState {
 function spreadBadgeClass(state: SpreadState): string {
   if (state === 'wide') return 'bg-amber-500/15 text-amber-300 border-amber-500/40'
   if (state === 'tight') return 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40'
-  return 'bg-[#13161e] text-[#7e8aaa] border-[#1f2335]'
+  return 'bg-[var(--bg-surface)] text-[var(--text-secondary)] border-[var(--border)]'
 }
 
 // W49-4 — Synthesize a 24h-volume proxy from the bid-ask spread.
@@ -243,14 +243,14 @@ function fmtFreshnessAgo(s: number): string {
 }
 
 function ProbabilityGauge({ mid }: { mid: number | null }) {
-  if (mid === null) return <span className="text-[#3e4560] mono">—</span>
+  if (mid === null) return <span className="text-[var(--text-dim)] mono">—</span>
   const pct = Math.round(mid * 100)
   const isHigh = mid >= 0.7
   const isLow = mid <= 0.3
 
   return (
     <div className="flex items-center gap-2" title={`Implied Probability: ${(mid * 100).toFixed(1)}% (Decimal: ${mid.toFixed(3)})`}>
-      <div className="w-16 h-2 bg-[#0e1015] border border-[#1f2335] rounded-full overflow-hidden shrink-0 relative">
+      <div className="w-16 h-2 bg-[var(--bg-page)] border border-[var(--border)] rounded-full overflow-hidden shrink-0 relative">
         <div
           className="h-full rounded-full transition-all duration-300"
           style={{
@@ -314,7 +314,7 @@ function MarketsTableSkeleton({ rows = 4 }: { rows?: number }) {
           textual "loading" affordance, paired with the shimmer rows
           so screen-readers (via `role="status"` + `aria-live="polite"`
           on the wrapper) still announce the loading state. */}
-      <div className="flex items-center gap-2 text-[#7e8aaa] text-[11px]">
+      <div className="flex items-center gap-2 text-[var(--text-secondary)] text-[11px]">
         <span
           className="animate-pulse rounded"
           data-testid="markets-skeleton-caption"
@@ -322,7 +322,7 @@ function MarketsTableSkeleton({ rows = 4 }: { rows?: number }) {
           Synchronizing live prediction market order books…
         </span>
       </div>
-      <div className="skeleton-table rounded-md border border-[#1f2335]">
+      <div className="skeleton-table rounded-md border border-[var(--border)]">
         {Array.from({ length: rows }).map((_, i) => (
           <div key={i} className="skeleton-row" style={{ height: '40px' }}>
             {colWidths.map((w, j) => (
@@ -445,11 +445,11 @@ function MarketsPanel({ books, onSelectMarket, priceFlashes, showPriceFlashes = 
   const connStatus = useMemo(() => deriveConnStatus(books), [books])
 
   return (
-    <div className="card h-full flex flex-col bg-[#13161e] border border-[#1f2335] shadow-xl overflow-hidden">
+    <div className="card h-full flex flex-col bg-[var(--bg-surface)] border border-[var(--border)] shadow-xl overflow-hidden">
       {/* 1. Header & Live Metrics */}
-      <div className="card-header px-3.5 py-2.5 border-b border-[#1f2335] flex flex-wrap items-center justify-between gap-2.5 bg-[#0e1015]/80">
+      <div className="card-header px-3.5 py-2.5 border-b border-[var(--border)] flex flex-wrap items-center justify-between gap-2.5 bg-[var(--bg-page)]/80">
         <div className="flex items-center gap-2.5">
-          <span className="card-title text-xs font-bold text-[#dde1ed] flex items-center gap-1.5">
+          <span className="card-title text-xs font-bold text-[var(--text-primary)] flex items-center gap-1.5">
             ⚡ Active Order Books ({books.length})
           </span>
           {/* W39-4 — result-count summary "Showing X of Y markets".
@@ -458,13 +458,13 @@ function MarketsPanel({ books, onSelectMarket, priceFlashes, showPriceFlashes = 
               `books.length` is the upstream total (pre-filter);
               `sorted.length` is the post-filter visible count. */}
           <span
-            className="text-[9.5px] mono text-[#7e8aaa] inline-flex items-center gap-1 px-1.5 py-0.5 rounded border border-[#1f2335] bg-[#13161e]"
+            className="text-[9.5px] mono text-[var(--text-secondary)] inline-flex items-center gap-1 px-1.5 py-0.5 rounded border border-[var(--border)] bg-[var(--bg-surface)]"
             data-testid="markets-result-count"
             title={`Showing ${sorted.length} of ${books.length} markets after the active filters`}
           >
             Showing <strong className="text-cyan-300 font-semibold">{sorted.length}</strong>
             <span className="opacity-50">of</span>
-            <strong className="text-[#dde1ed] font-semibold">{books.length}</strong>
+            <strong className="text-[var(--text-primary)] font-semibold">{books.length}</strong>
             markets
           </span>
           {/* W38-4 — connection-status pill derived from the freshest book.
@@ -477,7 +477,7 @@ function MarketsPanel({ books, onSelectMarket, priceFlashes, showPriceFlashes = 
                 ? 'bg-amber-500/15 text-amber-300 border-amber-500/40'
                 : connStatus === 'OFFLINE'
                 ? 'bg-red-500/15 text-red-300 border-red-500/40'
-                : 'bg-[#13161e] text-[#7e8aaa] border-[#1f2335]'
+                : 'bg-[var(--bg-surface)] text-[var(--text-secondary)] border-[var(--border)]'
             }`}
             title={`Feed status: ${connStatus} — derived from the freshest book's age (≤60s LIVE, 60–120s STALE, >120s OFFLINE)`}
             data-testid="markets-conn-status"
@@ -491,14 +491,14 @@ function MarketsPanel({ books, onSelectMarket, priceFlashes, showPriceFlashes = 
                   ? 'bg-amber-400'
                   : connStatus === 'OFFLINE'
                   ? 'bg-red-400'
-                  : 'bg-[#3e4560]'
+                  : 'bg-[var(--text-dim)]'
               }`}
               aria-hidden="true"
             />
             {connStatus}
           </span>
           <span className="badge badge-green text-[9px] font-bold">L2 Stream</span>
-          <span className="text-[10.5px] text-[#7e8aaa] mono hidden sm:inline-block">
+          <span className="text-[10.5px] text-[var(--text-secondary)] mono hidden sm:inline-block">
             Avg Spread: <strong className="text-cyan-300 font-semibold">{avgSpreadCents.toFixed(1)}¢</strong>
           </span>
         </div>
@@ -514,7 +514,7 @@ function MarketsPanel({ books, onSelectMarket, priceFlashes, showPriceFlashes = 
         <div className="flex items-center gap-2">
           <div className="relative">
             <SearchIcon
-              className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#7e8aaa] pointer-events-none"
+              className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-secondary)] pointer-events-none"
               aria-hidden="true"
             />
             <input
@@ -533,14 +533,14 @@ function MarketsPanel({ books, onSelectMarket, priceFlashes, showPriceFlashes = 
               // already provides `border-color: var(--accent)` + the
               // layered focus shadow on `:focus`, so the Tailwind
               // ring is purely additive.
-              className="input input-sm w-44 focus:w-60 transition-all text-xs bg-[#13161e] border border-[#1f2335] pl-8 pr-7 focus-visible:ring-1 focus-visible:ring-cyan-400/60 focus-visible:border-cyan-400/60"
+              className="input input-sm w-44 focus:w-60 transition-all text-xs bg-[var(--bg-surface)] border border-[var(--border)] pl-8 pr-7 focus-visible:ring-1 focus-visible:ring-cyan-400/60 focus-visible:border-cyan-400/60"
               aria-label="Search prediction markets"
               data-testid="markets-search-input"
             />
             {search && (
               <button
                 onClick={() => setSearch('')}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-[#7e8aaa] hover:text-white leading-none"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--text-secondary)] hover:text-white leading-none"
                 aria-label="Clear search"
                 data-testid="markets-clear-search"
               >
@@ -568,7 +568,7 @@ function MarketsPanel({ books, onSelectMarket, priceFlashes, showPriceFlashes = 
           important because there are now two parallel chip groups
           (category + spread) and a trader needs to instantly tell which
           is active in each group. Inactive chips unchanged. */}
-      <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0e1015] border-b border-[#1f2335] overflow-x-auto scrollbar-thin">
+      <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--bg-page)] border-b border-[var(--border)] overflow-x-auto scrollbar-thin">
         {CATEGORIES.map((cat) => {
           const isActive = selectedCat === cat
           return (
@@ -586,8 +586,8 @@ function MarketsPanel({ books, onSelectMarket, priceFlashes, showPriceFlashes = 
           )
         })}
         {/* W38-4 — visual divider between category + spread filter groups. */}
-        <span className="w-px h-4 bg-[#1f2335] mx-1" aria-hidden="true" />
-        <span className="text-[9.5px] text-[#7e8aaa] uppercase font-bold tracking-wider mr-1" aria-hidden="true">Spread</span>
+        <span className="w-px h-4 bg-[var(--border)] mx-1" aria-hidden="true" />
+        <span className="text-[9.5px] text-[var(--text-secondary)] uppercase font-bold tracking-wider mr-1" aria-hidden="true">Spread</span>
         {SPREAD_FILTERS.map((f) => {
           const isActive = spreadFilter === f.key
           return (
@@ -623,10 +623,10 @@ function MarketsPanel({ books, onSelectMarket, priceFlashes, showPriceFlashes = 
           language aligned across the two panels. */}
       {(search !== '' || selectedCat !== 'ALL' || spreadFilter !== 'ALL') && (
         <div
-          className="flex flex-wrap items-center gap-1.5 px-3 py-1.5 bg-[#0e1015]/60 border-b border-[#1f2335] text-[10.5px]"
+          className="flex flex-wrap items-center gap-1.5 px-3 py-1.5 bg-[var(--bg-page)]/60 border-b border-[var(--border)] text-[10.5px]"
           data-testid="markets-active-filters"
         >
-          <span className="text-[#7e8aaa] uppercase font-bold tracking-wider mr-0.5" aria-hidden="true">
+          <span className="text-[var(--text-secondary)] uppercase font-bold tracking-wider mr-0.5" aria-hidden="true">
             {[
               search !== '' ? 1 : 0,
               selectedCat !== 'ALL' ? 1 : 0,
@@ -705,9 +705,9 @@ function MarketsPanel({ books, onSelectMarket, priceFlashes, showPriceFlashes = 
         ) : sorted.length === 0 ? (
           // W38-4 — richer empty state: show which filters are active so
           // the trader can tell whether they over-constrained the view.
-          <div className="flex flex-col items-center justify-center h-44 text-[#7e8aaa] text-xs gap-1.5 px-6 text-center">
+          <div className="flex flex-col items-center justify-center h-44 text-[var(--text-secondary)] text-xs gap-1.5 px-6 text-center">
             <span className="text-2xl mb-1" aria-hidden="true">🔍</span>
-            <div className="text-[#dde1ed] font-semibold">No markets match the current filters</div>
+            <div className="text-[var(--text-primary)] font-semibold">No markets match the current filters</div>
             <div className="text-[10.5px] mono">
               {search ? <>search: <strong className="text-white">"{search}"</strong> · </> : null}
               category: <strong className="text-white">{selectedCat}</strong> · spread: <strong className="text-white">{spreadFilter}</strong>
@@ -722,7 +722,7 @@ function MarketsPanel({ books, onSelectMarket, priceFlashes, showPriceFlashes = 
         ) : (
           <table className="data-table text-xs w-full" role="table" aria-label="Polymarket active order books">
             <thead>
-              <tr className="border-b border-[#1f2335] text-[#7e8aaa] text-[10.5px]">
+              <tr className="border-b border-[var(--border)] text-[var(--text-secondary)] text-[10.5px]">
                 {/* W38-4 — widened from min-w-[240px] → min-w-[280px] and
                     added max-w-[440px] so long event titles wrap to two
                     lines (line-clamp-2) instead of destructively
@@ -822,7 +822,7 @@ function MarketsPanel({ books, onSelectMarket, priceFlashes, showPriceFlashes = 
                 <th scope="col" className="text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#1f2335]/50">
+            <tbody className="divide-y divide-[var(--border)]/50">
               {sorted.map((b) => {
                 const info = formatHierarchicalMarket(b.slug)
                 const age = ageSec(b.updated_at)
@@ -874,7 +874,7 @@ function MarketsPanel({ books, onSelectMarket, priceFlashes, showPriceFlashes = 
                     //     push the entire row's first cell rightward.
                     //   • `group` class preserved so descendant cells can
                     //     use `group-hover:` for the existing token-copy
-                    //     chip colour shift (`group-hover:text-[#7e8aaa]`)
+                    //     chip colour shift (`group-hover:text-[var(--text-secondary)]`)
                     //     and the question-title colour lift
                     //     (`group-hover:text-cyan-300`).
                     className={`hover:bg-cyan-500/5 hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.65)] transition-colors cursor-pointer group ${
@@ -927,7 +927,7 @@ function MarketsPanel({ books, onSelectMarket, priceFlashes, showPriceFlashes = 
                           </span>
                           <button
                             onClick={(e) => handleCopy(e, b.token_id)}
-                            className="text-[9px] text-[#3e4560] group-hover:text-[#7e8aaa] hover:!text-white transition-colors mono ml-1 shrink-0"
+                            className="text-[9px] text-[var(--text-dim)] group-hover:text-[var(--text-secondary)] hover:!text-white transition-colors mono ml-1 shrink-0"
                             title="Click to copy Token ID"
                             aria-label={isCopied ? `Token ID ${b.token_id} copied to clipboard` : `Copy token ID ${b.token_id} to clipboard`}
                             aria-pressed={isCopied}
@@ -941,7 +941,7 @@ function MarketsPanel({ books, onSelectMarket, priceFlashes, showPriceFlashes = 
                             so long titles ellipsize cleanly; the `title`
                             attribute preserves the full text on hover. */}
                         <span
-                          className="text-[#dde1ed] group-hover:text-cyan-300 font-medium leading-snug text-xs block truncate transition-colors min-w-0"
+                          className="text-[var(--text-primary)] group-hover:text-cyan-300 font-medium leading-snug text-xs block truncate transition-colors min-w-0"
                           title={info.question}
                         >
                           {info.question}
@@ -1046,7 +1046,7 @@ function MarketsPanel({ books, onSelectMarket, priceFlashes, showPriceFlashes = 
                               ? 'bg-amber-500/15 text-amber-400 font-bold border border-amber-500/30'
                               : age < 10
                               ? 'bg-emerald-500/10 text-emerald-300 font-semibold border border-emerald-500/20'
-                              : 'text-[#7e8aaa]'
+                              : 'text-[var(--text-secondary)]'
                           }`}
                         >
                           <span
@@ -1057,13 +1057,13 @@ function MarketsPanel({ books, onSelectMarket, priceFlashes, showPriceFlashes = 
                                 ? 'bg-amber-400'
                                 : age < 10
                                 ? 'bg-emerald-400 animate-pulse'
-                                : 'bg-[#3e4560]'
+                                : 'bg-[var(--text-dim)]'
                             }`}
                             aria-hidden="true"
                           />
                           {fmtFreshnessAgo(age)}
                         </span>
-                        <span className="mono text-[9px] text-[#3e4560] tabular-nums">
+                        <span className="mono text-[9px] text-[var(--text-dim)] tabular-nums">
                           {fmtLastUpdatedUTC(b.updated_at)}
                         </span>
                       </div>
@@ -1123,11 +1123,11 @@ function MarketsPanel({ books, onSelectMarket, priceFlashes, showPriceFlashes = 
             <div className="modal-header">
               <div>
                 <div className="flex items-center gap-2">
-                  <span id="history-modal-title" className="text-sm font-bold text-[#dde1ed]">
+                  <span id="history-modal-title" className="text-sm font-bold text-[var(--text-primary)]">
                     📈 Price History: <span className="text-cyan-300">{historyMarket.slug || historyMarket.tokenId.slice(0, 16)}</span>
                   </span>
                 </div>
-                <span className="text-[11px] text-[#7e8aaa] mono mt-0.5 block">
+                <span className="text-[11px] text-[var(--text-secondary)] mono mt-0.5 block">
                   token: {historyMarket.tokenId.slice(0, 18)}…
                 </span>
               </div>
@@ -1146,7 +1146,7 @@ function MarketsPanel({ books, onSelectMarket, priceFlashes, showPriceFlashes = 
                 count={60}
                 height={320}
               />
-              <div className="text-[10px] text-[#7e8aaa] mono border-t border-[#1f2335] pt-2">
+              <div className="text-[10px] text-[var(--text-secondary)] mono border-t border-[var(--border)] pt-2">
                 <span aria-hidden="true">ℹ️</span> Bars are synthetic when no TimescaleDB
                 candles are persisted. Chart auto-refreshes every 5s.
               </div>

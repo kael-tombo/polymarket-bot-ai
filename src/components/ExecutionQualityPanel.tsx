@@ -41,7 +41,7 @@
 //      Quality Ledger Unreachable" title text is preserved verbatim so
 //      the test contract continues to match.
 //   9. Refined controls — time-range select carries the same
-//      `bg-[#0e1015]` dark styling + cyan focus tint. The manual
+//      `bg-[var(--bg-page)]` dark styling + cyan focus tint. The manual
 //      refresh button uses `btn-ghost btn-sm` with hover-tint. Both
 //      controls preserve their existing `aria-label`s.
 //
@@ -171,7 +171,7 @@ const TONE: Record<Tone, ToneConfig> = {
   warn:    { bg: 'bg-amber-500/[0.06]',   border: 'border-amber-500/25',   text: 'text-amber-400',   bar: 'bg-amber-500',   dot: 'bg-amber-400',   label: 'text-amber-400/80',   halo: 'shadow-amber-500/10' },
   poor:    { bg: 'bg-red-500/[0.06]',     border: 'border-red-500/25',     text: 'text-red-400',     bar: 'bg-red-500',     dot: 'bg-red-400',     label: 'text-red-400/80',     halo: 'shadow-red-500/10' },
   info:    { bg: 'bg-cyan-500/[0.06]',    border: 'border-cyan-500/25',    text: 'text-cyan-400',    bar: 'bg-cyan-500',    dot: 'bg-cyan-400',    label: 'text-cyan-400/80',    halo: 'shadow-cyan-500/10' },
-  neutral: { bg: 'bg-[#0e1015]',          border: 'border-[#1f2335]',      text: 'text-[#dde1ed]',   bar: 'bg-[#5a637a]',   dot: 'bg-[#5a637a]',   label: 'text-[#7e8aaa]',      halo: '' },
+  neutral: { bg: 'bg-[var(--bg-page)]',          border: 'border-[var(--border)]',      text: 'text-[var(--text-primary)]',   bar: 'bg-[var(--text-secondary)]',   dot: 'bg-[var(--text-secondary)]',   label: 'text-[var(--text-secondary)]',      halo: '' },
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────
@@ -326,11 +326,11 @@ function SectionHeader({
   return (
     <div className="flex items-center gap-1.5 mb-2">
       <Icon className={`size-3 ${TONE[tone].text}`} aria-hidden="true" />
-      <span className="text-[10.5px] uppercase tracking-wider font-bold text-[#5a637a]">
+      <span className="text-[10.5px] uppercase tracking-wider font-bold text-[var(--text-secondary)]">
         {title}
       </span>
       {description && (
-        <span className="text-[9px] text-[#5a637a] italic truncate">{description}</span>
+        <span className="text-[9px] text-[var(--text-secondary)] italic truncate">{description}</span>
       )}
       {trailing && <span className="ml-auto shrink-0">{trailing}</span>}
     </div>
@@ -371,9 +371,9 @@ function KpiTile({ label, value, hint, tone, quality, trend, icon: Icon, testId 
         {trend === 'up' && <TrendingUp className="size-2.5 inline-block" aria-hidden="true" />}
         {trend === 'down' && <TrendingDown className="size-2.5 inline-block" aria-hidden="true" />}
       </span>
-      <span className="kpi-sub block text-[8px] text-[#5a637a] mt-0.5 italic truncate">{hint}</span>
+      <span className="kpi-sub block text-[8px] text-[var(--text-secondary)] mt-0.5 italic truncate">{hint}</span>
       {quality != null && quality > 0 && (
-        <div className="h-0.5 bg-[#1f2335] rounded-full mt-1 overflow-hidden">
+        <div className="h-0.5 bg-[var(--border)] rounded-full mt-1 overflow-hidden">
           <div
             className={`h-full rounded-full transition-all duration-500 ${cfg.bar}`}
             style={{ width: `${Math.max(0, Math.min(100, quality))}%` }}
@@ -399,13 +399,13 @@ function ShimmerBlock({ className = '' }: { className?: string }) {
 function ExecutionSkeleton() {
   return (
     <div
-      className="card h-full flex flex-col p-3 bg-[#13161e] border border-[#1f2335] shadow-xl space-y-3"
+      className="card h-full flex flex-col p-3 bg-[var(--bg-surface)] border border-[var(--border)] shadow-xl space-y-3"
       role="status"
       aria-live="polite"
       aria-label="Loading execution quality ledger"
       data-testid="execution-skeleton"
     >
-      <div className="flex items-center justify-between pb-2 border-b border-[#1f2335]">
+      <div className="flex items-center justify-between pb-2 border-b border-[var(--border)]">
         <div className="flex items-center gap-2">
           <Gauge className="size-3.5 text-cyan-400 animate-pulse" aria-hidden="true" />
           <ShimmerBlock className="!w-40 !h-3" />
@@ -422,7 +422,7 @@ function ExecutionSkeleton() {
         {Array.from({ length: 5 }).map((_, i) => (
           <div
             key={i}
-            className="kpi-card skeleton-card p-2 space-y-1.5 border border-[#1f2335]"
+            className="kpi-card skeleton-card p-2 space-y-1.5 border border-[var(--border)]"
           >
             <ShimmerBlock className="!w-3/4 !h-2" />
             <ShimmerBlock className="!w-full !h-4" />
@@ -432,13 +432,13 @@ function ExecutionSkeleton() {
       </div>
       {/* Charts row */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <div className="skeleton-card p-3 space-y-2 border border-[#1f2335] rounded-md">
+        <div className="skeleton-card p-3 space-y-2 border border-[var(--border)] rounded-md">
           <ShimmerBlock className="!w-1/2 !h-3" />
           {Array.from({ length: 5 }).map((_, i) => (
             <ShimmerBlock key={i} className="!w-full !h-3" />
           ))}
         </div>
-        <div className="skeleton-card p-3 space-y-2 border border-[#1f2335] rounded-md">
+        <div className="skeleton-card p-3 space-y-2 border border-[var(--border)] rounded-md">
           <ShimmerBlock className="!w-1/2 !h-3" />
           <ShimmerBlock className="!w-full !h-20" />
         </div>
@@ -451,7 +451,7 @@ function ExecutionSkeleton() {
         ))}
       </div>
       {/* Audit table */}
-      <div className="skeleton-card p-3 flex-1 space-y-2 border border-[#1f2335] rounded-md">
+      <div className="skeleton-card p-3 flex-1 space-y-2 border border-[var(--border)] rounded-md">
         <ShimmerBlock className="!w-2/5 !h-3" />
         {Array.from({ length: 6 }).map((_, i) => (
           <ShimmerBlock key={i} className="!w-full !h-3.5" />
@@ -471,18 +471,18 @@ function PolishedErrorState({
 }) {
   return (
     <div
-      className="card h-full flex flex-col items-center justify-center p-6 bg-[#13161e] border border-red-500/30 shadow-xl space-y-3"
+      className="card h-full flex flex-col items-center justify-center p-6 bg-[var(--bg-surface)] border border-red-500/30 shadow-xl space-y-3"
       role="alert"
       data-testid="execution-error"
     >
       <AlertTriangle className="size-8 text-red-400" aria-hidden="true" />
       <span className="text-sm font-bold text-red-400">Execution Quality Ledger Unreachable</span>
-      <p className="text-xs text-[#7e8aaa] max-w-md text-center">
+      <p className="text-xs text-[var(--text-secondary)] max-w-md text-center">
         Could not load per-fill execution quality metrics from{' '}
         <code className="text-[#c8cfe0]">/api/execution-quality</code>.
       </p>
       {detail && (
-        <p className="text-[10px] text-[#5a637a] mono max-w-md text-center break-all">{detail}</p>
+        <p className="text-[10px] text-[var(--text-secondary)] mono max-w-md text-center break-all">{detail}</p>
       )}
       <button
         onClick={onRetry}
@@ -514,8 +514,8 @@ function PolishedEmptyState({
       role="status"
     >
       <Icon className={`size-7 ${cfg.text} opacity-60`} aria-hidden="true" />
-      <span className="empty-state-title text-sm font-semibold text-[#dde1ed]">{title}</span>
-      <span className="empty-state-desc text-xs text-center max-w-xs text-[#7e8aaa]">{desc}</span>
+      <span className="empty-state-title text-sm font-semibold text-[var(--text-primary)]">{title}</span>
+      <span className="empty-state-desc text-xs text-center max-w-xs text-[var(--text-secondary)]">{desc}</span>
     </div>
   )
 }
@@ -631,12 +631,12 @@ export default function ExecutionQualityPanel() {
   const hasFills = fills.length > 0
 
   return (
-    <div className="card h-full flex flex-col p-3 bg-[#13161e] border border-[#1f2335] shadow-xl">
+    <div className="card h-full flex flex-col p-3 bg-[var(--bg-surface)] border border-[var(--border)] shadow-xl">
       {/* ── Header ──────────────────────────────────────────────────────────── */}
-      <div className="card-header pb-2 mb-3 border-b border-[#1f2335] flex flex-wrap items-center justify-between gap-2">
+      <div className="card-header pb-2 mb-3 border-b border-[var(--border)] flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <Gauge className="size-3.5 text-cyan-400" aria-hidden="true" />
-          <span className="card-title text-xs font-bold text-[#dde1ed]">
+          <span className="card-title text-xs font-bold text-[var(--text-primary)]">
             ⚡ Execution Quality
           </span>
           <span className="badge badge-cyan text-[9.5px]">Per-Fill Audit</span>
@@ -651,7 +651,7 @@ export default function ExecutionQualityPanel() {
           {/* Auto-refresh indicator */}
           <span
             className={`flex items-center gap-1 text-[9.5px] mono ${
-              isRefreshing ? 'text-cyan-400' : 'text-[#5a637a]'
+              isRefreshing ? 'text-cyan-400' : 'text-[var(--text-secondary)]'
             }`}
             title={`Auto-refresh every ${POLL_INTERVAL_MS / 1000}s${typeof document !== 'undefined' && document.hidden ? ' — paused (tab hidden)' : ''}`}
             aria-label="Auto-refresh status"
@@ -666,7 +666,7 @@ export default function ExecutionQualityPanel() {
               setIsRefreshing(true)
               fetchData()
             }}
-            className="btn btn-ghost btn-sm text-[10px] px-2 py-0.5 border border-[#1f2335] text-[#7e8aaa] hover:text-white hover:border-cyan-500/30 hover:bg-cyan-500/[0.04] flex items-center gap-1 transition-colors"
+            className="btn btn-ghost btn-sm text-[10px] px-2 py-0.5 border border-[var(--border)] text-[var(--text-secondary)] hover:text-white hover:border-cyan-500/30 hover:bg-cyan-500/[0.04] flex items-center gap-1 transition-colors"
             title="Refresh now"
             aria-label="Refresh execution quality data"
           >
@@ -680,12 +680,12 @@ export default function ExecutionQualityPanel() {
           >
             <SelectTrigger
               size="sm"
-              className="h-7 w-[110px] text-[10.5px] bg-[#0e1015] border-[#1f2335] text-[#dde1ed] hover:border-cyan-500/30 focus:ring-cyan-500/20"
+              className="h-7 w-[110px] text-[10.5px] bg-[var(--bg-page)] border-[var(--border)] text-[var(--text-primary)] hover:border-cyan-500/30 focus:ring-cyan-500/20"
               aria-label="Time range filter"
             >
               <SelectValue placeholder="Range" />
             </SelectTrigger>
-            <SelectContent className="bg-[#0e1015] border-[#1f2335] text-[#dde1ed]">
+            <SelectContent className="bg-[var(--bg-page)] border-[var(--border)] text-[var(--text-primary)]">
               {TIME_RANGES.map((r) => (
                 <SelectItem
                   key={r.value}
@@ -760,14 +760,14 @@ export default function ExecutionQualityPanel() {
       {/* ── Charts row: histogram + latency timeline ────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-3">
         {/* Slippage distribution histogram */}
-        <div className="bg-[#0e1015] border border-[#1f2335] rounded-md p-3">
+        <div className="bg-[var(--bg-page)] border border-[var(--border)] rounded-md p-3">
           <SectionHeader
             icon={BarChart3}
             title="Slippage Distribution"
             description="|slippage| bps buckets"
             tone="info"
             trailing={
-              <span className="text-[9px] text-[#5a637a] mono">{fills.length} fills</span>
+              <span className="text-[9px] text-[var(--text-secondary)] mono">{fills.length} fills</span>
             }
           />
           {hasFills ? (
@@ -778,16 +778,16 @@ export default function ExecutionQualityPanel() {
                 const sharePct = fills.length > 0 ? (b.count / fills.length) * 100 : 0
                 return (
                   <div key={b.label} className="flex items-center gap-2 text-[10.5px]">
-                    <span className="mono w-12 text-[#7e8aaa] font-bold tabular-nums">{b.label}</span>
-                    <div className="flex-1 h-4 bg-[#13161e] rounded-sm overflow-hidden border border-[#1f2335]/60">
+                    <span className="mono w-12 text-[var(--text-secondary)] font-bold tabular-nums">{b.label}</span>
+                    <div className="flex-1 h-4 bg-[var(--bg-surface)] rounded-sm overflow-hidden border border-[var(--border)]/60">
                       <div
                         className={`h-full ${b.barClass} transition-all duration-300`}
                         style={{ width: `${Math.max(pct, b.count > 0 ? 4 : 0)}%` }}
                       />
                     </div>
                     <span className={`mono w-10 text-right font-bold tabular-nums ${TONE[b.tone].text}`}>{b.count}</span>
-                    <span className="mono w-12 text-right text-[9px] text-[#5a637a] tabular-nums">{sharePct.toFixed(0)}%</span>
-                    <span className="hidden sm:inline text-[9px] text-[#5a637a] w-16">{b.range}</span>
+                    <span className="mono w-12 text-right text-[9px] text-[var(--text-secondary)] tabular-nums">{sharePct.toFixed(0)}%</span>
+                    <span className="hidden sm:inline text-[9px] text-[var(--text-secondary)] w-16">{b.range}</span>
                   </div>
                 )
               })}
@@ -805,14 +805,14 @@ export default function ExecutionQualityPanel() {
         </div>
 
         {/* Latency sparkline timeline */}
-        <div className="bg-[#0e1015] border border-[#1f2335] rounded-md p-3">
+        <div className="bg-[var(--bg-page)] border border-[var(--border)] rounded-md p-3">
           <SectionHeader
             icon={Timer}
             title="Latency Timeline"
             description="signal → fill (ms)"
             tone={latencyTone(derived.latencyTimeline.length > 0 ? derived.latencyTimeline[derived.latencyTimeline.length - 1] : 0)}
             trailing={
-              <span className="text-[9px] text-[#5a637a] mono">
+              <span className="text-[9px] text-[var(--text-secondary)] mono">
                 last {derived.latencyTimeline.length} fills
               </span>
             }
@@ -856,7 +856,7 @@ export default function ExecutionQualityPanel() {
                           y1={y}
                           x2="300"
                           y2={y}
-                          stroke="#1f2335"
+                          stroke="var(--border)"
                           strokeWidth="0.5"
                           strokeDasharray="2 3"
                         />
@@ -875,11 +875,11 @@ export default function ExecutionQualityPanel() {
                         cy={lastY.toFixed(1)}
                         r="2.5"
                         fill={strokeHex}
-                        stroke="#0e1015"
+                        stroke="var(--bg-page)"
                         strokeWidth="1"
                       />
                     </svg>
-                    <div className="flex items-center justify-between text-[9px] text-[#5a637a] mono mt-1">
+                    <div className="flex items-center justify-between text-[9px] text-[var(--text-secondary)] mono mt-1">
                       <span className="tabular-nums">
                         min {min.toFixed(0)}ms
                       </span>
@@ -908,21 +908,21 @@ export default function ExecutionQualityPanel() {
       </div>
 
       {/* ── Worst executions ────────────────────────────────────────────────── */}
-      <div className="bg-[#0e1015] border border-red-500/25 rounded-md p-3 mb-3">
+      <div className="bg-[var(--bg-page)] border border-red-500/25 rounded-md p-3 mb-3">
         <SectionHeader
           icon={AlertTriangle}
           title="Worst Executions"
           description="top 5 by adverse slippage"
           tone="poor"
           trailing={
-            <span className="text-[9px] text-[#5a637a] mono">{derived.worst.length} of {fills.length}</span>
+            <span className="text-[9px] text-[var(--text-secondary)] mono">{derived.worst.length} of {fills.length}</span>
           }
         />
         {derived.worst.length > 0 ? (
           <div className="table-responsive scrollbar-thin">
             <table className="data-table text-xs w-full" role="table" aria-label="Top 5 worst slippage fills">
               <thead>
-                <tr className="text-[#5a637a] text-[10px] uppercase tracking-wider font-bold hover:bg-transparent">
+                <tr className="text-[var(--text-secondary)] text-[10px] uppercase tracking-wider font-bold hover:bg-transparent">
                   <th scope="col" className="text-left min-w-[140px] py-1">Token</th>
                   <th scope="col" className="text-center py-1">Side</th>
                   <th scope="col" className="text-right py-1">Intended</th>
@@ -933,7 +933,7 @@ export default function ExecutionQualityPanel() {
                   <th scope="col" className="text-right py-1">Age</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#1f2335]/40">
+              <tbody className="divide-y divide-[var(--border)]/40">
                 {derived.worst.map((f) => (
                   <tr
                     key={`worst-${f.id}`}
@@ -945,7 +945,7 @@ export default function ExecutionQualityPanel() {
                         <span className="text-[#c8cfe0] font-medium text-[10.5px] truncate" title={f.token_id ?? ''}>
                           {(f.token_id || '—').slice(0, 18)}…
                         </span>
-                        <span className="text-[9px] text-[#5a637a] mono">
+                        <span className="text-[9px] text-[var(--text-secondary)] mono">
                           {f.strategy || 'manual'}
                         </span>
                       </div>
@@ -961,7 +961,7 @@ export default function ExecutionQualityPanel() {
                         {f.side || '—'}
                       </span>
                     </td>
-                    <td className="mono text-right text-[#7e8aaa] tabular-nums">{fmtPrice(f.expected_fill)}</td>
+                    <td className="mono text-right text-[var(--text-secondary)] tabular-nums">{fmtPrice(f.expected_fill)}</td>
                     <td className="mono text-right text-[#c8cfe0] font-bold tabular-nums">{fmtPrice(f.actual_fill)}</td>
                     <td className={`mono text-right font-bold tabular-nums ${slippageColorClass(f.slippage_bps)}`}>
                       {fmtBps(f.slippage_bps)}
@@ -970,7 +970,7 @@ export default function ExecutionQualityPanel() {
                     <td className={`mono text-right font-bold tabular-nums ${realizedEdgeClass(f.realized_edge)}`}>
                       {fmtPnl(f.realized_edge, 4)}
                     </td>
-                    <td className="mono text-right text-[#5a637a] text-[10px] tabular-nums">{fmtAge(f.timestamp)}</td>
+                    <td className="mono text-right text-[var(--text-secondary)] text-[10px] tabular-nums">{fmtAge(f.timestamp)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -996,16 +996,16 @@ export default function ExecutionQualityPanel() {
           description="signed slippage · latency · realized edge"
           tone="info"
           trailing={
-            <span className="text-[9px] text-[#5a637a] mono">
+            <span className="text-[9px] text-[var(--text-secondary)] mono">
               {fills.length} of {derived.totalFills} fills shown
             </span>
           }
         />
-        <div className="overflow-auto scrollbar-thin flex-1 table-container border border-[#1f2335] rounded-md">
+        <div className="overflow-auto scrollbar-thin flex-1 table-container border border-[var(--border)] rounded-md">
           {hasFills ? (
             <table className="data-table text-xs" role="table" aria-label="Per-fill execution quality log">
               <thead>
-                <tr className="text-[#5a637a] text-[10px] uppercase tracking-wider font-bold hover:bg-transparent sticky top-0 bg-[#0e1015] z-10">
+                <tr className="text-[var(--text-secondary)] text-[10px] uppercase tracking-wider font-bold hover:bg-transparent sticky top-0 bg-[var(--bg-page)] z-10">
                   <th scope="col" className="text-left min-w-[160px] py-1">Token / Strategy</th>
                   <th scope="col" className="text-center py-1">Side</th>
                   <th scope="col" className="text-right py-1">Intended</th>
@@ -1017,7 +1017,7 @@ export default function ExecutionQualityPanel() {
                   <th scope="col" className="text-right py-1">Age</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#1f2335]/40">
+              <tbody className="divide-y divide-[var(--border)]/40">
                 {fills.map((f) => (
                   <tr
                     key={f.id}
@@ -1032,7 +1032,7 @@ export default function ExecutionQualityPanel() {
                         >
                           {(f.token_id || '—').slice(0, 22)}
                         </span>
-                        <span className="text-[9px] text-[#5a637a] mono">
+                        <span className="text-[9px] text-[var(--text-secondary)] mono">
                           {f.strategy || 'manual'}
                         </span>
                       </div>
@@ -1044,13 +1044,13 @@ export default function ExecutionQualityPanel() {
                             ? 'bg-green-500/15 text-green-400 border border-green-500/30'
                             : f.side === 'SELL'
                             ? 'bg-red-500/15 text-red-400 border border-red-500/30'
-                            : 'bg-[#1f2335] text-[#7e8aaa] border border-[#1f2335]'
+                            : 'bg-[var(--border)] text-[var(--text-secondary)] border border-[var(--border)]'
                         }`}
                       >
                         {f.side || '—'}
                       </span>
                     </td>
-                    <td className="mono text-right text-[#7e8aaa] tabular-nums">{fmtPrice(f.expected_fill)}</td>
+                    <td className="mono text-right text-[var(--text-secondary)] tabular-nums">{fmtPrice(f.expected_fill)}</td>
                     <td className="mono text-right text-[#c8cfe0] font-bold tabular-nums">{fmtPrice(f.actual_fill)}</td>
                     <td className="text-right">
                       <span className={slippageBadgeClass(f.slippage_bps)}>
@@ -1081,7 +1081,7 @@ export default function ExecutionQualityPanel() {
                         {f.paper ? 'PAPER' : 'LIVE'}
                       </span>
                     </td>
-                    <td className="mono text-right text-[#5a637a] text-[10px] tabular-nums">{fmtAge(f.timestamp)}</td>
+                    <td className="mono text-right text-[var(--text-secondary)] text-[10px] tabular-nums">{fmtAge(f.timestamp)}</td>
                   </tr>
                 ))}
               </tbody>

@@ -104,7 +104,7 @@ const TONE: Record<Tone, ToneConfig> = {
   good:    { dot: 'bg-emerald-400', text: 'text-emerald-400' },
   warn:    { dot: 'bg-amber-400',   text: 'text-amber-400' },
   poor:    { dot: 'bg-red-400',     text: 'text-red-400' },
-  neutral: { dot: 'bg-[#5a637a]',   text: 'text-[#7e8aaa]' },
+  neutral: { dot: 'bg-[var(--text-secondary)]',   text: 'text-[var(--text-secondary)]' },
   info:    { dot: 'bg-cyan-400',    text: 'text-cyan-400' },
 }
 
@@ -129,11 +129,11 @@ function SectionHeader({
   return (
     <div className="flex items-center gap-1.5 mb-2.5">
       <Icon className={`size-3.5 ${TONE[tone].text}`} aria-hidden="true" />
-      <span className="text-[11px] font-bold text-[#dde1ed] uppercase tracking-wider">
+      <span className="text-[11px] font-bold text-[var(--text-primary)] uppercase tracking-wider">
         {title}
       </span>
       {description && (
-        <span className="text-[9.5px] text-[#7e8aaa] italic truncate">{description}</span>
+        <span className="text-[9.5px] text-[var(--text-secondary)] italic truncate">{description}</span>
       )}
       {trailing && <span className="ml-auto shrink-0">{trailing}</span>}
     </div>
@@ -162,7 +162,7 @@ function ConfigSkeleton({ rows = 3 }: { rows?: number }) {
   return (
     <div className="space-y-3" aria-hidden="true">
       {Array.from({ length: rows }).map((_, i) => (
-        <div key={i} className="space-y-2 bg-[#0e1015] p-3 rounded-lg border border-[#1f2335]">
+        <div key={i} className="space-y-2 bg-[var(--bg-base)] p-3 rounded-lg border border-[var(--border)]">
           <div className="skeleton-line-sm w-1/3" />
           <div className="grid grid-cols-3 gap-2">
             {Array.from({ length: 3 }).map((_, j) => (
@@ -488,10 +488,10 @@ export default function StrategyConfigModal({ isOpen, onClose }: Props) {
               <GaugeCircle className="size-4" />
             </span>
             <div>
-              <h2 id="config-modal-title" className="text-sm font-bold text-[#dde1ed] tracking-tight">
+              <h2 id="config-modal-title" className="text-sm font-bold text-[var(--text-primary)] tracking-tight">
                 ⚙️ Strategy &amp; Risk Configuration
               </h2>
-              <span className="text-[10px] text-[#7e8aaa]">
+              <span className="text-[10px] text-[var(--text-secondary)]">
                 Runtime parameters for $100 operating capital regime
               </span>
             </div>
@@ -513,7 +513,7 @@ export default function StrategyConfigModal({ isOpen, onClose }: Props) {
             aria-live="polite"
           >
             <ConfigSkeleton rows={3} />
-            <div className="flex flex-col items-center justify-center text-[#7e8aaa] text-xs pt-1">
+            <div className="flex flex-col items-center justify-center text-[var(--text-secondary)] text-xs pt-1">
               <span className="spinner mb-2" aria-hidden="true" />
               Loading current parameters…
             </div>
@@ -544,7 +544,7 @@ export default function StrategyConfigModal({ isOpen, onClose }: Props) {
         ) : config ? (
           <form onSubmit={handleSave} className="modal-body space-y-4 text-xs">
             {/* ── Section 1: Market Maker ────────────────────────────── */}
-            <section className="space-y-2 bg-[#0e1015] p-3 rounded-lg border border-[#1f2335]">
+            <section className="space-y-2 bg-[var(--bg-base)] p-3 rounded-lg border border-[var(--border)]">
               <SectionHeader
                 icon={Activity}
                 title="Avellaneda-Stoikov Market Maker"
@@ -559,7 +559,7 @@ export default function StrategyConfigModal({ isOpen, onClose }: Props) {
             </section>
 
             {/* ── Section 2: Arbitrage Scanner ───────────────────────── */}
-            <section className="space-y-2 bg-[#0e1015] p-3 rounded-lg border border-[#1f2335]">
+            <section className="space-y-2 bg-[var(--bg-base)] p-3 rounded-lg border border-[var(--border)]">
               <SectionHeader
                 icon={TrendingUp}
                 title="Dutch-Book Arbitrage Scanner"
@@ -573,7 +573,7 @@ export default function StrategyConfigModal({ isOpen, onClose }: Props) {
             </section>
 
             {/* ── Section 3: ML & Risk Engine ────────────────────────── */}
-            <section className="space-y-2 bg-[#0e1015] p-3 rounded-lg border border-[#1f2335]">
+            <section className="space-y-2 bg-[var(--bg-base)] p-3 rounded-lg border border-[var(--border)]">
               <SectionHeader
                 icon={BrainCircuit}
                 title="ML Signal &amp; Risk Engine"
@@ -587,7 +587,7 @@ export default function StrategyConfigModal({ isOpen, onClose }: Props) {
             </section>
 
             {/* ── Section 4: Portfolio Limits (advanced, behind toggle) ─ */}
-            <section className="space-y-2 bg-[#0e1015] p-3 rounded-lg border border-[#1f2335]">
+            <section className="space-y-2 bg-[var(--bg-base)] p-3 rounded-lg border border-[var(--border)]">
               <SectionHeader
                 icon={ShieldAlert}
                 title="Portfolio Limits"
@@ -597,14 +597,14 @@ export default function StrategyConfigModal({ isOpen, onClose }: Props) {
                   <button
                     type="button"
                     onClick={() => setShowAdvanced((v) => !v)}
-                    className="inline-flex items-center gap-1.5 text-[10px] text-[#7e8aaa] hover:text-cyan-400 transition-colors"
+                    className="inline-flex items-center gap-1.5 text-[10px] text-[var(--text-secondary)] hover:text-cyan-400 transition-colors"
                     role="switch"
                     aria-checked={showAdvanced}
                     aria-label="Toggle advanced portfolio limits"
                   >
                     <span
                       className={`relative inline-flex h-3 w-6 rounded-full transition-colors ${
-                        showAdvanced ? 'bg-cyan-500/60' : 'bg-[#2a2f47]'
+                        showAdvanced ? 'bg-cyan-500/60' : 'bg-[var(--border-strong)]'
                       }`}
                       aria-hidden="true"
                     >
@@ -625,7 +625,7 @@ export default function StrategyConfigModal({ isOpen, onClose }: Props) {
                 </div>
               )}
               {!showAdvanced && (
-                <div className="text-[10px] text-[#3e4560] italic">
+                <div className="text-[10px] text-[var(--text-dim)] italic">
                   Hidden — toggle to edit portfolio-level capital + concurrency caps.
                 </div>
               )}
@@ -661,7 +661,7 @@ export default function StrategyConfigModal({ isOpen, onClose }: Props) {
 
             {/* ── Footer ──────────────────────────────────────────────── */}
             <div className="modal-footer px-0 pb-0 pt-2 mt-1">
-              <div className="flex items-center gap-1.5 mr-auto text-[10px] text-[#5a637a]">
+              <div className="flex items-center gap-1.5 mr-auto text-[10px] text-[var(--text-secondary)]">
                 <PulseDot tone={saving ? 'warn' : 'good'} />
                 <span className="tabular-nums">
                   {saving ? 'Applying changes…' : 'Auto-applied on save'}
@@ -670,7 +670,7 @@ export default function StrategyConfigModal({ isOpen, onClose }: Props) {
               <button
                 type="button"
                 onClick={onClose}
-                className="btn btn-ghost btn-sm transition-colors hover:text-[#dde1ed]"
+                className="btn btn-ghost btn-sm transition-colors hover:text-[var(--text-primary)]"
               >
                 Cancel
               </button>

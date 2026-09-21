@@ -157,7 +157,7 @@ const TONE: Record<Tone, ToneConfig> = {
   warn:    { bg: 'bg-amber-500/[0.06]',   border: 'border-amber-500/25',   text: 'text-amber-400',   bar: 'bg-amber-500',   dot: 'bg-amber-400',   label: 'text-amber-400/80',   halo: 'shadow-amber-500/10' },
   poor:    { bg: 'bg-red-500/[0.06]',     border: 'border-red-500/25',     text: 'text-red-400',     bar: 'bg-red-500',     dot: 'bg-red-400',     label: 'text-red-400/80',     halo: 'shadow-red-500/10' },
   info:    { bg: 'bg-purple-500/[0.06]',  border: 'border-purple-500/25', text: 'text-purple-400', bar: 'bg-purple-500', dot: 'bg-purple-400',  label: 'text-purple-400/80',  halo: 'shadow-purple-500/10' },
-  neutral: { bg: 'bg-[#0e1015]',          border: 'border-[#1f2335]',     text: 'text-[#dde1ed]',   bar: 'bg-[#5a637a]',   dot: 'bg-[#5a637a]',   label: 'text-[#7e8aaa]',      halo: '' },
+  neutral: { bg: 'bg-[var(--bg-base)]',          border: 'border-[var(--border)]',     text: 'text-[var(--text-primary)]',   bar: 'bg-[var(--text-secondary)]',   dot: 'bg-[var(--text-secondary)]',   label: 'text-[var(--text-secondary)]',      halo: '' },
 }
 
 // ── PulseDot — small status dot with halo + ping animation ──────────────────
@@ -193,11 +193,11 @@ function SectionHeader({
   return (
     <div className="flex items-center gap-1.5 mb-1.5">
       <Icon className={`size-3 ${TONE[tone].text}`} aria-hidden="true" />
-      <span className="text-[9.5px] uppercase tracking-wider font-bold text-[#5a637a]">
+      <span className="text-[9.5px] uppercase tracking-wider font-bold text-[var(--text-secondary)]">
         {title}
       </span>
       {description && (
-        <span className="text-[8.5px] text-[#5a637a] italic truncate">{description}</span>
+        <span className="text-[8.5px] text-[var(--text-secondary)] italic truncate">{description}</span>
       )}
       {trailing && <span className="ml-auto shrink-0">{trailing}</span>}
     </div>
@@ -235,9 +235,9 @@ function KpiTile({ label, value, hint, tone, quality, trend, testId }: KpiTilePr
         {trend === 'up' && <TrendingUp className="size-2.5 inline-block" aria-hidden="true" />}
         {trend === 'down' && <TrendingDown className="size-2.5 inline-block" aria-hidden="true" />}
       </div>
-      <div className="text-[8px] text-[#5a637a] mt-0.5 italic truncate">{hint}</div>
+      <div className="text-[8px] text-[var(--text-secondary)] mt-0.5 italic truncate">{hint}</div>
       {quality != null && quality > 0 && (
-        <div className="h-0.5 bg-[#1f2335] rounded-full mt-1 overflow-hidden">
+        <div className="h-0.5 bg-[var(--border)] rounded-full mt-1 overflow-hidden">
           <div
             className={`h-full rounded-full transition-all duration-500 ${cfg.bar}`}
             style={{ width: `${Math.max(0, Math.min(100, quality))}%` }}
@@ -259,7 +259,7 @@ function PsiGauge({ psi }: { psi: number }) {
   const cfg = TONE[tone]
   return (
     <div className="space-y-0.5" title={`PSI ${psi.toFixed(4)} — thresholds: <0.1 healthy, 0.1–0.25 moderate, >0.25 significant`}>
-      <div className="relative h-1.5 bg-[#1f2335] rounded-full overflow-hidden">
+      <div className="relative h-1.5 bg-[var(--border)] rounded-full overflow-hidden">
         {/* zones */}
         <div className="absolute inset-y-0 left-0 bg-emerald-500/30" style={{ width: '20%' }} aria-hidden="true" />
         <div className="absolute inset-y-0 bg-amber-500/30" style={{ left: '20%', width: '30%' }} aria-hidden="true" />
@@ -271,7 +271,7 @@ function PsiGauge({ psi }: { psi: number }) {
           aria-hidden="true"
         />
       </div>
-      <div className="flex justify-between text-[8px] text-[#5a637a] mono">
+      <div className="flex justify-between text-[8px] text-[var(--text-secondary)] mono">
         <span>0.00</span>
         <span className="text-emerald-400/70">0.10</span>
         <span className="text-amber-400/70">0.25</span>
@@ -523,9 +523,9 @@ export default function MLPanel({ snapshotMl }: MLPanelProps) {
   ]
 
   return (
-    <div className="card flex flex-col bg-[#13161e] border border-[#1f2335] shadow-md">
+    <div className="card flex flex-col bg-[var(--bg-surface)] border border-[var(--border)] shadow-md">
       {/* ── W49-7 Header — AI / ML Engine ── */}
-      <div className="card-header p-3 border-b border-[#1f2335]">
+      <div className="card-header p-3 border-b border-[var(--border)]">
         {/* Row 1 — icon + title + status badge */}
         <div className="flex justify-between items-center gap-2">
           <div className="flex items-center gap-1.5 min-w-0">
@@ -535,7 +535,7 @@ export default function MLPanel({ snapshotMl }: MLPanelProps) {
               data-testid="aiml-header-icon"
             />
             <span
-              className="text-sm font-bold text-[#dde1ed] tracking-wide truncate"
+              className="text-sm font-bold text-[var(--text-primary)] tracking-wide truncate"
               data-testid="aiml-header-title"
             >
               AI / ML Engine
@@ -559,7 +559,7 @@ export default function MLPanel({ snapshotMl }: MLPanelProps) {
             >
               {modelVersion}
             </span>
-            <span className="text-[#7e8aaa]">
+            <span className="text-[var(--text-secondary)]">
               Trained <span className="mono">{trainedAge}</span>
             </span>
           </div>
@@ -567,7 +567,7 @@ export default function MLPanel({ snapshotMl }: MLPanelProps) {
               Kept as a tiny sub-label so the redesign does not break
               the existing test contract. */}
           <span
-            className="text-[9px] text-[#7e8aaa] truncate"
+            className="text-[9px] text-[var(--text-secondary)] truncate"
             data-testid="aiml-legacy-caption"
           >
             🤖 ML Ensemble
@@ -575,7 +575,7 @@ export default function MLPanel({ snapshotMl }: MLPanelProps) {
         </div>
         {/* Row 3 — secondary badges: meta-learner warmth + calibration */}
         <div className="flex items-center gap-1.5 mt-1.5">
-          <span className="inline-flex items-center gap-1 text-[9px] text-[#5a637a] uppercase tracking-wider font-bold">
+          <span className="inline-flex items-center gap-1 text-[9px] text-[var(--text-secondary)] uppercase tracking-wider font-bold">
             <ShieldCheck className="size-2.5 text-cyan-400" aria-hidden="true" />
             Calibration
           </span>
@@ -618,7 +618,7 @@ export default function MLPanel({ snapshotMl }: MLPanelProps) {
               <div className={`text-[11px] font-bold uppercase tracking-wider ${TONE[bannerCfg.tone].text}`}>
                 {bannerCfg.label}
               </div>
-              <div className="text-[9.5px] text-[#7e8aaa] truncate">{bannerCfg.desc}</div>
+              <div className="text-[9.5px] text-[var(--text-secondary)] truncate">{bannerCfg.desc}</div>
             </div>
             <span className={`badge ${statusBadge.cls} text-[9px] font-bold shrink-0`}>
               {bannerCfg.tag}
@@ -660,14 +660,14 @@ export default function MLPanel({ snapshotMl }: MLPanelProps) {
         // row + feature list so the panel reads as "loading a rich
         // dashboard" rather than a bare spinner.
         <div className="p-3 space-y-3">
-          <div className="flex items-center justify-center gap-1.5 text-xs text-[#7e8aaa] py-1.5">
+          <div className="flex items-center justify-center gap-1.5 text-xs text-[var(--text-secondary)] py-1.5">
             <span className="spinner mr-1" aria-hidden="true" />
             Loading ML model…
           </div>
           {/* Skeleton KPI grid */}
           <div className="grid grid-cols-3 gap-1.5">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="rounded p-2 border border-[#1f2335] bg-[#0e1015]">
+              <div key={i} className="rounded p-2 border border-[var(--border)] bg-[var(--bg-base)]">
                 <ShimmerBlock className="!w-1/2" />
                 <ShimmerBlock className="!w-3/4 !h-3 mt-1.5" />
                 <ShimmerBlock className="!w-2/3 !h-1 mt-1.5" />
@@ -675,7 +675,7 @@ export default function MLPanel({ snapshotMl }: MLPanelProps) {
             ))}
           </div>
           {/* Skeleton drift row */}
-          <div className="rounded p-2 border border-[#1f2335] bg-[#0e1015]">
+          <div className="rounded p-2 border border-[var(--border)] bg-[var(--bg-base)]">
             <ShimmerBlock className="!w-1/3" />
             <ShimmerBlock className="!w-full !h-1.5 mt-1.5" />
           </div>
@@ -696,8 +696,8 @@ export default function MLPanel({ snapshotMl }: MLPanelProps) {
         // backend has connected but the model hasn't been initialised.
         <div className="p-6 flex flex-col items-center justify-center text-center gap-2">
           <Brain className="size-8 text-purple-400/40" aria-hidden="true" />
-          <div className="text-sm font-bold text-[#dde1ed]">ML engine not initialized</div>
-          <div className="text-[10.5px] text-[#7e8aaa] max-w-[220px]">
+          <div className="text-sm font-bold text-[var(--text-primary)]">ML engine not initialized</div>
+          <div className="text-[10.5px] text-[var(--text-secondary)] max-w-[220px]">
             The ensemble responded with no features and zero Brier/ROC. Trigger a
             training cycle to populate the model.
           </div>
@@ -745,22 +745,22 @@ export default function MLPanel({ snapshotMl }: MLPanelProps) {
               description="PSI threshold supervision"
               tone={driftStatus === 'HEALTHY' ? 'good' : driftStatus === 'MODERATE_SHIFT' ? 'warn' : 'poor'}
             />
-            <div className="bg-[#0e1015] rounded p-2 border border-purple-500/15 space-y-2">
+            <div className="bg-[var(--bg-base)] rounded p-2 border border-purple-500/15 space-y-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
                   <span className="text-xs">{driftIcon}</span>
-                  <span className="text-[10.5px] text-[#7e8aaa]">Status</span>
+                  <span className="text-[10.5px] text-[var(--text-secondary)]">Status</span>
                   <span className={`badge ${driftBadge} text-[9px]`}>{driftStatus.replace('_', ' ')}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="mono text-[10px] text-[#dde1ed]">PSI {driftPsi.toFixed(3)}</span>
+                  <span className="mono text-[10px] text-[var(--text-primary)]">PSI {driftPsi.toFixed(3)}</span>
                   {driftEwma !== null && (
-                    <span className="mono text-[10px] text-[#5a637a]">EWMA {driftEwma.toFixed(3)}</span>
+                    <span className="mono text-[10px] text-[var(--text-secondary)]">EWMA {driftEwma.toFixed(3)}</span>
                   )}
                 </div>
               </div>
               <PsiGauge psi={driftPsi} />
-              <div className="text-[8.5px] text-[#5a637a] italic">
+              <div className="text-[8.5px] text-[var(--text-secondary)] italic">
                 Thresholds: green &lt; 0.10 · amber 0.10–0.25 · red &gt; 0.25
               </div>
             </div>
@@ -769,7 +769,7 @@ export default function MLPanel({ snapshotMl }: MLPanelProps) {
           {/* W39-6 — AI confidence badge for the panel's overall prediction
               confidence. Derived from ECE. Rendered prominently so the
               trader sees model confidence at a glance. */}
-          <div className="flex items-center justify-between bg-[#0e1015] rounded p-2 border border-purple-500/15">
+          <div className="flex items-center justify-between bg-[var(--bg-base)] rounded p-2 border border-purple-500/15">
             <AIPredictionLabel label="AI Prediction Confidence:" hint="derived from ECE" />
             <ConfidenceBadge value={aiConfidence} />
           </div>
@@ -788,13 +788,13 @@ export default function MLPanel({ snapshotMl }: MLPanelProps) {
               />
               <div className="grid grid-cols-4 gap-1">
                 {Object.entries(adaptiveWeights).map(([name, w]) => (
-                  <div key={name} className="bg-[#0e1015] rounded p-1 border border-[#1f2335] text-center">
-                    <div className="text-[9px] text-[#5a637a] uppercase">{name}</div>
+                  <div key={name} className="bg-[var(--bg-base)] rounded p-1 border border-[var(--border)] text-center">
+                    <div className="text-[9px] text-[var(--text-secondary)] uppercase">{name}</div>
                     <div className="mono text-[10.5px] font-bold text-cyan-400 mt-0.5">
                       {(w * 100).toFixed(0)}%
                     </div>
                     {/* mini bar */}
-                    <div className="mt-1 h-0.5 bg-[#1f2335] rounded-full overflow-hidden">
+                    <div className="mt-1 h-0.5 bg-[var(--border)] rounded-full overflow-hidden">
                       <div
                         className="h-full bg-cyan-500 rounded-full transition-all duration-500"
                         style={{ width: `${w * 100}%` }}
@@ -808,9 +808,9 @@ export default function MLPanel({ snapshotMl }: MLPanelProps) {
 
           {/* ── Meta-Learner Progress ── */}
           {ml?.meta_learner && (
-            <div className="bg-[#0e1015] rounded p-2 border border-[#1f2335]">
+            <div className="bg-[var(--bg-base)] rounded p-2 border border-[var(--border)]">
               <div className="flex justify-between items-center mb-1">
-                <span className="text-[9.5px] uppercase tracking-wider font-bold text-[#5a637a] inline-flex items-center gap-1.5">
+                <span className="text-[9.5px] uppercase tracking-wider font-bold text-[var(--text-secondary)] inline-flex items-center gap-1.5">
                   <Zap className="size-2.5 text-amber-400" aria-hidden="true" />
                   Stacking Meta-Learner
                 </span>
@@ -819,14 +819,14 @@ export default function MLPanel({ snapshotMl }: MLPanelProps) {
                 </span>
               </div>
               {!metaWarm && (
-                <div className="h-1 bg-[#1f2335] rounded-full overflow-hidden mt-1">
+                <div className="h-1 bg-[var(--border)] rounded-full overflow-hidden mt-1">
                   <div
                     className="h-full bg-gradient-to-r from-purple-600 to-blue-500 rounded-full transition-all duration-700"
                     style={{ width: `${Math.min(100, (ml.meta_learner.buffer_size / ml.meta_learner.min_samples_required) * 100)}%` }}
                   />
                 </div>
               )}
-              <div className="flex justify-between mt-1 text-[9px] text-[#5a637a]">
+              <div className="flex justify-between mt-1 text-[9px] text-[var(--text-secondary)]">
                 <span>Updates: {ml.meta_learner.n_updates}</span>
                 <span>Buffer: {ml.meta_learner.buffer_size}</span>
               </div>
@@ -834,27 +834,27 @@ export default function MLPanel({ snapshotMl }: MLPanelProps) {
           )}
 
           {/* ── Model Info ── */}
-          <div className="flex flex-col gap-1 text-xs bg-[#0e1015] p-2 rounded border border-[#1f2335]">
+          <div className="flex flex-col gap-1 text-xs bg-[var(--bg-base)] p-2 rounded border border-[var(--border)]">
             <div className="flex justify-between">
-              <span className="text-[#7e8aaa]">Online Updates</span>
+              <span className="text-[var(--text-secondary)]">Online Updates</span>
               <span className="mono text-cyan-400 font-bold">{nUpdates}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-[#7e8aaa]">Training Source</span>
-              <span className="mono text-[#dde1ed] text-[10.5px]">
+              <span className="text-[var(--text-secondary)]">Training Source</span>
+              <span className="mono text-[var(--text-primary)] text-[10.5px]">
                 {trainingSource === 'real_and_synthetic' ? '🔵 Real + Synthetic' : '🟡 Synthetic Only'}
               </span>
             </div>
             {ml?.model_version && (
               <div className="flex justify-between">
-                <span className="text-[#7e8aaa]">Version</span>
-                <span className="mono text-[#dde1ed] text-[10.5px]">{ml.model_version}</span>
+                <span className="text-[var(--text-secondary)]">Version</span>
+                <span className="mono text-[var(--text-primary)] text-[10.5px]">{ml.model_version}</span>
               </div>
             )}
             {ml?.last_trained ? (
               <div className="flex justify-between">
-                <span className="text-[#7e8aaa]">Last Trained</span>
-                <span className="mono text-[#dde1ed] text-[10.5px]">
+                <span className="text-[var(--text-secondary)]">Last Trained</span>
+                <span className="mono text-[var(--text-primary)] text-[10.5px]">
                   {new Date(ml.last_trained * 1000).toLocaleTimeString()}
                 </span>
               </div>
@@ -880,8 +880,8 @@ export default function MLPanel({ snapshotMl }: MLPanelProps) {
                     className="flex items-center gap-2"
                     title={`Feature: ${name}\nImportance: ${(imp * 100).toFixed(1)}%\nNormalized to top feature (${(maxImp * 100).toFixed(1)}%).`}
                   >
-                    <span className="text-[10px] text-[#dde1ed] w-28 truncate shrink-0 mono">{name}</span>
-                    <div className="flex-1 h-1.5 bg-[#0e1015] rounded-full overflow-hidden border border-[#1f2335]">
+                    <span className="text-[10px] text-[var(--text-primary)] w-28 truncate shrink-0 mono">{name}</span>
+                    <div className="flex-1 h-1.5 bg-[var(--bg-base)] rounded-full overflow-hidden border border-[var(--border)]">
                       <div
                         className="h-full rounded-full bg-gradient-to-r from-purple-600 via-purple-500 to-blue-400 transition-all duration-500"
                         style={{ width: `${(imp / maxImp) * 100}%` }}
@@ -908,12 +908,12 @@ export default function MLPanel({ snapshotMl }: MLPanelProps) {
           )}
 
           {/* W49-7 — AI / Market labeling reminder footer. */}
-          <div className="flex items-center justify-between text-[8.5px] text-[#5a637a] uppercase tracking-wider pt-1 border-t border-[#1f2335]">
+          <div className="flex items-center justify-between text-[8.5px] text-[var(--text-secondary)] uppercase tracking-wider pt-1 border-t border-[var(--border)]">
             <span className="inline-flex items-center gap-1">
               <CircuitBoard className="size-2.5 text-purple-400" aria-hidden="true" />
               AI values: purple/blue
             </span>
-            <span className="text-[#5a637a]">Market data: neutral</span>
+            <span className="text-[var(--text-secondary)]">Market data: neutral</span>
           </div>
         </div>
       )}

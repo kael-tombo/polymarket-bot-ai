@@ -276,7 +276,7 @@ function TrendArrow({
       ? 'text-green-400'
       : direction === 'down'
       ? 'text-red-400'
-      : 'text-[#7e8aaa]'
+      : 'text-[var(--text-secondary)]'
   return (
     <span
       aria-hidden="true"
@@ -482,7 +482,7 @@ function SystemStatusCard({
       ? 'bg-red-400'
       : tone === 'warning'
       ? 'bg-amber-400'
-      : 'bg-[#5a637a]'
+      : 'bg-[var(--text-dim)]'
   return (
     <div
       className="kpi-card sys-status-card"
@@ -499,7 +499,7 @@ function SystemStatusCard({
         />
         <span className="truncate">{label}</span>
         {count && (
-          <span className="ml-auto text-[10px] mono font-bold text-[#dde1ed] tabular-nums">
+          <span className="ml-auto text-[10px] mono font-bold text-[var(--text-primary)] tabular-nums">
             {count}
           </span>
         )}
@@ -522,7 +522,7 @@ function SystemStatusCard({
           aria-label="loading"
         />
       ) : error ? (
-        <span className="text-[11px] text-[#7e8aaa] italic">unavailable</span>
+        <span className="text-[11px] text-[var(--text-secondary)] italic">unavailable</span>
       ) : (
         <div className="sys-status-body scrollbar-thin">{children}</div>
       )}
@@ -550,7 +550,7 @@ function StrategiesList({
 
   if (list.length === 0) {
     return (
-      <span className="text-[11px] text-[#7e8aaa] italic">
+      <span className="text-[11px] text-[var(--text-secondary)] italic">
         No active strategies
       </span>
     )
@@ -564,14 +564,14 @@ function StrategiesList({
       {list.slice(0, 8).map((s) => (
         <li
           key={s}
-          className="inline-flex items-center text-[10.5px] mono font-semibold text-[#dde1ed] bg-[#1a1f2e] border border-[#2d3450] rounded-md px-1.5 py-0.5 max-w-[160px] truncate"
+          className="inline-flex items-center text-[10.5px] mono font-semibold text-[var(--text-primary)] bg-[var(--bg-elevated)] border border-[var(--border-strong)] rounded-md px-1.5 py-0.5 max-w-[160px] truncate"
           title={s}
         >
           {s}
         </li>
       ))}
       {list.length > 8 && (
-        <li className="inline-flex items-center text-[10px] text-[#7e8aaa] px-1 py-0.5">
+        <li className="inline-flex items-center text-[10px] text-[var(--text-secondary)] px-1 py-0.5">
           +{list.length - 8} more
         </li>
       )}
@@ -653,7 +653,7 @@ function AIStatusBody({
           key={r.label}
           className="flex items-center justify-between gap-2 min-w-0"
         >
-          <dt className="text-[10px] uppercase tracking-wider text-[#7e8aaa] font-semibold truncate">
+          <dt className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] font-semibold truncate">
             {r.label}
           </dt>
           <dd
@@ -664,7 +664,7 @@ function AIStatusBody({
                 ? 'kpi-tone-negative'
                 : r.tone === 'warning'
                 ? 'kpi-tone-warning'
-                : 'text-[#dde1ed]'
+                : 'text-[var(--text-primary)]'
             }`}
           >
             {r.value}
@@ -689,7 +689,7 @@ function IngestionBody({
 }) {
   if (loading && !data) {
     return (
-      <span className="text-[11px] text-[#7e8aaa] italic">loading…</span>
+      <span className="text-[11px] text-[var(--text-secondary)] italic">loading…</span>
     )
   }
   if (error && !data) {
@@ -698,7 +698,7 @@ function IngestionBody({
   const sources = data?.sources ?? []
   if (sources.length === 0) {
     return (
-      <span className="text-[11px] text-[#7e8aaa] italic">no sources</span>
+      <span className="text-[11px] text-[var(--text-secondary)] italic">no sources</span>
     )
   }
   return (
@@ -726,17 +726,17 @@ function IngestionBody({
               className={`w-1.5 h-1.5 rounded-full shrink-0 ${dotClass}`}
               aria-hidden="true"
             />
-            <span className="text-[#dde1ed] font-semibold truncate flex-1 min-w-0">
+            <span className="text-[var(--text-primary)] font-semibold truncate flex-1 min-w-0">
               {s.name}
             </span>
-            <span className="text-[#7e8aaa] text-[10px] truncate shrink-0">
+            <span className="text-[var(--text-secondary)] text-[10px] truncate shrink-0">
               {s.last_event_at ? fmtAge(s.last_event_at) : '—'}
             </span>
           </li>
         )
       })}
       {sources.length > 6 && (
-        <li className="text-[10px] text-[#7e8aaa] mt-0.5">
+        <li className="text-[10px] text-[var(--text-secondary)] mt-0.5">
           +{sources.length - 6} more
         </li>
       )}
@@ -756,7 +756,7 @@ function AlertsBody({
 }) {
   if (alerts.length === 0) {
     return (
-      <span className="text-[11px] text-[#7e8aaa] italic">
+      <span className="text-[11px] text-[var(--text-secondary)] italic">
         {isConnected ? 'no active alerts' : 'disconnected'}
       </span>
     )
@@ -773,7 +773,7 @@ function AlertsBody({
             ? 'bg-red-400'
             : tone === 'warning'
             ? 'bg-amber-400'
-            : 'bg-[#5a637a]'
+            : 'bg-[var(--text-dim)]'
         return (
           <li
             key={a.alert_id}
@@ -784,17 +784,17 @@ function AlertsBody({
               className={`w-1.5 h-1.5 rounded-full shrink-0 ${dotClass}`}
               aria-hidden="true"
             />
-            <span className="text-[#dde1ed] font-semibold truncate flex-1 min-w-0">
+            <span className="text-[var(--text-primary)] font-semibold truncate flex-1 min-w-0">
               {a.name}
             </span>
-            <span className="text-[#7e8aaa] text-[10px] tabular-nums shrink-0">
+            <span className="text-[var(--text-secondary)] text-[10px] tabular-nums shrink-0">
               {fmtAge(a.timestamp)}
             </span>
           </li>
         )
       })}
       {alerts.length > 6 && (
-        <li className="text-[10px] text-[#7e8aaa] mt-0.5">
+        <li className="text-[10px] text-[var(--text-secondary)] mt-0.5">
           +{alerts.length - 6} more
         </li>
       )}
@@ -1007,8 +1007,8 @@ function CommandCenterDashboardImpl({
                 {dailyPnl >= 0 ? '+' : '−'}
                 {fmtUsd(Math.abs(dailyPnl), 2)} today
               </span>
-              <span className="text-[#7e8aaa] hidden sm:inline">·</span>
-              <span className="text-[#7e8aaa] truncate hidden sm:inline">
+              <span className="text-[var(--text-secondary)] hidden sm:inline">·</span>
+              <span className="text-[var(--text-secondary)] truncate hidden sm:inline">
                 Cash {fmtUsd(availableBalance, 0)}
               </span>
             </span>
@@ -1033,8 +1033,8 @@ function CommandCenterDashboardImpl({
                   ? `${(deployPct * 100).toFixed(0)}% deployed`
                   : 'Deployable cash'}
               </span>
-              <span className="text-[#7e8aaa] hidden sm:inline">·</span>
-              <span className="text-[#7e8aaa] truncate hidden sm:inline">
+              <span className="text-[var(--text-secondary)] hidden sm:inline">·</span>
+              <span className="text-[var(--text-secondary)] truncate hidden sm:inline">
                 Free cash
               </span>
             </span>
@@ -1313,7 +1313,7 @@ function CommandCenterDashboardImpl({
               loading={ingest.loading}
             />
             {ingestFreshSec != null && (
-              <div className="text-[10px] text-[#7e8aaa] mt-1 tabular-nums">
+              <div className="text-[10px] text-[var(--text-secondary)] mt-1 tabular-nums">
                 fresh {ingestFreshSec.toFixed(0)}s
               </div>
             )}

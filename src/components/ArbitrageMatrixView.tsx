@@ -12,7 +12,7 @@
 //     as `data-tone="{...}"` hooks so the downstream CSS layer can target
 //     them with consistent colour rules.
 //   • SectionHeader — Lucide icon + uppercase 9.5px tracking-wider bold
-//     title in muted text-[#5a637a]. Replaces the bare 🎯 emoji on the
+//     title in muted text-[var(--text-secondary)]. Replaces the bare 🎯 emoji on the
 //     opportunities card header. The title lives in its own <span> so
 //     RTL's `getByText(/Verified Dutch-Book Pairs \(2\)/i)` resolves to
 //     just the inner span (the parent div has no direct text node).
@@ -50,11 +50,11 @@
 //
 // CONSTRAINTS preserved (no test regressions):
 //   • 'use client' directive preserved.
-//   • All existing class names preserved (card, bg-[#13161e], border-
-//     [#1f2335], shadow-2xl, p-4, space-y-3.5, overflow-y-auto,
+//   • All existing class names preserved (card, bg-[var(--bg-surface)], border-
+//     [var(--border)], shadow-2xl, p-4, space-y-3.5, overflow-y-auto,
 //     scrollbar-thin, badge + badge-amber, btn + btn-primary + btn-ghost
 //     + btn-xs + btn-sm, input, mono, data-table, table-container,
-//     divide-y + divide-[#1f2335]/50, banner-danger, empty-state +
+//     divide-y + divide-[var(--border)]/50, banner-danger, empty-state +
 //     empty-state-title + empty-state-desc, hover:bg-blue-500/10).
 //   • All existing text content preserved verbatim — title, KPI labels
 //     with colons, KPI values, table headers, row cell values (+X bps,
@@ -127,12 +127,12 @@ const TONE: Record<Tone, ToneConfig> = {
   positive: { text: 'text-green-400',  dot: 'bg-green-400',  halo: 'shadow-green-500/10' },
   negative: { text: 'text-red-400',    dot: 'bg-red-400',    halo: 'shadow-red-500/10' },
   warn:     { text: 'text-amber-400',  dot: 'bg-amber-400',  halo: 'shadow-amber-500/10' },
-  neutral:  { text: 'text-[#7e8aaa]',  dot: 'bg-[#5a637a]',  halo: '' },
+  neutral:  { text: 'text-[var(--text-secondary)]',  dot: 'bg-[var(--text-secondary)]',  halo: '' },
 }
 
 // ── SectionHeader — Lucide icon + uppercase title + optional dim description
 // Mirrors the W51-2d / W52-b SectionHeader pattern: icon at 12px, uppercase
-// 9.5px tracking-wider bold title in muted text-[#5a637a], optional dim
+// 9.5px tracking-wider bold title in muted text-[var(--text-secondary)], optional dim
 // italic 8.5px description, optional trailing node. The title lives in its
 // own <span> so RTL's `getByText('Verified Dutch-Book Pairs (2)')` matches
 // just the span, not the wrapper div (the icon is an SVG with no text
@@ -153,11 +153,11 @@ function SectionHeader({
   return (
     <div className="flex items-center gap-1.5 mb-1.5">
       <Icon className={`size-3 ${TONE[tone].text}`} aria-hidden="true" />
-      <span className="text-[9.5px] uppercase tracking-wider font-bold text-[#5a637a]">
+      <span className="text-[9.5px] uppercase tracking-wider font-bold text-[var(--text-secondary)]">
         {title}
       </span>
       {description && (
-        <span className="text-[8.5px] text-[#5a637a] italic truncate">
+        <span className="text-[8.5px] text-[var(--text-secondary)] italic truncate">
           {description}
         </span>
       )}
@@ -188,7 +188,7 @@ function SectionHeader({
 function MatrixSkeleton({ rowCount = 5 }: { rowCount?: number }) {
   return (
     <div
-      className="skeleton-table mx-3 mb-3 rounded-md border border-[#1f2335]"
+      className="skeleton-table mx-3 mb-3 rounded-md border border-[var(--border)]"
       aria-hidden="true"
       data-testid="arbitrage-matrix-skeleton"
     >
@@ -221,13 +221,13 @@ function EmptyState({ minBps }: { minBps: number }) {
       data-testid="arbitrage-matrix-empty"
     >
       <Crosshair
-        className="size-8 text-[#5a637a]/70"
+        className="size-8 text-[var(--text-secondary)]/70"
         aria-hidden="true"
       />
       <span className="empty-state-title text-sm font-semibold">
         No arbitrage discrepancies found
       </span>
-      <span className="empty-state-desc text-xs max-w-md text-center text-[#7e8aaa]">
+      <span className="empty-state-desc text-xs max-w-md text-center text-[var(--text-secondary)]">
         When the combined ask cost of YES and synthetic NO drops below $0.995 (exceeding {minBps} bps edge), opportunities will appear here.
       </span>
     </div>
@@ -332,21 +332,21 @@ export default function ArbitrageMatrixView({ onSelectMarket }: Props = {}) {
   const avgRoiTone: Tone = avgRoi > 0 ? 'positive' : 'neutral'
 
   return (
-    <div className="flex flex-col h-full bg-[#13161e] border border-[#1f2335] rounded-lg overflow-hidden p-4 space-y-3.5 overflow-y-auto scrollbar-thin shadow-2xl">
+    <div className="flex flex-col h-full bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg overflow-hidden p-4 space-y-3.5 overflow-y-auto scrollbar-thin shadow-2xl">
       {/* Header */}
-      <div className="flex flex-wrap justify-between items-center pb-3 border-b border-[#1f2335] gap-3">
+      <div className="flex flex-wrap justify-between items-center pb-3 border-b border-[var(--border)] gap-3">
         <div>
           <div className="flex items-center gap-2.5">
             {/* W53-b — Lucide Zap replaces the bare ⚡ emoji for crisp
                 rendering at small sizes. aria-hidden so the title
                 remains the only accessible-name contribution. */}
             <Zap className="size-4 text-amber-300" aria-hidden="true" />
-            <span className="text-sm font-bold text-[#dde1ed] tracking-wide">
+            <span className="text-sm font-bold text-[var(--text-primary)] tracking-wide">
               High-Frequency Binary Dutch-Book Arbitrage Scanner
             </span>
             <span className="badge badge-amber text-[9.5px]">Paper Mode · $3 Cap</span>
           </div>
-          <p className="text-xs text-[#7e8aaa] mt-0.5">
+          <p className="text-xs text-[var(--text-secondary)] mt-0.5">
             Real-time mispricing detector: <code>Ask(YES) + Ask(NO) &lt; $1.00 - fees</code> (Guaranteed synthetic delta-neutral profit)
           </p>
         </div>
@@ -354,27 +354,27 @@ export default function ArbitrageMatrixView({ onSelectMarket }: Props = {}) {
         {/* Aggregate KPI Strip — refined with tabular-nums + data-tone hooks */}
         <div className="flex items-center gap-2 text-xs">
           <div
-            className="bg-[#0e1015] border border-[#1f2335] px-2.5 py-1 rounded-md flex items-center gap-1.5"
+            className="bg-[var(--bg-base)] border border-[var(--border)] px-2.5 py-1 rounded-md flex items-center gap-1.5"
             data-tone={activeArbsTone}
             title="Number of arbitrage opportunities currently passing the min-edge filter"
           >
-            <span className="text-[10px] text-[#7e8aaa] uppercase font-semibold">Active Arbs:</span>
+            <span className="text-[10px] text-[var(--text-secondary)] uppercase font-semibold">Active Arbs:</span>
             <span className="mono font-bold text-cyan-400 text-xs tabular-nums">{opportunities.length}</span>
           </div>
           <div
-            className="bg-[#0e1015] border border-[#1f2335] px-2.5 py-1 rounded-md flex items-center gap-1.5"
+            className="bg-[var(--bg-base)] border border-[var(--border)] px-2.5 py-1 rounded-md flex items-center gap-1.5"
             data-tone={maxEdgeTone}
             title="Highest gross edge across the active arbitrage set"
           >
-            <span className="text-[10px] text-[#7e8aaa] uppercase font-semibold">Max Edge:</span>
+            <span className="text-[10px] text-[var(--text-secondary)] uppercase font-semibold">Max Edge:</span>
             <span className={`mono font-bold text-xs tabular-nums ${TONE[maxEdgeTone].text}`}>+{maxEdge.toFixed(0)} bps</span>
           </div>
           <div
-            className="bg-[#0e1015] border border-[#1f2335] px-2.5 py-1 rounded-md flex items-center gap-1.5"
+            className="bg-[var(--bg-base)] border border-[var(--border)] px-2.5 py-1 rounded-md flex items-center gap-1.5"
             data-tone={avgRoiTone}
             title="Average net ROI (after fees) across the active arbitrage set"
           >
-            <span className="text-[10px] text-[#7e8aaa] uppercase font-semibold">Avg Net ROI:</span>
+            <span className="text-[10px] text-[var(--text-secondary)] uppercase font-semibold">Avg Net ROI:</span>
             <span className={`mono font-bold text-xs tabular-nums ${TONE[avgRoiTone].text}`}>+{avgRoi.toFixed(2)}%</span>
           </div>
           <button
@@ -400,7 +400,7 @@ export default function ArbitrageMatrixView({ onSelectMarket }: Props = {}) {
               document.body.removeChild(link)
             }}
             disabled={opportunities.length === 0}
-            className="btn btn-ghost btn-sm text-[10px] px-2 py-0.5 border border-[#1f2335] text-[#7e8aaa] hover:text-white hover:border-[#2d3450] flex items-center gap-1 transition-colors"
+            className="btn btn-ghost btn-sm text-[10px] px-2 py-0.5 border border-[var(--border)] text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-strong)] flex items-center gap-1 transition-colors"
             title="Export Arbitrage Matrix CSV"
             aria-label="Export Arbitrage Matrix CSV"
           >
@@ -413,13 +413,13 @@ export default function ArbitrageMatrixView({ onSelectMarket }: Props = {}) {
       </div>
 
       {/* Filter & Execution Controls — refined with Lucide icons + focus ring */}
-      <div className="flex flex-wrap items-center justify-between gap-3 bg-[#0e1015] p-2.5 rounded-lg border border-[#1f2335]">
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-[var(--bg-base)] p-2.5 rounded-lg border border-[var(--border)]">
         <div className="relative flex-1 max-w-sm">
           {/* W53-b — Lucide Search icon positioned absolutely inside the
               input's left padding (pl-7 reserves the space). aria-hidden
               + pointer-events-none so it never intercepts clicks. */}
           <Search
-            className="absolute left-2 top-1/2 -translate-y-1/2 size-3 text-[#5a637a] pointer-events-none"
+            className="absolute left-2 top-1/2 -translate-y-1/2 size-3 text-[var(--text-secondary)] pointer-events-none"
             aria-hidden="true"
           />
           <input
@@ -427,14 +427,14 @@ export default function ArbitrageMatrixView({ onSelectMarket }: Props = {}) {
             placeholder="Filter arbitrage by market name..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-[#13161e] border border-[#1f2335] rounded text-xs pl-7 pr-2.5 py-1.5 text-[#dde1ed] placeholder-[#3e4560] outline-none focus:ring-1 focus:ring-cyan-500/20 focus:border-cyan-500/30 transition-colors"
+            className="w-full bg-[var(--bg-surface)] border border-[var(--border)] rounded text-xs pl-7 pr-2.5 py-1.5 text-[var(--text-primary)] placeholder-[var(--text-dim)] outline-none focus:ring-1 focus:ring-cyan-500/20 focus:border-cyan-500/30 transition-colors"
             aria-label="Filter arbitrage by market name"
           />
         </div>
 
         <div className="flex items-center gap-3 text-xs">
           <div className="flex items-center gap-2">
-            <span className="text-[#7e8aaa] text-[11px] font-semibold">Min Profit:</span>
+            <span className="text-[var(--text-secondary)] text-[11px] font-semibold">Min Profit:</span>
             <input
               type="range"
               min={0}
@@ -456,7 +456,7 @@ export default function ArbitrageMatrixView({ onSelectMarket }: Props = {}) {
 
           <button
             onClick={fetchOpportunities}
-            className="btn btn-ghost btn-xs text-[#7e8aaa] hover:text-white border border-[#1f2335] px-2.5 py-1 flex items-center gap-1 transition-colors hover:border-[#2d3450]"
+            className="btn btn-ghost btn-xs text-[var(--text-secondary)] hover:text-white border border-[var(--border)] px-2.5 py-1 flex items-center gap-1 transition-colors hover:border-[var(--border-strong)]"
             aria-label="Scan Now"
             title="Trigger an immediate re-scan of the arbitrage opportunities feed"
           >
@@ -532,7 +532,7 @@ export default function ArbitrageMatrixView({ onSelectMarket }: Props = {}) {
       )}
 
       {/* Opportunities List */}
-      <div className="card p-3 bg-[#0e1015] border border-[#1f2335] flex-1">
+      <div className="card p-3 bg-[var(--bg-base)] border border-[var(--border)] flex-1">
         {/* W53-b — SectionHeader replaces the bare 🎯 emoji header. The
             title text "Verified Dutch-Book Pairs (N)" is preserved verbatim
             (rendered inside the title <span>) so the W22-2 test resolves.
@@ -543,7 +543,7 @@ export default function ArbitrageMatrixView({ onSelectMarket }: Props = {}) {
           title={`Verified Dutch-Book Pairs (${filteredOpps.length})`}
           tone="neutral"
           trailing={
-            <span className="text-[10px] text-[#7e8aaa] mono">
+            <span className="text-[10px] text-[var(--text-secondary)] mono">
               Automatic Dual-Leg Order Placement
             </span>
           }
@@ -563,7 +563,7 @@ export default function ArbitrageMatrixView({ onSelectMarket }: Props = {}) {
             aria-live="polite"
             data-testid="arbitrage-matrix-loading"
           >
-            <div className="flex items-center gap-2 px-3 py-2 text-[#7e8aaa] text-[11px]">
+            <div className="flex items-center gap-2 px-3 py-2 text-[var(--text-secondary)] text-[11px]">
               <Loader2 className="size-3 animate-spin text-cyan-400/70" aria-hidden="true" />
               <span className="animate-pulse">
                 Scanning synchronized binary order books for Dutch-book inefficiencies…
@@ -577,7 +577,7 @@ export default function ArbitrageMatrixView({ onSelectMarket }: Props = {}) {
           <div className="overflow-x-auto scrollbar-thin table-container">
             <table className="data-table text-xs w-full" role="table" aria-label="Arbitrage opportunities table">
               <thead>
-                <tr className="border-b border-[#1f2335] text-[#7e8aaa] text-[10.5px] uppercase tracking-wider">
+                <tr className="border-b border-[var(--border)] text-[var(--text-secondary)] text-[10.5px] uppercase tracking-wider">
                   <th scope="col" className="min-w-[200px] text-left py-1">Market Contract</th>
                   <th scope="col" className="text-right">YES Ask</th>
                   <th scope="col" className="text-right">NO Ask</th>
@@ -588,7 +588,7 @@ export default function ArbitrageMatrixView({ onSelectMarket }: Props = {}) {
                   <th scope="col" className="text-center">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#1f2335]/50">
+              <tbody className="divide-y divide-[var(--border)]/50">
                 {filteredOpps.map((opp) => {
                   const info = formatHierarchicalMarket(opp.slug)
                   const rowTone = edgeTier(opp.gross_profit_bps)
@@ -613,7 +613,7 @@ export default function ArbitrageMatrixView({ onSelectMarket }: Props = {}) {
                             {info.category.icon} {info.eventTitle}
                           </span>
                           <span
-                            className="text-[#dde1ed] group-hover:text-cyan-300 font-medium leading-snug text-xs block whitespace-normal transition-colors"
+                            className="text-[var(--text-primary)] group-hover:text-cyan-300 font-medium leading-snug text-xs block whitespace-normal transition-colors"
                             title={info.fullLabel}
                           >
                             {info.question}
@@ -657,7 +657,7 @@ export default function ArbitrageMatrixView({ onSelectMarket }: Props = {}) {
                       </td>
                       {/* Max Cap — neutral (paper-mode risk ceiling) */}
                       <td
-                        className="mono text-right text-[#dde1ed] tabular-nums"
+                        className="mono text-right text-[var(--text-primary)] tabular-nums"
                         data-tone="neutral"
                       >
                         {fmtUsd(Math.min(opp.max_executable_size_usdc, 3.0))}

@@ -35,7 +35,7 @@
 //   • Refined table-style mini-headers — within each strategy card the
 //     category + risk row, the P&L strip, and the strategy_id mono
 //     caption now read as a unified dim caption strip: uppercase
-//     text-[10px] tracking-[0.08em] font-medium text-[#5a637a]. Each
+//     text-[10px] tracking-[0.08em] font-medium text-[var(--text-secondary)]. Each
 //     card carries an implicit "registry row" structure — the card
 //     header (name + status badge) → the registry identity column,
 //     the description → the description column, the P&L strip → the
@@ -237,7 +237,7 @@ function SortIndicator({ active, ascending }: { active: boolean; ascending: bool
       ? <ArrowUp className="w-3 h-3 text-cyan-300" aria-hidden="true" />
       : <ArrowDown className="w-3 h-3 text-cyan-300" aria-hidden="true" />
   }
-  return <ArrowUpDown className="w-3 h-3 text-[#5a637a]" aria-hidden="true" />
+  return <ArrowUpDown className="w-3 h-3 text-[var(--text-secondary)]" aria-hidden="true" />
 }
 
 // W53-a — StrategySkeletonCard renders a single shimmer placeholder card
@@ -248,7 +248,7 @@ function SortIndicator({ active, ascending }: { active: boolean; ascending: bool
 function StrategySkeletonCard() {
   return (
     <div
-      className="p-3 rounded-lg border border-[#1f2335] bg-[#0e1015] flex flex-col gap-2 overflow-hidden"
+      className="p-3 rounded-lg border border-[var(--border)] bg-[var(--bg-base)] flex flex-col gap-2 overflow-hidden"
       aria-hidden="true"
     >
       {/* Header: name + status badge */}
@@ -271,7 +271,7 @@ function StrategySkeletonCard() {
         <div className="skeleton-line animate-pulse rounded" style={{ width: '60px', height: '10px' }} />
       </div>
       {/* Footer: category + risk + action */}
-      <div className="mt-auto pt-2 border-t border-[#1f2335] flex justify-between items-center">
+      <div className="mt-auto pt-2 border-t border-[var(--border)] flex justify-between items-center">
         <div className="flex items-center gap-2">
           <div className="skeleton-line animate-pulse rounded" style={{ width: '60px', height: '10px' }} />
           <div className="skeleton-line animate-pulse rounded" style={{ width: '40px', height: '10px' }} />
@@ -351,7 +351,7 @@ function ErrorCard({
       <AlertTriangle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" aria-hidden="true" />
       <div className="flex-1 min-w-0">
         <div className="text-xs font-semibold text-red-300 break-words">{title}</div>
-        <div className="text-[11px] text-[#7e8aaa] mt-1 leading-relaxed">{subtitle}</div>
+        <div className="text-[11px] text-[var(--text-secondary)] mt-1 leading-relaxed">{subtitle}</div>
         <div className="flex items-center gap-2 mt-3">
           <button
             type="button"
@@ -368,7 +368,7 @@ function ErrorCard({
             onClick={onDismiss}
             aria-label={dismissLabel}
             data-testid={`${testId}-dismiss`}
-            className="text-[#7e8aaa] hover:text-[#dde1ed] transition-colors p-1 rounded"
+            className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors p-1 rounded"
             title="Dismiss"
           >
             <X className="w-3.5 h-3.5" aria-hidden="true" />
@@ -419,7 +419,7 @@ function ToggleErrorBanner({
           type="button"
           onClick={onDismiss}
           aria-label="Dismiss toggle error"
-          className="text-[#7e8aaa] hover:text-[#dde1ed] transition-colors p-1 rounded"
+          className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors p-1 rounded"
           title="Dismiss"
         >
           <X className="w-3 h-3" aria-hidden="true" />
@@ -592,12 +592,12 @@ export default function StrategyMatrix() {
   const activeSortOption = SORT_OPTIONS.find((o) => o.value === sortBy) ?? SORT_OPTIONS[0]
 
   return (
-    <div className="card flex flex-col h-full overflow-hidden bg-[#13161e] border border-[#1f2335]">
+    <div className="card flex flex-col h-full overflow-hidden bg-[var(--bg-surface)] border border-[var(--border)]">
       {/* Header */}
-      <div className="card-header flex flex-wrap justify-between items-center px-4 py-3 border-b border-[#1f2335] gap-3">
+      <div className="card-header flex flex-wrap justify-between items-center px-4 py-3 border-b border-[var(--border)] gap-3">
         <div className="flex items-center gap-3">
           <Zap className="w-4 h-4 text-cyan-300 flex-shrink-0" aria-hidden="true" />
-          <span className="card-title text-sm font-bold text-[#dde1ed]">
+          <span className="card-title text-sm font-bold text-[var(--text-primary)]">
             Quantitative Strategy Matrix
           </span>
           <span className="badge badge-green text-xs font-semibold tabular-nums">
@@ -612,7 +612,7 @@ export default function StrategyMatrix() {
         <div className="flex items-center gap-2">
           <div className="relative">
             <Search
-              className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-[#5a637a] pointer-events-none"
+              className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-[var(--text-secondary)] pointer-events-none"
               aria-hidden="true"
             />
             <input
@@ -620,7 +620,7 @@ export default function StrategyMatrix() {
               placeholder="Filter strategies…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="input input-sm w-48 text-xs pl-7 pr-2 py-1 border border-[#1f2335] bg-[#0e1015] rounded-md text-[#dde1ed] placeholder:text-[#5a637a] focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 outline-none transition-all"
+              className="input input-sm w-48 text-xs pl-7 pr-2 py-1 border border-[var(--border)] bg-[var(--bg-base)] rounded-md text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 outline-none transition-all"
               aria-label="Filter strategies"
             />
           </div>
@@ -630,13 +630,13 @@ export default function StrategyMatrix() {
               order) are unaffected. */}
           <div className="relative flex items-center">
             <ArrowUpDown
-              className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-[#5a637a] pointer-events-none"
+              className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-[var(--text-secondary)] pointer-events-none"
               aria-hidden="true"
             />
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as SortField)}
-              className="input input-sm text-xs pl-7 pr-7 py-1 border border-[#1f2335] bg-[#0e1015] rounded-md text-[#dde1ed] focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 outline-none transition-all appearance-none cursor-pointer"
+              className="input input-sm text-xs pl-7 pr-7 py-1 border border-[var(--border)] bg-[var(--bg-base)] rounded-md text-[var(--text-primary)] focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 outline-none transition-all appearance-none cursor-pointer"
               aria-label="Sort strategies"
             >
               {SORT_OPTIONS.map((o) => (
@@ -654,7 +654,7 @@ export default function StrategyMatrix() {
       </div>
 
       {/* Category Tabs — refined with transition + active cyan glow */}
-      <div className="flex items-center gap-1.5 px-3 py-2 bg-[#0e1015] border-b border-[#1f2335] overflow-x-auto scrollbar-thin shrink-0">
+      <div className="flex items-center gap-1.5 px-3 py-2 bg-[var(--bg-base)] border-b border-[var(--border)] overflow-x-auto scrollbar-thin shrink-0">
         {CATEGORIES.map((c) => (
           <button
             key={c.id}
@@ -662,7 +662,7 @@ export default function StrategyMatrix() {
             className={`tab-item text-xs py-1 px-2.5 transition-colors ${
               activeTab === c.id
                 ? 'active text-cyan-300 ring-1 ring-cyan-400/30 shadow-[0_0_8px_rgba(34,211,238,0.18)]'
-                : 'hover:text-[#dde1ed]'
+                : 'hover:text-[var(--text-primary)]'
             }`}
           >
             {c.label}
@@ -745,20 +745,20 @@ export default function StrategyMatrix() {
                 key={s.strategy_id}
                 className={`group relative p-3 rounded-lg border transition-all flex flex-col justify-between overflow-hidden ${
                   isRunning
-                    ? 'bg-[#141724] border-cyan-500/40 shadow-sm shadow-cyan-500/10 hover:bg-cyan-500/5 hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.55)]'
+                    ? 'bg-[var(--bg-surface)] border-cyan-500/40 shadow-sm shadow-cyan-500/10 hover:bg-cyan-500/5 hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.55)]'
                     : isImplemented
-                    ? 'bg-[#0e1015] border-[#1f2335] hover:border-cyan-500/30 hover:bg-cyan-500/5 hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.55)]'
-                    : 'bg-[#0e1015]/60 border-[#1f2335]/60 opacity-65 hover:bg-[#0e1015] hover:opacity-80 hover:shadow-[inset_3px_0_0_0_rgba(126,138,170,0.35)]'
+                    ? 'bg-[var(--bg-base)] border-[var(--border)] hover:border-cyan-500/30 hover:bg-cyan-500/5 hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.55)]'
+                    : 'bg-[var(--bg-base)]/60 border-[var(--border)]/60 opacity-65 hover:bg-[var(--bg-base)] hover:opacity-80 hover:shadow-[inset_3px_0_0_0_rgba(126,138,170,0.35)]'
                 }`}
               >
                 <div>
                   {/* Header: name + strategy_id + status badge */}
                   <div className="flex justify-between items-start mb-1.5 gap-1">
                     <div className="min-w-0 flex-1">
-                      <span className="font-semibold text-xs text-[#dde1ed] block truncate">
+                      <span className="font-semibold text-xs text-[var(--text-primary)] block truncate">
                         {s.name}
                       </span>
-                      <span className="mono text-[9.5px] text-[#7e8aaa] tracking-wide">
+                      <span className="mono text-[9.5px] text-[var(--text-secondary)] tracking-wide">
                         {s.strategy_id}
                       </span>
                     </div>
@@ -774,7 +774,7 @@ export default function StrategyMatrix() {
                       )}
                     </div>
                   </div>
-                  <p className="text-[11px] text-[#7e8aaa] leading-relaxed mb-3">{s.description}</p>
+                  <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed mb-3">{s.description}</p>
                   {/* U14: live P&L strip — green/red net_pnl, win-rate %, closed-trade count.
                       W53-a — split into separate spans so tabular-nums
                       aligns each value cleanly and tone-colored P&L
@@ -793,12 +793,12 @@ export default function StrategyMatrix() {
                         {p.net_pnl >= 0 ? '+' : ''}
                         {p.net_pnl.toFixed(2)}
                       </span>
-                      <span className="text-[#3e4560]">·</span>
-                      <span className="tabular-nums text-[#7e8aaa]">
+                      <span className="text-[var(--text-dim)]">·</span>
+                      <span className="tabular-nums text-[var(--text-secondary)]">
                         {p.win_rate * 100}% WR
                       </span>
-                      <span className="text-[#3e4560]">·</span>
-                      <span className="tabular-nums text-[#7e8aaa]">
+                      <span className="text-[var(--text-dim)]">·</span>
+                      <span className="tabular-nums text-[var(--text-secondary)]">
                         {p.closed_trades} trades
                       </span>
                     </div>
@@ -806,12 +806,12 @@ export default function StrategyMatrix() {
                 </div>
 
                 {/* Footer: category + risk + action */}
-                <div className="flex justify-between items-center pt-2 border-t border-[#1f2335]">
+                <div className="flex justify-between items-center pt-2 border-t border-[var(--border)]">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-[10px] text-[#7e8aaa] uppercase mono tracking-wider">
+                    <span className="text-[10px] text-[var(--text-secondary)] uppercase mono tracking-wider">
                       {s.category.replace('_', ' ')}
                     </span>
-                    <span className="text-[#3e4560]">·</span>
+                    <span className="text-[var(--text-dim)]">·</span>
                     <span
                       className={`text-[9.5px] px-1.5 py-0.2 rounded font-bold uppercase mono tabular-nums ${
                         s.risk_level === 'LOW'
@@ -849,7 +849,7 @@ export default function StrategyMatrix() {
                   ) : (
                     <button
                       onClick={() => handleToggle(s.strategy_id, false)}
-                      className="btn btn-ghost btn-xs text-[#7e8aaa] cursor-not-allowed opacity-60"
+                      className="btn btn-ghost btn-xs text-[var(--text-secondary)] cursor-not-allowed opacity-60"
                       title="This strategy is a research stub with no execution loop"
                     >
                       Stub Only

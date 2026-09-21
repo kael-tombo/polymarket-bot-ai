@@ -540,7 +540,7 @@ export default function SettingsModal({ isOpen, onClose }: Props) {
               <h2 id="settings-title" className="modal-title tracking-tight">
                 User Preferences
               </h2>
-              <span className="text-[10px] text-[#7e8aaa] -mt-0.5">
+              <span className="text-[10px] text-[var(--text-secondary)] -mt-0.5">
                 Workspace, trading, notifications + privacy
               </span>
             </div>
@@ -560,14 +560,14 @@ export default function SettingsModal({ isOpen, onClose }: Props) {
             const Icon = SECTION_ICONS[section]
             return (
               <section key={section} aria-label={section}>
-                <h3 className="flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-wider text-cyan-400 mb-3 border-b border-[#1f2335] pb-2">
+                <h3 className="flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-wider text-cyan-400 mb-3 border-b border-[var(--border)] pb-2">
                   <Icon className="size-3.5" aria-hidden="true" />
                   {/* The section name is wrapped in its own `<span>` so the
                       W38-8 test contract `getByText(section)` resolves to a
                       single leaf span (not the parent h3 that also contains
                       the SVG icon's empty text content). */}
                   <span>{section}</span>
-                  <span className="ml-auto inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded bg-[#13161e] border border-[#1f2335] text-[9.5px] tabular-nums text-[#7e8aaa] font-mono normal-case tracking-normal">
+                  <span className="ml-auto inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded bg-[var(--bg-surface)] border border-[var(--border)] text-[9.5px] tabular-nums text-[var(--text-secondary)] font-mono normal-case tracking-normal">
                     {items.length}
                   </span>
                 </h3>
@@ -670,10 +670,10 @@ function SettingRow({
   const { label, description, control } = descriptor
 
   return (
-    <div className="group flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-4 bg-[#0e1015] border border-[#1f2335] rounded-md px-3 py-2.5 transition-colors duration-150 hover:border-cyan-500/25 hover:bg-cyan-500/[0.02]">
+    <div className="group flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-4 bg-[var(--bg-page)] border border-[var(--border)] rounded-md px-3 py-2.5 transition-colors duration-150 hover:border-cyan-500/25 hover:bg-cyan-500/[0.02]">
       <div className="flex-1 min-w-0">
-        <div className="text-xs font-semibold text-[#dde1ed] group-hover:text-cyan-50 transition-colors duration-150">{label}</div>
-        <div className="text-[11px] text-[#7e8aaa] mt-0.5 leading-snug">{description}</div>
+        <div className="text-xs font-semibold text-[var(--text-primary)] group-hover:text-cyan-50 transition-colors duration-150">{label}</div>
+        <div className="text-[11px] text-[var(--text-secondary)] mt-0.5 leading-snug">{description}</div>
       </div>
       <div className="flex-shrink-0 self-start sm:self-center min-w-[140px] sm:justify-end flex">
         {control.type === 'toggle' && (
@@ -688,7 +688,7 @@ function SettingRow({
           <Select value={String(value)} onValueChange={onSelect}>
             <SelectTrigger
               size="sm"
-              className="w-[160px] bg-[#13161e] border-[#2a2f47] hover:border-cyan-500/30 focus-visible:ring-cyan-500/25 focus-visible:border-cyan-500/40 transition-colors duration-150"
+              className="w-[160px] bg-[var(--bg-surface)] border-[#2a2f47] hover:border-cyan-500/30 focus-visible:ring-cyan-500/25 focus-visible:border-cyan-500/40 transition-colors duration-150"
               aria-label={label}
             >
               <SelectValue />
@@ -713,7 +713,7 @@ function SettingRow({
               aria-label={label}
               className="flex-1 [&_[data-slot=slider-thumb]]:focus-visible:ring-cyan-500/25"
             />
-            <span className="mono text-[11px] text-[#7e8aaa] w-12 text-right tabular-nums">
+            <span className="mono text-[11px] text-[var(--text-secondary)] w-12 text-right tabular-nums">
               {control.format ? control.format(value as number) : String(value)}
             </span>
           </div>
@@ -729,7 +729,7 @@ function SettingRow({
               return (
                 <label
                   key={opt.value}
-                  className={`flex items-center gap-1.5 text-[11px] text-[#dde1ed] cursor-pointer select-none bg-[#13161e] border px-2 py-1 rounded transition-colors duration-150 hover:bg-[#1a1f2e] hover:border-cyan-500/30 ${SEVERITY_TONE[opt.value]}`}
+                  className={`flex items-center gap-1.5 text-[11px] text-[var(--text-primary)] cursor-pointer select-none bg-[var(--bg-surface)] border px-2 py-1 rounded transition-colors duration-150 hover:bg-[var(--bg-elevated)] hover:border-cyan-500/30 ${SEVERITY_TONE[opt.value]}`}
                 >
                   <Checkbox
                     checked={checked}

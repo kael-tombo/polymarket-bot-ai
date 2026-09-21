@@ -324,11 +324,11 @@ function OrdersPanel({
   }, [orders.length, totalOpenExposure, avgFillPct])
 
   return (
-    <div className="card h-full flex flex-col bg-[#13161e] border border-[#1f2335] shadow-xl overflow-hidden">
+    <div className="card h-full flex flex-col bg-[var(--bg-surface)] border border-[var(--border)] shadow-xl overflow-hidden">
       {/* Header — title + KPI strip + Cancel All */}
-      <div className="card-header px-3.5 py-2.5 border-b border-[#1f2335] flex items-center justify-between bg-[#0e1015]/80">
+      <div className="card-header px-3.5 py-2.5 border-b border-[var(--border)] flex items-center justify-between bg-[var(--bg-page)]/80">
         <div className="flex items-center gap-2.5">
-          <span className="card-title text-xs font-bold text-[#dde1ed] flex items-center gap-1.5">
+          <span className="card-title text-xs font-bold text-[var(--text-primary)] flex items-center gap-1.5">
             📋 Working Orders ({orders.length})
           </span>
           {isRealtime ? (
@@ -352,14 +352,14 @@ function OrdersPanel({
             communicates "nothing here"). */}
         {orders.length > 0 && (
           <div className="flex items-center gap-2 text-xs">
-            <div className="bg-[#0e1015] border border-[#1f2335] px-2.5 py-1 rounded-md flex items-center gap-1.5" title="Non-terminal working orders (PENDING + OPEN + PARTIAL)">
-              <span className="text-[10px] text-[#7e8aaa] uppercase font-semibold">Open:</span>
+            <div className="bg-[var(--bg-page)] border border-[var(--border)] px-2.5 py-1 rounded-md flex items-center gap-1.5" title="Non-terminal working orders (PENDING + OPEN + PARTIAL)">
+              <span className="text-[10px] text-[var(--text-secondary)] uppercase font-semibold">Open:</span>
               <span className="mono font-bold text-blue-300 text-xs tabular-nums">{openCount}</span>
-              <span className="text-[9.5px] text-[#5a637a] tabular-nums">/ {orders.length}</span>
+              <span className="text-[9.5px] text-[var(--text-secondary)] tabular-nums">/ {orders.length}</span>
             </div>
 
-            <div className="bg-[#0e1015] border border-[#1f2335] px-2.5 py-1 rounded-md flex items-center gap-1.5" title="Total capital exposed across all working orders">
-              <span className="text-[10px] text-[#7e8aaa] uppercase font-semibold">Capital:</span>
+            <div className="bg-[var(--bg-page)] border border-[var(--border)] px-2.5 py-1 rounded-md flex items-center gap-1.5" title="Total capital exposed across all working orders">
+              <span className="text-[10px] text-[var(--text-secondary)] uppercase font-semibold">Capital:</span>
               <span className="mono font-bold text-cyan-400 text-xs tabular-nums">{fmtUsd(totalOpenExposure)}</span>
             </div>
           </div>
@@ -387,10 +387,10 @@ function OrdersPanel({
           mono count pill. Hidden when no orders exist (the empty
           state below handles the no-data case). */}
       {orders.length > 0 && (
-        <div className="flex items-center justify-between gap-2 px-3.5 py-2 border-b border-[#1f2335] bg-[#0e1015]/60">
+        <div className="flex items-center justify-between gap-2 px-3.5 py-2 border-b border-[var(--border)] bg-[var(--bg-page)]/60">
           <div className="relative flex-1 max-w-xs">
             <SearchIcon
-              className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#7e8aaa] pointer-events-none"
+              className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-secondary)] pointer-events-none"
               aria-hidden="true"
             />
             <input
@@ -399,12 +399,12 @@ function OrdersPanel({
               value={filterQuery}
               onChange={(e) => setFilterQuery(e.target.value)}
               aria-label="Search working orders"
-              className="w-full text-xs bg-[#0e1015] border border-[#1f2335] focus:border-cyan-500/50 rounded pl-7 pr-7 py-1 text-[#dde1ed] placeholder-[#3e4560] outline-none transition-all"
+              className="w-full text-xs bg-[var(--bg-page)] border border-[var(--border)] focus:border-cyan-500/50 rounded pl-7 pr-7 py-1 text-[var(--text-primary)] placeholder-[var(--text-dim)] outline-none transition-all"
             />
             {filterQuery && (
               <button
                 onClick={() => setFilterQuery('')}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-[#7e8aaa] hover:text-white"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--text-secondary)] hover:text-white"
                 aria-label="Clear search"
               >
                 <ClearIcon className="w-3 h-3" aria-hidden="true" />
@@ -417,10 +417,10 @@ function OrdersPanel({
               hiding rows. Hidden when the filter is empty (the count
               would just duplicate the header's "(N)" badge). */}
           {filterQuery && (
-            <span className="text-[10px] mono text-[#7e8aaa] inline-flex items-center gap-1 px-1.5 py-0.5 rounded border border-[#1f2335] bg-[#13161e] shrink-0">
+            <span className="text-[10px] mono text-[var(--text-secondary)] inline-flex items-center gap-1 px-1.5 py-0.5 rounded border border-[var(--border)] bg-[var(--bg-surface)] shrink-0">
               Showing <strong className="text-cyan-300 font-semibold tabular-nums">{filteredOrders.length}</strong>
               <span className="opacity-50">of</span>
-              <strong className="text-[#dde1ed] font-semibold tabular-nums">{orders.length}</strong>
+              <strong className="text-[var(--text-primary)] font-semibold tabular-nums">{orders.length}</strong>
             </span>
           )}
         </div>
@@ -433,7 +433,7 @@ function OrdersPanel({
         // text (preserves the existing test contract
         // `getByText(/Loading working orders/)`).
         <div className="flex-1 overflow-hidden flex flex-col" role="status" aria-live="polite">
-          <div className="px-3.5 py-1.5 text-[10px] text-[#7e8aaa] flex items-center gap-2 border-b border-[#1f2335]/50 bg-[#0e1015]/40">
+          <div className="px-3.5 py-1.5 text-[10px] text-[var(--text-secondary)] flex items-center gap-2 border-b border-[var(--border)]/50 bg-[var(--bg-page)]/40">
             <span className="spinner" aria-hidden="true" />
             Loading working orders…
           </div>
@@ -441,7 +441,7 @@ function OrdersPanel({
             {Array.from({ length: SKELETON_ROWS }).map((_, i) => (
               <div
                 key={i}
-                className="flex items-center gap-3 px-3.5 py-2.5 border-b border-[#1f2335]/30"
+                className="flex items-center gap-3 px-3.5 py-2.5 border-b border-[var(--border)]/30"
                 aria-hidden="true"
               >
                 {/* Market cell skeleton — wider */}
@@ -483,7 +483,7 @@ function OrdersPanel({
             // existing test asserts on it via findByText).
             <div className="empty-state py-12">
               <span className="empty-state-icon" aria-hidden="true">
-                <ClipboardList className="w-10 h-10 text-[#3e4560]" strokeWidth={1.5} />
+                <ClipboardList className="w-10 h-10 text-[var(--text-dim)]" strokeWidth={1.5} />
               </span>
               <span className="empty-state-title">No working limit orders</span>
               <span className="empty-state-desc">
@@ -493,7 +493,7 @@ function OrdersPanel({
           ) : (
             <table className="data-table text-xs w-full" role="table" aria-label="Working limit orders">
               <thead>
-                <tr className="border-b border-[#1f2335] text-[#7e8aaa] text-[10.5px]">
+                <tr className="border-b border-[var(--border)] text-[var(--text-secondary)] text-[10.5px]">
                   <th scope="col" className="min-w-[190px] text-left">Market Contract</th>
                   <th scope="col" className="text-center">Side</th>
                   <th scope="col" className="text-center">Status</th>
@@ -504,7 +504,7 @@ function OrdersPanel({
                   <th scope="col" className="text-right">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#1f2335]/50">
+              <tbody className="divide-y divide-[var(--border)]/50">
                 {filteredOrders.map((o) => {
                   const info = formatHierarchicalMarket(o.slug)
                   const matched = o.size_matched ?? 0
@@ -528,7 +528,7 @@ function OrdersPanel({
                           <span className="text-[9.5px] text-cyan-400 font-bold uppercase tracking-wider truncate">
                             {info.category.icon} {info.eventTitle}
                           </span>
-                          <span className="text-[#dde1ed] group-hover:text-cyan-300 font-medium leading-tight text-xs block whitespace-normal transition-colors" title={info.fullLabel}>
+                          <span className="text-[var(--text-primary)] group-hover:text-cyan-300 font-medium leading-tight text-xs block whitespace-normal transition-colors" title={info.fullLabel}>
                             {info.question}
                           </span>
                         </div>
@@ -564,18 +564,18 @@ function OrdersPanel({
                       {/* Fill Progress & Size — W39-5/W49-5: the
                           progress bar is rendered for any OPEN/partial
                           order (matched > 0 AND matched < size). */}
-                      <td className="mono text-right font-medium text-[#dde1ed] tabular-nums">
+                      <td className="mono text-right font-medium text-[var(--text-primary)] tabular-nums">
                         <div>
                           <span>{o.size.toFixed(1)}</span>
                           {matched > 0 && (
                             <span className="text-[10px] text-green-400 ml-1 tabular-nums">({matched.toFixed(1)})</span>
                           )}
                           {showFillBar && (
-                            <span className="text-[9.5px] text-[#7e8aaa] ml-1 tabular-nums">{fillPct}%</span>
+                            <span className="text-[9.5px] text-[var(--text-secondary)] ml-1 tabular-nums">{fillPct}%</span>
                           )}
                         </div>
                         {showFillBar && (
-                          <div className="w-full bg-[#1f2335] h-1 rounded-full overflow-hidden mt-1" role="progressbar" aria-valuenow={fillPct} aria-valuemin={0} aria-valuemax={100} aria-label={`Fill progress: ${fillPct}%`}>
+                          <div className="w-full bg-[var(--border)] h-1 rounded-full overflow-hidden mt-1" role="progressbar" aria-valuenow={fillPct} aria-valuemin={0} aria-valuemax={100} aria-label={`Fill progress: ${fillPct}%`}>
                             <div className="bg-green-400 h-full rounded-full transition-all" style={{ width: `${fillPct}%` }} />
                           </div>
                         )}
@@ -583,7 +583,7 @@ function OrdersPanel({
 
                       {/* Strategy Tag */}
                       <td>
-                        <span className="text-[9.5px] text-[#7e8aaa] mono bg-[#0e1015] px-1.5 py-0.5 rounded border border-[#1f2335] font-semibold">
+                        <span className="text-[9.5px] text-[var(--text-secondary)] mono bg-[var(--bg-page)] px-1.5 py-0.5 rounded border border-[var(--border)] font-semibold">
                           {o.strategy}
                         </span>
                       </td>
@@ -591,7 +591,7 @@ function OrdersPanel({
                       {/* W39-5/W49-5 — Age in relative format ("3m ago").
                           The title attribute carries the absolute ISO
                           timestamp for hover + screen-reader context. */}
-                      <td className="mono text-[#7e8aaa] text-[10.5px] text-center tabular-nums" title={`Created: ${fmtTimeAbs(o.created_at)}`}>
+                      <td className="mono text-[var(--text-secondary)] text-[10.5px] text-center tabular-nums" title={`Created: ${fmtTimeAbs(o.created_at)}`}>
                         {fmtAge(o.created_at)}
                       </td>
 
@@ -604,7 +604,7 @@ function OrdersPanel({
                           the tint. */}
                       <td className="text-right">
                         {isTerminal ? (
-                          <span className="text-[10px] text-[#3e4560] uppercase tracking-wider font-semibold" aria-label={`Order ${displayStatus.toLowerCase()} — no cancel action`}>
+                          <span className="text-[10px] text-[var(--text-dim)] uppercase tracking-wider font-semibold" aria-label={`Order ${displayStatus.toLowerCase()} — no cancel action`}>
                             {displayStatus === 'FILLED' ? '✓ Filled' : displayStatus === 'CANCELLED' ? '— Cancelled' : '✕ Rejected'}
                           </span>
                         ) : (

@@ -230,7 +230,7 @@ const TONE: Record<Tone, ToneConfig> = {
   warn:    { bg: 'bg-amber-500/[0.06]',   border: 'border-amber-500/25',   text: 'text-amber-400',   bar: 'bg-amber-500',   dot: 'bg-amber-400',   label: 'text-amber-400/80',   halo: 'shadow-amber-500/10',   rowHover: 'hover:shadow-[inset_3px_0_0_0_rgba(251,191,36,0.55)]' },
   poor:    { bg: 'bg-red-500/[0.06]',     border: 'border-red-500/25',     text: 'text-red-400',     bar: 'bg-red-500',     dot: 'bg-red-400',     label: 'text-red-400/80',     halo: 'shadow-red-500/10',     rowHover: 'hover:shadow-[inset_3px_0_0_0_rgba(239,68,68,0.55)]' },
   info:    { bg: 'bg-cyan-500/[0.06]',    border: 'border-cyan-500/25',    text: 'text-cyan-400',    bar: 'bg-cyan-500',    dot: 'bg-cyan-400',    label: 'text-cyan-400/80',    halo: 'shadow-cyan-500/10',    rowHover: 'hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.55)]' },
-  neutral: { bg: 'bg-[#0e1015]',          border: 'border-[#1f2335]',      text: 'text-[#dde1ed]',   bar: 'bg-[#5a637a]',   dot: 'bg-[#5a637a]',   label: 'text-[#7e8aaa]',      halo: '',                       rowHover: 'hover:shadow-[inset_3px_0_0_0_rgba(125,138,170,0.35)]' },
+  neutral: { bg: 'bg-[var(--bg-page)]',          border: 'border-[var(--border)]',      text: 'text-[var(--text-primary)]',   bar: 'bg-[var(--text-secondary)]',   dot: 'bg-[var(--text-secondary)]',   label: 'text-[var(--text-secondary)]',      halo: '',                       rowHover: 'hover:shadow-[inset_3px_0_0_0_rgba(125,138,170,0.35)]' },
 }
 
 /** Map a utilisation percentage to a Tone for the gauge / KPI tile /
@@ -332,11 +332,11 @@ function SectionHeader({
   return (
     <div className="flex items-center gap-1.5 mb-2">
       <Icon className={`size-3 ${TONE[tone].text}`} aria-hidden="true" />
-      <span className="text-[9.5px] uppercase tracking-wider font-bold text-[#5a637a]">
+      <span className="text-[9.5px] uppercase tracking-wider font-bold text-[var(--text-secondary)]">
         {title}
       </span>
       {description && (
-        <span className="text-[9px] text-[#5a637a] italic truncate">{description}</span>
+        <span className="text-[9px] text-[var(--text-secondary)] italic truncate">{description}</span>
       )}
       {trailing && <span className="ml-auto shrink-0">{trailing}</span>}
     </div>
@@ -380,7 +380,7 @@ function KpiTile({
   const cfg = tone ? TONE[tone] : null
   const cardCls = cfg
     ? `kpi-card relative rounded p-2 border ${cfg.border} ${cfg.bg} overflow-hidden transition-colors`
-    : 'kpi-card relative rounded p-2 border border-[#1f2335] bg-[#0e1015] overflow-hidden transition-colors'
+    : 'kpi-card relative rounded p-2 border border-[var(--border)] bg-[var(--bg-page)] overflow-hidden transition-colors'
   return (
     <div className={cardCls} data-testid={testId} data-tone={tone ?? 'neutral'}>
       <span className={`kpi-label flex items-center gap-1 ${cfg ? cfg.label : ''}`}>
@@ -394,9 +394,9 @@ function KpiTile({
       </span>
       {sub && <span className="kpi-sub">{sub}</span>}
       {quality != null && quality > 0 && (
-        <div className="h-0.5 bg-[#1f2335] rounded-full mt-1 overflow-hidden">
+        <div className="h-0.5 bg-[var(--border)] rounded-full mt-1 overflow-hidden">
           <div
-            className={`h-full rounded-full transition-all duration-500 ${cfg ? cfg.bar : 'bg-[#5a637a]'}`}
+            className={`h-full rounded-full transition-all duration-500 ${cfg ? cfg.bar : 'bg-[var(--text-secondary)]'}`}
             style={{ width: `${Math.max(0, Math.min(100, quality))}%` }}
             aria-hidden="true"
           />
@@ -428,7 +428,7 @@ function KellyBar({ fraction }: { fraction: number | null }) {
           : `Estimated Kelly fraction ${(f * 100).toFixed(1)}% — zones: <25% conservative, 25–50% moderate, 50–75% aggressive, >75% danger`
       }
     >
-      <div className="relative h-2 bg-[#080910] rounded-full overflow-hidden border border-[#181c28]">
+      <div className="relative h-2 bg-[var(--bg-base)] rounded-full overflow-hidden border border-[#181c28]">
         {/* zone bands — emerald (0–25%), cyan (25–50%), amber (50–75%), red (75–100%) */}
         <div className="absolute inset-y-0 left-0 bg-emerald-500/25" style={{ width: '25%' }} aria-hidden="true" />
         <div className="absolute inset-y-0 bg-cyan-500/25" style={{ left: '25%', width: '25%' }} aria-hidden="true" />
@@ -443,7 +443,7 @@ function KellyBar({ fraction }: { fraction: number | null }) {
           />
         )}
       </div>
-      <div className="flex justify-between text-[8px] text-[#5a637a] mono">
+      <div className="flex justify-between text-[8px] text-[var(--text-secondary)] mono">
         <span>0%</span>
         <span className="text-emerald-400/70">25%</span>
         <span className="text-cyan-400/70">50%</span>
@@ -451,7 +451,7 @@ function KellyBar({ fraction }: { fraction: number | null }) {
         <span>100%</span>
       </div>
       <div className="flex items-baseline justify-between gap-2">
-        <span className="text-[9px] uppercase tracking-wider font-bold text-[#5a637a]">
+        <span className="text-[9px] uppercase tracking-wider font-bold text-[var(--text-secondary)]">
           Kelly Fraction
         </span>
         <span className={`mono text-[11px] font-bold tabular-nums ${cfg.text}`}>
@@ -546,7 +546,7 @@ function EdgeSizeCurve({
         width={plotW}
         height={plotH}
         fill="#0a0c12"
-        stroke="#1f2335"
+        stroke="var(--border)"
         strokeWidth="1"
       />
 
@@ -558,14 +558,14 @@ function EdgeSizeCurve({
             y1={t.y}
             x2={W - PAD_R}
             y2={t.y}
-            stroke="#1f2335"
+            stroke="var(--border)"
             strokeWidth="1"
             strokeDasharray="2 3"
           />
           <text
             x={PAD_L - 5}
             y={t.y + 3}
-            fill="#5a637a"
+            fill="var(--text-secondary)"
             fontSize="9"
             textAnchor="end"
             fontFamily="JetBrains Mono, monospace"
@@ -583,13 +583,13 @@ function EdgeSizeCurve({
             y1={H - PAD_B}
             x2={t.x}
             y2={H - PAD_B + 3}
-            stroke="#3e4560"
+            stroke="var(--text-dim)"
             strokeWidth="1"
           />
           <text
             x={t.x}
             y={H - PAD_B + 16}
-            fill="#5a637a"
+            fill="var(--text-secondary)"
             fontSize="9"
             textAnchor="middle"
             fontFamily="JetBrains Mono, monospace"
@@ -605,7 +605,7 @@ function EdgeSizeCurve({
         y1={PAD_T}
         x2={halfX}
         y2={H - PAD_B}
-        stroke="#3b82f6"
+        stroke="var(--accent)"
         strokeWidth="1"
         strokeDasharray="2 3"
         strokeOpacity="0.45"
@@ -613,7 +613,7 @@ function EdgeSizeCurve({
       <text
         x={halfX + 4}
         y={PAD_T + 10}
-        fill="#60a5fa"
+        fill="var(--accent-fg)"
         fontSize="8.5"
         fontFamily="JetBrains Mono, monospace"
       >
@@ -624,7 +624,7 @@ function EdgeSizeCurve({
         y1={halfY}
         x2={halfX}
         y2={halfY}
-        stroke="#3b82f6"
+        stroke="var(--accent)"
         strokeWidth="1"
         strokeDasharray="2 3"
         strokeOpacity="0.45"
@@ -636,7 +636,7 @@ function EdgeSizeCurve({
         y1={PAD_T}
         x2={W - PAD_R}
         y2={PAD_T}
-        stroke="#3b82f6"
+        stroke="var(--accent)"
         strokeWidth="1"
         strokeDasharray="3 3"
         strokeOpacity="0.35"
@@ -644,7 +644,7 @@ function EdgeSizeCurve({
       <text
         x={W - PAD_R}
         y={PAD_T - 4}
-        fill="#60a5fa"
+        fill="var(--accent-fg)"
         fontSize="8.5"
         textAnchor="end"
         fontFamily="JetBrains Mono, monospace"
@@ -696,7 +696,7 @@ function EdgeSizeCurve({
             cy={op.y}
             r="5"
             fill="#fbbf24"
-            stroke="#0e1015"
+            stroke="var(--bg-page)"
             strokeWidth="2"
           />
           <circle cx={op.x} cy={op.y} r="9" fill="none" stroke="#fbbf24" strokeOpacity="0.3" strokeWidth="1" />
@@ -707,7 +707,7 @@ function EdgeSizeCurve({
       <text
         x={PAD_L + plotW / 2}
         y={H - 2}
-        fill="#7e8aaa"
+        fill="var(--text-secondary)"
         fontSize="9.5"
         textAnchor="middle"
         fontWeight="600"
@@ -717,7 +717,7 @@ function EdgeSizeCurve({
       <text
         x={10}
         y={PAD_T + plotH / 2}
-        fill="#7e8aaa"
+        fill="var(--text-secondary)"
         fontSize="9.5"
         textAnchor="middle"
         fontWeight="600"
@@ -787,7 +787,7 @@ function SkeletonState() {
       data-testid="capital-allocator-loading-skeleton"
     >
       {/* Skeleton header bar */}
-      <div className="flex items-center gap-2 pb-2 border-b border-[#1f2335]">
+      <div className="flex items-center gap-2 pb-2 border-b border-[var(--border)]">
         <ShimmerBlock className="w-3.5 h-3.5 !rounded-full" />
         <ShimmerBlock className="w-32 h-3" />
         <ShimmerBlock className="w-24 h-3 !rounded-md" />
@@ -802,12 +802,12 @@ function SkeletonState() {
         {Array.from({ length: 4 }).map((_, i) => (
           <div
             key={`cap-kpi-${i}`}
-            className="kpi-card rounded p-2 border border-[#1f2335] bg-[#0e1015] space-y-1.5"
+            className="kpi-card rounded p-2 border border-[var(--border)] bg-[var(--bg-page)] space-y-1.5"
           >
             <ShimmerBlock className="w-1/2" />
             <ShimmerBlock className="w-3/4 !h-4" />
             <ShimmerBlock className="w-2/3 !h-2" />
-            <div className="h-0.5 w-full bg-[#1f2335] rounded-full overflow-hidden">
+            <div className="h-0.5 w-full bg-[var(--border)] rounded-full overflow-hidden">
               <div
                 className="h-full w-1/2 rounded-full"
                 style={{
@@ -823,7 +823,7 @@ function SkeletonState() {
       </div>
       {/* Skeleton curve + gauge row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-        <div className="lg:col-span-2 rounded p-3 border border-[#1f2335] bg-[#0e1015] space-y-2" aria-hidden="true">
+        <div className="lg:col-span-2 rounded p-3 border border-[var(--border)] bg-[var(--bg-page)] space-y-2" aria-hidden="true">
           <div className="flex items-center gap-2">
             <ShimmerBlock className="w-3 h-3 !rounded-full" />
             <ShimmerBlock className="w-44 h-3" />
@@ -833,7 +833,7 @@ function SkeletonState() {
           </div>
           <ShimmerBlock className="w-full !h-44" />
         </div>
-        <div className="rounded p-3 border border-[#1f2335] bg-[#0e1015] space-y-2" aria-hidden="true">
+        <div className="rounded p-3 border border-[var(--border)] bg-[var(--bg-page)] space-y-2" aria-hidden="true">
           <div className="flex items-center gap-2">
             <ShimmerBlock className="w-3 h-3 !rounded-full" />
             <ShimmerBlock className="w-32 h-3" />
@@ -847,7 +847,7 @@ function SkeletonState() {
         {Array.from({ length: 6 }).map((_, i) => (
           <div
             key={`cfg-kpi-${i}`}
-            className="kpi-card rounded p-2 border border-[#1f2335] bg-[#0e1015] space-y-1"
+            className="kpi-card rounded p-2 border border-[var(--border)] bg-[var(--bg-page)] space-y-1"
           >
             <ShimmerBlock className="w-1/2" />
             <ShimmerBlock className="w-2/3 !h-3" />
@@ -856,7 +856,7 @@ function SkeletonState() {
       </div>
       {/* Skeleton per-strategy + multipliers row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-        <div className="lg:col-span-2 rounded p-3 border border-[#1f2335] bg-[#0e1015] space-y-2" aria-hidden="true">
+        <div className="lg:col-span-2 rounded p-3 border border-[var(--border)] bg-[var(--bg-page)] space-y-2" aria-hidden="true">
           <div className="flex items-center gap-2">
             <ShimmerBlock className="w-3 h-3 !rounded-full" />
             <ShimmerBlock className="w-40 h-3" />
@@ -872,7 +872,7 @@ function SkeletonState() {
             </div>
           ))}
         </div>
-        <div className="rounded p-3 border border-[#1f2335] bg-[#0e1015] space-y-2" aria-hidden="true">
+        <div className="rounded p-3 border border-[var(--border)] bg-[var(--bg-page)] space-y-2" aria-hidden="true">
           <div className="flex items-center gap-2">
             <ShimmerBlock className="w-3 h-3 !rounded-full" />
             <ShimmerBlock className="w-40 h-3" />
@@ -886,8 +886,8 @@ function SkeletonState() {
         </div>
       </div>
       {/* Skeleton recent allocations table */}
-      <div className="rounded border border-[#1f2335] bg-[#0e1015] overflow-hidden" aria-hidden="true">
-        <div className="flex items-center gap-2 px-2.5 py-2 border-b border-[#1f2335]">
+      <div className="rounded border border-[var(--border)] bg-[var(--bg-page)] overflow-hidden" aria-hidden="true">
+        <div className="flex items-center gap-2 px-2.5 py-2 border-b border-[var(--border)]">
           <ShimmerBlock className="w-3 h-3 !rounded-full" />
           <ShimmerBlock className="w-48 h-3" />
           <div className="ml-auto">
@@ -895,7 +895,7 @@ function SkeletonState() {
           </div>
         </div>
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={`row-${i}`} className="flex items-center gap-3 px-3 py-2 border-b border-[#1f2335]/60">
+          <div key={`row-${i}`} className="flex items-center gap-3 px-3 py-2 border-b border-[var(--border)]/60">
             <ShimmerBlock className="w-32 h-2.5" />
             <ShimmerBlock className="w-16 h-2.5" />
             <ShimmerBlock className="w-10 h-2.5" />
@@ -923,7 +923,7 @@ function PolishedEmptyState() {
       data-testid="capital-allocator-empty-state"
     >
       <History
-        className="empty-state-icon text-[#5a637a]"
+        className="empty-state-icon text-[var(--text-secondary)]"
         size={28}
         aria-hidden="true"
       />
@@ -1214,12 +1214,12 @@ export default function CapitalAllocatorPanel() {
 
   // ── Render ──
   return (
-    <div className="card flex flex-col bg-[#13161e] border border-[#1f2335] shadow-md">
+    <div className="card flex flex-col bg-[var(--bg-surface)] border border-[var(--border)] shadow-md">
       {/* ── Header ── */}
-      <div className="card-header p-3 border-b border-[#1f2335] flex flex-wrap justify-between items-center gap-2">
+      <div className="card-header p-3 border-b border-[var(--border)] flex flex-wrap justify-between items-center gap-2">
         <div className="flex items-center gap-2">
           <Coins className="w-3.5 h-3.5 text-cyan-400" aria-hidden="true" />
-          <span className="card-title text-xs font-bold text-[#dde1ed]">
+          <span className="card-title text-xs font-bold text-[var(--text-primary)]">
             Capital Allocator
           </span>
           <span className="badge badge-cyan text-[9.5px]">Michaelis-Menten</span>
@@ -1230,7 +1230,7 @@ export default function CapitalAllocatorPanel() {
           )}
           {!loading && !error && (
             <span
-              className="flex items-center gap-1 text-[9px] text-[#5a637a] uppercase tracking-wider font-bold"
+              className="flex items-center gap-1 text-[9px] text-[var(--text-secondary)] uppercase tracking-wider font-bold"
               data-tone={utilizationToneVal}
             >
               <PulseDot tone={utilizationToneVal} pulse={utilizationToneVal === 'poor'} />
@@ -1240,14 +1240,14 @@ export default function CapitalAllocatorPanel() {
         </div>
         <div className="flex items-center gap-2">
           {lastUpdated && (
-            <span className="text-[9.5px] text-[#5a637a] mono tabular-nums">
+            <span className="text-[9.5px] text-[var(--text-secondary)] mono tabular-nums">
               updated {fmtAge(lastUpdated / 1000)}
             </span>
           )}
           <button
             onClick={() => fetchAll(true)}
             disabled={isRefreshing || loading}
-            className="btn btn-ghost btn-sm text-[10px] flex items-center gap-1 border border-[#1f2335] hover:border-cyan-500/30 hover:bg-cyan-500/[0.04] hover:text-white transition-colors"
+            className="btn btn-ghost btn-sm text-[10px] flex items-center gap-1 border border-[var(--border)] hover:border-cyan-500/30 hover:bg-cyan-500/[0.04] hover:text-white transition-colors"
             aria-label="Refresh allocator data"
           >
             <RefreshCw className={`w-3 h-3 ${isRefreshing ? 'animate-spin' : ''}`} aria-hidden="true" />
@@ -1255,7 +1255,7 @@ export default function CapitalAllocatorPanel() {
           </button>
           <button
             onClick={openEditor}
-            className="btn btn-ghost btn-sm text-[10px] flex items-center gap-1 border border-[#1f2335] hover:border-cyan-500/30 hover:bg-cyan-500/[0.04] hover:text-white transition-colors"
+            className="btn btn-ghost btn-sm text-[10px] flex items-center gap-1 border border-[var(--border)] hover:border-cyan-500/30 hover:bg-cyan-500/[0.04] hover:text-white transition-colors"
             aria-label="Edit allocator config"
           >
             <Settings className="w-3 h-3" aria-hidden="true" />
@@ -1314,7 +1314,7 @@ export default function CapitalAllocatorPanel() {
           {/* ── Top row: Curve + Config KPIs + Gauge ── */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
             {/* Edge → Size curve */}
-            <div className="lg:col-span-2 bg-[#0e1015] rounded p-3 border border-[#1f2335]">
+            <div className="lg:col-span-2 bg-[var(--bg-page)] rounded p-3 border border-[var(--border)]">
               <SectionHeader
                 icon={TrendingUp}
                 title="Edge → Size Saturating Curve"
@@ -1339,7 +1339,7 @@ export default function CapitalAllocatorPanel() {
                 />
               </div>
               {operatingEdge != null && operatingSize != null && (
-                <div className="mt-1.5 flex items-center justify-between text-[9.5px] mono text-[#7e8aaa] tabular-nums">
+                <div className="mt-1.5 flex items-center justify-between text-[9.5px] mono text-[var(--text-secondary)] tabular-nums">
                   <span>
                     op-point: edge={(operatingEdge * 100).toFixed(2)}%
                     {operatingConf != null && ` · conf=${(operatingConf * 100).toFixed(0)}%`}
@@ -1350,7 +1350,7 @@ export default function CapitalAllocatorPanel() {
                 </div>
               )}
               {/* Kelly criterion bar — complements the curve + gauge */}
-              <div className="mt-3 pt-3 border-t border-[#1f2335]">
+              <div className="mt-3 pt-3 border-t border-[var(--border)]">
                 <KellyBar fraction={kellyFraction} />
               </div>
             </div>
@@ -1358,7 +1358,7 @@ export default function CapitalAllocatorPanel() {
             {/* Right column: Gauge + Kelly status */}
             <div className="flex flex-col gap-3">
               {/* Utilization gauge */}
-              <div className="bg-[#0e1015] rounded p-3 border border-[#1f2335]">
+              <div className="bg-[var(--bg-page)] rounded p-3 border border-[var(--border)]">
                 <SectionHeader
                   icon={GaugeIcon}
                   title="Capital Utilization"
@@ -1372,7 +1372,7 @@ export default function CapitalAllocatorPanel() {
                 />
               </div>
               {/* Exposure summary tile */}
-              <div className="bg-[#0e1015] rounded p-3 border border-[#1f2335]">
+              <div className="bg-[var(--bg-page)] rounded p-3 border border-[var(--border)]">
                 <SectionHeader
                   icon={Scale}
                   title="Exposure Summary"
@@ -1381,38 +1381,38 @@ export default function CapitalAllocatorPanel() {
                 />
                 <div className="space-y-1">
                   <div className="flex justify-between text-[10px]">
-                    <span className="text-[#7e8aaa]">Net Directional</span>
+                    <span className="text-[var(--text-secondary)]">Net Directional</span>
                     <span className="mono tabular-nums text-cyan-300 font-semibold">
                       {fmtUsd(exposure?.net_directional_exposure ?? 0, 2)}
                     </span>
                   </div>
                   <div className="flex justify-between text-[10px]">
-                    <span className="text-[#7e8aaa]">Gross Market Value</span>
+                    <span className="text-[var(--text-secondary)]">Gross Market Value</span>
                     <span className="mono tabular-nums text-cyan-300 font-semibold">
                       {fmtUsd(exposure?.gross_market_value ?? 0, 2)}
                     </span>
                   </div>
                   <div className="flex justify-between text-[10px]">
-                    <span className="text-[#7e8aaa]">Max Remaining Loss</span>
+                    <span className="text-[var(--text-secondary)]">Max Remaining Loss</span>
                     <span className="mono tabular-nums text-amber-400 font-semibold">
                       {fmtUsd(exposure?.maximum_remaining_loss ?? 0, 2)}
                     </span>
                   </div>
                   <div className="flex justify-between text-[10px]">
-                    <span className="text-[#7e8aaa]">Dollar-Days</span>
-                    <span className="mono tabular-nums text-[#dde1ed]">
+                    <span className="text-[var(--text-secondary)]">Dollar-Days</span>
+                    <span className="mono tabular-nums text-[var(--text-primary)]">
                       {(exposure?.exposure_dollar_days ?? 0).toFixed(2)}
                     </span>
                   </div>
                   <div className="flex justify-between text-[10px]">
-                    <span className="text-[#7e8aaa]">Avg Duration</span>
-                    <span className="mono tabular-nums text-[#dde1ed]">
+                    <span className="text-[var(--text-secondary)]">Avg Duration</span>
+                    <span className="mono tabular-nums text-[var(--text-primary)]">
                       {(exposure?.exposure_duration_hours_avg ?? 0).toFixed(2)}h
                     </span>
                   </div>
-                  <div className="flex justify-between text-[10px] border-t border-[#1f2335] pt-1 mt-1">
-                    <span className="text-[#7e8aaa] font-semibold">Open Positions</span>
-                    <span className="mono tabular-nums text-[#dde1ed] font-semibold">
+                  <div className="flex justify-between text-[10px] border-t border-[var(--border)] pt-1 mt-1">
+                    <span className="text-[var(--text-secondary)] font-semibold">Open Positions</span>
+                    <span className="mono tabular-nums text-[var(--text-primary)] font-semibold">
                       {exposure?.open_position_count ?? 0}
                     </span>
                   </div>
@@ -1422,7 +1422,7 @@ export default function CapitalAllocatorPanel() {
           </div>
 
           {/* ── Config KPI strip ── */}
-          <div className="bg-[#0e1015] rounded p-3 border border-[#1f2335]">
+          <div className="bg-[var(--bg-page)] rounded p-3 border border-[var(--border)]">
             <SectionHeader
               icon={Settings}
               title="Allocator Parameters"
@@ -1486,20 +1486,20 @@ export default function CapitalAllocatorPanel() {
           {/* ── Per-strategy allocation + Breakdown multipliers ── */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
             {/* Per-strategy allocation bar chart */}
-            <div className="lg:col-span-2 bg-[#0e1015] rounded p-3 border border-[#1f2335]">
+            <div className="lg:col-span-2 bg-[var(--bg-page)] rounded p-3 border border-[var(--border)]">
               <SectionHeader
                 icon={Layers}
                 title="Capital Split by Strategy"
                 tone="info"
                 description="per-strategy deployed USD"
                 trailing={
-                  <span className="text-[9px] text-[#5a637a] mono tabular-nums">
+                  <span className="text-[9px] text-[var(--text-secondary)] mono tabular-nums">
                     {strategySplit.length} active
                   </span>
                 }
               />
               {strategySplit.length === 0 ? (
-                <div className="text-[10.5px] text-[#5a637a] text-center py-6 mono">
+                <div className="text-[10.5px] text-[var(--text-secondary)] text-center py-6 mono">
                   No open exposure — capital is idle.
                 </div>
               ) : (
@@ -1519,12 +1519,12 @@ export default function CapitalAllocatorPanel() {
                         title={`${s.name} — ${fmtUsd(s.value, 2)} (${s.pct.toFixed(1)}% of total deployed, ${stratPctOfCap.toFixed(1)}% of cap)`}
                       >
                         <span
-                          className="text-[10px] text-[#dde1ed] w-32 truncate shrink-0 mono"
+                          className="text-[10px] text-[var(--text-primary)] w-32 truncate shrink-0 mono"
                           title={s.name}
                         >
                           {s.name || '<unknown>'}
                         </span>
-                        <div className="flex-1 h-3 bg-[#080910] rounded-sm overflow-hidden border border-[#181c28]">
+                        <div className="flex-1 h-3 bg-[var(--bg-base)] rounded-sm overflow-hidden border border-[#181c28]">
                           <div
                             className="h-full rounded-sm transition-all duration-500"
                             style={{
@@ -1537,7 +1537,7 @@ export default function CapitalAllocatorPanel() {
                         <span className="mono text-[10px] text-cyan-300 font-semibold w-12 text-right shrink-0 tabular-nums">
                           {fmtUsd(s.value, 2)}
                         </span>
-                        <span className="mono text-[9px] text-[#5a637a] w-10 text-right shrink-0 tabular-nums">
+                        <span className="mono text-[9px] text-[var(--text-secondary)] w-10 text-right shrink-0 tabular-nums">
                           {s.pct.toFixed(0)}%
                         </span>
                       </div>
@@ -1549,7 +1549,7 @@ export default function CapitalAllocatorPanel() {
 
             {/* Latest what-if multiplier breakdown */}
             {breakdown && (
-              <div className="bg-[#0e1015] rounded p-3 border border-[#1f2335]">
+              <div className="bg-[var(--bg-page)] rounded p-3 border border-[var(--border)]">
                 <SectionHeader
                   icon={Zap}
                   title="Latest What-If Multipliers"
@@ -1571,11 +1571,11 @@ export default function CapitalAllocatorPanel() {
                     return (
                       <div
                         key={m.name}
-                        className="flex justify-between text-[10px] rounded-sm px-1 py-0.5 hover:bg-[#1f2335]/40 transition-colors"
+                        className="flex justify-between text-[10px] rounded-sm px-1 py-0.5 hover:bg-[var(--border)]/40 transition-colors"
                         data-tone={mTone}
                         title={`${m.name} multiplier — ${m.val.toFixed(4)}${m.suffix === '$' ? '' : m.suffix}`}
                       >
-                        <span className="text-[#7e8aaa]">{m.name}</span>
+                        <span className="text-[var(--text-secondary)]">{m.name}</span>
                         <span
                           className={`mono font-semibold tabular-nums ${TONE[mTone].text}`}
                         >
@@ -1586,20 +1586,20 @@ export default function CapitalAllocatorPanel() {
                       </div>
                     )
                   })}
-                  <div className="border-t border-[#1f2335] mt-1 pt-1 flex justify-between text-[10px]">
-                    <span className="text-[#7e8aaa] font-semibold">product</span>
+                  <div className="border-t border-[var(--border)] mt-1 pt-1 flex justify-between text-[10px]">
+                    <span className="text-[var(--text-secondary)] font-semibold">product</span>
                     <span className="mono font-bold text-cyan-300 tabular-nums">
                       {breakdown.components.product_mult.toFixed(4)}×
                     </span>
                   </div>
                   <div className="flex justify-between text-[11px] mt-1">
-                    <span className="text-[#7e8aaa] font-semibold">→ size</span>
+                    <span className="text-[var(--text-secondary)] font-semibold">→ size</span>
                     <span className="mono font-bold text-amber-400 tabular-nums">
                       {fmtUsd(breakdown.size_usd, 4)}
                     </span>
                   </div>
                   {breakdown.model_brier != null && (
-                    <div className="flex justify-between text-[9.5px] text-[#5a637a] mono mt-1 tabular-nums">
+                    <div className="flex justify-between text-[9.5px] text-[var(--text-secondary)] mono mt-1 tabular-nums">
                       <span>model_brier</span>
                       <span>{breakdown.model_brier.toFixed(4)}</span>
                     </div>
@@ -1610,8 +1610,8 @@ export default function CapitalAllocatorPanel() {
           </div>
 
           {/* ── Recent allocations table ── */}
-          <div className="bg-[#0e1015] rounded border border-[#1f2335] overflow-hidden">
-            <div className="card-header p-2.5 border-b border-[#1f2335] flex justify-between items-center">
+          <div className="bg-[var(--bg-page)] rounded border border-[var(--border)] overflow-hidden">
+            <div className="card-header p-2.5 border-b border-[var(--border)] flex justify-between items-center">
               <SectionHeader
                 icon={History}
                 title={`Recent Allocations (last ${RECENT_ALLOCATIONS_LIMIT})`}
@@ -1695,7 +1695,7 @@ export default function CapitalAllocatorPanel() {
                           </td>
                           <td>
                             {edge == null ? (
-                              <span className="text-[#3e4560]">—</span>
+                              <span className="text-[var(--text-dim)]">—</span>
                             ) : (
                               <span
                                 className={`tabular-nums ${
@@ -1708,7 +1708,7 @@ export default function CapitalAllocatorPanel() {
                           </td>
                           <td>
                             {conf == null ? (
-                              <span className="text-[#3e4560]">—</span>
+                              <span className="text-[var(--text-dim)]">—</span>
                             ) : (
                               <span
                                 className={`tabular-nums ${
@@ -1728,10 +1728,10 @@ export default function CapitalAllocatorPanel() {
                           </td>
                           <td>
                             {pctCap == null ? (
-                              <span className="text-[#3e4560]">—</span>
+                              <span className="text-[var(--text-dim)]">—</span>
                             ) : (
                               <div className="flex items-center gap-1.5">
-                                <div className="w-10 h-1 bg-[#1f2335] rounded-full overflow-hidden">
+                                <div className="w-10 h-1 bg-[var(--border)] rounded-full overflow-hidden">
                                   <div
                                     className={`h-full rounded-full transition-all duration-500 ${TONE[allocTone].bar}`}
                                     style={{
@@ -1747,14 +1747,14 @@ export default function CapitalAllocatorPanel() {
                           </td>
                           <td>
                             {pnl == null || pnl === 0 ? (
-                              <span className="text-[#3e4560]">—</span>
+                              <span className="text-[var(--text-dim)]">—</span>
                             ) : (
                               <span className={`tabular-nums ${pnl >= 0 ? 'pnl-positive' : 'pnl-negative'}`}>
                                 {pnl >= 0 ? '+' : '−'}${Math.abs(pnl).toFixed(4)}
                               </span>
                             )}
                           </td>
-                          <td className="text-[#7e8aaa] tabular-nums">
+                          <td className="text-[var(--text-secondary)] tabular-nums">
                             {fmtAge(p.timestamp)}
                           </td>
                         </tr>
@@ -1770,13 +1770,13 @@ export default function CapitalAllocatorPanel() {
 
       {/* ── Config editor confirmation dialog (shadcn/ui AlertDialog) ── */}
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <AlertDialogContent className="bg-[#13161e] border border-[#2d3450] max-w-lg">
+        <AlertDialogContent className="bg-[var(--bg-surface)] border border-[var(--border-strong)] max-w-lg">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-[#dde1ed] flex items-center gap-2">
+            <AlertDialogTitle className="text-[var(--text-primary)] flex items-center gap-2">
               <Settings className="w-4 h-4 text-cyan-400" aria-hidden="true" />
               Allocator Configuration
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-[#7e8aaa] text-xs">
+            <AlertDialogDescription className="text-[var(--text-secondary)] text-xs">
               Adjust the saturating edge curve parameters. Changes will be POSTed
               to <code className="mono text-cyan-400">/api/capital/config</code>.
               The current backend (<code className="mono">capital_allocator.py</code>)
@@ -1979,7 +1979,7 @@ function ConfigField({
         value={Math.max(min, Math.min(max, value))}
         onChange={(e) => onChange(parseFloat(e.target.value) || 0)}
         aria-label={`${label} slider`}
-        className="w-full h-1.5 mt-1.5 appearance-none rounded-full bg-[#1f2335] accent-cyan-400 cursor-pointer focus:outline-none focus-visible:ring-1 focus-visible:ring-cyan-400/40"
+        className="w-full h-1.5 mt-1.5 appearance-none rounded-full bg-[var(--border)] accent-cyan-400 cursor-pointer focus:outline-none focus-visible:ring-1 focus-visible:ring-cyan-400/40"
       />
       <div className="flex items-center justify-between mt-1">
         <span className="form-hint">{hint}</span>

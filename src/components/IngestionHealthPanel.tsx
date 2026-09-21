@@ -4,8 +4,8 @@
 // status (CLOB / Gamma / WebSocket), throughput / latency / freshness
 // metrics, data-quality scores, dead-letter queue, data-gap timeline, and
 // market coverage. Mirrors the visual language of DatabaseStatusPanel.tsx
-// + ObservabilityPanel.tsx (dark `#13161e` card surface, `#1f2335` borders,
-// `#dde1ed` primary text) and uses shadcn/ui primitives per the W31-5 spec.
+// + ObservabilityPanel.tsx (dark `var(--bg-surface)` card surface, `var(--border)` borders,
+// `var(--text-primary)` primary text) and uses shadcn/ui primitives per the W31-5 spec.
 //
 // Backend contract (mirrors the W31-5 endpoints added to
 // ``mini-services/polymarket-bot/api/server.py``):
@@ -499,7 +499,7 @@ function formatDuration(s: number | null | undefined): string {
 
 // Colour picker for overall quality score (0–100): green ≥ 90, amber ≥ 75, red otherwise.
 function scoreColor(score: number): string {
-  if (!Number.isFinite(score)) return 'text-[#7e8aaa]'
+  if (!Number.isFinite(score)) return 'text-[var(--text-secondary)]'
   if (score >= 90) return 'text-green-400'
   if (score >= 75) return 'text-amber-400'
   return 'text-red-400'
@@ -510,7 +510,7 @@ function scoreColor(score: number): string {
 // that imports the colour string directly. The polished Source Reliability
 // card now resolves tone via reliabilityScoreTone + TONE[].text instead.
 function reliabilityScoreColor(score: number): string {
-  if (!Number.isFinite(score)) return 'text-[#7e8aaa]'
+  if (!Number.isFinite(score)) return 'text-[var(--text-secondary)]'
   if (score > 95) return 'text-emerald-400'
   if (score >= 80) return 'text-amber-400'
   return 'text-red-400'
@@ -568,7 +568,7 @@ const TONE: Record<Tone, ToneConfig> = {
   warn:    { bg: 'bg-amber-500/[0.06]',   border: 'border-amber-500/25',   text: 'text-amber-400',   bar: 'bg-amber-500',   dot: 'bg-amber-400',   label: 'text-amber-400/80',   halo: 'shadow-amber-500/10' },
   poor:    { bg: 'bg-red-500/[0.06]',     border: 'border-red-500/25',     text: 'text-red-400',     bar: 'bg-red-500',     dot: 'bg-red-400',     label: 'text-red-400/80',     halo: 'shadow-red-500/10' },
   info:    { bg: 'bg-cyan-500/[0.06]',    border: 'border-cyan-500/25',   text: 'text-cyan-400',   bar: 'bg-cyan-500',   dot: 'bg-cyan-400',   label: 'text-cyan-400/80',   halo: 'shadow-cyan-500/10' },
-  neutral: { bg: 'bg-[#0e1015]',          border: 'border-[#1f2335]',     text: 'text-[#dde1ed]',   bar: 'bg-[#5a637a]',   dot: 'bg-[#5a637a]',   label: 'text-[#7e8aaa]',      halo: '' },
+  neutral: { bg: 'bg-[var(--bg-page)]',          border: 'border-[var(--border)]',     text: 'text-[var(--text-primary)]',   bar: 'bg-[var(--text-secondary)]',   dot: 'bg-[var(--text-secondary)]',   label: 'text-[var(--text-secondary)]',      halo: '' },
 }
 
 // Tone helpers — map a numeric metric to a Tone for KPI / value tinting.
@@ -722,7 +722,7 @@ function PolishedEmptyState({ icon: Icon, title, description, testId }: Polished
       data-testid={testId ?? 'ingestion-empty-state'}
     >
       <span className="empty-state-icon" aria-hidden="true">
-        <Icon className="w-8 h-8 text-[#3e4560]" strokeWidth={1.5} />
+        <Icon className="w-8 h-8 text-[var(--text-dim)]" strokeWidth={1.5} />
       </span>
       <span className="empty-state-title text-sm font-semibold">{title}</span>
       {description && (
@@ -826,7 +826,7 @@ function KpiCard({
       {sub && <span className="kpi-sub">{sub}</span>}
       {quality != null && quality > 0 && (
         <div
-          className="h-0.5 bg-[#1f2335] rounded-full mt-1 overflow-hidden"
+          className="h-0.5 bg-[var(--border)] rounded-full mt-1 overflow-hidden"
           aria-hidden="true"
         >
           <div
@@ -886,11 +886,11 @@ function SourceCard({ source }: SourceCardProps) {
   const failedColor = TONE[failedTone].text
   return (
     <Card
-      className="bg-[#0e1015] border-[#1f2335] py-0 gap-0 transition-colors hover:border-cyan-500/30 hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.55)]"
+      className="bg-[var(--bg-page)] border-[var(--border)] py-0 gap-0 transition-colors hover:border-cyan-500/30 hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.55)]"
       data-testid={`source-card-${source.id}`}
     >
-      <CardHeader className="px-3 py-2.5 border-b border-[#1f2335]">
-        <CardTitle className="text-xs font-bold text-[#dde1ed] flex items-center justify-between gap-2">
+      <CardHeader className="px-3 py-2.5 border-b border-[var(--border)]">
+        <CardTitle className="text-xs font-bold text-[var(--text-primary)] flex items-center justify-between gap-2">
           <span className="flex items-center gap-2">
             {source.id === 'websocket' ? (
               <Radio size={12} className="text-cyan-400" aria-hidden="true" />
@@ -906,18 +906,18 @@ function SourceCard({ source }: SourceCardProps) {
       </CardHeader>
       <CardContent className="px-3 py-3 grid grid-cols-2 gap-2.5 text-xs">
         <div>
-          <div className="text-[10px] uppercase tracking-wider text-[#7e8aaa] mb-0.5">
+          <div className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] mb-0.5">
             Last Event
           </div>
           <div
-            className="mono text-[#dde1ed] tabular-nums"
+            className="mono text-[var(--text-primary)] tabular-nums"
             data-testid={`source-last-event-${source.id}`}
           >
             {formatRelativeTime(source.last_event_at)}
           </div>
         </div>
         <div>
-          <div className="text-[10px] uppercase tracking-wider text-[#7e8aaa] mb-0.5">
+          <div className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] mb-0.5">
             Events / sec
           </div>
           <div
@@ -929,7 +929,7 @@ function SourceCard({ source }: SourceCardProps) {
           </div>
         </div>
         <div>
-          <div className="text-[10px] uppercase tracking-wider text-[#7e8aaa] mb-0.5">
+          <div className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] mb-0.5">
             Failed Records
           </div>
           <div
@@ -941,7 +941,7 @@ function SourceCard({ source }: SourceCardProps) {
           </div>
         </div>
         <div>
-          <div className="text-[10px] uppercase tracking-wider text-[#7e8aaa] mb-0.5">
+          <div className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] mb-0.5">
             Error Rate
           </div>
           <div
@@ -997,7 +997,7 @@ function LoadingSkeleton() {
       data-testid="ingestion-loading-skeleton"
     >
       {/* Header strip */}
-      <div className="flex items-center justify-between gap-2 pb-2 border-b border-[#1f2335]">
+      <div className="flex items-center justify-between gap-2 pb-2 border-b border-[var(--border)]">
         <div className="flex items-center gap-2">
           <ShimmerBlock className="!w-4 !h-4 rounded" />
           <ShimmerBlock className="!w-40 !h-3" />
@@ -1015,13 +1015,13 @@ function LoadingSkeleton() {
         {Array.from({ length: 6 }).map((_, i) => (
           <div
             key={i}
-            className="kpi-card relative overflow-hidden border border-[#1f2335] bg-[#0e1015]"
+            className="kpi-card relative overflow-hidden border border-[var(--border)] bg-[var(--bg-page)]"
             aria-hidden="true"
           >
             <ShimmerBlock className="!w-20 !h-2.5" />
             <div className="skeleton-line-lg mt-1.5" />
             <ShimmerBlock className="!w-24 !h-2 mt-1" />
-            <div className="h-0.5 bg-[#1f2335] rounded-full mt-2 overflow-hidden">
+            <div className="h-0.5 bg-[var(--border)] rounded-full mt-2 overflow-hidden">
               <div className="h-full w-1/2 bg-[#2a2f45] rounded-full" />
             </div>
           </div>
@@ -1033,7 +1033,7 @@ function LoadingSkeleton() {
         {Array.from({ length: 2 }).map((_, i) => (
           <div
             key={i}
-            className="rounded-md border border-[#1f2335] bg-[#0e1015] p-3 space-y-2"
+            className="rounded-md border border-[var(--border)] bg-[var(--bg-page)] p-3 space-y-2"
             aria-hidden="true"
           >
             <div className="flex items-center justify-between">
@@ -1083,11 +1083,11 @@ function SectionCard({
 }: SectionCardProps) {
   return (
     <Card
-      className="bg-[#0e1015] border-[#1f2335] py-0 gap-0 transition-colors hover:border-[#2a2f45]"
+      className="bg-[var(--bg-page)] border-[var(--border)] py-0 gap-0 transition-colors hover:border-[#2a2f45]"
       data-testid={rest['data-testid']}
     >
-      <CardHeader className="px-3 py-2.5 border-b border-[#1f2335]">
-        <CardTitle className="text-xs font-bold text-[#dde1ed] flex items-center justify-between gap-2">
+      <CardHeader className="px-3 py-2.5 border-b border-[var(--border)]">
+        <CardTitle className="text-xs font-bold text-[var(--text-primary)] flex items-center justify-between gap-2">
           {/* W56-d — Section header pattern: Lucide icon + uppercase
               tracking-wider title. The title text content is preserved
               verbatim (CSS text-transform: uppercase does NOT mutate the
@@ -1489,14 +1489,14 @@ export default function IngestionHealthPanel() {
   if ((loading || healthLoading) && !health) {
     return (
       <div
-        className="flex flex-col h-full bg-[#13161e] border border-[#1f2335] rounded-lg overflow-hidden"
+        className="flex flex-col h-full bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg overflow-hidden"
         role="status"
         aria-live="polite"
         aria-label="Loading ingestion health…"
       >
-        <div className="card-header px-3.5 py-2.5 border-b border-[#1f2335] flex items-center gap-2 bg-[#0e1015]/80">
+        <div className="card-header px-3.5 py-2.5 border-b border-[var(--border)] flex items-center gap-2 bg-[var(--bg-page)]/80">
           <span className="spinner" aria-hidden="true" />
-          <span className="text-xs font-bold text-[#dde1ed] tracking-wide">
+          <span className="text-xs font-bold text-[var(--text-primary)] tracking-wide">
             Loading Ingestion Health…
           </span>
         </div>
@@ -1507,7 +1507,7 @@ export default function IngestionHealthPanel() {
 
   if (combinedError && !health) {
     return (
-      <div className="flex flex-col h-full bg-[#13161e] border border-[#1f2335] rounded-lg overflow-hidden p-4">
+      <div className="flex flex-col h-full bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg overflow-hidden p-4">
         <ErrorState message={combinedError} onRetry={handleManualRefresh} />
       </div>
     )
@@ -1515,19 +1515,19 @@ export default function IngestionHealthPanel() {
 
   return (
     <div
-      className="flex flex-col h-full bg-[#13161e] border border-[#1f2335] rounded-lg overflow-hidden p-4 space-y-3 overflow-y-auto scrollbar-thin"
+      className="flex flex-col h-full bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg overflow-hidden p-4 space-y-3 overflow-y-auto scrollbar-thin"
       data-testid="ingestion-health-panel"
     >
       {/* ── Header ─────────────────────────────────────────────────────── */}
-      <div className="flex flex-wrap justify-between items-center pb-2 border-b border-[#1f2335] gap-2">
+      <div className="flex flex-wrap justify-between items-center pb-2 border-b border-[var(--border)] gap-2">
         <div>
           <div className="flex items-center gap-2">
             <PlugZap size={18} className="text-cyan-400" aria-hidden="true" />
-            <span className="text-sm font-bold text-[#dde1ed]">
+            <span className="text-sm font-bold text-[var(--text-primary)]">
               Data Ingestion Health
             </span>
           </div>
-          <p className="text-xs text-[#7e8aaa]">
+          <p className="text-xs text-[var(--text-secondary)]">
             Source connectivity · throughput · data quality · dead-letter queue · gap detection · market coverage
           </p>
         </div>
@@ -1562,7 +1562,7 @@ export default function IngestionHealthPanel() {
             </Badge>
           )}
           {lastUpdated && (
-            <span className="text-[10px] text-[#7e8aaa] mono tabular-nums">
+            <span className="text-[10px] text-[var(--text-secondary)] mono tabular-nums">
               updated {formatRelativeTime(Math.floor(lastUpdated / 1000))}
             </span>
           )}
@@ -1570,7 +1570,7 @@ export default function IngestionHealthPanel() {
             variant="outline"
             size="sm"
             onClick={handleManualRefresh}
-            className="h-7 px-2 text-xs border-[#1f2335] text-[#7e8aaa] hover:text-white hover:border-[#2d3450] focus-visible:ring-1 focus-visible:ring-cyan-400/40"
+            className="h-7 px-2 text-xs border-[var(--border)] text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-strong)] focus-visible:ring-1 focus-visible:ring-cyan-400/40"
             aria-label="Refresh ingestion health"
             disabled={retrying}
           >
@@ -1594,7 +1594,7 @@ export default function IngestionHealthPanel() {
             variant="outline"
             size="sm"
             onClick={handleManualRefresh}
-            className="h-6 px-2 text-[10px] border-[#1f2335] text-[#7e8aaa] hover:text-white hover:border-[#2d3450]"
+            className="h-6 px-2 text-[10px] border-[var(--border)] text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-strong)]"
             aria-label="Retry ingestion health fetch"
           >
             <RefreshCw size={10} className={retrying ? 'animate-spin' : ''} />
@@ -1769,7 +1769,7 @@ export default function IngestionHealthPanel() {
           iconClass="text-cyan-400"
           title="Throughput Trend"
           badge={
-            <span className="text-[10px] text-[#7e8aaa] font-normal mono tabular-nums">
+            <span className="text-[10px] text-[var(--text-secondary)] font-normal mono tabular-nums">
               {metrics.throughput_trend.length} samples · events/sec
             </span>
           }
@@ -1783,7 +1783,7 @@ export default function IngestionHealthPanel() {
               height={48}
               showLastDot
             />
-            <div className="flex justify-between text-[10px] text-[#7e8aaa] mono tabular-nums">
+            <div className="flex justify-between text-[10px] text-[var(--text-secondary)] mono tabular-nums">
               <span>min: {Math.min(...metrics.throughput_trend).toFixed(2)}</span>
               <span>max: {Math.max(...metrics.throughput_trend).toFixed(2)}</span>
               <span>last: {metrics.throughput_trend[metrics.throughput_trend.length - 1].toFixed(2)}</span>
@@ -1806,7 +1806,7 @@ export default function IngestionHealthPanel() {
         title="Live Throughput"
         badge={
           <span
-            className="text-[10px] text-[#7e8aaa] font-normal mono tabular-nums"
+            className="text-[10px] text-[var(--text-secondary)] font-normal mono tabular-nums"
             data-testid="live-throughput-badge"
           >
             {liveEPSHistory.length}/{LIVE_EPS_MAX_SAMPLES} samples ·{' '}
@@ -1817,7 +1817,7 @@ export default function IngestionHealthPanel() {
       >
         {liveEPSHistory.length === 0 ? (
           <div
-            className="text-xs text-[#7e8aaa] py-3 flex items-center gap-2"
+            className="text-xs text-[var(--text-secondary)] py-3 flex items-center gap-2"
             role="status"
           >
             <span className="spinner" aria-hidden="true" />
@@ -1833,7 +1833,7 @@ export default function IngestionHealthPanel() {
               showLastDot
             />
             <div
-              className="flex justify-between text-[10px] text-[#7e8aaa] mono tabular-nums"
+              className="flex justify-between text-[10px] text-[var(--text-secondary)] mono tabular-nums"
               data-testid="live-throughput-stats"
             >
               <span>
@@ -1862,7 +1862,7 @@ export default function IngestionHealthPanel() {
         title="Live Error Feed"
         badge={
           <span
-            className="text-[10px] text-[#7e8aaa] font-normal mono tabular-nums"
+            className="text-[10px] text-[var(--text-secondary)] font-normal mono tabular-nums"
             data-testid="live-error-feed-count"
             data-tone={errorFeed.length === 0 ? 'good' : 'poor'}
           >
@@ -1889,7 +1889,7 @@ export default function IngestionHealthPanel() {
             aria-live="off"
             aria-relevant="additions"
           >
-            <ul className="divide-y divide-[#1f2335]/50">
+            <ul className="divide-y divide-[var(--border)]/50">
               {errorFeed.map((e, i) => (
                 <li
                   key={`${e.id}-${i}`}
@@ -1897,7 +1897,7 @@ export default function IngestionHealthPanel() {
                   data-testid="live-error-feed-row"
                   data-source={e.source}
                 >
-                  <span className="mono text-[10px] text-[#7e8aaa] shrink-0 w-16 tabular-nums">
+                  <span className="mono text-[10px] text-[var(--text-secondary)] shrink-0 w-16 tabular-nums">
                     {formatRelativeTime(e.timestamp)}
                   </span>
                   <Badge
@@ -1931,7 +1931,7 @@ export default function IngestionHealthPanel() {
         iconClass="text-cyan-400"
         title="Source Health"
         badge={
-          <span className="text-[10px] text-[#7e8aaa] font-normal mono tabular-nums">
+          <span className="text-[10px] text-[var(--text-secondary)] font-normal mono tabular-nums">
             {sources.length} sources
           </span>
         }
@@ -1988,7 +1988,7 @@ export default function IngestionHealthPanel() {
         ) : (
           <div className="grid-kpi text-xs">
             <div>
-              <div className="text-[10px] uppercase tracking-wider text-[#7e8aaa] mb-0.5">
+              <div className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] mb-0.5">
                 Overall Score
               </div>
               <div
@@ -2000,7 +2000,7 @@ export default function IngestionHealthPanel() {
               </div>
             </div>
             <div>
-              <div className="text-[10px] uppercase tracking-wider text-[#7e8aaa] mb-0.5">
+              <div className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] mb-0.5">
                 Validation Pass
               </div>
               <div
@@ -2012,7 +2012,7 @@ export default function IngestionHealthPanel() {
               </div>
             </div>
             <div>
-              <div className="text-[10px] uppercase tracking-wider text-[#7e8aaa] mb-0.5">
+              <div className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] mb-0.5">
                 Duplicate Rate
               </div>
               <div
@@ -2024,7 +2024,7 @@ export default function IngestionHealthPanel() {
               </div>
             </div>
             <div>
-              <div className="text-[10px] uppercase tracking-wider text-[#7e8aaa] mb-0.5">
+              <div className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] mb-0.5">
                 Stale Rate
               </div>
               <div
@@ -2036,7 +2036,7 @@ export default function IngestionHealthPanel() {
               </div>
             </div>
             <div>
-              <div className="text-[10px] uppercase tracking-wider text-[#7e8aaa] mb-0.5">
+              <div className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] mb-0.5">
                 Invalid Records
               </div>
               <div
@@ -2058,7 +2058,7 @@ export default function IngestionHealthPanel() {
         title="Dead-Letter Queue"
         badge={
           <span
-            className="text-[10px] text-[#7e8aaa] font-normal mono tabular-nums"
+            className="text-[10px] text-[var(--text-secondary)] font-normal mono tabular-nums"
             data-tone={(deadLetter?.depth ?? 0) === 0 ? 'good' : 'warn'}
           >
             depth: {formatCount(deadLetter?.depth)}
@@ -2070,7 +2070,7 @@ export default function IngestionHealthPanel() {
           {/* Error breakdown bar */}
           {errorBreakdown.length > 0 && (
             <div data-testid="dlq-breakdown">
-              <div className="text-[10px] uppercase tracking-wider text-[#7e8aaa] mb-1.5">
+              <div className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] mb-1.5">
                 Error Reasons Breakdown
               </div>
               <div className="space-y-1.5">
@@ -2078,7 +2078,7 @@ export default function IngestionHealthPanel() {
                   <div key={`${e.reason}-${i}`} className="flex items-center gap-2 text-xs">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-2 mb-0.5">
-                        <span className="text-[#dde1ed] truncate" title={e.reason}>
+                        <span className="text-[var(--text-primary)] truncate" title={e.reason}>
                           {e.reason}
                         </span>
                         <span
@@ -2088,7 +2088,7 @@ export default function IngestionHealthPanel() {
                           {formatCount(e.count)}
                         </span>
                       </div>
-                      <div className="h-1.5 bg-[#1f2335] rounded-full overflow-hidden">
+                      <div className="h-1.5 bg-[var(--border)] rounded-full overflow-hidden">
                         <div
                           className="h-full bg-amber-500/60 rounded-full transition-all duration-500"
                           style={{
@@ -2104,13 +2104,13 @@ export default function IngestionHealthPanel() {
           )}
 
           {/* Retry button + result banner */}
-          <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-[#1f2335]">
+          <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-[var(--border)]">
             <Button
               variant="outline"
               size="sm"
               onClick={handleDlqRetry}
               disabled={retrying || (deadLetter?.depth ?? 0) === 0}
-              className="h-7 px-3 text-xs border-[#1f2335] text-[#dde1ed] hover:bg-[#1f2335] hover:text-white focus-visible:ring-1 focus-visible:ring-amber-400/40"
+              className="h-7 px-3 text-xs border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--border)] hover:text-white focus-visible:ring-1 focus-visible:ring-amber-400/40"
               aria-label="Retry dead-letter queue"
               data-testid="dlq-retry-button"
             >
@@ -2151,20 +2151,20 @@ export default function IngestionHealthPanel() {
             <div className="max-h-72 overflow-y-auto scrollbar-thin">
               <Table>
                 <TableHeader>
-                  <TableRow className="border-[#1f2335] hover:bg-transparent">
-                    <TableHead className="text-[10px] uppercase tracking-wider text-[#7e8aaa] h-8 px-2">
+                  <TableRow className="border-[var(--border)] hover:bg-transparent">
+                    <TableHead className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] h-8 px-2">
                       Timestamp
                     </TableHead>
-                    <TableHead className="text-[10px] uppercase tracking-wider text-[#7e8aaa] h-8 px-2">
+                    <TableHead className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] h-8 px-2">
                       Source
                     </TableHead>
-                    <TableHead className="text-[10px] uppercase tracking-wider text-[#7e8aaa] h-8 px-2">
+                    <TableHead className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] h-8 px-2">
                       Payload
                     </TableHead>
-                    <TableHead className="text-[10px] uppercase tracking-wider text-[#7e8aaa] h-8 px-2">
+                    <TableHead className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] h-8 px-2">
                       Error
                     </TableHead>
-                    <TableHead className="text-[10px] uppercase tracking-wider text-[#7e8aaa] h-8 px-2 text-right">
+                    <TableHead className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] h-8 px-2 text-right">
                       Retries
                     </TableHead>
                   </TableRow>
@@ -2173,10 +2173,10 @@ export default function IngestionHealthPanel() {
                   {dlqRecent.map((item, i) => (
                     <TableRow
                       key={`${item.id}-${i}`}
-                      className="border-[#1f2335] transition-colors hover:bg-amber-500/[0.04] hover:shadow-[inset_3px_0_0_0_rgba(245,158,11,0.55)]"
+                      className="border-[var(--border)] transition-colors hover:bg-amber-500/[0.04] hover:shadow-[inset_3px_0_0_0_rgba(245,158,11,0.55)]"
                       data-testid={`dlq-row-${i}`}
                     >
-                      <TableCell className="mono text-[10px] text-[#7e8aaa] px-2 py-1.5 tabular-nums">
+                      <TableCell className="mono text-[10px] text-[var(--text-secondary)] px-2 py-1.5 tabular-nums">
                         {formatRelativeTime(item.timestamp)}
                       </TableCell>
                       <TableCell className="px-2 py-1.5">
@@ -2187,7 +2187,7 @@ export default function IngestionHealthPanel() {
                           {item.source}
                         </Badge>
                       </TableCell>
-                      <TableCell className="mono text-xs text-[#dde1ed] px-2 py-1.5 max-w-[200px] truncate tabular-nums" title={item.payload_summary}>
+                      <TableCell className="mono text-xs text-[var(--text-primary)] px-2 py-1.5 max-w-[200px] truncate tabular-nums" title={item.payload_summary}>
                         {item.payload_summary}
                       </TableCell>
                       <TableCell className="text-xs text-red-300 px-2 py-1.5 max-w-[260px] truncate" title={item.error} data-tone="poor">
@@ -2211,7 +2211,7 @@ export default function IngestionHealthPanel() {
         iconClass={gapList.length === 0 ? 'text-emerald-400' : 'text-amber-400'}
         title="Data Gaps"
         badge={
-          <span className="text-[10px] text-[#7e8aaa] font-normal mono tabular-nums">
+          <span className="text-[10px] text-[var(--text-secondary)] font-normal mono tabular-nums">
             {gapList.length} detected
           </span>
         }
@@ -2231,7 +2231,7 @@ export default function IngestionHealthPanel() {
             {gapList.map((gap, i) => (
               <div
                 key={`${gap.id}-${i}`}
-                className="bg-[#13161e] p-2.5 rounded border border-[#1f2335] text-xs transition-colors hover:border-amber-500/30 hover:shadow-[inset_3px_0_0_0_rgba(245,158,11,0.55)]"
+                className="bg-[var(--bg-surface)] p-2.5 rounded border border-[var(--border)] text-xs transition-colors hover:border-amber-500/30 hover:shadow-[inset_3px_0_0_0_rgba(245,158,11,0.55)]"
                 data-testid={`gap-row-${i}`}
               >
                 <div className="flex flex-wrap justify-between items-center gap-2 mb-1.5">
@@ -2239,7 +2239,7 @@ export default function IngestionHealthPanel() {
                     <Badge variant="secondary" className="text-[9px] px-1.5 py-0">
                       {gap.source}
                     </Badge>
-                    <span className="mono text-[#7e8aaa] text-[10px] tabular-nums">
+                    <span className="mono text-[var(--text-secondary)] text-[10px] tabular-nums">
                       {formatRelativeTime(gap.start)} → {formatRelativeTime(gap.end)}
                     </span>
                   </div>
@@ -2256,13 +2256,13 @@ export default function IngestionHealthPanel() {
                     {gap.affected_markets.slice(0, 8).map((m, j) => (
                       <span
                         key={`${m}-${j}`}
-                        className="mono text-[9px] text-[#7e8aaa] bg-[#1f2335] px-1.5 py-0.5 rounded tabular-nums"
+                        className="mono text-[9px] text-[var(--text-secondary)] bg-[var(--border)] px-1.5 py-0.5 rounded tabular-nums"
                       >
                         {m}
                       </span>
                     ))}
                     {gap.affected_markets.length > 8 && (
-                      <span className="mono text-[9px] text-[#7e8aaa] tabular-nums">
+                      <span className="mono text-[9px] text-[var(--text-secondary)] tabular-nums">
                         +{gap.affected_markets.length - 8} more
                       </span>
                     )}
@@ -2310,7 +2310,7 @@ export default function IngestionHealthPanel() {
           <div className="space-y-3">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 text-xs">
               <div>
-                <div className="text-[10px] uppercase tracking-wider text-[#7e8aaa] mb-0.5">
+                <div className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] mb-0.5">
                   Markets Tracked
                 </div>
                 <div
@@ -2322,7 +2322,7 @@ export default function IngestionHealthPanel() {
                 </div>
               </div>
               <div>
-                <div className="text-[10px] uppercase tracking-wider text-[#7e8aaa] mb-0.5">
+                <div className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] mb-0.5">
                   Recent Data
                 </div>
                 <div
@@ -2334,7 +2334,7 @@ export default function IngestionHealthPanel() {
                 </div>
               </div>
               <div>
-                <div className="text-[10px] uppercase tracking-wider text-[#7e8aaa] mb-0.5">
+                <div className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] mb-0.5">
                   Stale Data
                 </div>
                 <div
@@ -2346,7 +2346,7 @@ export default function IngestionHealthPanel() {
                 </div>
               </div>
               <div>
-                <div className="text-[10px] uppercase tracking-wider text-[#7e8aaa] mb-0.5">
+                <div className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] mb-0.5">
                   Coverage %
                 </div>
                 <div
@@ -2359,17 +2359,17 @@ export default function IngestionHealthPanel() {
               </div>
             </div>
             {staleMarkets.length > 0 && (
-              <div className="pt-2 border-t border-[#1f2335]">
-                <div className="text-[10px] uppercase tracking-wider text-[#7e8aaa] mb-1.5 tabular-nums">
+              <div className="pt-2 border-t border-[var(--border)]">
+                <div className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] mb-1.5 tabular-nums">
                   Stale Markets ({Math.min(staleMarkets.length, 10)} of {staleMarkets.length})
                 </div>
                 <div className="max-h-48 overflow-y-auto scrollbar-thin space-y-1">
                   {staleMarkets.slice(0, 10).map((m, i) => (
                     <div
                       key={`${m.token_id}-${i}`}
-                      className="flex items-center justify-between gap-2 text-[11px] bg-[#13161e] px-2 py-1 rounded border border-[#1f2335] transition-colors hover:border-amber-500/30 hover:shadow-[inset_3px_0_0_0_rgba(245,158,11,0.55)]"
+                      className="flex items-center justify-between gap-2 text-[11px] bg-[var(--bg-surface)] px-2 py-1 rounded border border-[var(--border)] transition-colors hover:border-amber-500/30 hover:shadow-[inset_3px_0_0_0_rgba(245,158,11,0.55)]"
                     >
-                      <span className="mono text-[#dde1ed] truncate" title={m.slug}>
+                      <span className="mono text-[var(--text-primary)] truncate" title={m.slug}>
                         {m.slug || m.token_id}
                       </span>
                       <span className="mono text-amber-400 shrink-0 tabular-nums" data-tone="warn">
@@ -2429,7 +2429,7 @@ export default function IngestionHealthPanel() {
           <div className="space-y-3">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 text-xs">
               <div>
-                <div className="text-[10px] uppercase tracking-wider text-[#7e8aaa] mb-0.5">
+                <div className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] mb-0.5">
                   WS Loop
                 </div>
                 <div
@@ -2443,7 +2443,7 @@ export default function IngestionHealthPanel() {
                 </div>
               </div>
               <div>
-                <div className="text-[10px] uppercase tracking-wider text-[#7e8aaa] mb-0.5">
+                <div className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] mb-0.5">
                   REST Loop
                 </div>
                 <div
@@ -2457,7 +2457,7 @@ export default function IngestionHealthPanel() {
                 </div>
               </div>
               <div>
-                <div className="text-[10px] uppercase tracking-wider text-[#7e8aaa] mb-0.5">
+                <div className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] mb-0.5">
                   WS Reconnects
                 </div>
                 <div className="font-bold mono text-cyan-400 tabular-nums" data-tone="info">
@@ -2465,7 +2465,7 @@ export default function IngestionHealthPanel() {
                 </div>
               </div>
               <div>
-                <div className="text-[10px] uppercase tracking-wider text-[#7e8aaa] mb-0.5">
+                <div className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] mb-0.5">
                   Tracked Tokens
                 </div>
                 <div className="font-bold mono text-cyan-400 tabular-nums" data-tone="info">
@@ -2473,13 +2473,13 @@ export default function IngestionHealthPanel() {
                 </div>
               </div>
             </div>
-            <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-[#1f2335]">
+            <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-[var(--border)]">
               <Button
                 size="sm"
                 variant="outline"
                 disabled={pipelineStatus.running === true || actionPending}
                 onClick={() => setConfirmDialog({ kind: 'start' })}
-                className="h-7 px-3 text-xs border-[#1f2335] text-emerald-400 hover:bg-emerald-500/10 hover:text-emerald-300 hover:border-emerald-500/30 disabled:opacity-40 focus-visible:ring-1 focus-visible:ring-emerald-400/40"
+                className="h-7 px-3 text-xs border-[var(--border)] text-emerald-400 hover:bg-emerald-500/10 hover:text-emerald-300 hover:border-emerald-500/30 disabled:opacity-40 focus-visible:ring-1 focus-visible:ring-emerald-400/40"
                 data-testid="btn-start-pipeline"
               >
                 <Play size={12} aria-hidden="true" />
@@ -2490,13 +2490,13 @@ export default function IngestionHealthPanel() {
                 variant="outline"
                 disabled={!pipelineStatus.running || actionPending}
                 onClick={() => setConfirmDialog({ kind: 'stop' })}
-                className="h-7 px-3 text-xs border-[#1f2335] text-amber-400 hover:bg-amber-500/10 hover:text-amber-300 hover:border-amber-500/30 disabled:opacity-40 focus-visible:ring-1 focus-visible:ring-amber-400/40"
+                className="h-7 px-3 text-xs border-[var(--border)] text-amber-400 hover:bg-amber-500/10 hover:text-amber-300 hover:border-amber-500/30 disabled:opacity-40 focus-visible:ring-1 focus-visible:ring-amber-400/40"
                 data-testid="btn-stop-pipeline"
               >
                 <Square size={12} aria-hidden="true" />
                 Stop
               </Button>
-              <span className="text-[10px] text-[#7e8aaa] mono ml-auto tabular-nums">
+              <span className="text-[10px] text-[var(--text-secondary)] mono ml-auto tabular-nums">
                 started {formatRelativeTime(pipelineStatus.last_started_at)} ·{' '}
                 stopped {formatRelativeTime(pipelineStatus.last_stopped_at)}
               </span>
@@ -2530,7 +2530,7 @@ export default function IngestionHealthPanel() {
               avg {reliability.avg_score.toFixed(1)}
             </span>
           ) : (
-            <span className="text-[10px] text-[#7e8aaa] font-normal mono tabular-nums">
+            <span className="text-[10px] text-[var(--text-secondary)] font-normal mono tabular-nums">
               {reliability?.count ?? 0} source{(reliability?.count ?? 0) === 1 ? '' : 's'}
             </span>
           )
@@ -2556,13 +2556,13 @@ export default function IngestionHealthPanel() {
                 return (
                   <div
                     key={s.source}
-                    className="bg-[#13161e] p-2.5 rounded border border-[#1f2335] text-xs transition-colors hover:border-cyan-500/30 hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.55)]"
+                    className="bg-[var(--bg-surface)] p-2.5 rounded border border-[var(--border)] text-xs transition-colors hover:border-cyan-500/30 hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.55)]"
                     data-testid={`reliability-row-${s.source}`}
                     data-tone={sTone}
                   >
                     <div className="flex items-center justify-between gap-2 mb-1.5">
                       <span
-                        className="mono text-[#dde1ed] truncate"
+                        className="mono text-[var(--text-primary)] truncate"
                         title={s.source}
                       >
                         {s.source}
@@ -2575,7 +2575,7 @@ export default function IngestionHealthPanel() {
                       </Badge>
                     </div>
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-[10px] uppercase tracking-wider text-[#7e8aaa]">
+                      <span className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)]">
                         Score
                       </span>
                       <span
@@ -2584,7 +2584,7 @@ export default function IngestionHealthPanel() {
                         {s.score.toFixed(1)}
                       </span>
                     </div>
-                    <div className="h-0.5 bg-[#1f2335] rounded-full mt-1.5 overflow-hidden">
+                    <div className="h-0.5 bg-[var(--border)] rounded-full mt-1.5 overflow-hidden">
                       <div
                         className={`h-full rounded-full transition-all duration-500 ${TONE[sTone].bar}`}
                         style={{ width: `${Math.max(0, Math.min(100, s.score))}%` }}
@@ -2609,7 +2609,7 @@ export default function IngestionHealthPanel() {
         title="Backfill Progress"
         badge={
           backfillStatus ? (
-            <span className="text-[10px] text-[#7e8aaa] font-normal mono tabular-nums">
+            <span className="text-[10px] text-[var(--text-secondary)] font-normal mono tabular-nums">
               {backfillStatus.runs.length} run{backfillStatus.runs.length === 1 ? '' : 's'}
             </span>
           ) : undefined
@@ -2633,14 +2633,14 @@ export default function IngestionHealthPanel() {
         ) : (
           <div className="space-y-3">
             <div className="space-y-1">
-              <div className="text-[10px] uppercase tracking-wider text-[#7e8aaa] mb-1.5 tabular-nums">
+              <div className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] mb-1.5 tabular-nums">
                 Recent Runs ({Math.min(backfillStatus.runs.length, 3)} of{' '}
                 {backfillStatus.runs.length})
               </div>
               {backfillStatus.runs.slice(0, 3).map((run) => (
                 <div
                   key={run.id}
-                  className="flex items-center justify-between gap-2 text-[10px] bg-[#13161e] px-2 py-1.5 rounded border border-[#1f2335] transition-colors hover:border-cyan-500/30 hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.55)]"
+                  className="flex items-center justify-between gap-2 text-[10px] bg-[var(--bg-surface)] px-2 py-1.5 rounded border border-[var(--border)] transition-colors hover:border-cyan-500/30 hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.55)]"
                   data-testid={`backfill-row-${run.id}`}
                   data-tone={run.total_errors === 0 ? 'good' : 'poor'}
                 >
@@ -2651,7 +2651,7 @@ export default function IngestionHealthPanel() {
                     >
                       {run.type}
                     </Badge>
-                    <span className="mono text-[#7e8aaa] shrink-0 tabular-nums">
+                    <span className="mono text-[var(--text-secondary)] shrink-0 tabular-nums">
                       {formatRelativeTime(run.started_at)}
                     </span>
                   </div>
@@ -2666,13 +2666,13 @@ export default function IngestionHealthPanel() {
                 </div>
               ))}
             </div>
-            <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-[#1f2335]">
+            <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-[var(--border)]">
               <Button
                 size="sm"
                 variant="outline"
                 disabled={actionPending}
                 onClick={() => setConfirmDialog({ kind: 'launch-backfill' })}
-                className="h-7 px-3 text-xs border-[#1f2335] text-cyan-400 hover:bg-cyan-500/10 hover:text-cyan-300 hover:border-cyan-500/30 disabled:opacity-40 focus-visible:ring-1 focus-visible:ring-cyan-400/40"
+                className="h-7 px-3 text-xs border-[var(--border)] text-cyan-400 hover:bg-cyan-500/10 hover:text-cyan-300 hover:border-cyan-500/30 disabled:opacity-40 focus-visible:ring-1 focus-visible:ring-cyan-400/40"
                 data-testid="btn-launch-backfill"
               >
                 <Zap size={12} aria-hidden="true" />
@@ -2706,7 +2706,7 @@ export default function IngestionHealthPanel() {
                 actionPending || retrying || (deadLetter?.depth ?? 0) === 0
               }
               onClick={() => setConfirmDialog({ kind: 'retry-failed' })}
-              className="h-7 px-3 text-xs border-[#1f2335] text-amber-400 hover:bg-amber-500/10 hover:text-amber-300 hover:border-amber-500/30 disabled:opacity-40 focus-visible:ring-1 focus-visible:ring-amber-400/40"
+              className="h-7 px-3 text-xs border-[var(--border)] text-amber-400 hover:bg-amber-500/10 hover:text-amber-300 hover:border-amber-500/30 disabled:opacity-40 focus-visible:ring-1 focus-visible:ring-amber-400/40"
               data-testid="btn-retry-failed"
             >
               <RefreshCw size={12} aria-hidden="true" />
@@ -2717,7 +2717,7 @@ export default function IngestionHealthPanel() {
               variant="outline"
               disabled={actionPending || (deadLetter?.depth ?? 0) === 0}
               onClick={() => setConfirmDialog({ kind: 'clear-dlq' })}
-              className="h-7 px-3 text-xs border-[#1f2335] text-red-400 hover:bg-red-500/10 hover:text-red-300 hover:border-red-500/30 disabled:opacity-40 focus-visible:ring-1 focus-visible:ring-red-400/40"
+              className="h-7 px-3 text-xs border-[var(--border)] text-red-400 hover:bg-red-500/10 hover:text-red-300 hover:border-red-500/30 disabled:opacity-40 focus-visible:ring-1 focus-visible:ring-red-400/40"
               data-testid="btn-clear-dlq"
             >
               <Trash2 size={12} aria-hidden="true" />
@@ -2728,7 +2728,7 @@ export default function IngestionHealthPanel() {
               variant="outline"
               disabled={actionPending}
               onClick={() => setConfirmDialog({ kind: 'replay-events' })}
-              className="h-7 px-3 text-xs border-[#1f2335] text-cyan-400 hover:bg-cyan-500/10 hover:text-cyan-300 hover:border-cyan-500/30 disabled:opacity-40 focus-visible:ring-1 focus-visible:ring-cyan-400/40"
+              className="h-7 px-3 text-xs border-[var(--border)] text-cyan-400 hover:bg-cyan-500/10 hover:text-cyan-300 hover:border-cyan-500/30 disabled:opacity-40 focus-visible:ring-1 focus-visible:ring-cyan-400/40"
               data-testid="btn-replay-events"
             >
               <RotateCw size={12} aria-hidden="true" />
@@ -2736,7 +2736,7 @@ export default function IngestionHealthPanel() {
             </Button>
             {actionPending && (
               <span
-                className="text-[10px] text-[#7e8aaa] mono flex items-center gap-1.5 ml-auto"
+                className="text-[10px] text-[var(--text-secondary)] mono flex items-center gap-1.5 ml-auto"
                 data-testid="action-pending-indicator"
               >
                 <RefreshCw
@@ -2779,7 +2779,7 @@ export default function IngestionHealthPanel() {
               <button
                 type="button"
                 onClick={() => setLastActionResult(null)}
-                className="text-[#7e8aaa] hover:text-white transition-colors shrink-0 ml-2 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#5a637a] rounded"
+                className="text-[var(--text-secondary)] hover:text-white transition-colors shrink-0 ml-2 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--text-secondary)] rounded"
                 aria-label="Dismiss action result"
               >
                 ✕
@@ -2790,7 +2790,7 @@ export default function IngestionHealthPanel() {
       </SectionCard>
 
       {/* ── Footer ─────────────────────────────────────────────────────── */}
-      <div className="text-[10px] text-[#7e8aaa] mono text-center pt-1 tabular-nums">
+      <div className="text-[10px] text-[var(--text-secondary)] mono text-center pt-1 tabular-nums">
         Generated at {formatRelativeTime(Math.floor((lastUpdated ?? 0) / 1000))} · endpoints:{' '}
         <span className="text-cyan-400">{HEALTH_ENDPOINT}</span>,{' '}
         <span className="text-cyan-400">{QUALITY_ENDPOINT}</span>,{' '}

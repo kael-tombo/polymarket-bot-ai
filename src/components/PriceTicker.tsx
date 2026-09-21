@@ -274,7 +274,7 @@ function PriceTickerImpl({
 
   return (
     <div
-      className={`relative flex flex-col items-end gap-0.5 rounded-md px-1 py-0.5 transition-colors duration-150 hover:bg-[#13161e]/40 hover:border-[#2a2f47] ${className ?? ''}`}
+      className={`relative flex flex-col items-end gap-0.5 rounded-md px-1 py-0.5 transition-colors duration-150 hover:bg-[var(--bg-surface)]/40 hover:border-[var(--border-strong)] ${className ?? ''}`}
       role="group"
       aria-label={`${label}: ${formattedPrice}${
         change.dir !== 'flat'
@@ -288,7 +288,7 @@ function PriceTickerImpl({
             own tone system (green=tight, amber=wide, gray=normal). */}
         {!compact && (
           <span
-            className="text-[9px] px-1 py-0.5 rounded border border-[#1f2335] bg-[#0e1015] flex items-center gap-1 transition-colors duration-150 hover:border-[#2a2f47]"
+            className="text-[9px] px-1 py-0.5 rounded border border-[var(--border)] bg-[var(--bg-page)] flex items-center gap-1 transition-colors duration-150 hover:border-[var(--border-strong)]"
             title={
               bestBid != null && bestAsk != null
                 ? `Bid ${formatTickerPrice(bestBid)} · Ask ${formatTickerPrice(bestAsk)}`
@@ -350,7 +350,7 @@ function PriceTickerImpl({
             </span>
             {/* Visual bar — width proportional to spread, ceiling 10¢. */}
             <span
-              className="block h-[3px] w-full rounded-full bg-[#1f2335] overflow-hidden"
+              className="block h-[3px] w-full rounded-full bg-[var(--border)] overflow-hidden"
               aria-hidden="true"
             >
               <span

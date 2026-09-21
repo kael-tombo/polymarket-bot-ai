@@ -36,12 +36,17 @@
 //     cleanly.
 //
 // Default values:
-//   * Every default is chosen so a fresh install renders the same
-//     dashboard a trader has been using since W8 (dark theme, 2s
-//     REST poll, EN locale, US number formatting, audio muted).
-//     Defaults are NOT aspirational: enabling sound on first launch
-//     would surprise a trader in a quiet office, and flipping to
-//     light theme would clash with the dark-first design system.
+//   * Every default is chosen so a fresh install renders a coherent
+//     first-run dashboard. W63-b flipped `theme` from `'dark'` to
+//     `'light'` to match the new ThemeProvider `defaultTheme="light"`
+//     — the W49-1 / W50-2a / W61-d design passes brought the `.light`
+//     overrides to production parity with the dark Bloomberg-terminal
+//     palette (semantic colors, shadows, glassmorphism, status dots,
+//     scrollbars, chart tooltips, inset rim highlights), so light is
+//     now the safer first-run canvas. Other defaults are unchanged:
+//     2s REST poll cadence (bumped to 5s by W41-2), EN locale, US
+//     number formatting, audio muted (a surprise beep in a quiet
+//     office is the one default we keep conservative).
 
 'use client'
 
@@ -117,7 +122,12 @@ export interface UserPreferences {
 }
 
 const DEFAULTS: UserPreferences = {
-  theme: 'dark',
+  // W63-b — flipped from 'dark' to 'light'. See the docstring above
+  // (and ThemeProvider.tsx's `defaultTheme="light"`) for the full
+  // rationale. The trader can still flip back to dark via the
+  // ThemeToggle or the SettingsModal; this default only governs
+  // the first-run / no-persisted-preference state.
+  theme: 'light',
   locale: 'en',
   defaultPanel: 'command',
   // W41-2 — bumped from 2000 → 5000ms. The hybrid REST+WS data layer
