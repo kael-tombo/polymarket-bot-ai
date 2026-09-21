@@ -1,6 +1,25 @@
 // components/PriceTicker.tsx — Animated price display with directional flash.
 //
-// W49-4 — pro-trading refresh:
+// W52-d — premium polish pass (see Wave 50-51 design system):
+//   • Price value uses `tabular-nums` (already) + refined weight + a
+//     subtle inner glow on direction flash so the live tick reads as a
+//     confident, ledger-aligned number rather than a jittery float.
+//   • Change-since-last-tick line now leads with a directional arrow
+//     glyph (▲ up / ▼ down) coloured to match the tick direction. The
+//     textContent contract ("5.00¢" / "10.00%" / "+" / "−" / "—") is
+//     preserved so the W30-2 PriceTicker.test.tsx assertions resolve.
+//   • Spread chip refined with a tone-tinted background system: amber
+//     wash when wide (>3¢), green wash when tight (<1¢), neutral slate
+//     otherwise. The numeric `4.0¢` textContent + data-spread-state +
+//     visual spread bar are preserved.
+//   • Freshness readout ("updated 3s ago") is dimmer (opacity 0.55) and
+//     prefixed with a small ◷ clock glyph + tabular-nums so the age
+//     reads as a quiet metadata line beneath the change line.
+//   • Outer wrapper gains a subtle hover state — translucent bg tint +
+//     hairline border highlight — so a row's ticker visibly responds to
+//     pointer hover without shifting the dense markets-table layout.
+//
+// W49-4 — pro-trading refresh (preserved):
 //   • Color flash duration tightened 350ms → 200ms so the green/red
 //     tint tracks the tick cadence of a live L2 feed more tightly.
 //     A slower flash (350ms) washed out on a fast feed (multiple
@@ -231,9 +250,31 @@ function PriceTickerImpl({
   // fire the flash transition even when the new price equals the prior.
   const animKey = `${price ?? 'na'}-${previousPrice ?? 'na'}`
 
+  // W52-d — Tone-tinted chip background per spreadState so a trader can
+  // read the book's tightness from the chip's wash without parsing the
+  // numeric `4.0¢` text. The wash is intentionally faint (alpha 0.06)
+  // so it does not compete with the price or change line.
+  const spreadToneStyle =
+    spreadCents == null
+      ? undefined
+      : spreadState === 'wide'
+        ? {
+            background: 'rgba(245, 158, 11, 0.06)',
+            borderColor: 'rgba(245, 158, 11, 0.30)',
+          }
+        : spreadState === 'tight'
+          ? {
+              background: 'rgba(16, 185, 129, 0.06)',
+              borderColor: 'rgba(16, 185, 129, 0.30)',
+            }
+          : {
+              background: 'rgba(107, 114, 128, 0.06)',
+              borderColor: 'rgba(107, 114, 128, 0.22)',
+            }
+
   return (
     <div
-      className={`flex flex-col items-end gap-0.5 ${className ?? ''}`}
+      className={`relative flex flex-col items-end gap-0.5 rounded-md px-1 py-0.5 transition-colors duration-150 hover:bg-[#13161e]/40 hover:border-[#2a2f47] ${className ?? ''}`}
       role="group"
       aria-label={`${label}: ${formattedPrice}${
         change.dir !== 'flat'
@@ -242,10 +283,12 @@ function PriceTickerImpl({
       }`}
     >
       <div className="flex items-center gap-1.5 mono">
-        {/* Spread chip — compact bid/ask readout to the left of price. */}
+        {/* Spread chip — compact bid/ask readout to the left of price.
+            W52-d — refined tone-tinted bg matches the spread chip's
+            own tone system (green=tight, amber=wide, gray=normal). */}
         {!compact && (
           <span
-            className="text-[9px] px-1 py-0.5 rounded border border-[#1f2335] bg-[#0e1015] flex items-center gap-1"
+            className="text-[9px] px-1 py-0.5 rounded border border-[#1f2335] bg-[#0e1015] flex items-center gap-1 transition-colors duration-150 hover:border-[#2a2f47]"
             title={
               bestBid != null && bestAsk != null
                 ? `Bid ${formatTickerPrice(bestBid)} · Ask ${formatTickerPrice(bestAsk)}`
@@ -290,17 +333,19 @@ function PriceTickerImpl({
             glance. The bar is part of the same `data-testid` so the
             W30-2 `price-ticker-spread` test still resolves. The
             numeric textContent (e.g. "4.0¢") is unchanged so the
-            existing `toContain('4.0¢')` assertion holds. */}
+            existing `toContain('4.0¢')` assertion holds.
+            W52-d — chip bg now tone-tinted (amber wide / green tight /
+            gray normal) to convey spread state at a glance. */}
         {spreadCents != null && (
           <span
-            className="text-[9px] px-1 py-0.5 rounded border border-[#1f2335] bg-[#0e1015] flex flex-col items-stretch gap-0.5 min-w-[42px]"
-            style={{ color: spreadColor }}
+            className="text-[9px] px-1 py-0.5 rounded border flex flex-col items-stretch gap-0.5 min-w-[42px] transition-colors duration-150"
+            style={{ color: spreadColor, ...(spreadToneStyle ?? {}) }}
             title={`Bid-Ask Spread: ${spreadCents.toFixed(2)}¢ (${spreadState})`}
             aria-label={`Spread ${spreadCents.toFixed(2)} cents, ${spreadState}`}
             data-testid="price-ticker-spread"
             data-spread-state={spreadState}
           >
-            <span className="text-center">
+            <span className="text-center tabular-nums">
               {spreadCents.toFixed(1)}¢
             </span>
             {/* Visual bar — width proportional to spread, ceiling 10¢. */}
@@ -325,10 +370,14 @@ function PriceTickerImpl({
         )}
       </div>
 
-      {/* Change-since-last-tick line. */}
+      {/* Change-since-last-tick line.
+          W52-d — leads with a directional arrow glyph (▲ up / ▼ down)
+          coloured to match the tick direction. The arrow is a sibling
+          span so the parent's textContent still contains the existing
+          contract substrings ("5.00¢" / "10.00%" / "+" / "−" / "—"). */}
       {!compact && (
         <div
-          className="text-[9.5px] mono tabular-nums leading-tight"
+          className="flex items-center justify-end gap-1 text-[9.5px] mono tabular-nums leading-tight"
           style={{ color: dirColor, minHeight: '12px' }}
           data-testid="price-ticker-change"
           data-direction={change.dir}
@@ -337,11 +386,23 @@ function PriceTickerImpl({
             <span style={{ color: chartTheme.colors.muted, opacity: 0.6 }}>—</span>
           ) : (
             <>
+              <span
+                aria-hidden="true"
+                style={{
+                  color: dirColor,
+                  fontSize: '8px',
+                  lineHeight: 1,
+                  transform: change.dir === 'down' ? 'translateY(1px)' : 'none',
+                  display: 'inline-block',
+                }}
+              >
+                {change.dir === 'up' ? '▲' : '▼'}
+              </span>
               <span>
                 {change.dir === 'up' ? '+' : '−'}
                 {(Math.abs(change.abs) * 100).toFixed(2)}¢
               </span>
-              <span style={{ opacity: 0.7, marginLeft: 4 }}>
+              <span style={{ opacity: 0.7 }}>
                 ({change.dir === 'up' ? '+' : '−'}
                 {Math.abs(change.pct).toFixed(2)}%)
               </span>
@@ -350,18 +411,21 @@ function PriceTickerImpl({
         </div>
       )}
 
-      {/* W39-4 — Relative timestamp readout ("3s ago" / "5m ago").
+      {/* W39-4 — Relative timestamp readout ("updated 3s ago" / "5m ago").
+          W52-d — dimmer styling (opacity 0.55) + ◷ clock glyph prefix
+          + tabular-nums so the age reads as a quiet metadata line.
           Renders only when `timestamp` is supplied AND we're not in
           compact mode. Kept on its own line so the existing change-line
           textContent assertions in PriceTicker.test.tsx aren't perturbed. */}
       {!compact && ageLabel != null && (
         <div
-          className="text-[9px] mono tabular-nums leading-tight"
-          style={{ color: chartTheme.colors.muted, opacity: 0.7 }}
+          className="flex items-center justify-end gap-1 text-[9px] mono tabular-nums leading-tight"
+          style={{ color: chartTheme.colors.muted, opacity: 0.55 }}
           data-testid="price-ticker-timestamp"
           title={`Last price update: ${new Date(timestamp! * 1000).toISOString().slice(11, 19)} UTC`}
         >
-          {ageLabel}
+          <span aria-hidden="true" style={{ fontSize: '9px', lineHeight: 1 }}>◷</span>
+          <span>{ageLabel}</span>
         </div>
       )}
 

@@ -34372,3 +34372,665 @@ Stage Summary:
 - TypeScript: 0 errors
 - Tests: 119/119 passed (Markets 7 + Positions 36 + Orders 20 + Trades 21 + ML 8 + AIML 27)
 - Git: pushed to origin/main (e644ed7)
+
+---
+Task ID: W52-c
+Agent: full-stack-developer
+Task: Polish DepthChartModal + MarketChartModal — premium glassmorphism + shimmer skeletons
+
+Work Log:
+- Read worklog.md tail (~600 lines) to map the W50-51 design system:
+  `.surface-tier-overlay` (rgba bg + 12px backdrop-blur + saturate +
+  `--shadow-popover-premium`), `--shadow-modal-premium` token (24px y-offset,
+  56px blur, 0.6 alpha — heaviest elevation tier), shimmer-skeleton loading
+  pattern from W51-2a..2d (`MarketsTableSkeleton`, `SkeletonRows`,
+  `DepthChartSkeleton`), and the inline sub-component pattern
+  (`PulseDot`, `KpiTile`, `PsiGauge`, `SectionHeader`).
+- Read both target files end-to-end (DepthChartModal.tsx 517 lines,
+  MarketChartModal.tsx 355 lines) + both test files (9 + 11 tests) to
+  enumerate every test contract: `#depth-modal-title` textContent regex,
+  `getByText('No active bids'/'No active asks')`, `getByText('Rendering
+  price timeline…')` (exact-text match while loading),
+  `getByRole('img', { name: /Price candlestick chart for/i })`,
+  `getByRole('button', { name: /close market (depth|chart) modal/i })`,
+  `getByRole('button', { name: /Place BUY Order/i })`, all the feedback
+  banner text regexes.
+- Confirmed sibling polished modal examples (ShortcutsModal.tsx) use the
+  same `.modal-backdrop` → `.modal` → `.modal-header` → `.modal-close`
+  structure with `<span aria-hidden="true">✕</span>` for the close glyph.
+
+DepthChartModal.tsx polish pass (517 → 612 lines, +95):
+- Glassmorphism modal surface: added `surface-tier-overlay` class to the
+  `.modal.modal-wide` element. The class supplies `rgba(31,35,48,0.78)`
+  bg + `backdrop-filter: blur(12px) saturate(140%)` + premium border.
+- Premium modal shadow: inline `style={{ boxShadow:
+  'var(--shadow-modal-premium)' }}` overrides the `.surface-tier-overlay`
+  default `--shadow-popover-premium` with the heavier
+  `--shadow-modal-premium` token (24px y-offset, 56px blur, 0.6 alpha).
+- Strengthened backdrop blur: `.modal-backdrop backdrop-blur-md` layers
+  Tailwind's 12px blur on top of the existing 4px CSS blur for a more
+  pronounced frosted-glass pane.
+- Refined modal header: title gained `tracking-tight`, mid/spread caption
+  gained `tabular-nums`. Close button kept `.modal-close` class but
+  added Tailwind utilities for red-tinted hover: `transition-colors
+  duration-150 hover:text-red-300 hover:bg-red-500/10 hover:ring-1
+  hover:ring-red-500/30 rounded-md w-7 h-7 inline-flex items-center
+  justify-center`. Tailwind utilities win the cascade over the CSS
+  `:hover` rule because they're injected later. Close glyph wrapped in
+  `<span aria-hidden="true">✕</span>` (matches ShortcutsModal pattern).
+- Polished chart wrapper: `rounded` → `rounded-lg` (8px corners) +
+  `shadow-[0_2px_10px_rgba(0,0,0,0.20)]` drop shadow + `tracking-wider`
+  on section caption + `tabular-nums` on the `bids X · asks Y` counter.
+- NEW `DepthChartSkeleton({ height })` inline component (66 lines):
+  32 pre-baked bar heights evoking a depth-curve silhouette (bell-ish
+  distribution: low → peak at mid → low again), each bar a `<div>` with
+  `flex-1 animate-pulse rounded-[2px]` and a custom linear-gradient fill
+  (green for bid half, red for ask half). Amber vertical mid-price divider
+  at `left-1/2`. `role="status"` + `aria-live="polite"` for SR announce.
+- NEW `depthFirstFetchDone` state: resets `false` on `tokenId` change, set
+  `true` after the first `fetchDepth()` attempt (outside try/catch so it
+  runs regardless of success/failure). Gates the skeleton:
+  `data === null && !depthFirstFetchDone ? <Skeleton /> : <Chart/>`.
+  Preserves the W38-8 test contract — after the first fetch attempt
+  fails, the chart renders (or its own "No order book depth available"
+  empty state), and the bid/ask ladder's "No active bids/asks" text
+  remains visible (the skeleton gates only the chart area, not the
+  ladder).
+- Bid/Ask ladder: `rounded` → `rounded-lg` + `tracking-wider` captions +
+  `tabular-nums` on per-row mono spans for stable decimal alignment
+  across polls (e.g. `0.550` → `0.555` doesn't shift the size column).
+- ML Edge panel: `rounded-lg` + `tracking-wider` caption + `tabular-nums`
+  on all numeric values (model P(YES), confidence, market mid, edge,
+  edge_bps, timestamp).
+- Quick trade form: `rounded-lg` + `tracking-wider` caption + `tabular-nums`
+  on payoff calculation block. All existing badge/btn classes preserved.
+
+MarketChartModal.tsx polish pass (355 → 488 lines, +133):
+- Glassmorphism modal surface: same `surface-tier-overlay` +
+  `--shadow-modal-premium` inline style + `backdrop-blur-md` backdrop.
+- Refined modal header: title `tracking-tight`, timeframe selector
+  wrapper gained `rounded-md` + inset ring, active timeframe button
+  gained `shadow-[0_1px_2px_rgba(0,0,0,0.3)]` pressed affordance, EMA
+  toggle gained `shadow-[0_0_8px_rgba(34,211,238,0.18)]` cyan glow when
+  active. Close button refined identically to DepthChartModal.
+- Polished chart wrapper: `rounded-lg` + `shadow-[0_2px_10px_rgba(0,0,0,0.20)]`
+  + `overflow-hidden`. NEW top-edge highlight `<div className="absolute
+  inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/5 to-
+  transparent pointer-events-none" />` mirrors the `.card::before`
+  pattern from globals.css line 2702 for a premium top-edge gleam.
+- NEW `CandlestickSkeleton()` inline component (54 lines): 32 pre-baked
+  candle entries `{ h: height%, g: isGreen }` alternating green/red,
+  each candle `<div className="flex-1 animate-pulse rounded-[2px]">` with
+  custom linear-gradient fill (green: rgba(16,185,129,0.32) → 0.06; red:
+  rgba(239,68,68,0.32) → 0.06). 3 horizontal gridlines
+  (`border-t border-dashed border-[#1f2335]/60`) at 25/50/75% mirror the
+  real chart's grid. Centered caption overlay with `bg-[#0e1015]/55
+  backdrop-blur-[1px]` dimming + `<span className="spinner mb-2" />` +
+  exact-text `Rendering price timeline…` — preserves the W38-8 test
+  contract `getByText('Rendering price timeline…')` at first paint.
+- Polished candlestick SVG (viewBox preserved at `0 0 440 180` so all
+  existing chart math + tests unaffected):
+  • Gridlines: stroke `#1c1f2e` → `#1f2335` (matches modal border
+    color) + `strokeOpacity={0.6}` + dasharray `2 3` (was `2 2`).
+  • NEW right-edge price axis tick labels: 5 `<text>` elements at
+    y=10/50/90/130/170 (pct 0/0.25/0.5/0.75/1.0) rendering
+    `(price * 100).toFixed(0)¢`. Uses `fontFamily="ui-monospace,
+    SFMono-Regular, Menlo, monospace"` + `fontSize="8.5"` +
+    `fill="#7e8aaa"`. Gives the chart a real price axis.
+  • NEW axis frame: left vertical line at x=10 + bottom horizontal line
+    at y=170 (`stroke="#1f2335" strokeWidth="0.5" strokeOpacity={0.7}`).
+  • Candle wicks: `strokeOpacity="0.9"` (was implicit 1.0) for a softer
+    read; bodies: `fillOpacity={0.88}` + `strokeWidth="0.4"` stroke
+    outline for crisp 0.4px edges against the dim chart background.
+  • EMA(21) overlay: refactored to a layered glow — wide blurred
+    underlay (`strokeWidth="3.5" strokeOpacity="0.18"`) + crisp top
+    stroke (`strokeWidth="1.6"`). Both share the same `d` attribute
+    via a hoisted `emaPath` constant (computed once outside the JSX
+    via a memoised IIFE — was inline IIFE inside JSX, ran twice).
+    `showEma && bars.length > 21` gate preserved.
+  • `aria-label={`Price candlestick chart for ${title}`}` preserved.
+- Footer: payoff calculation block gained `tabular-nums` on mono values.
+  All button labels + aria-labels preserved verbatim.
+
+Test-contract preservation audit:
+- All 9 DepthChartModal tests pass: tokenId-null rendering, dialog role,
+  title textContent regex, Manual Paper Trade Execution label, Limit
+  Price + Order Size labels, No active bids/asks (skeleton gates only
+  the chart, NOT the ladder), close button aria-label, Escape key,
+  Place BUY Order success/error banners.
+- All 11 MarketChartModal tests pass: dialog role, SYNTHETIC DATA banner,
+  Rendering price timeline… (skeleton caption preserves exact text at
+  first paint), SVG candlestick chart role=img, 1m/5m/1h timeframe
+  buttons, network-error banner, close button aria-label, Escape key,
+  Buy/Sell YES outcome success/error banners, network-error banner.
+
+Verification (final):
+- `bun run lint`: clean (exit 0, no output).
+- `bunx tsc --noEmit --skipLibCheck`: 0 errors (exit 0).
+- `bunx vitest run src/components/DepthChartModal.test.tsx
+  src/components/MarketChartModal.test.tsx`: 20/20 tests pass in 2.96s
+  (9 DepthChartModal + 11 MarketChartModal). No test-contract regressions.
+
+Stage Summary:
+- DepthChartModal.tsx: 517 → 612 lines (+95). Premium polish via
+  glassmorphism surface + premium modal shadow + strengthened backdrop
+  blur + refined close button + NEW DepthChartSkeleton (shimmer bars
+  mimicking the cumulative depth curve) + polished chart wrapper +
+  tracking-wider/tabular-nums throughout. All 9 tests pass.
+- MarketChartModal.tsx: 355 → 488 lines (+133). Premium polish via the
+  same glassmorphism layer + NEW CandlestickSkeleton (shimmer candles +
+  gridlines + dimmed caption overlay preserving the exact "Rendering
+  price timeline…" text) + polished candlestick SVG (right-edge price
+  axis labels + axis frame + layered glow EMA + crisp candle edges) +
+  top-edge highlight + tracking-tight title. All 11 tests pass.
+- All existing class names preserved (`modal-backdrop`, `modal`,
+  `modal-wide`, `modal-header`, `modal-close`, `modal-body`,
+  `modal-footer`, `badge` + variants, `btn` + variants, `input`,
+  `form-label`, `mono`, `spinner`, `banner-experimental`).
+- All existing API calls + polling intervals preserved: `/api/depth/`
+  @ 2s, `/api/ai/predict/` @ 5s, `/api/history/ohlcv/`, `/api/trade`
+  POST. No backend contract changes.
+- All aria-labels preserved verbatim: `Close market depth modal`,
+  `Close market chart modal`, `Timeframe 1m/5m/1h`, `Toggle EMA 21
+  indicator`, `Order limit price`, `Order size in USDC`, `Buy YES
+  outcome for ${sizeUsdc} USDC`, `Sell YES outcome for ${sizeUsdc}
+  USDC`, `Price candlestick chart for ${title}`, `Loading order book
+  depth chart` (NEW — for the DepthChartSkeleton).
+- ESLint: clean (exit 0). TypeScript: 0 errors. Tests: 20/20 pass.
+- Both modals remain client components (`'use client'` directive at
+  top of each file).
+
+Files touched:
+- `src/components/DepthChartModal.tsx` (polish pass — glassmorphism +
+  premium shadow + DepthChartSkeleton + refined close button +
+  rounded-lg chart wrapper + tabular-nums).
+- `src/components/MarketChartModal.tsx` (polish pass — glassmorphism +
+  premium shadow + CandlestickSkeleton + polished candlestick SVG with
+  axis labels + frame + glow EMA + rounded-lg chart wrapper).
+- `/home/z/my-project/agent-ctx/W52-c-full-stack-developer.md`
+  (detailed agent work record).
+- `worklog.md` (this appended entry).
+
+**Both modals are production-ready with the W52-c premium polish layer.**
+
+---
+Task ID: W52-d
+Agent: full-stack-developer
+Task: Polish PriceTicker + EventLog — premium visual layer for the
+inline market-row price display and the system event stream.
+
+Work Log:
+- Read worklog (last ~200 lines) to map Wave 50/51 design system:
+  `skeleton-line-sm` / `scrollbar-thin` / `badge-*` helpers, the
+  `Tone` system (`good`/`warn`/`poor`/`info`/`neutral`) from
+  W51-2d, the `PulseDot` + `SectionHeader` + `KpiTile` sub-component
+  pattern from W51-2b/d.
+- Read PriceTicker.tsx (399 lines) + PriceTicker.test.tsx (29 tests)
+  to map the W30-2 contract: `price-ticker-value` textContent ===
+  formatted price, `data-direction` on price span, `price-ticker-change`
+  textContent contains `5.00¢`/`10.00%`/`+`/`−`/`—`,
+  `price-ticker-spread` textContent contains `4.0¢`, `aria-label`
+  on `role="group"` wrapper containing label/price/pct.
+- Read EventLog.tsx (213 lines) + EventLog.test.tsx (24 tests) to
+  map the W22-2 contract: `📜 Live System Events` header, `(0)`/`(8)`/
+  `(N/total)` count badges, filter buttons with EXACT class strings
+  `bg-blue-500/20` + `text-cyan-300` + `border-blue-500/40`,
+  `aria-label="Filter events"` + `aria-label="Clear search"`,
+  Copy/CSV buttons, severity emojis ✅/🛑/🤖/⚡, parsed timestamps
+  `12:34:56`/`12:36:45`, match count `1 match`/`2 matches`, empty-
+  state string `No events match current filter`.
+- Confirmed `chartTheme` palette + `lucide-react` dep available
+  (used by other W51 panels).
+- Confirmed PriceTicker has 1 consumer (MarketsPanel.tsx) and EventLog
+  has 0 consumers in src outside its own test — so the prop interface
+  is safe to extend additively.
+
+PriceTicker.tsx polish (399 → 463 lines, +64):
+- NEW wrapper hover state — `relative rounded-md px-1 py-0.5
+  transition-colors duration-150 hover:bg-[#13161e]/40
+  hover:border-[#2a2f47]` so the cell visibly responds to pointer
+  hover without shifting the dense markets-table layout. `relative`
+  anchors the existing pulse-background overlay correctly.
+- NEW directional arrow on change line — coloured ▲ (up) / ▼ (down)
+  glyph as a sibling span BEFORE the `+5.00¢` text. Uses `dirColor`
+  (green up / red down) at 8px font-size with a tiny `translateY(1px)`
+  nudge for the down arrow. Parent's textContent STILL contains
+  `5.00¢` / `10.00%` / `+` / `−` / `—` so test contracts resolve.
+- NEW tone-tinted spread chip bg — `spreadToneStyle` helper returns
+  `{background, borderColor}` per `spreadState`: amber wash (wide
+  >3¢), green wash (tight <1¢), gray wash (normal). Alpha 0.06 so
+  the wash is faint — does NOT compete with the price. Numeric
+  `4.0¢` textContent + `data-spread-state` + visual bar gradient
+  preserved.
+- Refined bid/ask chip — added `transition-colors duration-150
+  hover:border-[#2a2f47]` so the chip responds to hover.
+- Refined freshness readout — dimmer opacity (0.7 → 0.55), now a
+  flex row with `◷` clock glyph prefix + `tabular-nums`. Reads as
+  a quiet metadata line beneath the change line.
+- Added `tabular-nums` to the spread chip's numeric `4.0¢` span so
+  the cents column aligns across rows in the markets table.
+- Header comment block updated with W52-d section above the
+  preserved W49-4 section.
+
+EventLog.tsx polish (213 → 373 lines, +160):
+- NEW four-tone colour system — `getEventTone(text)` classifies each
+  event into one of `success` | `warning` | `error` | `info` | `ai`
+  | `default`:
+    * error (red): kill / reject / error
+    * warning (amber): risk / limit  ← NEW category split from red
+    * success (green): fill / trade / win
+    * ai (cyan): ml / ai / prob / learned / model  ← kept
+    * info (blue): order / cancel / quoted  ← was gray, now blue
+    * default: slate-200
+  `toneClassMap` is a STATIC string map (Tailwind 4 JIT-safe) — each
+  tone exposes `{text, bar, hover}` classes for the message text,
+  left accent bar, and row hover tint respectively.
+- NEW left accent bar per row — `border-l-2 ${toneClasses.bar}` so
+  a trader can scan the stream by colour at a glance.
+- NEW alternating row backgrounds — `i % 2 === 1 ? 'bg-[#0e1015]/60'
+  : ''` gives the stream a tabular, scannable rhythm.
+- Refined timestamp column — added `tabular-nums` so time strings
+  align column-wise. Kept the `w-16` shrink-0 layout.
+- Refined scroll container — `flex-1 min-h-0 overflow-y-auto
+  scrollbar-thin bg-[#0e1015]` with `role="log"` + `aria-live=
+  "polite"` + `aria-label="System event stream"`. The `min-h-0` is
+  critical so the panel respects its parent's `h-full` flex bounds
+  (was missing before — could overflow).
+- NEW empty state with icon + message — `EmptyState` sub-component
+  picks `Inbox` icon + "No events recorded yet — waiting for the
+  first tick." when `events.length === 0`, or `SearchX` icon +
+  "No events match current filter." (test contract string preserved
+  verbatim) when a filter yields no matches.
+- NEW loading skeleton — optional `loading?: boolean` prop (default
+  false). When true, renders 6 shimmer rows via the existing
+  `.skeleton-line-sm` helper + a `Loader2` spinner with "Streaming
+  event log…" caption. Purely additive — no test passes `loading`
+  so the contract is unaffected.
+- Refined search input — added `focus:border-blue-500/40` so the
+  input has a visible focus state.
+- Header comment block updated with W52-d section above the
+  preserved W22-2 contract section.
+
+Test contract verification:
+- All test-matched strings verified to render exactly once via
+  `getByText` (uses regex match).
+- All `data-testid` attributes preserved.
+- All `aria-label` strings preserved.
+- All button text labels preserved (Copy, ✓, 📥 CSV, filter names).
+- All emoji severity icons preserved (✅/🛑/🤖/⚡ counts unchanged).
+- All active-filter button class strings preserved verbatim
+  (`bg-blue-500/20`, `text-cyan-300`, `border-blue-500/40`).
+
+Final verification:
+- `bun run lint` — clean (no output, exit 0).
+- `bunx tsc --noEmit --skipLibCheck` — 0 errors in either file.
+- `bunx vitest run src/components/PriceTicker.test.tsx` — 29/29 pass.
+- `bunx vitest run src/components/EventLog.test.tsx` — 24/24 pass.
+- Both files run together: 53/53 tests pass in 2.78s.
+
+Stage Summary:
+- PriceTicker.tsx: 399 → 463 lines (+64). Premium polish via
+  directional arrow, tone-tinted spread chip, dim freshness readout,
+  wrapper hover state. All 29 tests pass.
+- EventLog.tsx: 213 → 373 lines (+160). Premium polish via 4-tone
+  colour system, left accent bars, alternating rows, refined scroll
+  container, icon empty state, optional loading skeleton. All 24
+  tests pass.
+- Total: +224 lines across 2 files.
+- All existing class names preserved.
+- All existing `data-testid` attributes preserved.
+- Lint: clean (exit 0). TypeScript: 0 errors. Tests: 53/53 pass.
+
+**PriceTicker + EventLog are production-ready with the premium W52-d
+visual layer.**
+
+---
+Task ID: W52-a
+Agent: full-stack-developer
+Task: Polish MarketScreener.tsx for visual consistency with W51-2 MarketsPanel / PositionsPanel redesign
+
+Work Log:
+- Read worklog (last ~220 lines) to map the W50-51 design system:
+  - Shimmer skeletons (`.skeleton-table` / `.skeleton-row` /
+    `.skeleton-cell` from globals.css carrying the
+    `skeleton-shimmer` keyframe)
+  - Tone system + `data-tone` hooks
+  - Tabular-nums on all numeric columns
+  - Refined tables: `uppercase text-[11px] tracking-wider` header rows
+  - Active filter chip glow ring
+    (`shadow-[0_0_8px_rgba(34,211,238,0.35)] ring-1 ring-cyan-400/30`)
+    layered on top of `.filter-chip.active`
+  - Row hover accent bar via inset shadow
+    (`hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.65)]`)
+- Read MarketScreener.tsx (1192 lines) + MarketScreener.test.tsx (419
+  lines / 20 tests) to map the W22-2 contract: title "Prediction
+  Market Screener", loading "Scanning Polymarket prediction markets…",
+  badge "Showing X of Y Markets", empty "No markets found", error
+  "Failed to load markets (HTTP 500)", Retry + Dismiss error buttons,
+  6 category chips, AI conf / edge / resolution filter chips, search
+  input aria-label, Trade / Depth row buttons, 30s polling + clean
+  unmount, console.error logging.
+- Read MarketsPanel.tsx (1173 lines) + PositionsPanel.tsx (988 lines)
+  + globals.css (2911 lines) for the W51-2 reference patterns
+  (`MarketsTableSkeleton`, `SortIndicator`, `SkeletonRows`,
+  `.filter-chip.active` glow, `.skeleton-cell`, `.empty-state`,
+  `.error-state`).
+
+Polish Pass Applied (8 spec items):
+1. **Shimmer skeleton loading state** — NEW `ScreenerSkeletonRows`
+   helper renders N shimmer rows mirroring the live table's 9-column
+   structure (Market Event · Category · 24h Volume · Liquidity · AI
+   Conf · Score · Edge · Resolution · Action). Uses the design-system
+   `.skeleton-table` / `.skeleton-row` / `.skeleton-cell` classes +
+   `.animate-pulse`. "Scanning Polymarket prediction markets…"
+   caption preserved verbatim above the skeleton rows (test contract
+   intact). Wrapper carries `role="status"` + `aria-live="polite"` +
+   `data-testid="screener-loading-skeleton"`.
+2. **Polished empty state with Lucide icon** — replaced the emoji 🔍
+   with Lucide `SearchX` (w-7 h-7, dim). Title "No markets found"
+   preserved verbatim. NEW subtitle ("Try widening the active
+   filters…" vs "Try adjusting your search query…"). "Reset all
+   filters" button now prefixed with `RotateCcw` glyph.
+3. **Refined filter chips with active glow ring** — all 4 chip groups
+   (Category / AI Conf / Edge / Resolution) now carry
+   `shadow-[0_0_8px_rgba(34,211,238,0.35)] ring-1 ring-cyan-400/30`
+   when active, layered on top of `.filter-chip.active`. Extracted a
+   shared `ACTIVE_CHIP_GLOW` token so all groups stay in sync.
+   Consistent with the MarketsPanel W51-2a active chip pattern.
+4. **Table headers — uppercase, 11px, letter-spaced, dimmed, sort
+   indicators** — `<thead><tr>` now carries `uppercase text-[11px]
+   tracking-wider font-medium text-[#7e8aaa] border-b border-
+   [#1f2335]`. Sort indicators preserved via extracted
+   `SortIndicator` helper (Lucide ArrowUp / ArrowDown at 10px on
+   active column; empty 10px slot on inactive sortable columns to
+   prevent layout shift). `aria-sort` preserved on each sortable `<th>`.
+5. **Table row hover — subtle background lift + left-edge accent
+   bar** — replaced `hover:bg-blue-500/10` with
+   `hover:bg-cyan-500/5` (subtle bg lift) layered with
+   `hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.65)]` (left-edge
+   accent bar via inset shadow — no layout shift). Consistent with
+   MarketsPanel W51-2a row-hover.
+6. **Tabular-nums on all numeric columns** — Opportunity Score badge
+   now carries `tabular-nums` (was missing — value would shift column
+   alignment when scores changed). Other numeric cells (Volume,
+   Liquidity, AI Conf, Edge, Resolution) already had tabular-nums —
+   verified. Refreshed-age label + active-filter context line also
+   pick up `tabular-nums` for cleaner alignment.
+7. **Refined toolbar grouping with subtle dividers** — the 3 secondary
+   filter groups (AI Conf · Edge · Resolution) read as a single
+   cohesive strip via subtle 1px vertical dividers (`w-px h-4 bg-
+   [#1f2335] mx-1`) between groups. Each group has a leading
+   uppercase label so a trader can immediately tell which dimension
+   each chip cluster controls. Category chip row keeps its own
+   dedicated toolbar (separated by `border-b`) for at-a-glance scan.
+8. **Error state — polished error card with retry button** — replaced
+   the bare `banner-danger` strip with a refined error card: Lucide
+   `AlertTriangle` icon (w-4 h-4) + error string rendered as the
+   card's title (so `getByText(/Failed to load markets \(HTTP 500\)/i)`
+   still resolves) + dim subtitle "The markets API couldn't be
+   reached. Check connectivity and retry." + Retry button (with
+   `RotateCcw` glyph + "Retry" text) + Dismiss button (bare `X`
+   icon). The `getByRole('button', { name: /retry/i })` and
+   `getByRole('button', { name: /dismiss error/i })` contracts
+   preserved. Card border-radius rounded-md, border red-500/30, bg
+   red-500/10. `role="alert"` + `data-testid="screener-error-card"`.
+
+Additional Refinements (beyond the 8 spec items):
+- Search input now has a focus ring (`focus:border-cyan-500/50
+  focus:ring-1 focus:ring-cyan-500/20 outline-none transition-all`)
+  consistent with the MarketsPanel W51-2a search input polish.
+- 2 new inline sub-components (`SortIndicator` + `ScreenerSkeletonRows`)
+  extracted for readability — single-purpose, aria-hidden where
+  decorative. No API change.
+- Header docstring expanded with a W52-a section documenting the 8
+  polish affordances applied.
+
+Test Contract Preservation (verified):
+- All 20 tests pass: "renders without crashing", "renders the
+  'Prediction Market Screener' title", "shows the loading state
+  initially" (Scanning Polymarket…), "renders the markets table with
+  rows" + "3 of 3 Markets" badge, "renders the 'No markets found'
+  empty state", "handles fetch errors — shows the danger banner with
+  Retry", "handles network errors — shows the 'Network error'
+  banner", "filters markets by category when a chip is selected",
+  "passes the ?search= query parameter", "shows a Clear button when
+  search has a value", "fires onQuickTrade with token_id + slug",
+  "falls back to onSelectMarket when onQuickTrade not provided",
+  "passes Authorization header via apiFetch", "polls /api/markets
+  every 30 s", "clears the polling interval on unmount", "renders
+  all six category chips", W22-1 (4 tests: surfaces underlying error
+  message, shows Dismiss button alongside Retry, dismisses the
+  error banner on click, logs the fetch error to console.error).
+
+Stage Summary:
+- **Final line count**: 1367 lines (was 1192 — +175 lines of polish
+  additions: 2 new helper components + refined header/empty/error/
+  loading states + tabular-nums + active chip glow + row hover accent
+  bar).
+- **All 8 polish affordances applied** while preserving the existing
+  props, API calls (`apiFetch('${apiUrl}/api/markets?...')` with
+  Authorization header), polling (30s setInterval), all existing class
+  names (`card`, `card-header`, `card-title`, `badge` + `badge-cyan` /
+  `badge-blue`, `data-table`, `table-container`, `btn` + `btn-primary`
+  / `btn-ghost` / `btn-xs` / `btn-sm`, `input` + `input-sm`, `spinner`,
+  `mono`, `scrollbar-thin`, `filter-chip` + `.active`), and all
+  accessibility roles/labels.
+- **New CSS hooks added** (for downstream CSS agent to target):
+  - `data-testid="screener-loading-skeleton"` on the loading wrapper.
+  - `data-testid="screener-loading-text"` on the loading caption.
+  - `data-testid="screener-error-card"` on the error card.
+  - `data-testid="screener-retry-btn"` on the Retry button.
+  - `data-testid="screener-dismiss-error"` on the Dismiss button.
+- **New inline sub-components** (2): `SortIndicator`,
+  `ScreenerSkeletonRows`. Each is small, single-purpose, and
+  `aria-hidden` where decorative.
+- **Verification — `bun run lint`**: clean (exit 0, no output).
+- **Verification — `bunx tsc --noEmit --skipLibCheck`**: 0 errors.
+- **Verification — `vitest run src/components/MarketScreener.test.tsx`**:
+  20/20 tests pass in ~2.18s. Confirms the full test contract is
+  preserved.
+
+Files touched:
+- `src/components/MarketScreener.tsx` (UI polish pass, +175 lines).
+- `/home/z/my-project/agent-ctx/W52-a-full-stack-developer.md`
+  (detailed agent work record).
+- `worklog.md` (this appended entry).
+
+Push verification:
+```
+$ wc -l src/components/MarketScreener.tsx
+1367 src/components/MarketScreener.tsx
+```
+
+Final status:
+- **Polish**: complete — 8 spec items + 3 additional refinements
+  applied.
+- **Backwards-compat**: full — all props, API calls, polling, class
+  names, accessibility roles/labels, test IDs, and aria-labels
+  preserved. All 20 tests pass.
+- **Lint**: clean (exit 0).
+- **TypeScript**: 0 errors.
+- **Tests**: 20/20 pass.
+
+**MarketScreener is production-ready with the premium W52-a visual
+layer, consistent with the W51-2 MarketsPanel / PositionsPanel
+redesign.**
+
+---
+Task ID: W52-b
+Agent: full-stack-developer
+Task: Polish OrderFlowPanel.tsx — refined order-flow workstation
+
+Work Log:
+- Read worklog (last ~375 lines) to map the W50-51 design-system
+  vocabulary (Tone system, PulseDot, SectionHeader, shimmer skeleton,
+  polished empty/error states, tabular-nums, data-tone hooks) from
+  W51-2b PositionsPanel + W51-2c OrdersPanel/TradesPanel + W51-2d
+  MLPanel/AIMLCommandCenter.
+- Read OrderFlowPanel.tsx (402 lines, W28-3 origin) + the 10-test
+  contract (OrderFlowPanel.test.tsx) to map the test surface:
+  `data-testid="order-flow-panel"` + region role, panel-header testid,
+  `getByText('Token')` label, `getByText('sample-market-a')` option
+  text, 3 window-button testids (order-flow-window-30s|1m|5m), chart
+  card heading regex `/Order Flow — buys vs sells/i`, imbalance card
+  heading exact 'Bid / Ask Imbalance', tape card heading exact
+  'Time & Sales', realtime-badge testid with `toHaveTextContent('LIVE'|
+  'POLL')`, 'No markets available' dropdown option text,
+  `getAllByText('0/min')` >= 1 when trades=[], `getByText('+8.3')` for
+  BUY 12.5 − SELL 4.2 = 8.3 cumulative Δ, and the depth fetch
+  `/api/depth/tok-a` called on mount (via waitFor).
+- Read OrderFlowChart.tsx (356 lines) + OrderBookImbalance.tsx (228
+  lines) + TradeTape.tsx (266 lines) to confirm the chart carries its
+  own empty state ("No order flow in the last {window}") and the tape
+  carries "No trades yet" — so the panel-level empty state only needs
+  to fire when selectedTokenId is null (no markets subscribed).
+- Verified empirically via a scratch RTL test that `getByText('Bid /
+  Ask Imbalance')` matches just the inner `<span>` (whose own text
+  content matches), NOT the parent `<div>` (whose `textContent`
+  includes the same string transitively through children). This let me
+  safely add a Lucide icon next to the title in a SectionHeader wrapper
+  div without tripping the multiple-matches error.
+- Built 5 shared inline sub-components (kept private to the panel so
+  test mocks + ts-isolation stay clean):
+  * `Tone` system (`positive` / `negative` / `warn` / `neutral`) with
+    self-contained class strings (text + dot + halo) — static so
+    Tailwind 4's scanner picks them up. Mirrors W51-2d Tone but
+    reduced to 4 tones (no info/purple here).
+  * `SectionHeader` — Lucide icon + uppercase 9.5px tracking-wider
+    bold title in muted text-[#5a637a] + optional dim italic 8.5px
+    description + optional trailing node. Title in its own `<span>` so
+    RTL matches the span, not the wrapper div.
+  * `PulseDot` — Tailwind `animate-ping` halo + solid dot + glow
+    shadow. aria-hidden. Replaces the previous bare animate-pulse dot
+    in the LIVE badge. POLL badge keeps its static amber dot (no ping
+    — degraded state).
+  * `ImbalanceSkeleton` — shimmer placeholder for the depth-loading
+    state. Mirrors the live OrderBookImbalance layout (ratio chip,
+    divergent bar, best-bid/ask grid). Uses `.skeleton-line-sm` +
+    `.skeleton-line-md` from globals.css. role=status +
+    aria-live=polite.
+  * `DepthErrorCard` — polished error state with AlertTriangle icon +
+    "Depth feed unavailable" title + dim description + Retry button.
+    Uses `.error-state` CSS classes. role=alert.
+  * `NoMarketsEmptyState` — polished empty state with Inbox icon +
+    "No market selected" title + helper copy. Uses `.empty-state` CSS
+    classes. role=status. DISTINCT from the dropdown option text "No
+    markets available" (preserved verbatim) — different text so no
+    multiple-matches collision.
+- Added depth fetch status lifecycle (`DepthStatus` = 'idle' |
+  'loading' | 'ready' | 'error') as new state. Initialized to
+  'loading' when a token is already selected on mount (so the first
+  render shows the skeleton, not a flash of zero-state). The depth
+  useEffect now sets setDepthStatus('loading') before each fetch
+  attempt, setDepthStatus('ready') on success, setDepthStatus('error')
+  on exception or non-2xx response. Cleanup preserves the existing
+  `cancelled` flag.
+- Added retry mechanism — `retryToken` state added; the depth
+  useEffect's deps now include retryToken so bumping it forces the
+  effect to re-run. The handleRetryDepth callback sets status to
+  'loading' and bumps retryToken. Wired to the DepthErrorCard's Retry
+  button.
+- Refined time-window buttons — added `tabular-nums` for clean numeric
+  alignment, `transition-colors` for smooth hover, and refined
+  inactive hover border (`hover:border-[#2a2f48]`). Active state class
+  names preserved verbatim (`bg-blue-500/20 text-cyan-300
+  border-blue-500/50`). All 3 testids preserved.
+- Refined token selector — added `focus:ring-1 focus:ring-cyan-500/20`
+  for clearer keyboard focus (matches PositionsPanel search-input
+  pattern) + `transition-colors`. Existing class names + testid +
+  aria-label + the "No markets available" `<option>` placeholder
+  preserved verbatim.
+- Tone-colored stats badges:
+  * Δ stat: `data-tone={deltaTone}` (positive/negative/neutral) +
+    value text coloured via TONE[deltaTone].text + `tabular-nums`.
+    New testid `order-flow-delta-stat` + title attribute.
+  * Imbalance ratio: `data-tone={imbalanceTone}`
+    (positive/negative/warn) + tabular-nums + new testid
+    `order-flow-imbalance-stat` + title attribute.
+  * Tape speed: `data-tone="neutral"` + `tabular-nums` + new title
+    attribute.
+  * Existing label text ("Δ", "Imb", "Tape") preserved.
+  * Exact `+8.3` and `0/min` text values preserved in their respective
+    value spans (test contracts).
+- Refined LIVE/POLL badge — LIVE now embeds `<PulseDot tone="positive" />`
+  (ping halo + solid dot + glow). POLL keeps static amber dot. Existing
+  class names preserved. Added `transition-colors` + title attribute.
+  Badge text content is still "LIVE" / "POLL" (PulseDot has no text
+  content) — `toHaveTextContent` test contracts preserved.
+- Depth-card section-header tone reflects status — 'error' → negative
+  (red icon), 'loading' → neutral (muted), 'ready'/'idle' → mirrors
+  imbalanceTone (so header icon colour matches the imbalance ratio
+  chip below it: green bid-heavy, red ask-heavy, amber balanced).
+- Imbalance card body conditional rendering:
+  * `selectedTokenId && depthStatus === 'loading'` → ImbalanceSkeleton
+  * `selectedTokenId && depthStatus === 'error'` → DepthErrorCard
+    with onRetry={handleRetryDepth}
+  * `selectedTokenId && (depthStatus === 'ready' || 'idle')` →
+    OrderBookImbalance with current depth data
+  * `!selectedTokenId` → "Select a token to view depth." placeholder
+- Chart card body conditional rendering:
+  * `selectedTokenId` set → OrderFlowChart (existing behavior)
+  * `!selectedTokenId` → NoMarketsEmptyState (new polished empty
+    state)
+- Header comment block updated with a new "W52-b — Final UI polish
+  pass" section documenting each polish affordance and the constraint
+  that existing class names + testids + role attributes + aria-labels
+  + API calls + the 'use client' directive are preserved.
+
+Stage Summary:
+- **Final line count**: 714 lines (was 402 — +374 insertions / −62
+  deletions per `git diff --stat`).
+- **All polish affordances applied** while preserving the existing
+  props, API calls (useEffect polling `/api/depth/{token_id}` every
+  2s), all existing class names (card, bg-[#13161e], border-[#1f2335],
+  shadow-md, p-3, bg-blue-500/20 text-cyan-300 border-blue-500/50,
+  bg-green-500/10 text-green-400 border-green-500/50, etc.), all
+  existing testids (order-flow-panel, -panel-header, -token-select,
+  -window-{30s,1m,5m}, -chart-card, -imbalance-card, -tape-card,
+  -realtime-badge), all role attributes + aria-labels, and the
+  'use client' directive.
+- **New CSS hooks added** for downstream CSS layer to target:
+  - `data-tone="{positive|negative|warn|neutral}"` on the 3 stats
+    badges (Δ, Imb, Tape) — same vocabulary as PositionsPanel's KPI
+    strip.
+  - New testids: `order-flow-delta-stat`, `order-flow-imbalance-stat`,
+    `order-flow-imbalance-skeleton`, `order-flow-imbalance-error`,
+    `order-flow-imbalance-retry`, `order-flow-imbalance-placeholder`,
+    `order-flow-empty-state`.
+- **New inline sub-components** (6): Tone system + SectionHeader +
+  PulseDot + ImbalanceSkeleton + DepthErrorCard + NoMarketsEmptyState.
+  Each is small, single-purpose, and aria-hidden where decorative.
+- **Verification — `bun run lint`**: clean (exit 0, no output).
+- **Verification — `bunx tsc --noEmit --skipLibCheck`**: 0 errors.
+- **Verification — `vitest run src/components/OrderFlowPanel.test.tsx`**:
+  10/10 tests pass in ~1.5s. Confirms the full test contract is
+  preserved.
+
+### Files touched
+- `src/components/OrderFlowPanel.tsx` (UI polish pass, 402 → 714 lines).
+- `/home/z/my-project/agent-ctx/W52-b-full-stack-developer.md`
+  (detailed agent work record).
+- `worklog.md` (this appended entry).
+
+### Push verification
+```
+$ wc -l src/components/OrderFlowPanel.tsx
+714 src/components/OrderFlowPanel.tsx
+$ git diff --stat src/components/OrderFlowPanel.tsx
+ src/components/OrderFlowPanel.tsx | 436 ++++++++++++++++++++++++++++++++------
+ 1 file changed, 374 insertions(+), 62 deletions(-)
+```
+
+### Final status
+- **Polish**: complete — Tone system, SectionHeaders, PulseDot, shimmer
+  skeleton, polished empty + error states, refined controls,
+  tone-colored stats, tabular-nums, data-tone hooks all applied.
+- **Backwards-compat**: full — all props, API calls, class names,
+  testids, role attributes, aria-labels, and tests preserved.
+- **Lint**: clean (exit 0, no output).
+- **TypeScript**: 0 errors.
+- **Tests**: 10/10 pass.
+
+**OrderFlowPanel is production-ready with the premium W52-b visual layer,
+visually consistent with the W51-2 PositionsPanel / OrdersPanel /
+TradesPanel / MLPanel / AIMLCommandCenter family.**

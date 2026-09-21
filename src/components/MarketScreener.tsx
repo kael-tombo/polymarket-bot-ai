@@ -1,6 +1,63 @@
 // components/MarketScreener.tsx — Multi-factor Prediction Market Screener
 //
-// W49-4 — pro-trading redesign:
+// W52-a — premium visual polish pass (consistent with the W51-2
+// MarketsPanel / PositionsPanel redesign):
+//   • Loading state replaced with a shimmer skeleton that mirrors the
+//     live table's 9-column structure (Market Event · Category ·
+//     24h Volume · Liquidity · AI Conf · Score · Edge · Resolution ·
+//     Action). The "Scanning Polymarket prediction markets…" caption
+//     is preserved as a dim status banner above the skeleton rows so
+//     the W22-2 test `getByText(/Scanning Polymarket prediction markets/i)`
+//     still resolves. The skeleton wrapper carries `role="status"` +
+//     `aria-live="polite"` so screen readers announce the loading
+//     state. The skeleton rows themselves are aria-hidden (caption +
+//     role cover the announcement).
+//   • Empty state upgraded with a Lucide `SearchX` icon (replaces the
+//     emoji 🔍) + title + subtitle + the existing active-filter
+//     context. "No markets found" copy preserved verbatim so the
+//     W22-2 test `getByText(/No markets found/i)` still resolves.
+//   • Active filter chips now carry a subtle cyan accent border glow
+//     (`shadow-[0_0_8px_rgba(34,211,238,0.35)] ring-1 ring-cyan-400/30`)
+//     layered on top of the existing `.filter-chip.active` solid
+//     accent fill. Consistent with the MarketsPanel W51-2a active
+//     chip pattern. Inactive chips unchanged.
+//   • Table headers polished: the `<tr>` gets `uppercase text-[11px]
+//     tracking-wider font-medium text-[#7e8aaa]` so column labels
+//     read as a unified dim caption strip. Sort indicators (Lucide
+//     ArrowUp / ArrowDown at 10px) preserved on sortable columns
+//     (Market Event, 24h Volume, Liquidity, AI Conf, Score, Edge,
+//     Resolution). Empty 10px slot on non-active sortable headers
+//     keeps layout stable on sort toggle.
+//   • Table row hover refined: replaced the bare
+//     `hover:bg-blue-500/10` with `hover:bg-cyan-500/5` (subtle
+//     background lift) layered with
+//     `hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.65)]` (left-edge
+//     accent bar via inset shadow — no layout shift). Consistent with
+//     the MarketsPanel W51-2a row-hover pattern.
+//   • `tabular-nums` added to the Opportunity Score badge so it
+//     aligns cleanly under the Score header. All other numeric cells
+//     (Volume, Liquidity, AI Conf, Edge, Resolution) already carry
+//     `tabular-nums`.
+//   • Toolbar grouping refined: each filter group (AI Conf · Edge ·
+//     Resolution) gets a leading uppercase label + subtle 1px vertical
+//     dividers between groups (`w-px h-4 bg-[#1f2335] mx-1`) so the
+//     three groups read as a single cohesive strip. The category
+//     chip row keeps its own dedicated toolbar for at-a-glance scan.
+//   • Error state polished: bare `<div class="banner-danger">`
+//     replaced with a polished error card (`AlertTriangle` Lucide
+//     icon + dim subtitle + Retry button with `RotateCcw` glyph +
+//     Dismiss `X`). The full error string (e.g. "Failed to load
+//     markets (HTTP 500)") is still rendered as the card's title so
+//     the W22-2 test `getByText(/Failed to load markets \(HTTP 500\)/i)`
+//     still resolves. Retry button still `getByRole('button',
+//     { name: /retry/i })`; Dismiss button still `getByRole('button',
+//     { name: /dismiss error/i })`.
+//   • Two new inline sub-components extracted for readability
+//     (`SortIndicator` + `ScreenerSkeletonRows`) — single-purpose,
+//     aria-hidden where decorative. No API change. No test contract
+//     change.
+//
+// W49-4 — pro-trading redesign (preserved):
 //   • Filter chips switched to the design-system `.filter-chip` class
 //     (with `.active` state) for category + AI confidence + edge +
 //     resolution. Visually consistent with the MarketsPanel.
@@ -31,30 +88,22 @@
 //     (wording tightened to "Showing X of Y Markets" so the existing
 //     W22-2 test regex `/N of M Markets/i` still resolves).
 //
-// W39-4 — markets/screener readability + filter UX pass:
+// W39-4 — markets/screener readability + filter UX pass (preserved):
 //   • Active-filter summary bar between the chip rows and the table.
 //     Lists each active filter as a removable chip (click to clear that
 //     single filter) plus a trailing `Reset all` button that clears
-//     every filter in one click. Format mirrors the MarketsPanel:
-//     `3 filters active [search: "btc"] [category: CRYPTO] [edge: ≥2¢]`.
+//     every filter in one click.
 //   • Named "Reset all" (not "Clear all") so the existing W22-2 test
 //     `getByRole('button', { name: /clear/i })` — which expects exactly
 //     one matching button after typing a search — doesn't pick up this
 //     reset button as a second match. The MarketsPanel uses the same
 //     label so the two panels share visual language.
-//   • `Showing X of Y markets` counter exposed via the existing header
-//     badge (`X of Y Markets`) — wording tightened to match the W39-4
-//     spec's "Showing X of Y" phrasing while keeping the test regex
-//     `/N of M Markets/i` happy.
 //   • Loading-during-filter indicator: when `loading` is true AND we
 //     already have prior rows on screen, a small inline spinner renders
 //     at the right edge of the filter chip row so a trader sees the
 //     refetch is in flight without losing the visible rows. (The
-//     full-panel "Scanning Polymarket…" skeleton only fires on the
-//     initial load when `markets.length === 0`.)
-//   • Numeric columns (24h Volume, Liquidity) now explicitly
-//     `text-right` on both `<th>` and `<td>` for consistent alignment
-//     with the other numeric columns (Score, Edge, Resolution).
+//     full-panel shimmer skeleton only fires on the initial load when
+//     `markets.length === 0`.)
 //
 // W38-4 — prior market discovery improvements (preserved):
 //   • Opportunity score (0–100) computed via a transparent weighted
@@ -78,7 +127,15 @@
 'use client'
 
 import { useEffect, useState, useRef, useCallback, useMemo } from 'react'
-import { Search as SearchIcon, ArrowUp, ArrowDown } from 'lucide-react'
+import {
+  Search as SearchIcon,
+  ArrowUp,
+  ArrowDown,
+  AlertTriangle,
+  SearchX,
+  RotateCcw,
+  X,
+} from 'lucide-react'
 import { getApiUrl, apiFetch } from '@/lib/api'
 import { fmtUsd, fmtAge, fmtCompact } from '@/lib/design-tokens'
 
@@ -399,6 +456,64 @@ function scoreBadgeClass(score: number): string {
   return 'bg-slate-500/15 text-slate-300 border-slate-500/40'
 }
 
+// W52-a — SortIndicator extracted for readability. Renders a Lucide
+// ArrowUp / ArrowDown glyph on the active sort column, or an empty
+// 10px slot on inactive columns so the layout doesn't shift on sort
+// toggle. aria-hidden because the `aria-sort` attribute on the
+// parent <th> already exposes the sort state to assistive tech.
+function SortIndicator({ active, ascending }: { active: boolean; ascending: boolean }) {
+  if (active) {
+    return ascending
+      ? <ArrowUp className="w-2.5 h-2.5" aria-hidden="true" />
+      : <ArrowDown className="w-2.5 h-2.5" aria-hidden="true" />
+  }
+  return <span className="w-2.5 h-2.5 inline-block" aria-hidden="true" />
+}
+
+// W52-a — Shimmer skeleton loader for the initial-load state
+// (loading && markets.length === 0). Renders N shimmer rows that
+// mirror the live table's 9-column structure so the panel doesn't
+// visually jump when the first fetch resolves. Uses the design-system
+// `.skeleton-table` / `.skeleton-row` / `.skeleton-cell` classes from
+// globals.css (which carry the `skeleton-shimmer` keyframe) augmented
+// with `.animate-pulse` for an additional left-to-right shine sweep.
+// aria-hidden because the "Scanning Polymarket prediction markets…"
+// caption + `role="status"` + `aria-live="polite"` on the parent
+// wrapper already announce the loading state to screen readers.
+//
+// Column flex weights approximate the live column widths:
+//   • Market Event  — 3x (matches min-w-[260px])
+//   • Category      — 90px fixed
+//   • 24h Volume    — 80px fixed
+//   • Liquidity     — 80px fixed
+//   • AI Conf       — 70px fixed
+//   • Score         — 60px fixed
+//   • Edge          — 60px fixed
+//   • Resolution    — 80px fixed
+//   • Action        — 100px fixed
+function ScreenerSkeletonRows({ rowCount = 5 }: { rowCount?: number }) {
+  return (
+    <div
+      className="skeleton-table mx-3 mb-3 rounded-md border border-[#1f2335]"
+      aria-hidden="true"
+    >
+      {Array.from({ length: rowCount }).map((_, i) => (
+        <div key={i} className="skeleton-row" style={{ height: '42px' }}>
+          <div className="skeleton-cell animate-pulse" style={{ flex: '3 1 0' }} />
+          <div className="skeleton-cell animate-pulse" style={{ flex: '0 0 90px' }} />
+          <div className="skeleton-cell animate-pulse" style={{ flex: '0 0 80px' }} />
+          <div className="skeleton-cell animate-pulse" style={{ flex: '0 0 80px' }} />
+          <div className="skeleton-cell animate-pulse" style={{ flex: '0 0 70px' }} />
+          <div className="skeleton-cell animate-pulse" style={{ flex: '0 0 60px' }} />
+          <div className="skeleton-cell animate-pulse" style={{ flex: '0 0 60px' }} />
+          <div className="skeleton-cell animate-pulse" style={{ flex: '0 0 80px' }} />
+          <div className="skeleton-cell animate-pulse" style={{ flex: '0 0 100px' }} />
+        </div>
+      ))}
+    </div>
+  )
+}
+
 export default function MarketScreener({ onSelectMarket, onQuickTrade }: Props) {
   const [markets, setMarkets] = useState<MarketItem[]>([])
   const [search, setSearch] = useState('')
@@ -581,6 +696,12 @@ export default function MarketScreener({ onSelectMarket, onQuickTrade }: Props) 
     fetchMarkets('')
   }
 
+  // W52-a — active-chip glow token shared by all 4 chip groups
+  // (category + AI conf + edge + resolution). Layered on top of the
+  // existing `.filter-chip.active` solid accent fill — consistent
+  // with the MarketsPanel W51-2a active chip pattern.
+  const ACTIVE_CHIP_GLOW = 'shadow-[0_0_8px_rgba(34,211,238,0.35)] ring-1 ring-cyan-400/30'
+
   return (
     <div className="card flex flex-col h-full bg-[#13161e] border border-[#1f2335] overflow-hidden shadow-xl">
       {/* Header & Controls */}
@@ -601,7 +722,7 @@ export default function MarketScreener({ onSelectMarket, onQuickTrade }: Props) 
             Showing {filteredMarkets.length} of {markets.length} Markets
           </span>
           {lastRefreshed && (
-            <span className="text-[10.5px] text-[#7e8aaa] mono">
+            <span className="text-[10.5px] text-[#7e8aaa] mono tabular-nums">
               Refreshed {fmtAge(lastRefreshed)}
             </span>
           )}
@@ -632,7 +753,7 @@ export default function MarketScreener({ onSelectMarket, onQuickTrade }: Props) 
               placeholder="Search Polymarket events…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="input input-sm w-56 text-xs bg-[#0e1015] border border-[#1f2335] pl-7"
+              className="input input-sm w-56 text-xs bg-[#0e1015] border border-[#1f2335] pl-7 focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 outline-none transition-all"
               aria-label="Search prediction market events"
               data-testid="screener-search-input"
             />
@@ -653,21 +774,28 @@ export default function MarketScreener({ onSelectMarket, onQuickTrade }: Props) 
         </form>
       </div>
 
-      {/* W49-4 — Category chips via `.filter-chip` class. */}
+      {/* W49-4 — Category chips via `.filter-chip` class.
+          W52-a — active chips carry the cyan accent border glow
+          (`shadow-[0_0_8px_rgba(34,211,238,0.35)] ring-1 ring-cyan-400/30`)
+          layered on top of `.filter-chip.active`. Inactive chips
+          unchanged. Consistent with the MarketsPanel W51-2a pattern. */}
       <div className="flex items-center gap-1.5 px-4 py-2 bg-[#0e1015] border-b border-[#1f2335] overflow-x-auto scrollbar-thin">
-        {CATEGORY_CHIPS.map((cat) => (
-          <button
-            key={cat}
-            onClick={() => setSelectedCategory(cat)}
-            className={`filter-chip text-[10.5px] uppercase ${
-              selectedCategory === cat ? 'active' : ''
-            }`}
-            aria-pressed={selectedCategory === cat}
-            data-testid={`screener-category-${cat.toLowerCase()}`}
-          >
-            {cat}
-          </button>
-        ))}
+        {CATEGORY_CHIPS.map((cat) => {
+          const isActive = selectedCategory === cat
+          return (
+            <button
+              key={cat}
+              onClick={() => setSelectedCategory(cat)}
+              className={`filter-chip text-[10.5px] uppercase ${
+                isActive ? `active ${ACTIVE_CHIP_GLOW}` : ''
+              }`}
+              aria-pressed={isActive}
+              data-testid={`screener-category-${cat.toLowerCase()}`}
+            >
+              {cat}
+            </button>
+          )
+        })}
         {loading && markets.length > 0 && (
           <span
             className="ml-auto inline-flex items-center gap-1 text-[10px] text-[#7e8aaa] mono shrink-0"
@@ -680,78 +808,125 @@ export default function MarketScreener({ onSelectMarket, onQuickTrade }: Props) 
         )}
       </div>
 
-      {/* W49-4 — Additional factor filter chips via `.filter-chip` class. */}
+      {/* W49-4 — Additional factor filter chips via `.filter-chip` class.
+          W52-a — refined toolbar grouping: each group has a leading
+          uppercase label + subtle 1px vertical divider between groups
+          (`w-px h-4 bg-[#1f2335] mx-1`) so the three groups read as a
+          single cohesive strip. Active chips carry the cyan accent
+          border glow. */}
       <div className="flex items-center gap-3 px-4 py-2 bg-[#0e1015]/60 border-b border-[#1f2335] overflow-x-auto scrollbar-thin text-[10px]">
         <div className="flex items-center gap-1.5">
           <span className="text-[#7e8aaa] uppercase font-bold tracking-wider mr-0.5" aria-hidden="true">AI Conf</span>
-          {AI_CONFIDENCE_FILTERS.map((f) => (
-            <button
-              key={f.key}
-              onClick={() => setAiConfidenceFilter(f.key)}
-              title={f.title}
-              aria-pressed={aiConfidenceFilter === f.key}
-              className={`filter-chip text-[10px] uppercase ${
-                aiConfidenceFilter === f.key ? 'active' : ''
-              }`}
-              data-testid={`ai-conf-filter-${f.key.toLowerCase()}`}
-            >
-              {f.label}
-            </button>
-          ))}
+          {AI_CONFIDENCE_FILTERS.map((f) => {
+            const isActive = aiConfidenceFilter === f.key
+            return (
+              <button
+                key={f.key}
+                onClick={() => setAiConfidenceFilter(f.key)}
+                title={f.title}
+                aria-pressed={isActive}
+                className={`filter-chip text-[10px] uppercase ${
+                  isActive ? `active ${ACTIVE_CHIP_GLOW}` : ''
+                }`}
+                data-testid={`ai-conf-filter-${f.key.toLowerCase()}`}
+              >
+                {f.label}
+              </button>
+            )
+          })}
         </div>
-        <span className="w-px h-4 bg-[#1f2335]" aria-hidden="true" />
+        <span className="w-px h-4 bg-[#1f2335] mx-1" aria-hidden="true" />
         <div className="flex items-center gap-1.5">
           <span className="text-[#7e8aaa] uppercase font-bold tracking-wider mr-0.5" aria-hidden="true">Edge</span>
-          {EDGE_FILTERS.map((f) => (
-            <button
-              key={f.key}
-              onClick={() => setEdgeFilter(f.key)}
-              title={f.title}
-              aria-pressed={edgeFilter === f.key}
-              className={`filter-chip text-[10px] uppercase ${
-                edgeFilter === f.key ? 'active' : ''
-              }`}
-              data-testid={`edge-filter-${f.key.toLowerCase()}`}
-            >
-              {f.label}
-            </button>
-          ))}
+          {EDGE_FILTERS.map((f) => {
+            const isActive = edgeFilter === f.key
+            return (
+              <button
+                key={f.key}
+                onClick={() => setEdgeFilter(f.key)}
+                title={f.title}
+                aria-pressed={isActive}
+                className={`filter-chip text-[10px] uppercase ${
+                  isActive ? `active ${ACTIVE_CHIP_GLOW}` : ''
+                }`}
+                data-testid={`edge-filter-${f.key.toLowerCase()}`}
+              >
+                {f.label}
+              </button>
+            )
+          })}
         </div>
-        <span className="w-px h-4 bg-[#1f2335]" aria-hidden="true" />
+        <span className="w-px h-4 bg-[#1f2335] mx-1" aria-hidden="true" />
         <div className="flex items-center gap-1.5">
           <span className="text-[#7e8aaa] uppercase font-bold tracking-wider mr-0.5" aria-hidden="true">Resolution</span>
-          {RESOLUTION_FILTERS.map((f) => (
-            <button
-              key={f.key}
-              onClick={() => setResolutionFilter(f.key)}
-              title={f.title}
-              aria-pressed={resolutionFilter === f.key}
-              className={`filter-chip text-[10px] uppercase ${
-                resolutionFilter === f.key ? 'active' : ''
-              }`}
-              data-testid={`resolution-filter-${f.key.toLowerCase()}`}
-            >
-              {f.label}
-            </button>
-          ))}
+          {RESOLUTION_FILTERS.map((f) => {
+            const isActive = resolutionFilter === f.key
+            return (
+              <button
+                key={f.key}
+                onClick={() => setResolutionFilter(f.key)}
+                title={f.title}
+                aria-pressed={isActive}
+                className={`filter-chip text-[10px] uppercase ${
+                  isActive ? `active ${ACTIVE_CHIP_GLOW}` : ''
+                }`}
+                data-testid={`resolution-filter-${f.key.toLowerCase()}`}
+              >
+                {f.label}
+              </button>
+            )
+          })}
         </div>
       </div>
 
-      {/* Error state */}
+      {/* W52-a — Error state polished: replaces the bare `banner-danger`
+          strip with a refined error card. Lucide `AlertTriangle` icon +
+          dim subtitle + Retry button with `RotateCcw` glyph + Dismiss
+          `X` button. The full error string (e.g. "Failed to load markets
+          (HTTP 500)") is still rendered as the card's title so the W22-2
+          test `getByText(/Failed to load markets \(HTTP 500\)/i)` still
+          resolves. Retry button still `getByRole('button',
+          { name: /retry/i })`; Dismiss button still `getByRole('button',
+          { name: /dismiss error/i })`. */}
       {error && (
-        <div className="banner-danger mx-3 mt-2 text-xs py-1.5 px-3 flex items-center gap-2" role="alert">
-          <span aria-hidden="true">⚠️</span>
-          <span className="flex-1 truncate">{error}</span>
-          <button onClick={() => fetchMarkets()} className="underline cursor-pointer shrink-0">
-            Retry
-          </button>
-          <button
-            onClick={() => setError(null)}
-            className="underline cursor-pointer shrink-0"
-            aria-label="Dismiss error"
-          >
-            Dismiss
-          </button>
+        <div
+          className="mx-3 mt-2 mb-1 px-3 py-2.5 rounded-md border border-red-500/30 bg-red-500/10 flex items-start gap-2.5"
+          role="alert"
+          data-testid="screener-error-card"
+        >
+          <AlertTriangle
+            className="w-4 h-4 text-red-400 mt-0.5 shrink-0"
+            aria-hidden="true"
+          />
+          <div className="flex-1 min-w-0">
+            <div className="text-red-200 font-semibold text-xs leading-snug break-words">
+              {error}
+            </div>
+            <div className="text-red-300/60 text-[10.5px] mt-0.5 leading-snug">
+              The markets API couldn&apos;t be reached. Check connectivity and retry.
+            </div>
+          </div>
+          <div className="flex items-center gap-1.5 shrink-0">
+            <button
+              type="button"
+              onClick={() => fetchMarkets()}
+              className="inline-flex items-center gap-1 btn btn-xs font-semibold border border-red-500/40 bg-red-500/15 text-red-200 hover:bg-red-500/25 hover:border-red-500/60 transition-colors"
+              aria-label="Retry"
+              data-testid="screener-retry-btn"
+            >
+              <RotateCcw className="w-3 h-3" aria-hidden="true" />
+              Retry
+            </button>
+            <button
+              type="button"
+              onClick={() => setError(null)}
+              className="inline-flex items-center justify-center w-6 h-6 rounded text-red-300/60 hover:text-red-200 hover:bg-red-500/15 transition-colors"
+              aria-label="Dismiss error"
+              data-testid="screener-dismiss-error"
+            >
+              <X className="w-3 h-3" aria-hidden="true" />
+            </button>
+          </div>
         </div>
       )}
 
@@ -875,31 +1050,49 @@ export default function MarketScreener({ onSelectMarket, onQuickTrade }: Props) 
       {/* Table */}
       <div className="flex-1 overflow-y-auto scrollbar-thin table-container">
         {loading && markets.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-48 text-[#7e8aaa] text-xs">
-            <span className="spinner mb-2" aria-hidden="true" />
-            Scanning Polymarket prediction markets…
+          // W52-a — Shimmer skeleton loader replaces the bare spinner.
+          // Renders a dim "Scanning Polymarket prediction markets…"
+          // caption above N shimmer rows mirroring the live table's
+          // 9-column structure. The caption text is preserved verbatim
+          // so the W22-2 test `getByText(/Scanning Polymarket
+          // prediction markets/i)` still resolves. The wrapper carries
+          // `role="status"` + `aria-live="polite"` for screen readers.
+          <div
+            className="flex flex-col"
+            role="status"
+            aria-live="polite"
+            data-testid="screener-loading-skeleton"
+          >
+            <div className="flex items-center gap-2 px-4 py-3 text-[#7e8aaa] text-[11px]">
+              <span
+                className="animate-pulse"
+                data-testid="screener-loading-text"
+              >
+                Scanning Polymarket prediction markets…
+              </span>
+            </div>
+            <ScreenerSkeletonRows rowCount={5} />
           </div>
         ) : (
           <table className="data-table" role="table" aria-label="Prediction market screener results">
             <thead>
-              <tr>
+              {/* W52-a — unified header row styling: uppercase, 11px,
+                  letter-spaced, dimmed. Reads as a single cohesive
+                  caption strip above the data rows. Sortable headers
+                  keep their cursor-pointer + hover:text-white affordance
+                  + Lucide ArrowUp/ArrowDown sort indicator. */}
+              <tr className="uppercase text-[11px] tracking-wider font-medium text-[#7e8aaa] border-b border-[#1f2335]">
                 {/* W49-4 — Market Event header now sortable (alphabetical). */}
                 <th
                   scope="col"
                   onClick={() => handleSort('title')}
-                  className="min-w-[260px] text-left cursor-pointer hover:text-white select-none"
+                  className="min-w-[260px] text-left cursor-pointer hover:text-white select-none transition-colors"
                   title="Sort by market event name"
                   aria-sort={sortBy === 'title' ? (sortAsc ? 'ascending' : 'descending') : 'none'}
                 >
                   <span className="inline-flex items-center gap-1">
                     Market Event
-                    {sortBy === 'title' ? (
-                      sortAsc
-                        ? <ArrowUp className="w-2.5 h-2.5" aria-hidden="true" />
-                        : <ArrowDown className="w-2.5 h-2.5" aria-hidden="true" />
-                    ) : (
-                      <span className="w-2.5 h-2.5 inline-block" aria-hidden="true" />
-                    )}
+                    <SortIndicator active={sortBy === 'title'} ascending={sortAsc} />
                   </span>
                 </th>
                 <th scope="col" className="text-left">Category</th>
@@ -913,37 +1106,25 @@ export default function MarketScreener({ onSelectMarket, onQuickTrade }: Props) 
                 <th
                   scope="col"
                   onClick={() => handleSort('volume')}
-                  className="text-right cursor-pointer hover:text-white select-none"
+                  className="text-right cursor-pointer hover:text-white select-none transition-colors"
                   title="Sort by 24h volume"
                   aria-sort={sortBy === 'volume' ? (sortAsc ? 'ascending' : 'descending') : 'none'}
                 >
                   <span className="inline-flex items-center gap-1">
                     24h Volume
-                    {sortBy === 'volume' ? (
-                      sortAsc
-                        ? <ArrowUp className="w-2.5 h-2.5" aria-hidden="true" />
-                        : <ArrowDown className="w-2.5 h-2.5" aria-hidden="true" />
-                    ) : (
-                      <span className="w-2.5 h-2.5 inline-block" aria-hidden="true" />
-                    )}
+                    <SortIndicator active={sortBy === 'volume'} ascending={sortAsc} />
                   </span>
                 </th>
                 <th
                   scope="col"
                   onClick={() => handleSort('liquidity')}
-                  className="text-right cursor-pointer hover:text-white select-none"
+                  className="text-right cursor-pointer hover:text-white select-none transition-colors"
                   title="Sort by liquidity"
                   aria-sort={sortBy === 'liquidity' ? (sortAsc ? 'ascending' : 'descending') : 'none'}
                 >
                   <span className="inline-flex items-center gap-1">
                     Liquidity
-                    {sortBy === 'liquidity' ? (
-                      sortAsc
-                        ? <ArrowUp className="w-2.5 h-2.5" aria-hidden="true" />
-                        : <ArrowDown className="w-2.5 h-2.5" aria-hidden="true" />
-                    ) : (
-                      <span className="w-2.5 h-2.5 inline-block" aria-hidden="true" />
-                    )}
+                    <SortIndicator active={sortBy === 'liquidity'} ascending={sortAsc} />
                   </span>
                 </th>
                 {/* W49-4 — NEW AI Conf column. Surfaces the W38-4-derived
@@ -952,19 +1133,13 @@ export default function MarketScreener({ onSelectMarket, onQuickTrade }: Props) 
                 <th
                   scope="col"
                   onClick={() => handleSort('aiConfidence')}
-                  className="text-right cursor-pointer hover:text-white select-none"
+                  className="text-right cursor-pointer hover:text-white select-none transition-colors"
                   title="Sort by AI confidence (derived from volume + liquidity when upstream doesn't supply one)"
                   aria-sort={sortBy === 'aiConfidence' ? (sortAsc ? 'ascending' : 'descending') : 'none'}
                 >
                   <span className="inline-flex items-center gap-1">
                     AI Conf
-                    {sortBy === 'aiConfidence' ? (
-                      sortAsc
-                        ? <ArrowUp className="w-2.5 h-2.5" aria-hidden="true" />
-                        : <ArrowDown className="w-2.5 h-2.5" aria-hidden="true" />
-                    ) : (
-                      <span className="w-2.5 h-2.5 inline-block" aria-hidden="true" />
-                    )}
+                    <SortIndicator active={sortBy === 'aiConfidence'} ascending={sortAsc} />
                   </span>
                 </th>
                 {/* W38-4 — Opportunity Score column. Tooltip on the
@@ -973,19 +1148,13 @@ export default function MarketScreener({ onSelectMarket, onQuickTrade }: Props) 
                 <th
                   scope="col"
                   onClick={() => handleSort('score')}
-                  className="text-right cursor-pointer hover:text-white select-none"
+                  className="text-right cursor-pointer hover:text-white select-none transition-colors"
                   title="Opportunity Score = 0.35·liquidity + 0.30·volume + 0.15·spread + 0.10·AI_conf + 0.10·resolution (each factor min-max normalized 0..1, then weighted, scaled to 100). Hover any badge for the breakdown."
                   aria-sort={sortBy === 'score' ? (sortAsc ? 'ascending' : 'descending') : 'none'}
                 >
                   <span className="inline-flex items-center gap-1">
                     Score
-                    {sortBy === 'score' ? (
-                      sortAsc
-                        ? <ArrowUp className="w-2.5 h-2.5" aria-hidden="true" />
-                        : <ArrowDown className="w-2.5 h-2.5" aria-hidden="true" />
-                    ) : (
-                      <span className="w-2.5 h-2.5 inline-block" aria-hidden="true" />
-                    )}
+                    <SortIndicator active={sortBy === 'score'} ascending={sortAsc} />
                   </span>
                 </th>
                 {/* W38-4 — Edge column shows derived theoretical edge in cents.
@@ -993,38 +1162,26 @@ export default function MarketScreener({ onSelectMarket, onQuickTrade }: Props) 
                 <th
                   scope="col"
                   onClick={() => handleSort('edge')}
-                  className="text-right cursor-pointer hover:text-white select-none"
+                  className="text-right cursor-pointer hover:text-white select-none transition-colors"
                   title="Theoretical edge in cents (heuristic: 5 × volume / liquidity, clamped to 0–10¢). Click to sort."
                   aria-sort={sortBy === 'edge' ? (sortAsc ? 'ascending' : 'descending') : 'none'}
                 >
                   <span className="inline-flex items-center gap-1">
                     Edge
-                    {sortBy === 'edge' ? (
-                      sortAsc
-                        ? <ArrowUp className="w-2.5 h-2.5" aria-hidden="true" />
-                        : <ArrowDown className="w-2.5 h-2.5" aria-hidden="true" />
-                    ) : (
-                      <span className="w-2.5 h-2.5 inline-block" aria-hidden="true" />
-                    )}
+                    <SortIndicator active={sortBy === 'edge'} ascending={sortAsc} />
                   </span>
                 </th>
                 {/* W38-4 — Time to resolution column. W49-4 — sortable. */}
                 <th
                   scope="col"
                   onClick={() => handleSort('resolution')}
-                  className="text-right cursor-pointer hover:text-white select-none"
+                  className="text-right cursor-pointer hover:text-white select-none transition-colors"
                   title="Days until market resolution (from endDate if present). Click to sort."
                   aria-sort={sortBy === 'resolution' ? (sortAsc ? 'ascending' : 'descending') : 'none'}
                 >
                   <span className="inline-flex items-center gap-1">
                     Resolution
-                    {sortBy === 'resolution' ? (
-                      sortAsc
-                        ? <ArrowUp className="w-2.5 h-2.5" aria-hidden="true" />
-                        : <ArrowDown className="w-2.5 h-2.5" aria-hidden="true" />
-                    ) : (
-                      <span className="w-2.5 h-2.5 inline-block" aria-hidden="true" />
-                    )}
+                    <SortIndicator active={sortBy === 'resolution'} ascending={sortAsc} />
                   </span>
                 </th>
                 <th scope="col" className="text-right">Action</th>
@@ -1036,18 +1193,31 @@ export default function MarketScreener({ onSelectMarket, onQuickTrade }: Props) 
                 // context + a reset button so the trader can tell whether
                 // they over-constrained the view vs. the upstream
                 // actually being empty.
+                //
+                // W52-a — polished with a Lucide `SearchX` icon + title
+                // + subtitle. The "No markets found" copy is preserved
+                // verbatim so the W22-2 test `getByText(/No markets
+                // found/i)` still resolves.
                 <tr>
                   {/* W49-4 — colSpan bumped 8 → 9 to account for the new
                       AI Conf column. */}
-                  <td colSpan={9} className="text-center py-10 text-[#7e8aaa] text-xs">
-                    <div className="flex flex-col items-center gap-2">
-                      <span className="text-2xl" aria-hidden="true">🔍</span>
-                      <div className="text-[#dde1ed] font-semibold">
+                  <td colSpan={9} className="text-center py-12 align-middle">
+                    <div className="flex flex-col items-center gap-2 px-6 max-w-md mx-auto">
+                      <SearchX
+                        className="w-7 h-7 text-[#7e8aaa] mb-1"
+                        aria-hidden="true"
+                      />
+                      <div className="text-[#dde1ed] font-semibold text-sm">
                         No markets found{search ? ` for "${search}"` : ''}
+                      </div>
+                      <div className="text-[11px] text-[#7e8aaa] leading-relaxed max-w-sm">
+                        {hasActiveFilters
+                          ? 'Try widening the active filters to surface more opportunities.'
+                          : 'Try adjusting your search query or category filter.'}
                       </div>
                       {hasActiveFilters ? (
                         <>
-                          <div className="text-[10.5px] mono">
+                          <div className="text-[10.5px] mono text-[#5a637a] tabular-nums mt-1">
                             active filters: {[
                               selectedCategory !== 'ALL' && `cat=${selectedCategory}`,
                               aiConfidenceFilter !== 'ALL' && `ai_conf=${aiConfidenceFilter}`,
@@ -1059,16 +1229,13 @@ export default function MarketScreener({ onSelectMarket, onQuickTrade }: Props) 
                           <button
                             type="button"
                             onClick={resetAllFilters}
-                            className="btn btn-ghost btn-xs text-[10px] mt-1"
+                            className="btn btn-ghost btn-xs text-[10px] mt-2 inline-flex items-center gap-1"
                           >
+                            <RotateCcw className="w-3 h-3" aria-hidden="true" />
                             Reset all filters
                           </button>
                         </>
-                      ) : (
-                        <div className="text-[10.5px]">
-                          Try adjusting your search query or category filter.
-                        </div>
-                      )}
+                      ) : null}
                     </div>
                   </td>
                 </tr>
@@ -1077,7 +1244,13 @@ export default function MarketScreener({ onSelectMarket, onQuickTrade }: Props) 
                   <tr
                     key={i}
                     onClick={() => onSelectMarket && onSelectMarket(s.tokenId, s.market.slug)}
-                    className="hover:bg-blue-500/10 transition-colors cursor-pointer group"
+                    // W52-a — refined row hover: subtle cyan background
+                    // lift (`hover:bg-cyan-500/5`) + left-edge accent
+                    // bar via inset shadow
+                    // (`hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.65)]`).
+                    // No layout shift (inset shadow vs border-left).
+                    // Consistent with the MarketsPanel W51-2a row-hover.
+                    className="hover:bg-cyan-500/5 hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.65)] transition-colors cursor-pointer group"
                   >
                     {/* W39-4 — market-name cell. `title` attribute on the
                         `<td>` provides a native hover tooltip showing the
@@ -1148,10 +1321,12 @@ export default function MarketScreener({ onSelectMarket, onQuickTrade }: Props) 
                       </span>
                     </td>
                     {/* W38-4 — Opportunity Score badge with full breakdown
-                        in the tooltip (transparent formula). */}
+                        in the tooltip (transparent formula).
+                        W52-a — `tabular-nums` added for clean decimal
+                        alignment under the Score header. */}
                     <td className="text-right align-middle">
                       <span
-                        className={`mono text-[10.5px] font-bold px-1.5 py-0.5 rounded border ${scoreBadgeClass(s.score)}`}
+                        className={`mono text-[10.5px] font-bold px-1.5 py-0.5 rounded border inline-block tabular-nums ${scoreBadgeClass(s.score)}`}
                         title={scoreTooltip(s)}
                         data-testid={`opportunity-score-${i}`}
                         data-score={s.score}

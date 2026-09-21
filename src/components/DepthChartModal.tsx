@@ -1,4 +1,27 @@
 // components/DepthChartModal.tsx — Interactive Order Book Depth & Quick Trade Modal
+//
+// W52-c — Premium polish pass:
+//   • Glassmorphism modal surface via `.surface-tier-overlay` (rgba bg +
+//     12px backdrop-blur + saturate) layered on the existing `.modal` class.
+//   • Premium modal shadow via the `--shadow-modal-premium` design token
+//     (24px y-offset, 56px blur, 0.6 alpha — the heaviest elevation tier).
+//   • Backdrop blur strengthened (Tailwind `backdrop-blur-md` layered on
+//     the existing `.modal-backdrop` blur(4px)) so the dark overlay reads
+//     as a true frosted-glass pane behind the modal.
+//   • Refined header: tighter title tracking, monospaced tabular-nums on
+//     the mid/spread caption, consistent 12px close button with a red-
+//     tinted hover affordance (CSS `.modal-close:hover` + Tailwind layer).
+//   • Polished chart wrapper: `rounded-lg` + inset 1px ring + subtle
+//     drop-shadow for depth; tighter typography on the section caption.
+//   • NEW chart loading state — `DepthChartSkeleton` renders a shimmer
+//     silhouette that mimics the cumulative-depth curve while the first
+//     `/api/depth/` fetch is in-flight. Falls back to the real chart
+//     (or its own "No order book depth available" empty state) after the
+//     first fetch attempt — preserves the "No active bids/asks" test
+//     contract by keeping the ladder visible at all times.
+//   • All existing class names, props, API calls, aria-labels, and test
+//     contracts preserved (see DepthChartModal.test.tsx — 9 tests).
+//
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
@@ -57,6 +80,58 @@ interface Props {
   onOrderPlaced?: () => void
 }
 
+// ── W52-c — inline shimmer skeleton ────────────────────────────────────────
+// Renders while the first `/api/depth/` fetch is in-flight. The silhouette
+// mimics the cumulative-depth curve (bell-ish distribution of bar heights)
+// so the modal doesn't flash empty space before the real chart renders.
+// Uses Tailwind `animate-pulse` (opacity-based shimmer) layered on top of
+// a green/red gradient fill — gives a "loading order book" read without
+// relying on the `.skeleton-line-sm` gradient (which would be overridden
+// by our custom gradient fills).
+function DepthChartSkeleton({ height }: { height: number }) {
+  // Pre-baked heights to evoke a depth-curve silhouette (bids rising left
+  // → mid, asks descending mid → right). Static array so SSR + client match.
+  const heights = [
+    18, 28, 42, 55, 68, 78, 86, 92, 88, 82, 75, 66, 58, 48, 38, 28,
+    22, 32, 44, 58, 70, 82, 90, 86, 78, 68, 56, 44, 32, 22, 16, 12,
+  ]
+  return (
+    <div
+      style={{ height }}
+      className="relative overflow-hidden"
+      role="status"
+      aria-live="polite"
+      aria-label="Loading order book depth chart"
+    >
+      {/* Bid-side silhouette (left half, green) */}
+      <div className="absolute inset-0 flex items-end gap-[3px] px-1 pb-1">
+        {heights.map((h, i) => {
+          const isBid = i < heights.length / 2
+          return (
+            <div
+              key={i}
+              className="flex-1 animate-pulse rounded-[2px]"
+              style={{
+                height: `${h}%`,
+                alignSelf: 'flex-end',
+                background: isBid
+                  ? 'linear-gradient(180deg, rgba(34,197,94,0.28) 0%, rgba(34,197,94,0.04) 100%)'
+                  : 'linear-gradient(180deg, rgba(239,68,68,0.28) 0%, rgba(239,68,68,0.04) 100%)',
+              }}
+            />
+          )
+        })}
+      </div>
+      {/* Mid-price divider */}
+      <div className="absolute top-2 bottom-2 left-1/2 w-px bg-amber-500/40" />
+      {/* Caption */}
+      <div className="absolute top-2 left-2 text-[9px] mono text-[#3e4560] tracking-wider uppercase">
+        fetching depth…
+      </div>
+    </div>
+  )
+}
+
 export default function DepthChartModal({ tokenId, slug, onClose, onOrderPlaced }: Props) {
   const [data, setData] = useState<DepthData | null>(null)
   // S2: ML ensemble directional view (polled every 5s from /api/ai/predict/{token_id})
@@ -67,7 +142,14 @@ export default function DepthChartModal({ tokenId, slug, onClose, onOrderPlaced 
   const [loading, setLoading] = useState(false)
   const [feedback, setFeedback] = useState<{ ok: boolean; text: string } | null>(null)
   const [_lastFetched, setLastFetched] = useState<number | null>(null)
-  
+  // W52-c — flips true after the first `/api/depth/` attempt (success OR
+  // failure). Gates the DepthChartSkeleton so the shimmer only shows
+  // during the initial fetch window; once the first attempt completes,
+  // the real chart renders (or its own empty-state message) and the
+  // "No active bids/asks" ladder text remains visible for the W38-8 test
+  // contract `getByText('No active bids')` / `getByText('No active asks')`.
+  const [depthFirstFetchDone, setDepthFirstFetchDone] = useState(false)
+
   const modalRef = useRef<HTMLDivElement>(null)
 
   // Escape key handler
@@ -84,6 +166,9 @@ export default function DepthChartModal({ tokenId, slug, onClose, onOrderPlaced 
 
   useEffect(() => {
     if (!tokenId) return
+    // W52-c — reset the skeleton gate whenever the token changes so a
+    // newly-opened modal shows the shimmer for its own first fetch.
+    setDepthFirstFetchDone(false)
     const fetchDepth = async () => {
       try {
         const apiUrl = getApiUrl()
@@ -103,6 +188,10 @@ export default function DepthChartModal({ tokenId, slug, onClose, onOrderPlaced 
         // surface the underlying error for debugging.
         console.error('[DepthChartModal] Failed to fetch order book depth:', e)
       }
+      // W52-c — first fetch attempt complete; drop the skeleton gate so
+      // the real chart (or its empty state) renders. The bid/ask ladder
+      // remains visible regardless.
+      setDepthFirstFetchDone(true)
     }
     fetchDepth()
     const timer = setInterval(fetchDepth, 2000)
@@ -173,13 +262,14 @@ export default function DepthChartModal({ tokenId, slug, onClose, onOrderPlaced 
 
   return (
     <div
-      className="modal-backdrop"
+      className="modal-backdrop backdrop-blur-md"
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
       role="presentation"
     >
       <div
         ref={modalRef}
-        className="modal modal-wide"
+        className="modal modal-wide surface-tier-overlay"
+        style={{ boxShadow: 'var(--shadow-modal-premium)' }}
         role="dialog"
         aria-modal="true"
         aria-labelledby="depth-modal-title"
@@ -188,21 +278,21 @@ export default function DepthChartModal({ tokenId, slug, onClose, onOrderPlaced 
         <div className="modal-header">
           <div>
             <div className="flex items-center gap-2">
-              <span id="depth-modal-title" className="text-sm font-bold text-[#dde1ed]">
+              <span id="depth-modal-title" className="text-sm font-bold text-[#dde1ed] tracking-tight">
                 📊 Order Book Depth: <span className="text-blue-400">{slug || tokenId.slice(0, 16)}</span>
               </span>
               <span className="badge badge-amber text-[9.5px]">Paper</span>
             </div>
-            <span className="text-[11px] text-[#7e8aaa] mono mt-0.5 block">
+            <span className="text-[11px] text-[#7e8aaa] mono mt-0.5 block tabular-nums">
               Mid: {data?.mid ? `${(data.mid * 100).toFixed(1)}¢` : '—'} | Spread: {data?.spread ? `${(data.spread * 100).toFixed(1)}¢` : '—'}
             </span>
           </div>
           <button
             onClick={onClose}
-            className="modal-close"
+            className="modal-close transition-colors duration-150 hover:text-red-300 hover:bg-red-500/10 hover:ring-1 hover:ring-red-500/30 rounded-md w-7 h-7 inline-flex items-center justify-center text-[13px] leading-none"
             aria-label="Close market depth modal"
           >
-            ✕
+            <span aria-hidden="true">✕</span>
           </button>
         </div>
 
@@ -213,31 +303,36 @@ export default function DepthChartModal({ tokenId, slug, onClose, onOrderPlaced 
               below. The chart shows the stepped areas for bids (green,
               left of mid) and asks (red, right of mid), with a dashed
               mid-price reference line and a top-right spread chip.
-              Falls back gracefully to an empty-state message when no
-              depth data has loaded yet (first 2s fetch window). */}
-          <div className="bg-[#0e1015] p-2.5 rounded border border-[#1f2335]">
-            <div className="text-[10px] font-bold uppercase text-[#7e8aaa] mb-1.5 flex items-center justify-between">
+              W52-c — wrapped in a refined surface (rounded-lg + inset
+              ring + drop shadow) and gated behind DepthChartSkeleton
+              while the first `/api/depth/` fetch is in-flight. */}
+          <div className="bg-[#0e1015] p-2.5 rounded-lg border border-[#1f2335] shadow-[0_2px_10px_rgba(0,0,0,0.20)]">
+            <div className="text-[10px] font-bold uppercase text-[#7e8aaa] mb-1.5 flex items-center justify-between tracking-wider">
               <span>📊 Cumulative Market Depth</span>
-              <span className="text-[9px] mono text-[#3e4560]">
+              <span className="text-[9px] mono text-[#3e4560] tabular-nums">
                 bids {data?.bids?.length ?? 0} · asks {data?.asks?.length ?? 0}
               </span>
             </div>
-            <MarketDepthChart
-              bids={data?.bids ?? []}
-              asks={data?.asks ?? []}
-              mid={data?.mid ?? null}
-              bestBid={data?.best_bid ?? null}
-              bestAsk={data?.best_ask ?? null}
-              spread={data?.spread ?? null}
-              height={220}
-            />
+            {data === null && !depthFirstFetchDone ? (
+              <DepthChartSkeleton height={220} />
+            ) : (
+              <MarketDepthChart
+                bids={data?.bids ?? []}
+                asks={data?.asks ?? []}
+                mid={data?.mid ?? null}
+                bestBid={data?.best_bid ?? null}
+                bestAsk={data?.best_ask ?? null}
+                spread={data?.spread ?? null}
+                height={220}
+              />
+            )}
           </div>
 
           {/* Depth Chart Columns */}
           <div className="grid grid-cols-2 gap-3 text-[11px]">
             {/* Bids */}
-            <div className="bg-[#0e1015] p-2.5 rounded border border-[#1f2335]">
-              <div className="text-[10px] font-bold uppercase text-green-400 mb-2 flex justify-between">
+            <div className="bg-[#0e1015] p-2.5 rounded-lg border border-[#1f2335]">
+              <div className="text-[10px] font-bold uppercase text-green-400 mb-2 flex justify-between tracking-wider">
                 <span>Bids (Buy Orders)</span>
                 <span>Cumulative</span>
               </div>
@@ -254,8 +349,8 @@ export default function DepthChartModal({ tokenId, slug, onClose, onOrderPlaced 
                         className="absolute left-0 top-0 bottom-0 bg-green-500/20 rounded-l transition-all duration-200"
                         style={{ width: `${(b.total / maxTotal) * 100}%` }}
                       />
-                      <span className="mono text-green-400 z-10 font-semibold">{fmtPrice(b.price)}</span>
-                      <span className="mono text-[#7e8aaa] z-10">{b.size.toFixed(1)} ({b.total.toFixed(0)})</span>
+                      <span className="mono text-green-400 z-10 font-semibold tabular-nums">{fmtPrice(b.price)}</span>
+                      <span className="mono text-[#7e8aaa] z-10 tabular-nums">{b.size.toFixed(1)} ({b.total.toFixed(0)})</span>
                     </div>
                   ))
                 ) : (
@@ -265,8 +360,8 @@ export default function DepthChartModal({ tokenId, slug, onClose, onOrderPlaced 
             </div>
 
             {/* Asks */}
-            <div className="bg-[#0e1015] p-2.5 rounded border border-[#1f2335]">
-              <div className="text-[10px] font-bold uppercase text-red-400 mb-2 flex justify-between">
+            <div className="bg-[#0e1015] p-2.5 rounded-lg border border-[#1f2335]">
+              <div className="text-[10px] font-bold uppercase text-red-400 mb-2 flex justify-between tracking-wider">
                 <span>Cumulative</span>
                 <span>Asks (Sell Orders)</span>
               </div>
@@ -283,8 +378,8 @@ export default function DepthChartModal({ tokenId, slug, onClose, onOrderPlaced 
                         className="absolute right-0 top-0 bottom-0 bg-red-500/20 rounded-r transition-all duration-200"
                         style={{ width: `${(a.total / maxTotal) * 100}%` }}
                       />
-                      <span className="mono text-[#7e8aaa] z-10">{a.size.toFixed(1)} ({a.total.toFixed(0)})</span>
-                      <span className="mono text-red-400 z-10 font-semibold">{fmtPrice(a.price)}</span>
+                      <span className="mono text-[#7e8aaa] z-10 tabular-nums">{a.size.toFixed(1)} ({a.total.toFixed(0)})</span>
+                      <span className="mono text-red-400 z-10 font-semibold tabular-nums">{fmtPrice(a.price)}</span>
                     </div>
                   ))
                 ) : (
@@ -295,10 +390,10 @@ export default function DepthChartModal({ tokenId, slug, onClose, onOrderPlaced 
           </div>
 
           {/* S2: ML Edge Panel — model P(YES) vs market mid, polled @5s */}
-          <div className="bg-[#0e1015] p-3 rounded border border-[#1f2335] space-y-2.5">
+          <div className="bg-[#0e1015] p-3 rounded-lg border border-[#1f2335] space-y-2.5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="text-[11px] font-bold uppercase text-[#7e8aaa]">
+                <span className="text-[11px] font-bold uppercase text-[#7e8aaa] tracking-wider">
                   🧠 ML Edge
                 </span>
                 <span
@@ -314,7 +409,7 @@ export default function DepthChartModal({ tokenId, slug, onClose, onOrderPlaced 
                   {mlPred?.model_status?.model_ready ? 'Model Ready' : 'Booting'}
                 </span>
               </div>
-              <span className="text-[9.5px] text-[#7e8aaa] mono">
+              <span className="text-[9.5px] text-[#7e8aaa] mono tabular-nums">
                 {mlPred
                   ? `updated ${new Date((mlPred.timestamp ?? 0) * 1000).toLocaleTimeString()}`
                   : 'polling @5s'}
@@ -325,10 +420,10 @@ export default function DepthChartModal({ tokenId, slug, onClose, onOrderPlaced 
               {/* Model P(YES) */}
               <div className="bg-[#13161e] border border-[#1f2335] rounded px-2 py-1.5">
                 <div className="text-[9px] uppercase text-[#7e8aaa]">Model P(YES)</div>
-                <div className="mono font-semibold text-[#dde1ed] leading-tight">
+                <div className="mono font-semibold text-[#dde1ed] leading-tight tabular-nums">
                   {mlPred ? `${(mlPred.p_yes * 100).toFixed(1)}%` : '—'}
                 </div>
-                <div className="text-[9px] text-[#7e8aaa] mono">
+                <div className="text-[9px] text-[#7e8aaa] mono tabular-nums">
                   conf {mlPred ? `${(mlPred.confidence * 100).toFixed(0)}%` : '—'}
                 </div>
               </div>
@@ -336,12 +431,12 @@ export default function DepthChartModal({ tokenId, slug, onClose, onOrderPlaced 
               {/* Market Mid */}
               <div className="bg-[#13161e] border border-[#1f2335] rounded px-2 py-1.5">
                 <div className="text-[9px] uppercase text-[#7e8aaa]">Market Mid</div>
-                <div className="mono font-semibold text-[#dde1ed] leading-tight">
+                <div className="mono font-semibold text-[#dde1ed] leading-tight tabular-nums">
                   {mlPred?.market_mid != null
                     ? `${(mlPred.market_mid * 100).toFixed(1)}¢`
                     : '—'}
                 </div>
-                <div className="text-[9px] text-[#7e8aaa] mono">
+                <div className="text-[9px] text-[#7e8aaa] mono tabular-nums">
                   {mlPred?.market_mid != null
                     ? `$${mlPred.market_mid.toFixed(3)}`
                     : 'no book'}
@@ -352,7 +447,7 @@ export default function DepthChartModal({ tokenId, slug, onClose, onOrderPlaced 
               <div className="bg-[#13161e] border border-[#1f2335] rounded px-2 py-1.5">
                 <div className="text-[9px] uppercase text-[#7e8aaa]">Edge</div>
                 <div
-                  className={`mono font-semibold leading-tight ${
+                  className={`mono font-semibold leading-tight tabular-nums ${
                     mlPred?.edge == null
                       ? 'text-[#3e4560]'
                       : mlPred.edge > 0
@@ -366,7 +461,7 @@ export default function DepthChartModal({ tokenId, slug, onClose, onOrderPlaced 
                     ? '—'
                     : `${mlPred.edge >= 0 ? '+' : ''}${(mlPred.edge * 100).toFixed(2)}%`}
                 </div>
-                <div className="text-[9px] text-[#7e8aaa] mono">
+                <div className="text-[9px] text-[#7e8aaa] mono tabular-nums">
                   {mlPred?.edge_bps != null
                     ? `${mlPred.edge_bps >= 0 ? '+' : ''}${mlPred.edge_bps.toFixed(0)} bps`
                     : '— bps'}
@@ -406,8 +501,8 @@ export default function DepthChartModal({ tokenId, slug, onClose, onOrderPlaced 
           </div>
 
           {/* Quick Trade Form */}
-          <div className="bg-[#0e1015] p-3 rounded border border-[#1f2335] space-y-3">
-            <div className="text-[11px] font-semibold uppercase text-[#7e8aaa] flex justify-between items-center">
+          <div className="bg-[#0e1015] p-3 rounded-lg border border-[#1f2335] space-y-3">
+            <div className="text-[11px] font-semibold uppercase text-[#7e8aaa] flex justify-between items-center tracking-wider">
               <span>Manual Paper Trade Execution</span>
               <div className="flex gap-1" role="group" aria-label="Trade direction">
                 <button
@@ -487,9 +582,9 @@ export default function DepthChartModal({ tokenId, slug, onClose, onOrderPlaced 
 
                 return (
                   <div className="flex items-center gap-2 bg-[#13161e] border border-[#1f2335] px-2 py-0.5 rounded text-[10.5px]">
-                    <span className="text-[#7e8aaa]">Est. Shares: <strong className="text-[#dde1ed] mono">{estShares.toFixed(1)}</strong></span>
+                    <span className="text-[#7e8aaa]">Est. Shares: <strong className="text-[#dde1ed] mono tabular-nums">{estShares.toFixed(1)}</strong></span>
                     <span className="text-[#3e4560]">|</span>
-                    <span className="text-[#7e8aaa]">Payout: <strong className="text-green-400 mono">${estPayout.toFixed(2)}</strong> ({returnPct >= 0 ? `+${returnPct.toFixed(0)}%` : `${returnPct.toFixed(0)}%`})</span>
+                    <span className="text-[#7e8aaa]">Payout: <strong className="text-green-400 mono tabular-nums">${estPayout.toFixed(2)}</strong> ({returnPct >= 0 ? `+${returnPct.toFixed(0)}%` : `${returnPct.toFixed(0)}%`})</span>
                   </div>
                 )
               })()}
