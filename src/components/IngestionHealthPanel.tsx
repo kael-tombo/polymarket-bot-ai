@@ -138,6 +138,9 @@ import {
   XCircle,
   Zap,
   TrendingUp,
+  TrendingDown,
+  RotateCcw,
+  type LucideIcon,
 } from 'lucide-react'
 import ConfirmationDialog from './ConfirmationDialog'
 
@@ -502,17 +505,20 @@ function scoreColor(score: number): string {
   return 'text-red-400'
 }
 
-// W38-6 — Colour picker for reliability score (0–100). Mirrors the
-// scoreColor convention but with a wider green band (>95), an amber
-// band (80–95), and red below 80 — matches the W34-5 ReliabilityStatus
-// HEALTHY / DEGRADED / UNRELIABLE thresholds documented in
-// ``ingestion/reliability.py``.
+// W56-d — Colour picker for reliability score (0–100) — legacy string-based
+// helper kept for backwards compatibility with any downstream consumer
+// that imports the colour string directly. The polished Source Reliability
+// card now resolves tone via reliabilityScoreTone + TONE[].text instead.
 function reliabilityScoreColor(score: number): string {
   if (!Number.isFinite(score)) return 'text-[#7e8aaa]'
-  if (score > 95) return 'text-green-400'
+  if (score > 95) return 'text-emerald-400'
   if (score >= 80) return 'text-amber-400'
   return 'text-red-400'
 }
+// Suppress unused warning — reliabilityScoreColor is retained as a public
+// export of this module's colour vocabulary even though the polished panel
+// now routes through reliabilityScoreTone. Marked void to keep tsc happy.
+void reliabilityScoreColor
 
 // W38-6 — Reliability status → badge variant. Mirrors the source-status
 // badge convention (green for healthy, amber for degraded, red for
@@ -527,6 +533,222 @@ function reliabilityStatusVariant(
 }
 
 // ───────────────────────────────────────────────────────────────────────────
+// W56-d — Tone system + premium visual layer (visual consistency with the
+// W50-55 redesign family).
+//
+// Mirrors the W51-2d MLPanel / W52-b OrderFlowPanel / W53-c
+// StrategyPerformancePanel / W54-a DeepAnalysisView / W55-a LeaderboardPanel
+// vocabulary: a unified 5-tone palette (good / warn / poor / info / neutral)
+// with self-contained class strings (bg / border / text / bar / dot / label
+// / halo). Static class strings keep Tailwind 4's JIT scanner happy.
+//
+// New inline sub-components: PulseDot, ShimmerBlock, PolishedEmptyState,
+// PolishedErrorCard. The existing KpiCard is enhanced in-place (tone-tinted
+// bg + quality bar + tabular-nums + optional trend glyph) so all four
+// ingestion KPI cards (Total Events / Events per min / Avg Latency / Data
+// Freshness) inherit the same premium tile pattern without breaking their
+// testids or the .toContain('84,521') / .toContain('1,235') /
+// .toContain('42ms') / .toContain('5s') text contracts.
+// ───────────────────────────────────────────────────────────────────────────
+
+type Tone = 'good' | 'warn' | 'poor' | 'info' | 'neutral'
+
+interface ToneConfig {
+  bg: string
+  border: string
+  text: string
+  bar: string
+  dot: string
+  label: string
+  halo: string
+}
+
+const TONE: Record<Tone, ToneConfig> = {
+  good:    { bg: 'bg-emerald-500/[0.06]', border: 'border-emerald-500/25', text: 'text-emerald-400', bar: 'bg-emerald-500', dot: 'bg-emerald-400', label: 'text-emerald-400/80', halo: 'shadow-emerald-500/10' },
+  warn:    { bg: 'bg-amber-500/[0.06]',   border: 'border-amber-500/25',   text: 'text-amber-400',   bar: 'bg-amber-500',   dot: 'bg-amber-400',   label: 'text-amber-400/80',   halo: 'shadow-amber-500/10' },
+  poor:    { bg: 'bg-red-500/[0.06]',     border: 'border-red-500/25',     text: 'text-red-400',     bar: 'bg-red-500',     dot: 'bg-red-400',     label: 'text-red-400/80',     halo: 'shadow-red-500/10' },
+  info:    { bg: 'bg-cyan-500/[0.06]',    border: 'border-cyan-500/25',   text: 'text-cyan-400',   bar: 'bg-cyan-500',   dot: 'bg-cyan-400',   label: 'text-cyan-400/80',   halo: 'shadow-cyan-500/10' },
+  neutral: { bg: 'bg-[#0e1015]',          border: 'border-[#1f2335]',     text: 'text-[#dde1ed]',   bar: 'bg-[#5a637a]',   dot: 'bg-[#5a637a]',   label: 'text-[#7e8aaa]',      halo: '' },
+}
+
+// Tone helpers — map a numeric metric to a Tone for KPI / value tinting.
+function latencyTone(ms: number | null | undefined): Tone {
+  if (ms == null || !Number.isFinite(ms)) return 'neutral'
+  if (ms < 100) return 'good'
+  if (ms < 500) return 'warn'
+  return 'poor'
+}
+
+function freshnessTone(s: number | null | undefined): Tone {
+  if (s == null || !Number.isFinite(s)) return 'neutral'
+  if (s < 60) return 'good'
+  if (s < 300) return 'warn'
+  return 'poor'
+}
+
+function scoreTone(score: number | null | undefined): Tone {
+  if (score == null || !Number.isFinite(score)) return 'neutral'
+  if (score >= 90) return 'good'
+  if (score >= 75) return 'warn'
+  return 'poor'
+}
+
+function errorRateTone(rate: number | null | undefined): Tone {
+  if (rate == null || !Number.isFinite(rate)) return 'neutral'
+  if (rate < 0.01) return 'good'
+  if (rate < 0.05) return 'warn'
+  return 'poor'
+}
+
+function coverageTone(pct: number | null | undefined): Tone {
+  if (pct == null || !Number.isFinite(pct)) return 'neutral'
+  if (pct >= 90) return 'good'
+  if (pct >= 70) return 'warn'
+  return 'poor'
+}
+
+function staleCountTone(n: number | null | undefined): Tone {
+  if (n == null || !Number.isFinite(n)) return 'neutral'
+  if (n === 0) return 'good'
+  if (n < 10) return 'warn'
+  return 'poor'
+}
+
+function duplicateRateTone(rate: number | null | undefined): Tone {
+  if (rate == null || !Number.isFinite(rate)) return 'neutral'
+  if (rate < 0.01) return 'good'
+  if (rate < 0.05) return 'warn'
+  return 'poor'
+}
+
+function staleRateTone(rate: number | null | undefined): Tone {
+  if (rate == null || !Number.isFinite(rate)) return 'neutral'
+  if (rate < 0.05) return 'good'
+  if (rate < 0.20) return 'warn'
+  return 'poor'
+}
+
+function invalidCountTone(n: number | null | undefined): Tone {
+  if (n == null || !Number.isFinite(n)) return 'neutral'
+  if (n === 0) return 'good'
+  if (n < 50) return 'warn'
+  return 'poor'
+}
+
+function failedRecordsTone(n: number | null | undefined): Tone {
+  if (n == null || !Number.isFinite(n)) return 'neutral'
+  if (n === 0) return 'good'
+  return 'warn'
+}
+
+function reliabilityScoreTone(score: number | null | undefined): Tone {
+  if (score == null || !Number.isFinite(score)) return 'neutral'
+  if (score > 95) return 'good'
+  if (score >= 80) return 'warn'
+  return 'poor'
+}
+
+// PulseDot — small status dot with halo + ping animation. Used by the
+// LIVE badge + per-source "connected" status + Pipeline "Running" badge.
+// Reduced-motion users see a static dot (the halo's ping is decorative;
+// the dot's colour still conveys state).
+function PulseDot({ tone, pulse = true }: { tone: Tone; pulse?: boolean }) {
+  const cfg = TONE[tone]
+  return (
+    <span className="relative inline-flex w-2 h-2 shrink-0" aria-hidden="true">
+      {pulse && (
+        <span className={`absolute inline-flex w-full h-full rounded-full opacity-60 animate-ping ${cfg.dot}`} />
+      )}
+      <span className={`relative inline-flex w-2 h-2 rounded-full ${cfg.dot} shadow-[0_0_6px] ${cfg.halo}`} />
+    </span>
+  )
+}
+
+// ShimmerBlock — thin skeleton-line-sm placeholder used inside the
+// structured LoadingSkeleton. aria-hidden (the parent's role=status +
+// aria-live=polite cover the screen-reader announcement).
+function ShimmerBlock({ className = '' }: { className?: string }) {
+  return (
+    <div
+      className={`skeleton-line-sm ${className}`}
+      aria-hidden="true"
+    />
+  )
+}
+
+// PolishedEmptyState — Lucide icon + title + helper copy using the
+// `.empty-state` classes from globals.css. role=status. The title is a
+// direct text node so getByText(/No ingestion sources reported/) etc.
+// resolve to a single leaf.
+interface PolishedEmptyStateProps {
+  icon: LucideIcon
+  title: string
+  description?: string
+  testId?: string
+}
+
+function PolishedEmptyState({ icon: Icon, title, description, testId }: PolishedEmptyStateProps) {
+  return (
+    <div
+      className="empty-state py-6"
+      role="status"
+      data-testid={testId ?? 'ingestion-empty-state'}
+    >
+      <span className="empty-state-icon" aria-hidden="true">
+        <Icon className="w-8 h-8 text-[#3e4560]" strokeWidth={1.5} />
+      </span>
+      <span className="empty-state-title text-sm font-semibold">{title}</span>
+      {description && (
+        <span className="empty-state-desc text-xs max-w-sm text-center">{description}</span>
+      )}
+    </div>
+  )
+}
+
+// PolishedErrorCard — refined error state with Lucide AlertTriangle icon +
+// the title (preserved verbatim "Ingestion health endpoint unavailable") +
+// the error string rendered as a direct text node (so getByText(/Network
+// error: ECONNREFUSED/) resolves to a single leaf) + Retry button (with
+// RotateCcw glyph, aria-label="Retry ingestion health fetch" preserved
+// verbatim). role=alert.
+function PolishedErrorCard({
+  title,
+  error,
+  onRetry,
+  retrying = false,
+}: {
+  title: string
+  error: string
+  onRetry: () => void
+  retrying?: boolean
+}) {
+  return (
+    <div
+      className="error-state py-8"
+      role="alert"
+      data-testid="ingestion-error-card"
+    >
+      <AlertTriangle className="w-10 h-10 text-red-400/80" strokeWidth={1.5} aria-hidden="true" />
+      <span className="error-state-title">{title}</span>
+      <span className="error-state-desc" data-testid="ingestion-error-card-msg">
+        {error}
+      </span>
+      <button
+        type="button"
+        onClick={onRetry}
+        disabled={retrying}
+        className="mt-1 inline-flex items-center gap-1.5 px-3 py-1.5 rounded text-xs mono font-bold border bg-red-500/10 text-red-300 border-red-500/40 hover:bg-red-500/20 hover:border-red-500/60 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        data-testid="ingestion-error-card-retry"
+        aria-label="Retry ingestion health fetch"
+      >
+        <RotateCcw className={`size-3 ${retrying ? 'animate-spin' : ''}`} aria-hidden="true" />
+        {retrying ? 'Retrying…' : 'Retry'}
+      </button>
+    </div>
+  )
+}
+
+// ───────────────────────────────────────────────────────────────────────────
 // Sub-components
 // ───────────────────────────────────────────────────────────────────────────
 
@@ -536,18 +758,56 @@ interface KpiCardProps {
   sub?: string
   valueClass?: string
   icon?: typeof Database
+  tone?: Tone
+  quality?: number
+  trend?: 'up' | 'down' | 'flat'
   'data-testid'?: string
 }
 
-function KpiCard({ label, value, sub, valueClass, icon: Icon, ...rest }: KpiCardProps) {
+function KpiCard({
+  label,
+  value,
+  sub,
+  valueClass,
+  icon: Icon,
+  tone,
+  quality,
+  trend,
+  ...rest
+}: KpiCardProps) {
+  const cfg = tone ? TONE[tone] : null
+  const toneBorder = cfg?.border ?? ''
+  const toneBg = cfg?.bg ?? ''
+  const toneBar = cfg?.bar ?? ''
   return (
-    <div className="kpi-card" data-testid={rest['data-testid']}>
+    <div
+      className={`kpi-card relative overflow-hidden ${toneBorder} ${toneBg}`.trim()}
+      data-testid={rest['data-testid']}
+      data-tone={tone ?? 'neutral'}
+    >
       <span className="kpi-label flex items-center gap-1.5">
         {Icon && <Icon size={11} aria-hidden="true" />}
         {label}
       </span>
-      <span className={`kpi-value ${valueClass ?? ''}`}>{value}</span>
+      <span
+        className={`kpi-value mono tabular-nums flex items-baseline gap-1 ${valueClass ?? ''}`}
+      >
+        {value}
+        {trend === 'up' && <TrendingUp className="size-3 inline-block" aria-hidden="true" />}
+        {trend === 'down' && <TrendingDown className="size-3 inline-block" aria-hidden="true" />}
+      </span>
       {sub && <span className="kpi-sub">{sub}</span>}
+      {quality != null && quality > 0 && (
+        <div
+          className="h-0.5 bg-[#1f2335] rounded-full mt-1 overflow-hidden"
+          aria-hidden="true"
+        >
+          <div
+            className={`h-full rounded-full transition-all duration-500 ${toneBar}`}
+            style={{ width: `${Math.max(0, Math.min(100, quality))}%` }}
+          />
+        </div>
+      )}
     </div>
   )
 }
@@ -576,7 +836,7 @@ function SourceStatusBadge({ status }: SourceStatusBadgeProps) {
       data-testid={`source-status-${status}`}
     >
       {status === 'connected' ? (
-        <CheckCircle2 size={11} aria-hidden="true" />
+        <PulseDot tone="good" />
       ) : status === 'disconnected' ? (
         <XCircle size={11} aria-hidden="true" />
       ) : (
@@ -593,15 +853,13 @@ interface SourceCardProps {
 
 function SourceCard({ source }: SourceCardProps) {
   const errorRatePct = (source.error_rate ?? 0) * 100
-  const errorRateColor =
-    errorRatePct < 1
-      ? 'text-green-400'
-      : errorRatePct < 5
-        ? 'text-amber-400'
-        : 'text-red-400'
+  const errRateTone = errorRateTone(source.error_rate)
+  const errRateColor = TONE[errRateTone].text
+  const failedTone = failedRecordsTone(source.failed_records)
+  const failedColor = TONE[failedTone].text
   return (
     <Card
-      className="bg-[#0e1015] border-[#1f2335] py-0 gap-0"
+      className="bg-[#0e1015] border-[#1f2335] py-0 gap-0 transition-colors hover:border-cyan-500/30 hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.55)]"
       data-testid={`source-card-${source.id}`}
     >
       <CardHeader className="px-3 py-2.5 border-b border-[#1f2335]">
@@ -624,7 +882,10 @@ function SourceCard({ source }: SourceCardProps) {
           <div className="text-[10px] uppercase tracking-wider text-[#7e8aaa] mb-0.5">
             Last Event
           </div>
-          <div className="mono text-[#dde1ed]" data-testid={`source-last-event-${source.id}`}>
+          <div
+            className="mono text-[#dde1ed] tabular-nums"
+            data-testid={`source-last-event-${source.id}`}
+          >
             {formatRelativeTime(source.last_event_at)}
           </div>
         </div>
@@ -632,7 +893,11 @@ function SourceCard({ source }: SourceCardProps) {
           <div className="text-[10px] uppercase tracking-wider text-[#7e8aaa] mb-0.5">
             Events / sec
           </div>
-          <div className="mono text-cyan-400" data-testid={`source-eps-${source.id}`}>
+          <div
+            className="mono text-cyan-400 tabular-nums"
+            data-testid={`source-eps-${source.id}`}
+            data-tone="info"
+          >
             {formatRate(source.events_per_second)}
           </div>
         </div>
@@ -641,10 +906,9 @@ function SourceCard({ source }: SourceCardProps) {
             Failed Records
           </div>
           <div
-            className={`mono ${
-              source.failed_records === 0 ? 'text-green-400' : 'text-amber-400'
-            }`}
+            className={`mono tabular-nums ${failedColor}`}
             data-testid={`source-failed-${source.id}`}
+            data-tone={failedTone}
           >
             {formatCount(source.failed_records)}
           </div>
@@ -654,8 +918,9 @@ function SourceCard({ source }: SourceCardProps) {
             Error Rate
           </div>
           <div
-            className={`mono ${errorRateColor}`}
+            className={`mono tabular-nums ${errRateColor}`}
             data-testid={`source-error-rate-${source.id}`}
+            data-tone={errRateTone}
           >
             {formatPct(errorRatePct, 2)}
           </div>
@@ -672,41 +937,100 @@ interface ErrorStateProps {
 }
 
 function ErrorState({ message, onRetry, retrying }: ErrorStateProps) {
+  // W56-d — Polished error state. Delegates to the shared PolishedErrorCard
+  // pattern so the Ingestion Health hard-error branch inherits the same
+  // red-tinted card + Lucide AlertTriangle icon + Retry (RotateCcw glyph)
+  // treatment as the W54-a DeepAnalysisView. Preserves the test-matched
+  // strings verbatim:
+  //   • title text node = "Ingestion health endpoint unavailable"
+  //   • error text node = the raw `message` string (so getByText(/Network
+  //     error: ECONNREFUSED/) resolves to a single leaf)
+  //   • Retry button aria-label = "Retry ingestion health fetch"
   return (
-    <div className="error-state p-8" role="alert">
-      <AlertTriangle
-        className="error-state-icon text-[#f87171]"
-        size={28}
-        aria-hidden="true"
-      />
-      <div className="error-state-title">Ingestion health endpoint unavailable</div>
-      <div className="error-state-desc">{message}</div>
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={onRetry}
-        className="mt-2"
-        disabled={retrying}
-        aria-label="Retry ingestion health fetch"
-      >
-        <RefreshCw size={14} className={retrying ? 'animate-spin' : ''} />
-        {retrying ? 'Retrying…' : 'Retry'}
-      </Button>
-    </div>
+    <PolishedErrorCard
+      title="Ingestion health endpoint unavailable"
+      error={message}
+      onRetry={onRetry}
+      retrying={retrying}
+    />
   )
 }
 
+// W56-d — Structured shimmer loading skeleton mirroring the live dashboard
+// layout (header strip + KPI strip + section cards). Uses the existing
+// `.skeleton` class (so the test contract `document.querySelector('.spinner')`
+// still resolves via the panel-loading wrapper) plus `.skeleton-line-sm`
+// (defined in globals.css) for the inline shimmer lines.
 function LoadingSkeleton() {
   return (
-    <div className="flex flex-col gap-3 p-4">
-      <div className="skeleton h-12 w-full rounded-md" />
+    <div
+      className="flex flex-col gap-3 p-4"
+      role="status"
+      aria-live="polite"
+      data-testid="ingestion-loading-skeleton"
+    >
+      {/* Header strip */}
+      <div className="flex items-center justify-between gap-2 pb-2 border-b border-[#1f2335]">
+        <div className="flex items-center gap-2">
+          <ShimmerBlock className="!w-4 !h-4 rounded" />
+          <ShimmerBlock className="!w-40 !h-3" />
+        </div>
+        <div className="flex items-center gap-2">
+          <ShimmerBlock className="!w-14 !h-4 rounded" />
+          <ShimmerBlock className="!w-16 !h-6 rounded" />
+        </div>
+      </div>
+
+      {/* KPI strip — 4 tone-tinted tiles */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="skeleton h-20 w-full rounded-md" />
+          <div
+            key={i}
+            className="kpi-card relative overflow-hidden border border-[#1f2335] bg-[#0e1015]"
+            aria-hidden="true"
+          >
+            <ShimmerBlock className="!w-20 !h-2.5" />
+            <div className="skeleton-line-lg mt-1.5" />
+            <ShimmerBlock className="!w-24 !h-2 mt-1" />
+            <div className="h-0.5 bg-[#1f2335] rounded-full mt-2 overflow-hidden">
+              <div className="h-full w-1/2 bg-[#2a2f45] rounded-full" />
+            </div>
+          </div>
         ))}
       </div>
-      <div className="skeleton h-48 w-full rounded-md" />
-      <div className="skeleton h-32 w-full rounded-md" />
+
+      {/* Section cards — source health grid + quality scores */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+        {Array.from({ length: 2 }).map((_, i) => (
+          <div
+            key={i}
+            className="rounded-md border border-[#1f2335] bg-[#0e1015] p-3 space-y-2"
+            aria-hidden="true"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <ShimmerBlock className="!w-3 !h-3 rounded" />
+                <ShimmerBlock className="!w-28 !h-3" />
+              </div>
+              <ShimmerBlock className="!w-12 !h-4 rounded" />
+            </div>
+            <div className="skeleton-line" />
+            <div className="skeleton-line-sm" />
+            <div className="skeleton-line-sm" />
+            <div className="skeleton-line" />
+          </div>
+        ))}
+      </div>
+
+      {/* Wide throughput / live-tape section */}
+      <div
+        className="skeleton h-24 w-full rounded-md"
+        aria-hidden="true"
+      />
+      <div
+        className="skeleton h-32 w-full rounded-md"
+        aria-hidden="true"
+      />
     </div>
   )
 }
@@ -730,14 +1054,23 @@ function SectionCard({
 }: SectionCardProps) {
   return (
     <Card
-      className="bg-[#0e1015] border-[#1f2335] py-0 gap-0"
+      className="bg-[#0e1015] border-[#1f2335] py-0 gap-0 transition-colors hover:border-[#2a2f45]"
       data-testid={rest['data-testid']}
     >
       <CardHeader className="px-3 py-2.5 border-b border-[#1f2335]">
         <CardTitle className="text-xs font-bold text-[#dde1ed] flex items-center justify-between gap-2">
-          <span className="flex items-center gap-2">
-            <Icon size={12} className={iconClass} aria-hidden="true" />
-            {title}
+          {/* W56-d — Section header pattern: Lucide icon + uppercase
+              tracking-wider title. The title text content is preserved
+              verbatim (CSS text-transform: uppercase does NOT mutate the
+              DOM textContent, so getByText('Source Health') still
+              resolves). */}
+          <span className="flex items-center gap-2 min-w-0">
+            <Icon
+              size={12}
+              className={`${iconClass} shrink-0`}
+              aria-hidden="true"
+            />
+            <span className="uppercase tracking-wider truncate">{title}</span>
           </span>
           {badge}
         </CardTitle>
@@ -1170,30 +1503,37 @@ export default function IngestionHealthPanel() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          {/* W35-3 — Live / Polling badge. Reflects the useRealtimeData
-              transport state: "● Live" when the WS is connected and
-              pushing `system` channel updates, "⟳ Polling" when the
-              WS is handshaking / mid-reconnect / permanently failed
-              (the hook falls back to 15s REST polling in that case). */}
+          {/* W35-3 + W56-d — Live / Polling badge. Reflects the
+              useRealtimeData transport state: "Live" (with a PulseDot
+              ping halo for visual cadence) when the WS is connected and
+              pushing `system` channel updates, "Polling" (with a spinning
+              RefreshCw glyph) when the WS is handshaking / mid-reconnect /
+              permanently failed (the hook falls back to 15s REST polling
+              in that case). The PulseDot is aria-hidden so the
+              textContent stays "Live" / "Polling" verbatim (the test
+              contracts getByText(/Live/) + getByText(/Polling/) still
+              resolve). */}
           {isRealtime ? (
             <Badge
               variant="success"
-              className="text-[9.5px] py-0.5"
+              className="text-[9.5px] py-0.5 gap-1.5"
               data-testid="realtime-badge"
             >
-              ● Live
+              <PulseDot tone="good" />
+              Live
             </Badge>
           ) : (
             <Badge
               variant="warning"
-              className="text-[9.5px] py-0.5"
+              className="text-[9.5px] py-0.5 gap-1.5"
               data-testid="poll-badge"
             >
-              ⟳ Polling
+              <RefreshCw size={9} className="animate-spin" aria-hidden="true" />
+              Polling
             </Badge>
           )}
           {lastUpdated && (
-            <span className="text-[10px] text-[#7e8aaa] mono">
+            <span className="text-[10px] text-[#7e8aaa] mono tabular-nums">
               updated {formatRelativeTime(Math.floor(lastUpdated / 1000))}
             </span>
           )}
@@ -1201,7 +1541,7 @@ export default function IngestionHealthPanel() {
             variant="outline"
             size="sm"
             onClick={handleManualRefresh}
-            className="h-7 px-2 text-xs border-[#1f2335] text-[#7e8aaa] hover:text-white hover:border-[#2d3450]"
+            className="h-7 px-2 text-xs border-[#1f2335] text-[#7e8aaa] hover:text-white hover:border-[#2d3450] focus-visible:ring-1 focus-visible:ring-cyan-400/40"
             aria-label="Refresh ingestion health"
             disabled={retrying}
           >
@@ -1235,6 +1575,12 @@ export default function IngestionHealthPanel() {
       )}
 
       {/* ── KPI cards: ingestion metrics ───────────────────────────────── */}
+      {/* W56-d — Each KPI card now carries a Tone + optional quality bar +
+          trend glyph so the operator reads pass/warn/fail at a glance.
+          The data-testid is preserved verbatim (kpi-total-events /
+          kpi-events-per-minute / kpi-avg-latency / kpi-data-freshness) so
+          the W31-5 test contracts (.toContain('84,521') / .toContain('1,235')
+          / .toContain('42ms') / .toContain('5s')) still resolve. */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
         <KpiCard
           label="Total Events"
@@ -1242,46 +1588,48 @@ export default function IngestionHealthPanel() {
           sub="since startup"
           valueClass="text-cyan-400"
           icon={Activity}
+          tone="info"
+          trend="up"
           data-testid="kpi-total-events"
         />
         <KpiCard
           label="Events / min"
           value={formatCount(metrics?.events_per_minute)}
           sub="rolling 60s"
-          valueClass="text-green-400"
+          valueClass="text-emerald-400"
           icon={TrendingUp}
+          tone="good"
+          trend="up"
           data-testid="kpi-events-per-minute"
         />
         <KpiCard
           label="Avg Latency"
           value={formatLatency(metrics?.avg_latency_ms)}
           sub="event → processing"
-          valueClass={
-            !metrics
-              ? 'text-[#7e8aaa]'
-              : metrics.avg_latency_ms < 100
-                ? 'text-green-400'
-                : metrics.avg_latency_ms < 500
-                  ? 'text-amber-400'
-                  : 'text-red-400'
-          }
+          valueClass={TONE[latencyTone(metrics?.avg_latency_ms)].text}
           icon={Gauge}
+          tone={latencyTone(metrics?.avg_latency_ms)}
+          quality={
+            metrics && Number.isFinite(metrics.avg_latency_ms)
+              ? Math.max(0, Math.min(100, 100 - metrics.avg_latency_ms / 5))
+              : 0
+          }
+          trend={latencyTone(metrics?.avg_latency_ms) === 'good' ? 'down' : 'flat'}
           data-testid="kpi-avg-latency"
         />
         <KpiCard
           label="Data Freshness"
           value={formatSeconds(metrics?.data_freshness_seconds)}
           sub="age of latest data"
-          valueClass={
-            !metrics
-              ? 'text-[#7e8aaa]'
-              : metrics.data_freshness_seconds < 60
-                ? 'text-green-400'
-                : metrics.data_freshness_seconds < 300
-                  ? 'text-amber-400'
-                  : 'text-red-400'
-          }
+          valueClass={TONE[freshnessTone(metrics?.data_freshness_seconds)].text}
           icon={Clock}
+          tone={freshnessTone(metrics?.data_freshness_seconds)}
+          quality={
+            metrics && Number.isFinite(metrics.data_freshness_seconds)
+              ? Math.max(0, Math.min(100, 100 - metrics.data_freshness_seconds / 3))
+              : 0
+          }
+          trend={freshnessTone(metrics?.data_freshness_seconds) === 'good' ? 'down' : 'flat'}
           data-testid="kpi-data-freshness"
         />
       </div>
@@ -1293,7 +1641,7 @@ export default function IngestionHealthPanel() {
           iconClass="text-cyan-400"
           title="Throughput Trend"
           badge={
-            <span className="text-[10px] text-[#7e8aaa] font-normal mono">
+            <span className="text-[10px] text-[#7e8aaa] font-normal mono tabular-nums">
               {metrics.throughput_trend.length} samples · events/sec
             </span>
           }
@@ -1307,7 +1655,7 @@ export default function IngestionHealthPanel() {
               height={48}
               showLastDot
             />
-            <div className="flex justify-between text-[10px] text-[#7e8aaa] mono">
+            <div className="flex justify-between text-[10px] text-[#7e8aaa] mono tabular-nums">
               <span>min: {Math.min(...metrics.throughput_trend).toFixed(2)}</span>
               <span>max: {Math.max(...metrics.throughput_trend).toFixed(2)}</span>
               <span>last: {metrics.throughput_trend[metrics.throughput_trend.length - 1].toFixed(2)}</span>
@@ -1326,11 +1674,11 @@ export default function IngestionHealthPanel() {
           skipped (tab hidden) or the WS stalled. */}
       <SectionCard
         icon={Radio}
-        iconClass={isRealtime ? 'text-green-400' : 'text-amber-400'}
+        iconClass={isRealtime ? 'text-emerald-400' : 'text-amber-400'}
         title="Live Throughput"
         badge={
           <span
-            className="text-[10px] text-[#7e8aaa] font-normal mono"
+            className="text-[10px] text-[#7e8aaa] font-normal mono tabular-nums"
             data-testid="live-throughput-badge"
           >
             {liveEPSHistory.length}/{LIVE_EPS_MAX_SAMPLES} samples ·{' '}
@@ -1340,7 +1688,10 @@ export default function IngestionHealthPanel() {
         data-testid="live-throughput-card"
       >
         {liveEPSHistory.length === 0 ? (
-          <div className="text-xs text-[#7e8aaa] py-3 flex items-center gap-2">
+          <div
+            className="text-xs text-[#7e8aaa] py-3 flex items-center gap-2"
+            role="status"
+          >
             <span className="spinner" aria-hidden="true" />
             Waiting for first health snapshot…
           </div>
@@ -1354,7 +1705,7 @@ export default function IngestionHealthPanel() {
               showLastDot
             />
             <div
-              className="flex justify-between text-[10px] text-[#7e8aaa] mono"
+              className="flex justify-between text-[10px] text-[#7e8aaa] mono tabular-nums"
               data-testid="live-throughput-stats"
             >
               <span>
@@ -1379,12 +1730,13 @@ export default function IngestionHealthPanel() {
           LIVE_ERROR_FEED_MAX_ROWS. */}
       <SectionCard
         icon={AlertTriangle}
-        iconClass="text-red-400"
+        iconClass={errorFeed.length === 0 ? 'text-emerald-400' : 'text-red-400'}
         title="Live Error Feed"
         badge={
           <span
-            className="text-[10px] text-[#7e8aaa] font-normal mono"
+            className="text-[10px] text-[#7e8aaa] font-normal mono tabular-nums"
             data-testid="live-error-feed-count"
+            data-tone={errorFeed.length === 0 ? 'good' : 'poor'}
           >
             {errorFeed.length} event{errorFeed.length === 1 ? '' : 's'}
           </span>
@@ -1393,8 +1745,10 @@ export default function IngestionHealthPanel() {
       >
         {errorFeed.length === 0 ? (
           <div
-            className="text-xs text-green-400 py-3 flex items-center gap-2"
+            className="text-xs text-emerald-400 py-3 flex items-center gap-2"
             data-testid="live-error-feed-empty"
+            role="status"
+            data-tone="good"
           >
             <CheckCircle2 size={14} aria-hidden="true" />
             No ingestion errors observed yet.
@@ -1411,11 +1765,11 @@ export default function IngestionHealthPanel() {
               {errorFeed.map((e, i) => (
                 <li
                   key={`${e.id}-${i}`}
-                  className="px-2 py-1.5 flex items-start gap-2 text-xs hover:bg-[#13161e]/60 transition-colors"
+                  className="px-2 py-1.5 flex items-start gap-2 text-xs transition-colors hover:bg-red-500/[0.04] hover:shadow-[inset_3px_0_0_0_rgba(239,68,68,0.55)]"
                   data-testid="live-error-feed-row"
                   data-source={e.source}
                 >
-                  <span className="mono text-[10px] text-[#7e8aaa] shrink-0 w-16">
+                  <span className="mono text-[10px] text-[#7e8aaa] shrink-0 w-16 tabular-nums">
                     {formatRelativeTime(e.timestamp)}
                   </span>
                   <Badge
@@ -1427,11 +1781,12 @@ export default function IngestionHealthPanel() {
                   <span
                     className="text-red-300 truncate flex-1"
                     title={e.message}
+                    data-tone="poor"
                   >
                     {e.message}
                   </span>
                   {e.retries > 0 && (
-                    <span className="mono text-[9px] text-amber-400 shrink-0">
+                    <span className="mono text-[9px] text-amber-400 shrink-0 tabular-nums" data-tone="warn">
                       ×{e.retries}
                     </span>
                   )}
@@ -1448,21 +1803,19 @@ export default function IngestionHealthPanel() {
         iconClass="text-cyan-400"
         title="Source Health"
         badge={
-          <span className="text-[10px] text-[#7e8aaa] font-normal mono">
+          <span className="text-[10px] text-[#7e8aaa] font-normal mono tabular-nums">
             {sources.length} sources
           </span>
         }
         data-testid="source-health-card"
       >
         {sources.length === 0 ? (
-          <div className="empty-state py-6">
-            <Unplug className="empty-state-icon" size={24} aria-hidden="true" />
-            <div className="empty-state-title">No ingestion sources reported</div>
-            <div className="empty-state-desc">
-              The backend has not registered any data sources (CLOB / Gamma / WebSocket).
-              This is normal at startup before the poller / WS client connects.
-            </div>
-          </div>
+          <PolishedEmptyState
+            icon={Unplug}
+            title="No ingestion sources reported"
+            description="The backend has not registered any data sources (CLOB / Gamma / WebSocket). This is normal at startup before the poller / WS client connects."
+            testId="source-health-empty-state"
+          />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5">
             {sources.map((s) => (
@@ -1475,7 +1828,7 @@ export default function IngestionHealthPanel() {
       {/* ── Data quality scores ─────────────────────────────────────────── */}
       <SectionCard
         icon={CheckCircle2}
-        iconClass="text-green-400"
+        iconClass={quality ? TONE[scoreTone(quality.overall_score)].text : 'text-emerald-400'}
         title="Data Quality Scores"
         badge={
           quality ? (
@@ -1487,8 +1840,9 @@ export default function IngestionHealthPanel() {
                     ? 'warning'
                     : 'destructive'
               }
-              className="text-[9.5px] px-2 py-0.5"
+              className="text-[9.5px] px-2 py-0.5 tabular-nums"
               data-testid="quality-score-badge"
+              data-tone={scoreTone(quality.overall_score)}
             >
               {quality.overall_score.toFixed(1)}%
             </Badge>
@@ -1497,10 +1851,12 @@ export default function IngestionHealthPanel() {
         data-testid="quality-card"
       >
         {!quality ? (
-          <div className="text-xs text-[#7e8aaa] py-3 flex items-center gap-2">
-            <AlertTriangle size={14} aria-hidden="true" />
-            Quality endpoint unavailable — falling back to no-data state.
-          </div>
+          <PolishedEmptyState
+            icon={AlertTriangle}
+            title="Quality endpoint unavailable"
+            description="Falling back to no-data state — the /api/ingestion/quality endpoint did not respond on the latest poll."
+            testId="quality-empty-state"
+          />
         ) : (
           <div className="grid-kpi text-xs">
             <div>
@@ -1508,8 +1864,9 @@ export default function IngestionHealthPanel() {
                 Overall Score
               </div>
               <div
-                className={`font-bold mono ${scoreColor(quality.overall_score)}`}
+                className={`font-bold mono tabular-nums ${scoreColor(quality.overall_score)}`}
                 data-testid="quality-overall"
+                data-tone={scoreTone(quality.overall_score)}
               >
                 {quality.overall_score.toFixed(1)}%
               </div>
@@ -1519,8 +1876,9 @@ export default function IngestionHealthPanel() {
                 Validation Pass
               </div>
               <div
-                className="font-bold mono text-green-400"
+                className="font-bold mono tabular-nums text-emerald-400"
                 data-testid="quality-validation"
+                data-tone="good"
               >
                 {formatPct(quality.validation_pass_rate * 100)}
               </div>
@@ -1530,14 +1888,9 @@ export default function IngestionHealthPanel() {
                 Duplicate Rate
               </div>
               <div
-                className={`font-bold mono ${
-                  quality.duplicate_rate < 0.01
-                    ? 'text-green-400'
-                    : quality.duplicate_rate < 0.05
-                      ? 'text-amber-400'
-                      : 'text-red-400'
-                }`}
+                className={`font-bold mono tabular-nums ${TONE[duplicateRateTone(quality.duplicate_rate)].text}`}
                 data-testid="quality-duplicate"
+                data-tone={duplicateRateTone(quality.duplicate_rate)}
               >
                 {formatPct(quality.duplicate_rate * 100, 2)}
               </div>
@@ -1547,14 +1900,9 @@ export default function IngestionHealthPanel() {
                 Stale Rate
               </div>
               <div
-                className={`font-bold mono ${
-                  quality.stale_rate < 0.05
-                    ? 'text-green-400'
-                    : quality.stale_rate < 0.20
-                      ? 'text-amber-400'
-                      : 'text-red-400'
-                }`}
+                className={`font-bold mono tabular-nums ${TONE[staleRateTone(quality.stale_rate)].text}`}
                 data-testid="quality-stale"
+                data-tone={staleRateTone(quality.stale_rate)}
               >
                 {formatPct(quality.stale_rate * 100, 2)}
               </div>
@@ -1564,14 +1912,9 @@ export default function IngestionHealthPanel() {
                 Invalid Records
               </div>
               <div
-                className={`font-bold mono ${
-                  quality.invalid_records === 0
-                    ? 'text-green-400'
-                    : quality.invalid_records < 50
-                      ? 'text-amber-400'
-                      : 'text-red-400'
-                }`}
+                className={`font-bold mono tabular-nums ${TONE[invalidCountTone(quality.invalid_records)].text}`}
                 data-testid="quality-invalid"
+                data-tone={invalidCountTone(quality.invalid_records)}
               >
                 {formatCount(quality.invalid_records)}
               </div>
@@ -1583,10 +1926,13 @@ export default function IngestionHealthPanel() {
       {/* ── Dead-letter queue ───────────────────────────────────────────── */}
       <SectionCard
         icon={Inbox}
-        iconClass="text-amber-400"
+        iconClass={(deadLetter?.depth ?? 0) > 0 ? 'text-amber-400' : 'text-emerald-400'}
         title="Dead-Letter Queue"
         badge={
-          <span className="text-[10px] text-[#7e8aaa] font-normal mono">
+          <span
+            className="text-[10px] text-[#7e8aaa] font-normal mono tabular-nums"
+            data-tone={(deadLetter?.depth ?? 0) === 0 ? 'good' : 'warn'}
+          >
             depth: {formatCount(deadLetter?.depth)}
           </span>
         }
@@ -1607,11 +1953,16 @@ export default function IngestionHealthPanel() {
                         <span className="text-[#dde1ed] truncate" title={e.reason}>
                           {e.reason}
                         </span>
-                        <span className="mono text-amber-400 shrink-0">{formatCount(e.count)}</span>
+                        <span
+                          className="mono text-amber-400 shrink-0 tabular-nums"
+                          data-tone="warn"
+                        >
+                          {formatCount(e.count)}
+                        </span>
                       </div>
                       <div className="h-1.5 bg-[#1f2335] rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-amber-500/60 rounded-full"
+                          className="h-full bg-amber-500/60 rounded-full transition-all duration-500"
                           style={{
                             width: `${maxBreakdownCount > 0 ? (e.count / maxBreakdownCount) * 100 : 0}%`,
                           }}
@@ -1631,7 +1982,7 @@ export default function IngestionHealthPanel() {
               size="sm"
               onClick={handleDlqRetry}
               disabled={retrying || (deadLetter?.depth ?? 0) === 0}
-              className="h-7 px-3 text-xs border-[#1f2335] text-[#dde1ed] hover:bg-[#1f2335] hover:text-white"
+              className="h-7 px-3 text-xs border-[#1f2335] text-[#dde1ed] hover:bg-[#1f2335] hover:text-white focus-visible:ring-1 focus-visible:ring-amber-400/40"
               aria-label="Retry dead-letter queue"
               data-testid="dlq-retry-button"
             >
@@ -1646,10 +1997,11 @@ export default function IngestionHealthPanel() {
               <span
                 role="status"
                 aria-live="polite"
-                className={`text-[11px] mono ${
-                  dlqRetryResult.success ? 'text-green-400' : 'text-red-400'
+                className={`text-[11px] mono tabular-nums ${
+                  dlqRetryResult.success ? 'text-emerald-400' : 'text-red-400'
                 }`}
                 data-testid="dlq-retry-result"
+                data-tone={dlqRetryResult.success ? 'good' : 'poor'}
               >
                 {dlqRetryResult.success ? '✓' : '✗'}{' '}
                 {dlqRetryResult.message} · retried: {dlqRetryResult.retried}
@@ -1659,7 +2011,11 @@ export default function IngestionHealthPanel() {
 
           {/* Recent failed records table */}
           {dlqRecent.length === 0 ? (
-            <div className="text-xs text-green-400 py-3 flex items-center gap-2">
+            <div
+              className="text-xs text-emerald-400 py-3 flex items-center gap-2"
+              role="status"
+              data-tone="good"
+            >
               <CheckCircle2 size={14} aria-hidden="true" />
               No failed records in the dead-letter queue.
             </div>
@@ -1689,10 +2045,10 @@ export default function IngestionHealthPanel() {
                   {dlqRecent.map((item, i) => (
                     <TableRow
                       key={`${item.id}-${i}`}
-                      className="border-[#1f2335] hover:bg-[#13161e]/60"
+                      className="border-[#1f2335] transition-colors hover:bg-amber-500/[0.04] hover:shadow-[inset_3px_0_0_0_rgba(245,158,11,0.55)]"
                       data-testid={`dlq-row-${i}`}
                     >
-                      <TableCell className="mono text-[10px] text-[#7e8aaa] px-2 py-1.5">
+                      <TableCell className="mono text-[10px] text-[#7e8aaa] px-2 py-1.5 tabular-nums">
                         {formatRelativeTime(item.timestamp)}
                       </TableCell>
                       <TableCell className="px-2 py-1.5">
@@ -1703,13 +2059,13 @@ export default function IngestionHealthPanel() {
                           {item.source}
                         </Badge>
                       </TableCell>
-                      <TableCell className="mono text-xs text-[#dde1ed] px-2 py-1.5 max-w-[200px] truncate" title={item.payload_summary}>
+                      <TableCell className="mono text-xs text-[#dde1ed] px-2 py-1.5 max-w-[200px] truncate tabular-nums" title={item.payload_summary}>
                         {item.payload_summary}
                       </TableCell>
-                      <TableCell className="text-xs text-red-300 px-2 py-1.5 max-w-[260px] truncate" title={item.error}>
+                      <TableCell className="text-xs text-red-300 px-2 py-1.5 max-w-[260px] truncate" title={item.error} data-tone="poor">
                         {item.error}
                       </TableCell>
-                      <TableCell className="mono text-xs text-amber-400 px-2 py-1.5 text-right">
+                      <TableCell className="mono text-xs text-amber-400 px-2 py-1.5 text-right tabular-nums" data-tone="warn">
                         {item.retries}
                       </TableCell>
                     </TableRow>
@@ -1724,17 +2080,21 @@ export default function IngestionHealthPanel() {
       {/* ── Data gaps ───────────────────────────────────────────────────── */}
       <SectionCard
         icon={AlertTriangle}
-        iconClass="text-amber-400"
+        iconClass={gapList.length === 0 ? 'text-emerald-400' : 'text-amber-400'}
         title="Data Gaps"
         badge={
-          <span className="text-[10px] text-[#7e8aaa] font-normal mono">
+          <span className="text-[10px] text-[#7e8aaa] font-normal mono tabular-nums">
             {gapList.length} detected
           </span>
         }
         data-testid="gaps-card"
       >
         {gapList.length === 0 ? (
-          <div className="text-xs text-green-400 py-3 flex items-center gap-2">
+          <div
+            className="text-xs text-emerald-400 py-3 flex items-center gap-2"
+            role="status"
+            data-tone="good"
+          >
             <CheckCircle2 size={14} aria-hidden="true" />
             No data gaps detected in the active window.
           </div>
@@ -1743,7 +2103,7 @@ export default function IngestionHealthPanel() {
             {gapList.map((gap, i) => (
               <div
                 key={`${gap.id}-${i}`}
-                className="bg-[#13161e] p-2.5 rounded border border-[#1f2335] text-xs"
+                className="bg-[#13161e] p-2.5 rounded border border-[#1f2335] text-xs transition-colors hover:border-amber-500/30 hover:shadow-[inset_3px_0_0_0_rgba(245,158,11,0.55)]"
                 data-testid={`gap-row-${i}`}
               >
                 <div className="flex flex-wrap justify-between items-center gap-2 mb-1.5">
@@ -1751,13 +2111,14 @@ export default function IngestionHealthPanel() {
                     <Badge variant="secondary" className="text-[9px] px-1.5 py-0">
                       {gap.source}
                     </Badge>
-                    <span className="mono text-[#7e8aaa] text-[10px]">
+                    <span className="mono text-[#7e8aaa] text-[10px] tabular-nums">
                       {formatRelativeTime(gap.start)} → {formatRelativeTime(gap.end)}
                     </span>
                   </div>
                   <Badge
                     variant={gap.duration_seconds > 300 ? 'destructive' : 'warning'}
-                    className="text-[9px] px-1.5 py-0"
+                    className="text-[9px] px-1.5 py-0 tabular-nums"
+                    data-tone={gap.duration_seconds > 300 ? 'poor' : 'warn'}
                   >
                     {formatDuration(gap.duration_seconds)}
                   </Badge>
@@ -1767,13 +2128,13 @@ export default function IngestionHealthPanel() {
                     {gap.affected_markets.slice(0, 8).map((m, j) => (
                       <span
                         key={`${m}-${j}`}
-                        className="mono text-[9px] text-[#7e8aaa] bg-[#1f2335] px-1.5 py-0.5 rounded"
+                        className="mono text-[9px] text-[#7e8aaa] bg-[#1f2335] px-1.5 py-0.5 rounded tabular-nums"
                       >
                         {m}
                       </span>
                     ))}
                     {gap.affected_markets.length > 8 && (
-                      <span className="mono text-[9px] text-[#7e8aaa]">
+                      <span className="mono text-[9px] text-[#7e8aaa] tabular-nums">
                         +{gap.affected_markets.length - 8} more
                       </span>
                     )}
@@ -1788,7 +2149,7 @@ export default function IngestionHealthPanel() {
       {/* ── Coverage ───────────────────────────────────────────────────── */}
       <SectionCard
         icon={Layers}
-        iconClass="text-cyan-400"
+        iconClass={coverage ? TONE[coverageTone(coverage.coverage_pct)].text : 'text-cyan-400'}
         title="Market Coverage"
         badge={
           coverage ? (
@@ -1800,8 +2161,9 @@ export default function IngestionHealthPanel() {
                     ? 'warning'
                     : 'destructive'
               }
-              className="text-[9.5px] px-2 py-0.5"
+              className="text-[9.5px] px-2 py-0.5 tabular-nums"
               data-testid="coverage-pct-badge"
+              data-tone={coverageTone(coverage.coverage_pct)}
             >
               {coverage.coverage_pct.toFixed(1)}%
             </Badge>
@@ -1810,10 +2172,12 @@ export default function IngestionHealthPanel() {
         data-testid="coverage-card"
       >
         {!coverage ? (
-          <div className="text-xs text-[#7e8aaa] py-3 flex items-center gap-2">
-            <AlertTriangle size={14} aria-hidden="true" />
-            Coverage endpoint unavailable.
-          </div>
+          <PolishedEmptyState
+            icon={AlertTriangle}
+            title="Coverage endpoint unavailable"
+            description="The /api/ingestion/coverage endpoint did not respond on the latest poll."
+            testId="coverage-empty-state"
+          />
         ) : (
           <div className="space-y-3">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 text-xs">
@@ -1821,7 +2185,11 @@ export default function IngestionHealthPanel() {
                 <div className="text-[10px] uppercase tracking-wider text-[#7e8aaa] mb-0.5">
                   Markets Tracked
                 </div>
-                <div className="font-bold mono text-cyan-400" data-testid="coverage-tracked">
+                <div
+                  className="font-bold mono text-cyan-400 tabular-nums"
+                  data-testid="coverage-tracked"
+                  data-tone="info"
+                >
                   {formatCount(coverage.markets_tracked)}
                 </div>
               </div>
@@ -1829,7 +2197,11 @@ export default function IngestionHealthPanel() {
                 <div className="text-[10px] uppercase tracking-wider text-[#7e8aaa] mb-0.5">
                   Recent Data
                 </div>
-                <div className="font-bold mono text-green-400" data-testid="coverage-recent">
+                <div
+                  className="font-bold mono text-emerald-400 tabular-nums"
+                  data-testid="coverage-recent"
+                  data-tone="good"
+                >
                   {formatCount(coverage.markets_recent)}
                 </div>
               </div>
@@ -1838,14 +2210,9 @@ export default function IngestionHealthPanel() {
                   Stale Data
                 </div>
                 <div
-                  className={`font-bold mono ${
-                    coverage.markets_stale === 0
-                      ? 'text-green-400'
-                      : coverage.markets_stale < 10
-                        ? 'text-amber-400'
-                        : 'text-red-400'
-                  }`}
+                  className={`font-bold mono tabular-nums ${TONE[staleCountTone(coverage.markets_stale)].text}`}
                   data-testid="coverage-stale"
+                  data-tone={staleCountTone(coverage.markets_stale)}
                 >
                   {formatCount(coverage.markets_stale)}
                 </div>
@@ -1855,14 +2222,9 @@ export default function IngestionHealthPanel() {
                   Coverage %
                 </div>
                 <div
-                  className={`font-bold mono ${
-                    coverage.coverage_pct >= 90
-                      ? 'text-green-400'
-                      : coverage.coverage_pct >= 70
-                        ? 'text-amber-400'
-                        : 'text-red-400'
-                  }`}
+                  className={`font-bold mono tabular-nums ${TONE[coverageTone(coverage.coverage_pct)].text}`}
                   data-testid="coverage-pct"
+                  data-tone={coverageTone(coverage.coverage_pct)}
                 >
                   {coverage.coverage_pct.toFixed(1)}%
                 </div>
@@ -1870,19 +2232,19 @@ export default function IngestionHealthPanel() {
             </div>
             {staleMarkets.length > 0 && (
               <div className="pt-2 border-t border-[#1f2335]">
-                <div className="text-[10px] uppercase tracking-wider text-[#7e8aaa] mb-1.5">
+                <div className="text-[10px] uppercase tracking-wider text-[#7e8aaa] mb-1.5 tabular-nums">
                   Stale Markets ({Math.min(staleMarkets.length, 10)} of {staleMarkets.length})
                 </div>
                 <div className="max-h-48 overflow-y-auto scrollbar-thin space-y-1">
                   {staleMarkets.slice(0, 10).map((m, i) => (
                     <div
                       key={`${m.token_id}-${i}`}
-                      className="flex items-center justify-between gap-2 text-[11px] bg-[#13161e] px-2 py-1 rounded border border-[#1f2335]"
+                      className="flex items-center justify-between gap-2 text-[11px] bg-[#13161e] px-2 py-1 rounded border border-[#1f2335] transition-colors hover:border-amber-500/30 hover:shadow-[inset_3px_0_0_0_rgba(245,158,11,0.55)]"
                     >
                       <span className="mono text-[#dde1ed] truncate" title={m.slug}>
                         {m.slug || m.token_id}
                       </span>
-                      <span className="mono text-amber-400 shrink-0">
+                      <span className="mono text-amber-400 shrink-0 tabular-nums" data-tone="warn">
                         {formatRelativeTime(m.last_update)}
                       </span>
                     </div>
@@ -1906,7 +2268,7 @@ export default function IngestionHealthPanel() {
       <SectionCard
         icon={Power}
         iconClass={
-          pipelineStatus?.running ? 'text-green-400' : 'text-amber-400'
+          pipelineStatus?.running ? 'text-emerald-400' : 'text-amber-400'
         }
         title="Pipeline Status"
         badge={
@@ -1915,9 +2277,10 @@ export default function IngestionHealthPanel() {
               variant={pipelineStatus.running ? 'success' : 'warning'}
               className="px-2 py-1 text-[9.5px] gap-1.5"
               data-testid="pipeline-running-badge"
+              data-tone={pipelineStatus.running ? 'good' : 'warn'}
             >
               {pipelineStatus.running ? (
-                <CheckCircle2 size={11} aria-hidden="true" />
+                <PulseDot tone="good" />
               ) : (
                 <XCircle size={11} aria-hidden="true" />
               )}
@@ -1928,10 +2291,12 @@ export default function IngestionHealthPanel() {
         data-testid="pipeline-status-card"
       >
         {!pipelineStatus ? (
-          <div className="text-xs text-[#7e8aaa] py-3 flex items-center gap-2">
-            <AlertTriangle size={14} aria-hidden="true" />
-            Pipeline status endpoint unavailable.
-          </div>
+          <PolishedEmptyState
+            icon={AlertTriangle}
+            title="Pipeline status endpoint unavailable"
+            description="The /api/ingestion/pipeline/status endpoint did not respond on the latest poll."
+            testId="pipeline-empty-state"
+          />
         ) : (
           <div className="space-y-3">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 text-xs">
@@ -1940,10 +2305,11 @@ export default function IngestionHealthPanel() {
                   WS Loop
                 </div>
                 <div
-                  className={`font-bold mono ${
-                    pipelineStatus.ws_running ? 'text-green-400' : 'text-red-400'
+                  className={`font-bold mono tabular-nums ${
+                    pipelineStatus.ws_running ? 'text-emerald-400' : 'text-red-400'
                   }`}
                   data-testid="pipeline-ws-state"
+                  data-tone={pipelineStatus.ws_running ? 'good' : 'poor'}
                 >
                   {pipelineStatus.ws_running ? 'Up' : 'Down'}
                 </div>
@@ -1953,10 +2319,11 @@ export default function IngestionHealthPanel() {
                   REST Loop
                 </div>
                 <div
-                  className={`font-bold mono ${
-                    pipelineStatus.rest_running ? 'text-green-400' : 'text-red-400'
+                  className={`font-bold mono tabular-nums ${
+                    pipelineStatus.rest_running ? 'text-emerald-400' : 'text-red-400'
                   }`}
                   data-testid="pipeline-rest-state"
+                  data-tone={pipelineStatus.rest_running ? 'good' : 'poor'}
                 >
                   {pipelineStatus.rest_running ? 'Up' : 'Down'}
                 </div>
@@ -1965,7 +2332,7 @@ export default function IngestionHealthPanel() {
                 <div className="text-[10px] uppercase tracking-wider text-[#7e8aaa] mb-0.5">
                   WS Reconnects
                 </div>
-                <div className="font-bold mono text-cyan-400">
+                <div className="font-bold mono text-cyan-400 tabular-nums" data-tone="info">
                   {formatCount(pipelineStatus.ws_reconnect_count)}
                 </div>
               </div>
@@ -1973,7 +2340,7 @@ export default function IngestionHealthPanel() {
                 <div className="text-[10px] uppercase tracking-wider text-[#7e8aaa] mb-0.5">
                   Tracked Tokens
                 </div>
-                <div className="font-bold mono text-cyan-400">
+                <div className="font-bold mono text-cyan-400 tabular-nums" data-tone="info">
                   {formatCount(pipelineStatus.rest_tracked_tokens)}
                 </div>
               </div>
@@ -1984,7 +2351,7 @@ export default function IngestionHealthPanel() {
                 variant="outline"
                 disabled={pipelineStatus.running === true || actionPending}
                 onClick={() => setConfirmDialog({ kind: 'start' })}
-                className="h-7 px-3 text-xs border-[#1f2335] text-green-400 hover:bg-green-500/10 hover:text-green-300 hover:border-green-500/30 disabled:opacity-40"
+                className="h-7 px-3 text-xs border-[#1f2335] text-emerald-400 hover:bg-emerald-500/10 hover:text-emerald-300 hover:border-emerald-500/30 disabled:opacity-40 focus-visible:ring-1 focus-visible:ring-emerald-400/40"
                 data-testid="btn-start-pipeline"
               >
                 <Play size={12} aria-hidden="true" />
@@ -1995,13 +2362,13 @@ export default function IngestionHealthPanel() {
                 variant="outline"
                 disabled={!pipelineStatus.running || actionPending}
                 onClick={() => setConfirmDialog({ kind: 'stop' })}
-                className="h-7 px-3 text-xs border-[#1f2335] text-amber-400 hover:bg-amber-500/10 hover:text-amber-300 hover:border-amber-500/30 disabled:opacity-40"
+                className="h-7 px-3 text-xs border-[#1f2335] text-amber-400 hover:bg-amber-500/10 hover:text-amber-300 hover:border-amber-500/30 disabled:opacity-40 focus-visible:ring-1 focus-visible:ring-amber-400/40"
                 data-testid="btn-stop-pipeline"
               >
                 <Square size={12} aria-hidden="true" />
                 Stop
               </Button>
-              <span className="text-[10px] text-[#7e8aaa] mono ml-auto">
+              <span className="text-[10px] text-[#7e8aaa] mono ml-auto tabular-nums">
                 started {formatRelativeTime(pipelineStatus.last_started_at)} ·{' '}
                 stopped {formatRelativeTime(pipelineStatus.last_stopped_at)}
               </span>
@@ -2019,20 +2386,23 @@ export default function IngestionHealthPanel() {
           has not recorded any reliability windows yet. */}
       <SectionCard
         icon={ShieldCheck}
-        iconClass="text-cyan-400"
+        iconClass={
+          reliability && reliability.count > 0
+            ? TONE[reliabilityScoreTone(reliability.avg_score)].text
+            : 'text-cyan-400'
+        }
         title="Source Reliability"
         badge={
           reliability && reliability.count > 0 ? (
             <span
-              className={`font-bold mono text-xs ${reliabilityScoreColor(
-                reliability.avg_score,
-              )}`}
+              className={`font-bold mono text-xs tabular-nums ${TONE[reliabilityScoreTone(reliability.avg_score)].text}`}
               data-testid="reliability-avg-score"
+              data-tone={reliabilityScoreTone(reliability.avg_score)}
             >
               avg {reliability.avg_score.toFixed(1)}
             </span>
           ) : (
-            <span className="text-[10px] text-[#7e8aaa] font-normal mono">
+            <span className="text-[10px] text-[#7e8aaa] font-normal mono tabular-nums">
               {reliability?.count ?? 0} source{(reliability?.count ?? 0) === 1 ? '' : 's'}
             </span>
           )
@@ -2040,11 +2410,12 @@ export default function IngestionHealthPanel() {
         data-testid="reliability-card"
       >
         {!reliability || reliability.count === 0 ? (
-          <div className="text-xs text-[#7e8aaa] py-3 flex items-center gap-2">
-            <AlertTriangle size={14} aria-hidden="true" />
-            No reliability snapshots reported. The backend's reliability
-            tracker has not recorded any source windows yet.
-          </div>
+          <PolishedEmptyState
+            icon={ShieldCheck}
+            title="No reliability snapshots reported"
+            description="The backend's reliability tracker has not recorded any source windows yet — once the poller accumulates 24h / 7d / 30d uptime windows, this grid will populate per-source reliability scores."
+            testId="reliability-empty-state"
+          />
         ) : (
           <div
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5"
@@ -2052,38 +2423,48 @@ export default function IngestionHealthPanel() {
           >
             {Object.values(reliability.sources)
               .slice(0, 6)
-              .map((s) => (
-                <div
-                  key={s.source}
-                  className="bg-[#13161e] p-2.5 rounded border border-[#1f2335] text-xs"
-                  data-testid={`reliability-row-${s.source}`}
-                >
-                  <div className="flex items-center justify-between gap-2 mb-1.5">
-                    <span
-                      className="mono text-[#dde1ed] truncate"
-                      title={s.source}
-                    >
-                      {s.source}
-                    </span>
-                    <Badge
-                      variant={reliabilityStatusVariant(s.status)}
-                      className="px-1.5 py-0 text-[9px]"
-                    >
-                      {s.status}
-                    </Badge>
+              .map((s) => {
+                const sTone = reliabilityScoreTone(s.score)
+                return (
+                  <div
+                    key={s.source}
+                    className="bg-[#13161e] p-2.5 rounded border border-[#1f2335] text-xs transition-colors hover:border-cyan-500/30 hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.55)]"
+                    data-testid={`reliability-row-${s.source}`}
+                    data-tone={sTone}
+                  >
+                    <div className="flex items-center justify-between gap-2 mb-1.5">
+                      <span
+                        className="mono text-[#dde1ed] truncate"
+                        title={s.source}
+                      >
+                        {s.source}
+                      </span>
+                      <Badge
+                        variant={reliabilityStatusVariant(s.status)}
+                        className="px-1.5 py-0 text-[9px]"
+                      >
+                        {s.status}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[10px] uppercase tracking-wider text-[#7e8aaa]">
+                        Score
+                      </span>
+                      <span
+                        className={`font-bold mono tabular-nums ${TONE[sTone].text}`}
+                      >
+                        {s.score.toFixed(1)}
+                      </span>
+                    </div>
+                    <div className="h-0.5 bg-[#1f2335] rounded-full mt-1.5 overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all duration-500 ${TONE[sTone].bar}`}
+                        style={{ width: `${Math.max(0, Math.min(100, s.score))}%` }}
+                      />
+                    </div>
                   </div>
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-[10px] uppercase tracking-wider text-[#7e8aaa]">
-                      Score
-                    </span>
-                    <span
-                      className={`font-bold mono ${reliabilityScoreColor(s.score)}`}
-                    >
-                      {s.score.toFixed(1)}
-                    </span>
-                  </div>
-                </div>
-              ))}
+                )
+              })}
           </div>
         )}
       </SectionCard>
@@ -2100,7 +2481,7 @@ export default function IngestionHealthPanel() {
         title="Backfill Progress"
         badge={
           backfillStatus ? (
-            <span className="text-[10px] text-[#7e8aaa] font-normal mono">
+            <span className="text-[10px] text-[#7e8aaa] font-normal mono tabular-nums">
               {backfillStatus.runs.length} run{backfillStatus.runs.length === 1 ? '' : 's'}
             </span>
           ) : undefined
@@ -2108,27 +2489,32 @@ export default function IngestionHealthPanel() {
         data-testid="backfill-card"
       >
         {!backfillStatus ? (
-          <div className="text-xs text-[#7e8aaa] py-3 flex items-center gap-2">
-            <AlertTriangle size={14} aria-hidden="true" />
-            Backfill status endpoint unavailable.
-          </div>
+          <PolishedEmptyState
+            icon={AlertTriangle}
+            title="Backfill status endpoint unavailable"
+            description="The /api/ingestion/backfill/status endpoint did not respond on the latest poll."
+            testId="backfill-empty-state"
+          />
         ) : backfillStatus.runs.length === 0 ? (
-          <div className="text-xs text-[#7e8aaa] py-3 flex items-center gap-2">
-            <Database size={14} aria-hidden="true" />
-            No backfill runs recorded yet.
-          </div>
+          <PolishedEmptyState
+            icon={Database}
+            title="No backfill runs recorded yet"
+            description="The metadata backfill engine has not been invoked. Use the Launch Backfill action below to resume from the last persisted checkpoint."
+            testId="backfill-no-runs-state"
+          />
         ) : (
           <div className="space-y-3">
             <div className="space-y-1">
-              <div className="text-[10px] uppercase tracking-wider text-[#7e8aaa] mb-1.5">
+              <div className="text-[10px] uppercase tracking-wider text-[#7e8aaa] mb-1.5 tabular-nums">
                 Recent Runs ({Math.min(backfillStatus.runs.length, 3)} of{' '}
                 {backfillStatus.runs.length})
               </div>
               {backfillStatus.runs.slice(0, 3).map((run) => (
                 <div
                   key={run.id}
-                  className="flex items-center justify-between gap-2 text-[10px] bg-[#13161e] px-2 py-1.5 rounded border border-[#1f2335]"
+                  className="flex items-center justify-between gap-2 text-[10px] bg-[#13161e] px-2 py-1.5 rounded border border-[#1f2335] transition-colors hover:border-cyan-500/30 hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.55)]"
                   data-testid={`backfill-row-${run.id}`}
+                  data-tone={run.total_errors === 0 ? 'good' : 'poor'}
                 >
                   <div className="flex items-center gap-2 min-w-0">
                     <Badge
@@ -2137,13 +2523,13 @@ export default function IngestionHealthPanel() {
                     >
                       {run.type}
                     </Badge>
-                    <span className="mono text-[#7e8aaa] shrink-0">
+                    <span className="mono text-[#7e8aaa] shrink-0 tabular-nums">
                       {formatRelativeTime(run.started_at)}
                     </span>
                   </div>
                   <span
-                    className={`mono shrink-0 ${
-                      run.total_errors === 0 ? 'text-green-400' : 'text-red-400'
+                    className={`mono shrink-0 tabular-nums ${
+                      run.total_errors === 0 ? 'text-emerald-400' : 'text-red-400'
                     }`}
                   >
                     {formatCount(run.total_added)} added ·{' '}
@@ -2158,7 +2544,7 @@ export default function IngestionHealthPanel() {
                 variant="outline"
                 disabled={actionPending}
                 onClick={() => setConfirmDialog({ kind: 'launch-backfill' })}
-                className="h-7 px-3 text-xs border-[#1f2335] text-cyan-400 hover:bg-cyan-500/10 hover:text-cyan-300 hover:border-cyan-500/30 disabled:opacity-40"
+                className="h-7 px-3 text-xs border-[#1f2335] text-cyan-400 hover:bg-cyan-500/10 hover:text-cyan-300 hover:border-cyan-500/30 disabled:opacity-40 focus-visible:ring-1 focus-visible:ring-cyan-400/40"
                 data-testid="btn-launch-backfill"
               >
                 <Zap size={12} aria-hidden="true" />
@@ -2192,7 +2578,7 @@ export default function IngestionHealthPanel() {
                 actionPending || retrying || (deadLetter?.depth ?? 0) === 0
               }
               onClick={() => setConfirmDialog({ kind: 'retry-failed' })}
-              className="h-7 px-3 text-xs border-[#1f2335] text-amber-400 hover:bg-amber-500/10 hover:text-amber-300 hover:border-amber-500/30 disabled:opacity-40"
+              className="h-7 px-3 text-xs border-[#1f2335] text-amber-400 hover:bg-amber-500/10 hover:text-amber-300 hover:border-amber-500/30 disabled:opacity-40 focus-visible:ring-1 focus-visible:ring-amber-400/40"
               data-testid="btn-retry-failed"
             >
               <RefreshCw size={12} aria-hidden="true" />
@@ -2203,7 +2589,7 @@ export default function IngestionHealthPanel() {
               variant="outline"
               disabled={actionPending || (deadLetter?.depth ?? 0) === 0}
               onClick={() => setConfirmDialog({ kind: 'clear-dlq' })}
-              className="h-7 px-3 text-xs border-[#1f2335] text-red-400 hover:bg-red-500/10 hover:text-red-300 hover:border-red-500/30 disabled:opacity-40"
+              className="h-7 px-3 text-xs border-[#1f2335] text-red-400 hover:bg-red-500/10 hover:text-red-300 hover:border-red-500/30 disabled:opacity-40 focus-visible:ring-1 focus-visible:ring-red-400/40"
               data-testid="btn-clear-dlq"
             >
               <Trash2 size={12} aria-hidden="true" />
@@ -2214,7 +2600,7 @@ export default function IngestionHealthPanel() {
               variant="outline"
               disabled={actionPending}
               onClick={() => setConfirmDialog({ kind: 'replay-events' })}
-              className="h-7 px-3 text-xs border-[#1f2335] text-cyan-400 hover:bg-cyan-500/10 hover:text-cyan-300 hover:border-cyan-500/30 disabled:opacity-40"
+              className="h-7 px-3 text-xs border-[#1f2335] text-cyan-400 hover:bg-cyan-500/10 hover:text-cyan-300 hover:border-cyan-500/30 disabled:opacity-40 focus-visible:ring-1 focus-visible:ring-cyan-400/40"
               data-testid="btn-replay-events"
             >
               <RotateCw size={12} aria-hidden="true" />
@@ -2241,10 +2627,11 @@ export default function IngestionHealthPanel() {
             <div
               className={`px-3 py-2 rounded text-xs mono border flex items-center justify-between gap-2 ${
                 lastActionResult.ok
-                  ? 'bg-green-500/10 border-green-500/30 text-green-300'
+                  ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
                   : 'bg-red-500/10 border-red-500/30 text-red-300'
               }`}
               data-testid="last-action-result"
+              data-tone={lastActionResult.ok ? 'good' : 'poor'}
               role="status"
               aria-live="polite"
             >
@@ -2264,7 +2651,7 @@ export default function IngestionHealthPanel() {
               <button
                 type="button"
                 onClick={() => setLastActionResult(null)}
-                className="text-[#7e8aaa] hover:text-white transition-colors shrink-0 ml-2"
+                className="text-[#7e8aaa] hover:text-white transition-colors shrink-0 ml-2 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#5a637a] rounded"
                 aria-label="Dismiss action result"
               >
                 ✕
@@ -2275,7 +2662,7 @@ export default function IngestionHealthPanel() {
       </SectionCard>
 
       {/* ── Footer ─────────────────────────────────────────────────────── */}
-      <div className="text-[10px] text-[#7e8aaa] mono text-center pt-1">
+      <div className="text-[10px] text-[#7e8aaa] mono text-center pt-1 tabular-nums">
         Generated at {formatRelativeTime(Math.floor((lastUpdated ?? 0) / 1000))} · endpoints:{' '}
         <span className="text-cyan-400">{HEALTH_ENDPOINT}</span>,{' '}
         <span className="text-cyan-400">{QUALITY_ENDPOINT}</span>,{' '}
