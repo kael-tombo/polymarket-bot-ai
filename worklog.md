@@ -35034,3 +35034,961 @@ $ git diff --stat src/components/OrderFlowPanel.tsx
 **OrderFlowPanel is production-ready with the premium W52-b visual layer,
 visually consistent with the W51-2 PositionsPanel / OrdersPanel /
 TradesPanel / MLPanel / AIMLCommandCenter family.**
+
+---
+Task ID: W53-b
+Agent: full-stack-developer
+Task: Polish ArbitrageMatrixView.tsx — High-Frequency Binary Dutch-Book
+Arbitrage Scanner
+
+Work Log:
+- Read worklog (last ~250 lines) to map the W50-52 design-system
+  vocabulary (Tone system, SectionHeader, PulseDot, shimmer skeleton,
+  polished empty/error states, tabular-nums, data-tone hooks) from
+  W52-a MarketScreener + W52-b OrderFlowPanel + W51-2 family.
+- Read ArbitrageMatrixView.tsx (327 lines, W22-2 origin) + the 26-test
+  contract (ArbitrageMatrixView.test.tsx) to map every surface the
+  polish pass must preserve: panel title "High-Frequency Binary
+  Dutch-Book Arbitrage Scanner", "Paper Mode · $3 Cap" badge, loading
+  caption "Scanning synchronized binary order books for Dutch-book
+  inefficiencies…", empty-state title "No arbitrage discrepancies
+  found", card header text "Verified Dutch-Book Pairs (N)" (regex
+  with parens), KPI labels with colons ("Active Arbs:", "Max Edge:",
+  "Avg Net ROI:"), filter input placeholder, slider, execute buttons
+  (aria-label `/Execute paper arbitrage on/i`), success banner text,
+  failure banner texts (server + network), W22-1 fetch-error banner
+  texts + Retry (regex `/retry/i`) + Dismiss (aria-label
+  "Dismiss error"), row cell values ("+32 bps", "+2.45%", "+20 bps",
+  "+1.85%"), apiFetch wrapper adding Authorization header, GET
+  /api/arbitrage/opportunities, POST /api/arbitrage/execute with same
+  JSON body, polling every 2.5 s, clean unmount, all existing class
+  names + aria-labels + role attributes + 'use client' directive.
+- Verified empirically that RTL's `getByText` with a substring regex
+  matches only the deepest element whose direct text-node children
+  concatenate to a matching string (not parent elements whose
+  textContent includes the substring transitively through children).
+  This let me safely wrap the card title in a SectionHeader `<span>`
+  without tripping the multiple-matches error — the parent
+  SectionHeader div has no direct text node, only an icon SVG + the
+  title span + the trailing span.
+- Built 4 shared inline sub-components (kept private to the panel so
+  test mocks + ts-isolation stay clean):
+  * `Tone` system (`positive` / `negative` / `warn` / `neutral`) with
+    self-contained class strings (text + dot + halo) — static so
+    Tailwind 4's scanner picks them up. Mirrors W52-b Tone but
+    reduced to 4 tones (no info/purple here).
+  * `SectionHeader` — Lucide icon + uppercase 9.5px tracking-wider
+    bold title in `text-[#5a637a]` + optional dim italic 8.5px
+    description + optional trailing node. Title in its own `<span>`
+    so RTL matches the span, not the wrapper div.
+  * `MatrixSkeleton` — 5-row shimmer placeholder for the matrix-
+    loading state. Mirrors the live 8-column matrix structure with
+    column flex weights (3x market + 70/70/80/80/70/70/110 fixed).
+    Uses `.skeleton-table` + `.skeleton-row` + `.skeleton-cell` +
+    `.animate-pulse`. aria-hidden + role=status + aria-live=polite
+    on the parent wrapper.
+  * `EmptyState` — Lucide `Crosshair` icon + preserved title
+    "No arbitrage discrepancies found" + preserved description copy
+    (with the dynamic `{minBps}` threshold interpolation). role=
+    status + data-testid="arbitrage-matrix-empty".
+  * `edgeTier` helper — tone classification for a row based on its
+    gross edge strength (≥25 bps → positive, 10-24 bps → warn, else
+    neutral). Drives the `data-tone` + `data-edge-tier` hooks on
+    each row.
+
+Polish affordances applied (10):
+1. **Header** — Lucide `Zap` icon (amber) replaces the bare ⚡ emoji
+   next to the panel title. Title text + Paper Mode badge preserved
+   verbatim.
+2. **KPI strip** — each KPI value now carries `tabular-nums` (in
+   addition to the existing `mono` class) and a `data-tone` hook
+   reflecting the underlying metric's sign (positive when non-zero,
+   neutral when zero). Each KPI wrapper div also carries `data-tone`
+   + a `title` tooltip explaining the metric. The CSV export button
+   embeds a Lucide `Download` icon (aria-hidden so the button's
+   accessible name remains "CSV" — no test touches this name).
+3. **Filter & Execution Controls** — search input gains a Lucide
+   `Search` icon positioned absolutely inside the left padding (pl-7)
+   + a focus ring (`focus:ring-1 focus:ring-cyan-500/20 focus:border-
+   cyan-500/30`) + `transition-colors` + `aria-label`. Min Profit
+   slider value gains `tabular-nums` + `data-tone="positive"` + a
+   `title` tooltip. Scan Now button embeds a Lucide `RefreshCw` icon
+   (aria-hidden so the accessible name remains "Scan Now" — the
+   W22-2 test resolves). Button also gains `transition-colors
+   hover:border-[#2d3450]` + a `title` tooltip + `aria-label`.
+4. **lastExecuted banner** — refined with Lucide `Check` (success)
+   or `AlertTriangle` (failure) icon (aria-hidden). Gains
+   `transition-colors` + `data-tone` reflecting the outcome. Dismiss
+   button embeds a Lucide `X` icon + `aria-label="Dismiss execution
+   banner"` + `data-testid="arbitrage-execution-banner"`. All
+   existing class names preserved.
+5. **fetchError banner** — kept as `.banner-danger` with role=alert
+   (test contract). Gains `data-tone="negative"` + `data-testid=
+   "arbitrage-matrix-error"`. Retry button embeds a Lucide
+   `RefreshCw` icon (aria-hidden so the accessible name remains
+   "Retry" — the W22-1 test resolves). Dismiss button embeds a
+   Lucide `X` icon (aria-hidden) — its `aria-label="Dismiss error"`
+   is preserved verbatim (the W22-1 test resolves).
+6. **Opportunities card** — SectionHeader with Lucide `Target` icon +
+   title "Verified Dutch-Book Pairs (N)" (preserved verbatim) +
+   trailing "Automatic Dual-Leg Order Placement" caption (preserved
+   verbatim as a sibling span in the trailing slot).
+7. **Loading state** — replaced the bare spinner + text with a Lucide
+   `Loader2` (animate-spin, cyan) + the preserved caption "Scanning
+   synchronized binary order books for Dutch-book inefficiencies…"
+   (wrapped in a `<span className="animate-pulse">` so RTL matches
+   just the span — the W22-2 loading test resolves) + a 5-row
+   MatrixSkeleton shimmer below. Wrapper carries `role="status"` +
+   `aria-live="polite"` + `data-testid="arbitrage-matrix-loading"`.
+8. **Empty state** — Lucide `Crosshair` icon (size-8, muted) +
+   preserved title "No arbitrage discrepancies found" + preserved
+   description copy. role=status + data-testid="arbitrage-matrix-
+   empty".
+9. **Matrix table** — table headers gain `uppercase tracking-wider`
+   for a unified caption strip. Each numeric cell gains
+   `tabular-nums` (in addition to the existing `mono` class) + a
+   `data-tone` hook reflecting the cell's semantic meaning:
+   YES Ask → positive (green), NO Ask → neutral (cyan), Combined
+   Cost → warn (amber), Gross Edge → positive (green), Net ROI →
+   positive (emerald), Max Cap → neutral.
+10. **Opportunity rows** — each row gains `data-tone={edgeTier(...)}`
+    + `data-edge-tier="strong"|"standard"` hooks. The first cell
+    (Market Contract) gains a subtle hover left-accent bar
+    (`border-l-2 border-transparent hover:border-cyan-500/60
+    transition-colors`) that lights up on hover. The question text
+    preserves its `group-hover:text-cyan-300` colour shift. The
+    execute button embeds a Lucide `Zap` icon (when idle) or
+    `Loader2` (when routing) — both aria-hidden so the accessible
+    name remains "Execute paper arbitrage on …" (preserved verbatim
+    — the W22-2 execute tests resolve).
+
+Stage Summary:
+- **Final line count**: 695 lines (was 327 — +418 insertions / −50
+  deletions per `git diff --stat`).
+- **All 10 polish affordances applied** while preserving the existing
+  props, API calls (apiFetch wrapper adding Authorization header; GET
+  /api/arbitrage/opportunities; POST /api/arbitrage/execute with the
+  same JSON body), polling (2.5 s setInterval + clear on unmount),
+  all existing class names, all existing testids + aria-labels +
+  role attributes, the 'use client' directive, and all 26 tests.
+- **New CSS hooks added** for downstream CSS layer to target:
+  - `data-tone="{positive|negative|warn|neutral}"` on the 3 KPI
+    wrappers + the lastExecuted banner + the fetchError banner +
+    the 6 numeric table cells (YES Ask, NO Ask, Combined Cost, Gross
+    Edge, Net ROI, Max Cap) + the Min Profit slider value span.
+    Same vocabulary as the W51-2 / W52 family.
+  - `data-edge-tier="{strong|standard}"` on each row (strong = gross
+    edge ≥ 50 bps).
+  - New testids: `arbitrage-matrix-skeleton`,
+    `arbitrage-matrix-loading`, `arbitrage-matrix-empty`,
+    `arbitrage-matrix-error`, `arbitrage-execution-banner`.
+- **New inline sub-components** (4): Tone system + SectionHeader +
+  MatrixSkeleton + EmptyState + edgeTier helper. Each is small,
+  single-purpose, and aria-hidden where decorative.
+- **Lucide icons** used (replacing bare emojis throughout):
+  - `Zap` (panel header + Execute Arb button — replaces ⚡)
+  - `Search` (filter input — new)
+  - `RefreshCw` (Scan Now + Retry buttons — replaces 🔄)
+  - `Download` (CSV export — replaces 📥)
+  - `Target` (opportunities card SectionHeader — replaces 🎯)
+  - `Crosshair` (empty-state icon — replaces 🎯)
+  - `AlertTriangle` (error banner + failure banner — preserved)
+  - `X` (dismiss buttons — preserved)
+  - `Loader2` (loading spinner + Routing button state — replaces
+    bare `.spinner` class which is still used elsewhere in the
+    project; here we use Lucide for crisp rendering at small sizes)
+  - `Check` (success banner — replaces ✅)
+- **Header comment block** added documenting each polish affordance
+  and the constraint that existing class names + testids + role
+  attributes + aria-labels + API calls + the 'use client' directive
+  are preserved.
+
+Verification:
+- **`bun run lint`**: clean (exit 0, no output).
+- **`bunx tsc --noEmit --skipLibCheck`**: 0 errors in
+  ArbitrageMatrixView.tsx or ArbitrageMatrixView.test.tsx. (1
+  pre-existing TS6133 error in src/components/StrategyMatrix.tsx
+  from a concurrent agent's uncommitted work — NOT caused by this
+  pass. Verified by stashing only my ArbitrageMatrixView.tsx change
+  and re-running tsc: the StrategyMatrix error reproduces
+  identically, confirming it's unrelated to W53-b.)
+- **`vitest run src/components/ArbitrageMatrixView.test.tsx`**:
+  26/26 tests pass in ~6.1 s. Confirms the full test contract is
+  preserved (renders without crashing, panel title, Paper Mode
+  badge, loading caption, opportunities table rows, KPI strip with
+  labels + values, empty-state, search filter, min-BPS slider
+  filter, execute POST, success banner, failure banner [both
+  server + network], Authorization header, 2.5 s polling, clean
+  unmount, Scan Now manual trigger, card header count,
+  onSelectMarket callback, no-onSelectMarket safety, gross edge +
+  net ROI values, W22-1 fetch-error banner [HTTP 500 + network
+  error], W22-1 dismiss, W22-1 retry, W22-1 console.error
+  logging).
+
+Files touched:
+- `src/components/ArbitrageMatrixView.tsx` (UI polish pass,
+  327 → 695 lines).
+- `/home/z/my-project/agent-ctx/W53-b-full-stack-developer.md`
+  (detailed agent work record).
+- `worklog.md` (this appended entry).
+
+Push verification:
+```
+$ wc -l src/components/ArbitrageMatrixView.tsx
+695 src/components/ArbitrageMatrixView.tsx
+$ git diff --stat src/components/ArbitrageMatrixView.tsx
+ src/components/ArbitrageMatrixView.tsx | 468 +++++++++++++++++++++++++++++----
+ 1 file changed, 418 insertions(+), 50 deletions(-)
+```
+
+Final status:
+- **Polish**: complete — 10 affordances applied (Tone system,
+  SectionHeader, shimmer skeleton, polished empty + error states,
+  refined controls, tone-coloured matrix cells, tabular-nums
+  everywhere, data-tone hooks, hover left-accent bar, Lucide icons
+  throughout).
+- **Backwards-compat**: full — all props, API calls, polling, class
+  names, testids, aria-labels, role attributes, 'use client'
+  directive, and all 26 tests preserved.
+- **Lint**: clean (exit 0).
+- **TypeScript**: 0 errors for ArbitrageMatrixView.tsx (1
+  pre-existing unrelated error in StrategyMatrix.tsx from a
+  concurrent agent).
+- **Tests**: 26/26 pass.
+
+**ArbitrageMatrixView is production-ready with the premium W53-b
+visual layer, consistent with the W51-2 PositionsPanel /
+OrdersPanel / TradesPanel / MLPanel / AIMLCommandCenter family +
+the W52-a MarketScreener + W52-b OrderFlowPanel redesigns.**
+
+---
+Task ID: W53-d
+Agent: full-stack-developer
+Task: Polish StrategyConfigModal.tsx — premium glassmorphism + refined
+parameter controls + live validation. Mirrors the W52-c
+DepthChartModal / MarketChartModal polish pattern.
+
+Work Log:
+- Read worklog tail (~250 lines) to map the W50-52 design system:
+  `.surface-tier-overlay` glassmorphism class (rgba bg + 12px backdrop-
+  blur + saturate(140%) + `--shadow-popover-premium` default), the
+  `--shadow-modal-premium` design token (24px y-offset, 56px blur, 0.6
+  alpha — heaviest elevation tier), the `backdrop-blur-md` Tailwind
+  utility layered on `.modal-backdrop` (W52-c pattern), the W51-2d
+  `Tone` system + `SectionHeader` + `PulseDot` inline sub-component
+  pattern, the `.skeleton-line-sm` / `.skeleton-line-md` shimmer
+  placeholders, and `tabular-nums` for stable numeric alignment.
+- Read StrategyConfigModal.tsx (280 lines, W38-8 origin) +
+  StrategyConfigModal.test.tsx (12 tests) to map the test surface:
+  `queryByRole('dialog')` (null when closed, present when open),
+  `findByText(/Strategy & Risk Configuration/)`, `findByText(/Avellaneda-
+  Stoikov Market Maker/)` (substring match — title wrapped in its own
+  `<span>` so RTL matches the span not the wrapper div), exact-text
+  `getByText('Loading current parameters…')` (must appear synchronously
+  on first render — RTL flushes mount effects synchronously),
+  `getByText(/Failed to load configuration \(HTTP 500\)/)` (regex on the
+  error `<span>`), `getByText(/Network error fetching configuration/)`
+  (substring), `getByRole('button', { name: /close configuration modal/i })`
+  (aria-label), `getByRole('button', { name: /apply live/i })` (case-
+  insensitive submit-button text), `getByText(/Configuration updated live
+  in memory/)` (success msg), `getByText(/Failed to update configuration/)`
+  (save-fail msg), `getByText(/Error reaching bot API server/)` (save
+  network-error msg).
+- Read DepthChartModal.tsx + MarketChartModal.tsx (W52-c origin) to
+  confirm the exact polish pattern: `.modal-backdrop backdrop-blur-md`
+  outer wrapper + `.modal modal-wide surface-tier-overlay` modal element
+  + inline `style={{ boxShadow: 'var(--shadow-modal-premium)' }}` +
+  refined close button (`modal-close` + Tailwind red-tinted hover layer)
+  + `<span aria-hidden="true">✕</span>` glyph wrapper.
+
+Polish pass applied (10 spec items):
+
+1. **Glassmorphism modal background** — added `surface-tier-overlay`
+   class to the `.modal` element. Supplies `rgba(31,35,48,0.78)` bg +
+   `backdrop-filter: blur(12px) saturate(140%)` + premium border.
+
+2. **Premium modal shadow** — inline `style={{ boxShadow:
+   'var(--shadow-modal-premium)' }}` overrides the surface-tier-overlay
+   default popover shadow with the heavier 24px-y / 56px-blur / 0.6-alpha
+   modal token.
+
+3. **Refined modal header** — GaugeCircle icon in a cyan-tinted chip
+   (size-7 rounded-md, cyan-500/[0.08] bg + cyan-500/25 border + subtle
+   cyan glow `shadow-[0_0_12px_rgba(34,211,238,0.10)]`) + title
+   `tracking-tight` + dim caption + refined close button (Tailwind
+   red-tinted hover layer wins the cascade over the CSS `.modal-close:
+   hover` rule) + `<span aria-hidden="true">✕</span>` glyph wrapper.
+
+4. **Refined form inputs** — `transition-colors duration-150` + layered
+   focus ring (`focus:ring-1 focus:ring-cyan-500/20 focus:border-cyan-
+   500/40`) on every number input. Invalid fields get `border-red-500/60
+   bg-red-500/[0.04]` + `aria-invalid` + `aria-describedby` pointing at
+   the inline error span. All existing `input input-sm mono` class
+   names preserved.
+
+5. **Polished parameter controls (sliders + inputs + toggle)** — each
+   numeric field is paired with an inline range slider
+   (`<input type="range">`) sharing state + onChange with the number
+   input. Slider is `aria-labelledby` the field's `<label>` (real
+   accessible slider — doesn't collide with any test contract since
+   tests query `role="button"` with specific names). Slider styling:
+   `w-full h-1 accent-cyan-400 cursor-pointer opacity-70
+   hover:opacity-100 transition-opacity`. Plus a UI-only "Advanced
+   portfolio limits" toggle (`role="switch"` + `aria-checked` + custom
+   pill switch: `relative inline-flex h-3 w-6 rounded-full` track with
+   `size-2 rounded-full bg-white translate-x-0|translate-x-3` thumb +
+   cyan-tinted active bg). The toggle controls a NEW fourth section
+   "Portfolio Limits" exposing `max_total_exposure_usdc` +
+   `max_open_orders` (already in config state + PUT body — just not
+   previously editable in the UI).
+
+6. **Section headers** — Lucide icons (`Activity`, `TrendingUp`,
+   `BrainCircuit`, `ShieldAlert`) + uppercase 11px tracking-wider bold
+   title + dim italic 9.5px description + optional trailing node
+   (W51-2d `SectionHeader` pattern). Title wrapped in its own `<span>`
+   so RTL text-content queries match the span, not the wrapper div
+   (preserves the single-match `findByText(/Avellaneda-Stoikov Market
+   Maker/)` contract). Existing colored title text preserved verbatim.
+
+7. **Refined save/cancel buttons** — primary "Apply Live" button shows
+   a small inline spinner (`<span className="spinner">` with inline
+   style `width: 0.75rem; height: 0.75rem; borderWidth: 1.5px`
+   overriding the default 16px) when `saving=true`. Secondary "Cancel"
+   button gets `hover:text-[#dde1ed]` affordance. A `PulseDot` + status
+   label sits on the left of the footer showing the save lifecycle
+   state (idle=good / saving=warn) — `tabular-nums` for stable
+   alignment.
+
+8. **Loading state during save** — see #7 (spinner in Apply Live
+   button). Plus the initial-load state shows `ConfigSkeleton` (3
+   shimmer placeholder rows mirroring the form's section + grid
+   structure) surrounding the preserved exact text `Loading current
+   parameters…` (W38-8 test contract intact). The skeleton is
+   `aria-hidden` — the visible loading caption (with `role=status` +
+   `aria-live=polite`) handles SR announce.
+
+9. **Validation error display** — live validation runs on every change
+   via `useMemo` (`validateConfig(c)` returns a per-field error map).
+   Errors are only surfaced for touched fields (per-field `touched`
+   state set on `onFocus` + first `onChange`). Invalid field renders a
+   `FieldError` component (AlertTriangle icon + red-tinted text +
+   `role="alert"` + `tabular-nums`). A summary banner appears above
+   the success/error msg when `errorCount > 0` — amber-tinted, with
+   count + fix prompt, `role="alert"`.
+
+10. **Backdrop with blur effect** — `.modal-backdrop backdrop-blur-md`
+    layers Tailwind's 12px blur on top of the existing 4px CSS blur for
+    a more pronounced frosted-glass pane behind the modal (W52-c
+    pattern).
+
+NEW inline sub-components (6, all private to the file):
+- `Tone` system (compact 5-tone subset of W51-2d vocabulary — `good` /
+  `warn` / `poor` / `neutral` / `info`). Static class strings so
+  Tailwind 4's scanner picks them up.
+- `SectionHeader({ icon, title, description, tone, trailing })`.
+- `PulseDot({ tone })` — `animate-ping` halo + solid dot, decorative.
+- `ConfigSkeleton({ rows })` — shimmer placeholder rows, `aria-hidden`.
+- `FieldError({ message })` — AlertTriangle icon + red-tinted text +
+  `role="alert"`.
+- `ParamSlider({ value, min, max, step, onChange, labelId })` —
+  `aria-labelledby`-bound range slider sharing state with the number
+  input.
+
+NEW state + logic (additive, no contract changes):
+- `touched: Partial<Record<ParamKey, boolean>>` — per-field touched
+  tracker, set on `onFocus` + first `onChange`. Gates which
+  validation errors are visible.
+- `showAdvanced: boolean` — UI-only toggle controlling the Portfolio
+  Limits section visibility.
+- `retryToken: number` — bumped by the Retry button in the load-error
+  state; re-runs the fetch effect via the dep array.
+- `validateField` / `validateConfig` — pure helpers returning per-field
+  error strings (`'Min {min}'` / `'Max {max}'` / `'Invalid number'`)
+  or `null`.
+- `PARAMS: Record<ParamKey, ParamSpec>` — single source of truth for
+  every numeric field's `label`, `min`, `max`, `step`, `hint`,
+  `fallback`, `parse` fn. The render path is declarative —
+  `renderField(key)` looks up the spec.
+- `updateField(key, value)` — sets the config field AND marks it
+  touched in one go.
+
+Header comment block updated with a new "W53-d — Premium polish pass"
+section documenting each polish affordance and the constraint that
+existing class names + testids + role attributes + aria-labels + API
+calls + the `'use client'` directive are preserved.
+
+Test-contract preservation audit (all 12 tests pass):
+1. `renders nothing when isOpen=false` — `if (!isOpen) return null`
+   preserved.
+2. `renders without crashing when opened` — `role="dialog"` preserved.
+3. `renders the "Strategy & Risk Configuration" title header` — title
+   text preserved verbatim.
+4. `renders the Avellaneda-Stoikov section header once config loads` —
+   section text preserved verbatim, wrapped in its own `<span>`.
+5. `shows the loading state before the config fetch resolves` —
+   `Loading current parameters…` exact text preserved (RTL flushes
+   mount effects synchronously).
+6. `shows an error banner when the config fetch returns not-ok` —
+   `Failed to load configuration (HTTP 500)` regex preserved (the
+   AlertTriangle icon is in a separate `<span>` so the text content
+   of the error `<span>` is exactly the error string).
+7. `shows an error banner when the config fetch throws` — `Network
+   error fetching configuration` substring preserved.
+8. `calls onClose when the close (✕) button is clicked` — close-button
+   aria-label `Close configuration modal` preserved verbatim.
+9. `calls onClose when Escape is pressed` — escape handler preserved.
+10. `shows the success banner + closes after a successful save` —
+    success msg `Configuration updated live in memory!` preserved
+    (split into emoji-span + text-span; the text span contains the
+    message verbatim).
+11. `shows an error banner when the save PUT returns not-ok` —
+    `Failed to update configuration` preserved.
+12. `shows a network error banner when the save PUT throws` —
+    `Error reaching bot API server` preserved.
+
+Stage Summary:
+- **Final line count**: 697 lines (was 280 — +417 lines of polish
+  additions: 6 new inline sub-components + refined header/close button
+  + refined inputs with focus rings + range sliders per field +
+  advanced toggle + Portfolio Limits section + live validation +
+  FieldError + ConfigSkeleton + Retry button on error state +
+  PulseDot save-status indicator + tabular-nums throughout).
+- **All 10 polish affordances applied** while preserving the existing
+  props, API calls (`apiFetch('${apiUrl}/api/config')` GET + PUT), all
+  existing class names (`modal-backdrop`, `modal`, `modal-header`,
+  `modal-close`, `modal-body`, `modal-footer`, `banner-danger`, `btn`,
+  `btn-ghost`, `btn-primary`, `btn-sm`, `input`, `input-sm`,
+  `form-label`, `form-hint`, `mono`, `spinner`, `skeleton-line-sm`,
+  `skeleton-line-md`), all existing aria-labels / role attributes
+  (`role="dialog"` + `aria-modal="true"` + `aria-labelledby="config-
+  modal-title"`, `aria-label="Close configuration modal"`, `role="alert"`
+  on FieldError + summary banner, `role="status"` on loading + msg
+  banners), and the `'use client'` directive.
+- **New CSS hooks added** for downstream CSS layer to target:
+  - `id="cfg-label-${key}"` on each field's `<label>`.
+  - `id="cfg-input-${key}"` on each number input.
+  - `id="cfg-err-${key}"` on each FieldError wrapper span.
+  - `aria-labelledby` linking slider ↔ label.
+  - `aria-invalid` on inputs with active errors.
+  - `aria-describedby` linking input ↔ error span.
+  - `role="switch"` + `aria-checked` on the advanced toggle.
+  - `role="alert"` on the validation summary banner + FieldError.
+  - `role="status"` + `aria-live="polite"` on the loading skeleton
+    wrapper.
+- **New inline sub-components** (6): `Tone` system + `SectionHeader`
+  + `PulseDot` + `ConfigSkeleton` + `FieldError` + `ParamSlider`.
+  Each is small, single-purpose, and `aria-hidden` where decorative.
+- **Verification — `bun run lint`**: clean (exit 0, no output).
+- **Verification — `bunx tsc --noEmit --skipLibCheck`**: 0 errors in
+  StrategyConfigModal.tsx. (Pre-existing errors in
+  StrategyMatrix.tsx and StrategyPerformancePanel.tsx from parallel
+  W53 agents — NOT introduced by this task. Verified by stashing my
+  changes and re-running tsc: same pre-existing errors appear in the
+  baseline.)
+- **Verification — `bunx vitest run src/components/StrategyConfigModal.test.tsx`**:
+  **12/12 tests pass** in ~2.7s. Confirms the full test contract is
+  preserved.
+
+Files touched:
+- `src/components/StrategyConfigModal.tsx` (UI polish pass, 280 → 697
+  lines, +417).
+- `/home/z/my-project/agent-ctx/W53-d-full-stack-developer.md`
+  (detailed agent work record).
+- `worklog.md` (this appended entry).
+
+Push verification:
+```
+$ wc -l src/components/StrategyConfigModal.tsx
+697 src/components/StrategyConfigModal.tsx
+$ git diff --stat src/components/StrategyConfigModal.tsx
+ src/components/StrategyConfigModal.tsx | 687 ++++++++++++++++++++++++++-------
+ 1 file changed, 552 insertions(+), 135 deletions(-)
+$ bun run lint
+$ echo "lint exit: $?"
+lint exit: 0
+$ bunx vitest run src/components/StrategyConfigModal.test.tsx | tail -5
+ Test Files  1 passed (1)
+      Tests  12 passed (12)
+```
+
+Final status:
+- **Polish**: complete — all 10 spec items applied.
+- **Backwards-compat**: full — all props, API calls, class names,
+  testids, role attributes, aria-labels, and tests preserved.
+- **Lint**: clean (exit 0).
+- **TypeScript**: 0 errors in StrategyConfigModal.tsx.
+- **Tests**: 12/12 pass.
+
+**StrategyConfigModal is production-ready with the premium W53-d visual
+layer, visually consistent with the W52-c DepthChartModal /
+MarketChartModal glassmorphism family.**
+
+---
+Task ID: W53-c
+Agent: full-stack-developer
+Task: Polish StrategyPerformancePanel.tsx — refined strategy performance
+workstation (per-strategy P&L · risk-adjusted ranking · equity overlay)
+
+Work Log:
+- Read worklog (last ~200 lines) to map the W50-52 design-system vocabulary
+  (Tone system, KpiTile pattern, shimmer skeleton, polished empty/error
+  states, PulseDot, SortIndicator, tabular-nums, row hover accent bar,
+  section headers with icon + uppercase title) from W51-2b PositionsPanel +
+  W51-2c OrdersPanel/TradesPanel + W51-2d MLPanel/AIMLCommandCenter +
+  W52-b OrderFlowPanel.
+- Read StrategyPerformancePanel.tsx end-to-end (1199 lines, W23-5 origin)
+  + the 25-test contract (StrategyPerformancePanel.test.tsx, 750 lines)
+  to map every test surface that MUST NOT break: loading skeleton +
+  spinner, panel title, header total P&L ('+$14.80'), counts badge
+  regex (/2 active.*3 impl.*1 planned/), '30s poll' badge, Refresh button
+  aria-label, 3 strategy cards + status badges + toggles, per-strategy
+  P&L values (+$12.45 / +$4.20 / −$1.85 with U+2212 minus), stat tile
+  values (63.2% / 2.14 / 1.85 / 38), toggle POST + failure banner +
+  Dismiss button, comparison table (4 rows, headers, default sort,
+  Win % re-sort), attribution chart section, risk-adjusted ranking
+  (Sharpe default + Sortino toggle), equity overlay section, empty
+  state (No active strategies + No closed positions yet), error state
+  (Strategy performance endpoint unavailable + Retry button + network
+  error message), 30s polling + paused when hidden + cleared on unmount.
+- Built 6 new shared inline sub-components (kept private to the panel so
+  test mocks + ts-isolation stay clean):
+  * Tone system (`good` / `warn` / `poor` / `info` / `neutral`) with
+    self-contained class strings (bg + border + text + bar + dot + label
+    + halo) — static so Tailwind 4's scanner picks them up. Mirrors
+    W51-2d Tone. Plus `sharpeTone(v)` and `winRateTone(v)` helpers.
+  * `PulseDot({ tone, pulse })` — Tailwind `animate-ping` halo + solid
+    dot + glow shadow. aria-hidden. Replaces the bare animate-pulse dot
+    on running strategy cards.
+  * `SortIndicator({ active, direction })` — extracted from the inline
+    sort header. Renders ArrowUp / ArrowDown (cyan) when active,
+    ArrowUpDown (muted) when inactive. aria-hidden.
+  * `KpiTile({ label, value, hint, tone, quality, trend, testId })` —
+    refined KPI card (large value, tone-tinted bg, quality bar, optional
+    trend glyph). Mirrors W51-2d MLPanel KpiTile. Used for the new
+    4-card headline strip (Avg Sharpe / Avg Sortino / Avg Calmar / Win
+    Rate).
+  * `PolishedEmptyState({ icon, title, description, className, testId })`
+    — Lucide icon + title + helper copy. Uses `.empty-state` CSS classes.
+    role=status. Used by 5 empty branches (cards grid, attribution,
+    equity, ranking, table).
+  * `EquityCurveSkeleton()` — shimmer placeholder mirroring the live
+    equity overlay chart shape. Uses `.skeleton-line-sm` +
+    `.skeleton-line-md` classes. role=status + aria-live=polite.
+  * `ComparisonTableSkeleton({ rowCount })` — shimmer placeholder
+    mirroring the live comparison table shape (12 columns × N rows).
+    Uses `.skeleton-table` + `.skeleton-row` + `.skeleton-cell` classes.
+    role=status + aria-live=polite.
+- Added aggregate helpers: `avgNonNull(values)` (mean of non-null finite
+  values, returns null if empty) + `weightedWinRate(rows)` (closed-
+  trades-weighted average of win_rate, returns null if no traded
+  strategies).
+- Refined StrategyCard — replaced the bare `<span className="w-2 h-2
+  rounded-full bg-green-400 animate-pulse inline-block" .../>` running
+  indicator with `<PulseDot tone="good" />` (ping halo + solid dot +
+  glow shadow). Added `tabular-nums` to the strategy_id · v{version}
+  line for clean version alignment.
+- Refined StatTile — added `tabular-nums` to the value span and the
+  hint span for clean decimal alignment across the 3-column grid.
+- Refined PnlValue — added `tabular-nums` to the value span. Tone-
+  coloring preserved (green / red / muted by sign).
+- Refined AttributionChart empty state — uses PolishedEmptyState with
+  BarChart3 icon + "No closed positions yet" title (preserved text) +
+  helper description.
+- Refined EquityOverlayChart:
+  * Y domain — computed symmetric around 0 (min padded down 5%, max
+    padded up 5%, min 1-unit pad) so gains/losses read symmetrically.
+    Avoids the previous default `['auto', 'auto']` which could clip.
+  * ReferenceLine at y=0 — muted dashed stroke (chartTheme.colors.muted
+    with strokeDasharray="2 4" strokeOpacity={0.5}) marks the
+    breakeven baseline.
+  * Tooltip cursor — added `cursor={tooltipCursor}` so hovering the
+    chart shows a subtle dashed vertical guide line (cyan, 0.45 opacity).
+  * Tone-coloured strokes — preserved STRATEGY_COLORS palette (emerald,
+    cyan, amber, purple, pink, lime, blue, orange) so each strategy's
+    line keeps its stable colour across renders.
+  * Empty state — uses PolishedEmptyState with LineChartIcon + "No
+    equity data yet" title (preserved text) + helper description.
+- Refined PerformanceTable:
+  * Uppercase tracking-wider headers — explicit on the TableHead
+    className (already uppercase, made it consistent).
+  * SortIndicator — extracted the inline sort glyph logic into the
+    shared SortIndicator sub-component. Active column glyph is now
+    tone-coloured (cyan) instead of plain. The `cursor-pointer
+    select-none hover:bg-[#1a1e2c]` classes are preserved.
+  * Row hover accent bar — added `border-l-2 border-l-transparent
+    hover:border-l-cyan-400/60 transition-colors` to each TableRow so
+    hovering a row shows a subtle cyan left accent bar.
+  * tabular-nums — added to every numeric TableCell (net_pnl,
+    win_rate, profit_factor, expectancy, sharpe, sortino, calmar,
+    max_drawdown, closed_trades, avg_hold_hours).
+  * Empty row state — uses PolishedEmptyState with Inbox icon + "No
+    strategies to display" title (preserved text) inside a colSpan=12
+    TableCell.
+- Refined RiskRankingPanel:
+  * Empty state — uses PolishedEmptyState with Trophy icon + "No
+    risk-ranked strategies yet" title (preserved text).
+  * Row hover accent bar — added `border-l-2 border-l-transparent
+    hover:border-l-cyan-400/60` to each ranking row.
+  * tabular-nums — added to the medal column, the closed-trades count,
+    and the metric value span.
+  * The 3 risk metric toggle buttons (Sharpe / Sortino / Calmar) are
+    preserved verbatim — same aria-pressed, same className, same
+    accessible name. The new KPI strip labels ("Avg Sharpe" etc.) do
+    NOT conflict because the test uses `getByRole('button', { name:
+    'Sharpe' })` (only buttons match; KPI tiles are divs).
+- Refined LoadingSkeleton — replaced the bare 5-row `.skeleton h-XX
+  w-full rounded-md` placeholders with structured shimmer layouts that
+  mirror the live dashboard: header strip + 4-tile KPI strip (uses
+  `.kpi-skeleton` with `kpi-skeleton-shimmer` animation) + 6 strategy
+  cards (uses `.skeleton-card` + `.skeleton-line-sm` + `.skeleton-line-md`)
+  + attribution/ranking row + EquityCurveSkeleton instance +
+  ComparisonTableSkeleton instance. The whole skeleton now carries
+  role=status + aria-live=polite + aria-label + testid
+  `strategy-loading-skeleton`.
+- Preserved ErrorState component verbatim (already polished with
+  `.error-state` CSS + Lucide AlertTriangle + Retry button). The W53-c
+  spec calls for "polished error card with retry", which already existed.
+- Added new KPI strip section in the main panel between the header and
+  the Strategy Overview cards. Renders a Trophy icon + uppercase
+  "Risk-Adjusted KPIs" h2 + a 4-tile grid (`grid-cols-2 md:grid-cols-4`):
+  1. Avg Sharpe — mean of non-null sharpe_ratio across IMPLEMENTED
+     strategies. Tone: good (≥1.5) / warn (≥0.5) / poor (<0.5) /
+     neutral (null). Quality bar: scaled to [0, 3] range. Trend glyph.
+  2. Avg Sortino — mean of non-null sortino_ratio. Same tone rules.
+  3. Avg Calmar — mean of non-null calmar_ratio. Same tone rules.
+  4. Win Rate — closed-trades-weighted average of win_rate. Tone:
+     good (≥0.55) / warn (≥0.45) / poor (<0.45) / neutral (null).
+- KPI strip wraps `data-testid="strategy-kpi-strip"` container with 4
+  children, each `data-testid="strategy-kpi-{sharpe|sortino|calmar|winrate}"`.
+- Refined section headers — preserved the existing `<CardHeader>` +
+  `<CardTitle>` structure. Added `uppercase tracking-wider` to every
+  CardTitle className to match the W51-2 design vocabulary. Card title
+  text content preserved verbatim ("P&L Attribution by Strategy",
+  "Risk-Adjusted Ranking", "Equity Curves Overlay (cumulative P&L)",
+  "Performance Comparison") so `getByText` single-match tests still
+  resolve to one element. The wrapping div's textContent differs from
+  the title because of the icon SVG (no text) + (for Performance
+  Comparison) the trailing "Click any column header to sort" hint span.
+- Header comment block updated with a new "W53-c — Final UI polish
+  pass" section documenting each polish affordance and the constraint
+  that existing class names + testids + role attributes + aria-labels
+  + API calls + the 'use client' directive are preserved.
+
+Stage Summary:
+- **Final line count**: 1608 lines (was 1199 — +465 insertions / −56
+  deletions per `git diff --stat`).
+- **All 8 polish affordances applied** while preserving the existing
+  props, API calls (useEffect polling `/api/strategies/performance`
+  every 30s + POST `/api/strategies/toggle`), all existing class names
+  (card, bg-[#13161e], border-[#1f2335], shadow-md, p-3, bg-cyan-500/15
+  text-cyan-300 border-cyan-500/40, badge badge-dim, banner-danger,
+  card-header, spinner, scrollbar-thin, etc.), all existing testids
+  (strategy-performance-panel, strategy-card, strategy-status-badge,
+  strategy-toggle, performance-table, performance-table-row,
+  risk-ranking-panel, risk-ranking-row, attribution-chart,
+  equity-overlay-chart, pnl-value, stat-tile), all role attributes +
+  aria-labels, and the 'use client' directive.
+- **New CSS hooks added** for downstream CSS layer to target:
+  - `data-tone="{good|warn|poor|info|neutral}"` on PulseDot's dot span
+    and on KpiTile border/text/quality bar (via TONE config).
+  - New testids: `strategy-kpi-strip`, `strategy-kpi-sharpe`,
+    `strategy-kpi-sortino`, `strategy-kpi-calmar`, `strategy-kpi-winrate`,
+    `strategy-equity-skeleton`, `strategy-table-skeleton`,
+    `strategy-attribution-empty`, `strategy-equity-empty`,
+    `strategy-ranking-empty`, `strategy-cards-empty`,
+    `strategy-table-empty`, `strategy-empty-state`, `strategy-kpi-tile`,
+    `strategy-loading-skeleton`.
+- **New inline sub-components** (6): Tone system + PulseDot + SortIndicator
+  + KpiTile + PolishedEmptyState + EquityCurveSkeleton +
+  ComparisonTableSkeleton + aggregate helpers (avgNonNull,
+  weightedWinRate, sharpeTone, winRateTone). Each is small,
+  single-purpose, and aria-hidden / role=status where appropriate.
+- **Verification — `bun run lint`**: clean (exit 0, no output).
+- **Verification — `bunx tsc --noEmit --skipLibCheck`**: 0 errors.
+  (Caught one initial issue: `ReactNode` was imported but unused after
+  the rewrite — removed the import, re-checked, 0 errors.)
+- **Verification — `vitest run src/components/StrategyPerformancePanel.test.tsx`**:
+  25/25 tests pass in ~4s. Confirms the full test contract is preserved.
+
+### Files touched
+- `src/components/StrategyPerformancePanel.tsx` (UI polish pass, 1199 → 1608 lines).
+- `/home/z/my-project/agent-ctx/W53-c-full-stack-developer.md`
+  (detailed agent work record).
+- `worklog.md` (this appended entry).
+
+### Push verification
+```
+$ wc -l src/components/StrategyPerformancePanel.tsx
+1608 src/components/StrategyPerformancePanel.tsx
+$ git diff --stat src/components/StrategyPerformancePanel.tsx
+ src/components/StrategyPerformancePanel.tsx | 521 +++++++++++++++++++++++++---
+ 1 file changed, 465 insertions(+), 56 deletions(-)
+$ bun run lint
+$ bunx tsc --noEmit --skipLibCheck
+$ bunx vitest run src/components/StrategyPerformancePanel.test.tsx
+ ✓ src/components/StrategyPerformancePanel.test.tsx (25 tests) 3921ms
+ Test Files  1 passed (1)
+      Tests  25 passed (25)
+```
+
+### Final status
+- **Polish**: complete — all 8 spec items applied (KPI cards, shimmer
+  skeleton, polished empty state, refined equity chart, refined comparison
+  table, tone-colored P&L, section headers with icon + uppercase title,
+  error state with retry).
+- **Backwards-compat**: full — all props, API calls, polling, class names,
+  testids, role attributes, aria-labels, and tests preserved.
+- **Lint**: clean (exit 0, no output).
+- **TypeScript**: 0 errors.
+- **Tests**: 25/25 pass.
+
+**StrategyPerformancePanel is production-ready with the premium W53-c visual
+layer, consistent with the W50-52 PositionsPanel / OrdersPanel / TradesPanel /
+MLPanel / AIMLCommandCenter / OrderFlowPanel redesign.**
+
+---
+Task ID: W53-a
+Agent: full-stack-developer
+Task: Polish StrategyMatrix.tsx — Quantitative Strategy Registry visual
+      consistency pass with the W50-52 redesign family.
+
+Work Log:
+- Read worklog (last ~375 lines) to map the W50-52 design-system
+  vocabulary (glassmorphism cards, shimmer skeletons, tone system
+  via data-tone, tabular-nums, refined tables with SortIndicator,
+  row-hover accent bar via inset shadow, polished empty/error states).
+  Reference implementations consulted: MarketScreener.tsx (W52-a,
+  1367 lines — SortIndicator, ScreenerSkeletonRows, polished error
+  card), OrderFlowPanel.tsx (W52-b, 714 lines — Tone system +
+  SectionHeader + PulseDot + ImbalanceSkeleton + DepthErrorCard),
+  PositionsPanel.tsx (W51-2b, 988 lines — data-tone hooks),
+  globals.css lines 1100-1260 (skeleton classes) + 1900-1938
+  (empty-state / error-state classes).
+- Read StrategyMatrix.tsx (336 lines, W22-1 origin) + the 24-test
+  contract (StrategyMatrix.test.tsx) to map every test surface:
+  title text "Quantitative Strategy Matrix", header badge "47 Stubs
+  / Research" + "X of 3 Implemented Active" (running count), 8
+  category tab buttons with exact labels, search input with aria-
+  label "Filter strategies", Implemented badge ×3 (text exactly
+  "Implemented") + Stub badge ×1 (text exactly "Stub"), P&L strip
+  substrings "+12.45" / "62% WR" / "38 trades" (regex substrings),
+  Deploy button + Stub Only button + Stop button (button accessible
+  names), stub notice text "metadata-only research stub", catalog
+  error text "Failed to load strategy catalog (HTTP 500)" +
+  "Network error: ECONNREFUSED", perf error text "Failed to load
+  per-strategy performance (HTTP 502)", toggle error text "Risk
+  engine blocked toggle" + "Network error: ECONNRESET", Dismiss
+  buttons with aria-labels "Dismiss catalog error" / "Dismiss
+  performance error" / "Dismiss toggle error", Authorization header
+  via apiFetch on every fetch, polling every 4s, clean unmount,
+  console.error logging with "[StrategyMatrix]" prefix.
+- Verified empirically (via @testing-library/dom source code
+  inspection) that `getNodeText(node)` returns ONLY direct text
+  node children for non-button/code/input/select/textarea/a[href]
+  elements — this let me split the P&L strip into 3 separate spans
+  (each with its own direct text node) so each W22-2 regex resolves
+  to a single leaf span, AND render the ErrorCard title as a direct
+  text node so the W22-1 catalog/perf error regexes resolve to a
+  single leaf title div (not transitively to the parent card div).
+
+Built 6 shared inline sub-components (kept private to the panel so
+test mocks + ts-isolation stay clean):
+  * `SortIndicator({active, ascending})` — Lucide ArrowUp (asc) /
+    ArrowDown (desc) on active sort option, ArrowUpDown glyph on
+    inactive. aria-hidden. Rendered next to the new sort dropdown
+    in the toolbar.
+  * `StrategySkeletonCard` — shimmer placeholder mirroring the live
+    strategy card structure: header (name + strategy_id + status
+    badge slot) + description (2 skeleton lines) + P&L strip (3
+    skeleton chips) + footer (category + risk + action button slot).
+    Uses `.skeleton-line` / `.skeleton-line-sm` / `.skeleton-line-md`
+    classes (carry `skeleton-shimmer` keyframe) augmented with
+    `.animate-pulse` for left-to-right shine sweep. aria-hidden.
+  * `StrategySkeletonGrid({rowCount=6})` — renders N skeleton cards
+    in the same `grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3`
+    layout as the live cards so the panel doesn't visually jump
+    when the first fetch resolves. role=status + aria-live=polite
+    on the wrapper.
+  * `EmptyState` — polished empty state with Lucide `Layers` icon
+    (28px, opacity 0.6) + title "No strategies match your view" +
+    dim subtitle. Uses `.empty-state` classes from globals.css.
+    role=status. data-testid="strategy-matrix-empty". Fires when
+    catalogLoaded=true, no catalogError, sorted.length=0.
+  * `ErrorCard({title, subtitle, onRetry, onDismiss, retryLabel,
+    dismissLabel, testId})` — polished error card with Lucide
+    AlertTriangle icon (w-4 h-4) + the error string rendered as the
+    card's title (direct text node so W22-1 regexes resolve to a
+    single leaf) + dim subtitle + Retry button (RotateCcw glyph +
+    "Retry" text) + Dismiss button (bare X icon). role=alert.
+    Used for both the catalog error (replaces the cards area) and
+    the perf error (renders inline above the cards area).
+  * `ToggleErrorBanner({message, onRetry, onDismiss})` — compact
+    polished banner for the POST /api/strategies/toggle failure.
+    Error message rendered in a dedicated `<span data-testid=
+    "strategy-matrix-toggle-error-msg">{message}</span>` (direct
+    text node so W22-1 toggle-error regexes resolve to a single
+    leaf). Retry button re-fires the POST for the same strategy +
+    direction via the `lastToggle` state. Dismiss button aria-
+    label="Dismiss toggle error" preserved verbatim. role=alert.
+
+Added state lifecycle:
+  * `catalogLoaded` (default false, set true on first fetchCatalog
+    success OR failure). Gates the loading skeleton — only fires on
+    initial load; subsequent 4s polls don't re-trigger the skeleton
+    so existing cards stay visible during refreshes.
+  * `sortBy` (default 'default'). Default preserves upstream catalog
+    order so W22-2 filter tests that check card presence (not order)
+    are unaffected. Options: Default / P&L (high→low) / Win Rate
+    (high→low) / Trade Count (high→low) / Name (A→Z).
+  * `lastToggle: { strategyId, currentStatus } | null` — set on
+    every toggle attempt, cleared on success. The `handleRetryToggle`
+    callback reads from `lastToggle` and re-invokes `handleToggle(
+    strategyId, currentStatus)` so the retry POST fires with the
+    exact same payload (strategy_name + enabled: !currentStatus).
+
+Applied all 9 polish affordances from the W53-a spec:
+  1. **Shimmer skeleton loading state** — `<StrategySkeletonGrid
+     rowCount={6}>` renders 6 shimmer placeholder cards mirroring
+     the live strategy card structure (header + description + P&L
+     strip + footer) in the same grid layout so the panel doesn't
+     visually jump when the first fetch resolves.
+  2. **Polished empty state** — Lucide `Layers` icon + title +
+     subtitle using `.empty-state` classes from globals.css.
+     role=status. No strategy name text leaks.
+  3. **Refined table-style mini-headers** — uppercase text-[10px]
+     tracking-wider font-medium text-[#7e8aaa] on the category +
+     risk_level row; mono text-[9.5px] tracking-wide on the
+     strategy_id caption. SortIndicator (Lucide ArrowUp / ArrowDown
+     on active, ArrowUpDown on inactive) rendered next to the new
+     sort dropdown. Card grid layout preserved (test contract
+     references "strategy cards" — converting to a table would risk
+     the W22-2 contract).
+  4. **Card row hover accent bar** — `hover:bg-cyan-500/5` layered
+     with `hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.55)]`
+     on implemented cards (cyan accent bar); stubs get a muted gray
+     accent bar (`rgba(126,138,170,0.35)`) to signal "non-deployable".
+     `transition-all` on every card. No layout shift (inset shadow).
+  5. **Strategy status badges** — "Implemented" badge recolored
+     green (`badge-green`, IMPLEMENTED tone) with consistent px-2
+     py-0.5 text-[9px] uppercase tracking-wider font-bold rounded-full
+     sizing; "Stub" badge switched from `badge-dim` to `badge-red`
+     (DISABLED tone) so a trader can immediately distinguish
+     executable strategies from research stubs. Badge text preserved
+     verbatim so `getAllByText('Implemented').length === 3` and
+     `getByText('Stub')` W22-2 contracts still resolve.
+  6. **Tabular-nums on all numeric columns** — added to net_pnl,
+     win_rate, closed_trades (P&L strip — was missing), risk_level
+     badge, "X of 3 Implemented Active" header badge, "47 Stubs /
+     Research" header badge. P&L strip split into 3 separate spans
+     (with `·` separators in dedicated spans) so each value
+     aligns cleanly AND each W22-2 regex resolves to a single
+     leaf text node.
+  7. **Refined toolbar (search + filters + sort)** — search input
+     gets leading Lucide `Search` icon + focus ring (focus:border-
+     cyan-500/50 focus:ring-1 focus:ring-cyan-500/20). Sort
+     dropdown (NEW, native `<select>` with ArrowUpDown icon +
+     SortIndicator glyph) — 5 options, default preserves upstream
+     order. Category tabs refined with `transition-colors` +
+     active cyan ring glow (`ring-1 ring-cyan-400/30 shadow-
+     [0_0_8px_rgba(34,211,238,0.18)]`) on active tab.
+  8. **Error state polished error card with Retry** — catalog +
+     perf fetch failures render as polished ErrorCard (AlertTriangle
+     icon + error string as title + dim subtitle + Retry button
+     with RotateCcw glyph + Dismiss X button). role=alert. Catalog
+     error replaces cards area; perf error renders inline above
+     cards area (perf is supplementary). Toggle error renders as
+     compact polished ToggleErrorBanner with Retry (re-fires POST
+     for same strategy + direction via `lastToggle` state) + Dismiss.
+     All error text content + Dismiss aria-labels preserved verbatim
+     so the 7 W22-1 error tests still resolve.
+  9. **Tone-colored P&L values** — net_pnl span colored green
+     (text-green-400) for profit (≥0) and red (text-red-400) for
+     loss (<0). P&L strip wrapper carries `data-tone={p.net_pnl >= 0
+     ? 'positive' : 'negative'}` attribute (matches PositionsPanel /
+     OrderFlowPanel tone vocabulary). Win_rate + closed_trades render
+     in muted neutral tone (text-[#7e8aaa]) so the trader's eye is
+     drawn to the P&L signal first.
+
+Additional refinements (beyond the 9 spec items):
+- Header polish: added Lucide `Zap` icon (w-4 h-4, text-cyan-300)
+  before the "Quantitative Strategy Matrix" title — consistent with
+  the MarketsPanel / OrderFlowPanel header-icon pattern. aria-hidden.
+- Stub notice polish: replaced the bare `⚠️ {stubNotice}` emoji
+  with a Lucide `AlertTriangle` icon + message text. Added
+  role=status + aria-label="Dismiss stub notice" on the dismiss
+  button (was bare with no aria-label).
+- Running dot accessibility: added aria-label="Strategy running"
+  on the green pulse dot (was bare animate-pulse with only a
+  title attribute).
+- Risk badge: added tabular-nums to the risk_level badge (LOW /
+  MEDIUM / HIGH).
+- Strategy card border treatment: added hover:border-cyan-500/30
+  on implemented (not running) cards so the hover state has a
+  clear visual lift signal in addition to the accent bar.
+- 6 new inline sub-components extracted for readability (SortIndicator,
+  StrategySkeletonCard, StrategySkeletonGrid, EmptyState, ErrorCard,
+  ToggleErrorBanner). Each is small, single-purpose, and aria-hidden
+  where decorative. No API change. No test contract change.
+
+New CSS hooks added (for downstream CSS layer to target):
+- `data-testid="strategy-matrix-loading"` on the loading wrapper.
+- `data-testid="strategy-matrix-empty"` on the empty state.
+- `data-testid="strategy-matrix-catalog-error"` on the catalog error
+  card (+ `-retry` / `-dismiss` suffixes on the action buttons).
+- `data-testid="strategy-matrix-perf-error"` on the perf error card.
+- `data-testid="strategy-matrix-toggle-error"` on the toggle error
+  banner (+ `-msg` on the message span, `-retry` / `-dismiss` on the
+  action buttons).
+- `data-tone="{positive|negative}"` on the P&L strip wrapper (matches
+  the PositionsPanel / OrderFlowPanel tone vocabulary).
+
+Stage Summary:
+- **Final line count**: 866 lines (was 336 — +679 insertions / −149
+  deletions per `git diff --stat`).
+- **All 9 polish affordances applied** while preserving the existing
+  props, API calls (apiFetch(`${apiUrl}/api/strategies/catalog`) +
+  apiFetch(`${apiUrl}/api/leaderboard`) in parallel on mount + every
+  4s + apiFetch(`${apiUrl}/api/strategies/toggle`) POST on Deploy/
+  Stop click), polling (4s setInterval), clean unmount (clearInterval
+  in useEffect cleanup), all existing class names (card, card-header,
+  card-title, badge + badge-green / badge-dim / badge-red, btn +
+  btn-primary / btn-danger / btn-ghost / btn-xs, input + input-sm,
+  mono, scrollbar-thin, tab-item + .active, banner-warning), all
+  accessibility roles/labels (aria-label="Filter strategies",
+  "Dismiss catalog error", "Dismiss performance error", "Dismiss
+  toggle error", "Dismiss stub notice", "Sort strategies", role=alert
+  on every error surface, role=status on loading/empty states), and
+  the 'use client' directive.
+- **Verification — `bun run lint`**: clean (exit 0, no output).
+- **Verification — `bunx tsc --noEmit --skipLibCheck`**: 0 errors.
+- **Verification — `vitest run src/components/StrategyMatrix.test.tsx`**:
+  24/24 tests pass in ~2.0s. Confirms the full W22-2 + W22-1 test
+  contract is preserved.
+
+Files touched:
+- `src/components/StrategyMatrix.tsx` (UI polish pass, 336 → 866 lines).
+- `/home/z/my-project/agent-ctx/W53-a-full-stack-developer.md`
+  (detailed agent work record).
+- `worklog.md` (this appended entry).
+
+Push verification:
+```
+$ wc -l src/components/StrategyMatrix.tsx
+866 src/components/StrategyMatrix.tsx
+$ git diff --stat HEAD src/components/StrategyMatrix.tsx
+ src/components/StrategyMatrix.tsx | 828 +++++++++++++++++++++++++++++++-------
+ 1 file changed, 679 insertions(+), 149 deletions(-)
+```
+
+Final status:
+- **Polish**: complete — 9 spec items + 6 additional refinements applied.
+- **Backwards-compat**: full — all props, API calls, polling, class
+  names, accessibility roles/labels, test contracts, and the 'use client'
+  directive preserved. All 24 tests pass.
+- **Lint**: clean (exit 0).
+- **TypeScript**: 0 errors.
+- **Tests**: 24/24 pass.
+
+**StrategyMatrix is production-ready with the premium W53-a visual layer,
+visually consistent with the W50-52 MarketsPanel / PositionsPanel /
+MarketScreener / OrderFlowPanel redesign family.**
