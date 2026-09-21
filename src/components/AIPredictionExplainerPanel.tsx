@@ -80,12 +80,11 @@
 
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import {
   Activity,
   AlertCircle,
   AlertTriangle,
-  BadgeCheck,
   Brain,
   CheckCircle2,
   ChevronDown,
@@ -94,12 +93,16 @@ import {
   Gauge,
   Info,
   Lightbulb,
+  LineChart,
   Loader2,
   RefreshCw,
+  RotateCcw,
   ShieldAlert,
   Sparkles,
+  Target,
   TrendingDown,
   TrendingUp,
+  type LucideIcon,
   XCircle,
 } from 'lucide-react'
 
@@ -341,6 +344,236 @@ function bernoulliCI(p: number, n: number): { low: number; high: number } | null
   return { low, high }
 }
 
+// ── W54-c Tone system (mirrors W51-2d MLPanel / AIMLCommandCenter) ──────────
+// Unified tone vocabulary used across the polished panel. Each tone resolves
+// to a self-contained class set (background tint, border, value text, quality
+// bar, dot) so KPI tiles, the status banner, the SHAP bars, and the
+// confidence tile share the same semantic palette. Static class strings keep
+// Tailwind 4's scanner happy.
+
+type Tone = 'good' | 'warn' | 'poor' | 'info' | 'neutral'
+
+interface ToneConfig {
+  bg: string
+  border: string
+  text: string
+  bar: string
+  dot: string
+  label: string
+  halo: string
+}
+
+const TONE: Record<Tone, ToneConfig> = {
+  good:    { bg: 'bg-emerald-500/[0.06]', border: 'border-emerald-500/25', text: 'text-emerald-400', bar: 'bg-emerald-500', dot: 'bg-emerald-400', label: 'text-emerald-400/80', halo: 'shadow-emerald-500/10' },
+  warn:    { bg: 'bg-amber-500/[0.06]',   border: 'border-amber-500/25',   text: 'text-amber-400',   bar: 'bg-amber-500',   dot: 'bg-amber-400',   label: 'text-amber-400/80',   halo: 'shadow-amber-500/10' },
+  poor:    { bg: 'bg-red-500/[0.06]',     border: 'border-red-500/25',     text: 'text-red-400',     bar: 'bg-red-500',     dot: 'bg-red-400',     label: 'text-red-400/80',     halo: 'shadow-red-500/10' },
+  info:    { bg: 'bg-purple-500/[0.06]',  border: 'border-purple-500/25', text: 'text-purple-400', bar: 'bg-purple-500', dot: 'bg-purple-400',  label: 'text-purple-400/80',  halo: 'shadow-purple-500/10' },
+  neutral: { bg: 'bg-[#0e1015]',          border: 'border-[#1f2335]',     text: 'text-[#dde1ed]',   bar: 'bg-[#5a637a]',   dot: 'bg-[#5a637a]',   label: 'text-[#7e8aaa]',      halo: '' },
+}
+
+/** Map a confidence value [0,1] to a Tone (green ≥0.7, amber ≥0.5, red <0.5). */
+function confidenceTone(c: number | null | undefined): Tone {
+  if (c == null || !Number.isFinite(c)) return 'neutral'
+  if (c >= 0.7) return 'good'
+  if (c >= 0.5) return 'warn'
+  return 'poor'
+}
+
+/** Map a Brier score [0,1] to a Tone (green ≤0.18, amber ≤0.25, red >0.25).
+ *  Lower Brier = better calibrated → better tone. */
+function brierTone(b: number | null | undefined): Tone {
+  if (b == null || !Number.isFinite(b)) return 'neutral'
+  if (b <= 0.18) return 'good'
+  if (b <= 0.25) return 'warn'
+  return 'poor'
+}
+
+// ── PulseDot — small status dot with halo + ping animation ──────────────────
+function PulseDot({ tone, pulse = true }: { tone: Tone; pulse?: boolean }) {
+  const cfg = TONE[tone]
+  return (
+    <span className="relative inline-flex w-2 h-2 shrink-0" aria-hidden="true">
+      {pulse && (
+        <span className={`absolute inline-flex w-full h-full rounded-full opacity-60 animate-ping ${cfg.dot}`} />
+      )}
+      <span className={`relative inline-flex w-2 h-2 rounded-full ${cfg.dot} shadow-[0_0_6px] ${cfg.halo}`} />
+    </span>
+  )
+}
+
+// ── SectionHeader — icon + uppercase title + optional dim description ────────
+function SectionHeader({
+  icon: Icon,
+  title,
+  description,
+  tone = 'neutral',
+  trailing,
+}: {
+  icon: LucideIcon
+  title: string
+  description?: string
+  tone?: Tone
+  trailing?: ReactNode
+}) {
+  return (
+    <div className="flex items-center gap-1.5 mb-1.5">
+      <Icon className={`size-3 ${TONE[tone].text}`} aria-hidden="true" />
+      <span className="text-[9.5px] uppercase tracking-wider font-bold text-[#5a637a]">
+        {title}
+      </span>
+      {description && (
+        <span className="text-[8.5px] text-[#5a637a] italic truncate">{description}</span>
+      )}
+      {trailing && <span className="ml-auto shrink-0">{trailing}</span>}
+    </div>
+  )
+}
+
+// ── KpiTile — refined KPI card (large value, tone-tinted bg, quality bar) ────
+interface KpiTileProps {
+  label: string
+  value: string
+  hint: string
+  tone: Tone
+  /** Quality bar fill [0..100]. 0 = no bar rendered. */
+  quality?: number
+  /** Optional trend glyph ('up' | 'down' | 'flat'). */
+  trend?: 'up' | 'down' | 'flat'
+  testId?: string
+}
+
+function KpiTile({ label, value, hint, tone, quality, trend, testId }: KpiTileProps) {
+  const cfg = TONE[tone]
+  return (
+    <div
+      className={`relative rounded p-2 border ${cfg.border} ${cfg.bg} overflow-hidden transition-colors`}
+      title={`${label} — ${hint}`}
+      data-testid={testId}
+      data-tone={tone}
+    >
+      <div className={`text-[9px] uppercase tracking-wider font-bold ${cfg.label} leading-tight`}>
+        {label}
+      </div>
+      <div
+        className={`mono text-base font-bold tabular-nums mt-0.5 ${cfg.text} leading-tight flex items-baseline gap-1`}
+      >
+        {value}
+        {trend === 'up' && <TrendingUp className="size-2.5 inline-block" aria-hidden="true" />}
+        {trend === 'down' && <TrendingDown className="size-2.5 inline-block" aria-hidden="true" />}
+      </div>
+      <div className="text-[8px] text-[#5a637a] mt-0.5 italic truncate">{hint}</div>
+      {quality != null && quality > 0 && (
+        <div className="h-0.5 bg-[#1f2335] rounded-full mt-1 overflow-hidden">
+          <div
+            className={`h-full rounded-full transition-all duration-500 ${cfg.bar}`}
+            style={{ width: `${Math.max(0, Math.min(100, quality))}%` }}
+          />
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── PsiGauge — horizontal bar with green/amber/red zones + tick ──────────────
+function PsiGauge({ psi }: { psi: number }) {
+  const clamped = Math.max(0, Math.min(0.5, psi))
+  const pct = (clamped / 0.5) * 100
+  const tone: Tone = psi < 0.1 ? 'good' : psi < 0.25 ? 'warn' : 'poor'
+  const cfg = TONE[tone]
+  return (
+    <div className="space-y-0.5" title={`PSI ${psi.toFixed(4)} — thresholds: <0.1 healthy, 0.1–0.25 moderate, >0.25 significant`}>
+      <div className="relative h-1.5 bg-[#1f2335] rounded-full overflow-hidden">
+        {/* zones */}
+        <div className="absolute inset-y-0 left-0 bg-emerald-500/30" style={{ width: '20%' }} aria-hidden="true" />
+        <div className="absolute inset-y-0 bg-amber-500/30" style={{ left: '20%', width: '30%' }} aria-hidden="true" />
+        <div className="absolute inset-y-0 bg-red-500/30" style={{ left: '50%', right: 0 }} aria-hidden="true" />
+        {/* live tick */}
+        <div
+          className={`absolute top-1/2 -translate-y-1/2 w-1 h-2.5 rounded-sm ${cfg.bar} shadow-sm transition-all duration-500`}
+          style={{ left: `calc(${pct}% - 2px)` }}
+          aria-hidden="true"
+        />
+      </div>
+      <div className="flex justify-between text-[8px] text-[#5a637a] mono">
+        <span>0.00</span>
+        <span className="text-emerald-400/70">0.10</span>
+        <span className="text-amber-400/70">0.25</span>
+        <span>0.50+</span>
+      </div>
+    </div>
+  )
+}
+
+// ── ShimmerBlock — shimmer skeleton placeholder for loading state ────────────
+function ShimmerBlock({ className = '' }: { className?: string }) {
+  return (
+    <div
+      className={`skeleton-line-sm ${className}`}
+      aria-hidden="true"
+    />
+  )
+}
+
+// ── PolishedEmptyState — Lucide icon + title + description ───────────────────
+function PolishedEmptyState({
+  icon: Icon,
+  title,
+  description,
+  testId,
+}: {
+  icon: LucideIcon
+  title: string
+  description?: string
+  testId?: string
+}) {
+  return (
+    <div
+      className="empty-state py-6"
+      role="status"
+      data-testid={testId}
+    >
+      <Icon className="size-7 text-[#3e4560] mb-1" aria-hidden="true" />
+      <div className="empty-state-title">{title}</div>
+      {description && <div className="empty-state-desc">{description}</div>}
+    </div>
+  )
+}
+
+// ── PolishedErrorCard — error card with retry ────────────────────────────────
+function PolishedErrorCard({
+  message,
+  detail,
+  onRetry,
+  retryLabel = 'Retry',
+  testId,
+}: {
+  message: string
+  detail?: string | null
+  onRetry: () => void
+  retryLabel?: string
+  testId?: string
+}) {
+  return (
+    <div
+      className="error-state py-8"
+      role="alert"
+      data-testid={testId}
+    >
+      <AlertTriangle className="size-8 text-red-400/80 mb-1" aria-hidden="true" />
+      <div className="error-state-title">{message}</div>
+      {detail && <div className="error-state-desc">{detail}</div>}
+      <button
+        type="button"
+        onClick={onRetry}
+        className="btn btn-primary btn-sm px-3 py-1 text-[10px] font-bold inline-flex items-center gap-1.5 mt-1"
+      >
+        <RotateCcw className="size-3" aria-hidden="true" />
+        {retryLabel}
+      </button>
+    </div>
+  )
+}
+
 // ── Inline sub-components ──────────────────────────────────────────────────
 
 interface StatusPillProps {
@@ -376,7 +609,7 @@ function StatusPill({ label, value, hint, tone = 'neutral' }: StatusPillProps) {
         </span>
       </div>
       <span
-        className={`mono text-[12px] font-bold ${
+        className={`mono text-[12px] font-bold tabular-nums ${
           tone === 'ai'
             ? 'text-blue-300'
             : tone === 'ok'
@@ -449,6 +682,19 @@ function PredictionHeadline({ probability, confidence, ci }: PredictionHeadlineP
     probability == null ? '—' : probability >= 0.5 ? 'YES' : 'NO'
   const probPct = probability == null ? '—' : `${(probability * 100).toFixed(0)}%`
   const confPct = confidence == null ? '—' : confidence.toFixed(2)
+  // W54-c — Tone-coloured confidence (green ≥0.7, amber ≥0.5, red <0.5).
+  // The headline's confidence span keeps text-purple-300 (test contract
+  // requires at least one '0.72' rendered with text-purple-300) — the tone
+  // is expressed via the small label chip beside it.
+  const confTone = confidenceTone(confidence)
+  const confChipCls =
+    confTone === 'good'
+      ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+      : confTone === 'warn'
+        ? 'bg-amber-500/15 text-amber-400 border-amber-500/30'
+        : confTone === 'poor'
+          ? 'bg-red-500/15 text-red-400 border-red-500/30'
+          : 'bg-[#1f2335] text-[#7e8aaa] border-[#1f2335]'
 
   return (
     <div
@@ -465,7 +711,7 @@ function PredictionHeadline({ probability, confidence, ci }: PredictionHeadlineP
         </span>
       </div>
       <div className="flex items-baseline gap-2 flex-wrap">
-        <span className="mono text-3xl font-bold text-blue-300">
+        <span className="mono text-3xl font-bold text-blue-300 tabular-nums">
           {probPct}
         </span>
         <span
@@ -476,14 +722,23 @@ function PredictionHeadline({ probability, confidence, ci }: PredictionHeadlineP
           {direction}
         </span>
         <span className="text-[11px] text-[#7e8aaa]">
-          (confidence: <span className="mono text-purple-300 font-bold">{confPct}</span>)
+          (confidence: <span className="mono text-purple-300 font-bold tabular-nums">{confPct}</span>)
         </span>
+        {/* W54-c — Tone chip showing confidence level at a glance. */}
+        {confidence != null && (
+          <span
+            className={`text-[8.5px] uppercase tracking-wider font-bold px-1.5 py-0.5 rounded border ${confChipCls}`}
+            data-tone={confTone}
+          >
+            {confTone === 'good' ? 'High' : confTone === 'warn' ? 'Medium' : confTone === 'poor' ? 'Low' : 'n/a'}
+          </span>
+        )}
       </div>
       {ci && (
         <div className="mt-2">
           <div className="flex items-center justify-between text-[9.5px] text-[#7e8aaa]">
             <span>95% confidence interval</span>
-            <span className="mono text-blue-300">
+            <span className="mono text-blue-300 tabular-nums">
               [{(ci.low * 100).toFixed(1)}%, {(ci.high * 100).toFixed(1)}%]
             </span>
           </div>
@@ -543,21 +798,21 @@ function ModelVsMarket({ aiProbability, marketImplied, edge }: ModelVsMarketProp
           <div className="text-[9px] uppercase tracking-wider text-blue-300 font-bold">
             AI Model
           </div>
-          <div className="mono text-lg font-bold text-blue-300 mt-0.5">{aiPct}</div>
+          <div className="mono text-lg font-bold text-blue-300 mt-0.5 tabular-nums">{aiPct}</div>
           <div className="text-[8.5px] text-[#5a637a]">predicted P(YES)</div>
         </div>
         <div className="text-center bg-[#13161e] border border-[#1f2335] rounded-md p-2">
           <div className="text-[9px] uppercase tracking-wider text-cyan-300 font-bold">
             Market
           </div>
-          <div className="mono text-lg font-bold text-cyan-300 mt-0.5">{mktPct}</div>
+          <div className="mono text-lg font-bold text-cyan-300 mt-0.5 tabular-nums">{mktPct}</div>
           <div className="text-[8.5px] text-[#5a637a]">order-book mid</div>
         </div>
         <div className="text-center bg-purple-500/5 border border-purple-500/20 rounded-md p-2">
           <div className="text-[9px] uppercase tracking-wider text-purple-300 font-bold">
             Edge
           </div>
-          <div className={`mono text-lg font-bold mt-0.5 ${edgeTone}`}>{edgePct}</div>
+          <div className={`mono text-lg font-bold mt-0.5 tabular-nums ${edgeTone}`}>{edgePct}</div>
           <div className="text-[8.5px] text-[#5a637a]">AI − market</div>
         </div>
       </div>
@@ -572,6 +827,7 @@ interface WhyExplainerProps {
   championProb: number | null
   challengerProb: number | null
   driftStatus: string
+  driftPsi: number | null
 }
 
 function WhyExplainer({
@@ -581,6 +837,7 @@ function WhyExplainer({
   championProb,
   challengerProb,
   driftStatus,
+  driftPsi,
 }: WhyExplainerProps) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -640,6 +897,16 @@ function WhyExplainer({
           : { label: 'Conflict', tone: 'crit' as const, cls: 'badge-red' }
       : null
 
+  // W54-c — Defensive optional chaining. The backend occasionally returns
+  // a 200 with an empty body (the explain endpoint stubs {} when the model
+  // isn't fitted for the token) — guard against `explanation.explanation`
+  // being undefined before mapping `top_features`. Previously this threw
+  // an uncaught TypeError that vitest surfaced in the worklog (W38-5).
+  const topFeatures = explanation?.explanation?.top_features ?? []
+  const maxAbs = topFeatures.length > 0
+    ? Math.max(...topFeatures.map((x) => Math.abs(x.contribution)), 1e-9)
+    : 1e-9
+
   return (
     <Card className="bg-[#0e1015] border border-blue-500/20 rounded-md" data-testid="why-explainer-card">
       <Collapsible open={open} onOpenChange={setOpen}>
@@ -657,7 +924,7 @@ function WhyExplainer({
                 Why? — Explainability
               </span>
               {tokenId && (
-                <span className="text-[9.5px] text-[#5a637a] mono">
+                <span className="text-[9.5px] text-[#5a637a] mono tabular-nums">
                   token {truncateToken(tokenId)}
                 </span>
               )}
@@ -692,7 +959,7 @@ function WhyExplainer({
                   <code className="mono text-[10.5px] text-emerald-300">
                     {championVersion ?? '—'}
                   </code>
-                  <span className="mono text-[11px] text-blue-300 font-bold">
+                  <span className="mono text-[11px] text-blue-300 font-bold tabular-nums">
                     {championProb == null ? '—' : `${(championProb * 100).toFixed(1)}%`}
                   </span>
                 </div>
@@ -705,7 +972,7 @@ function WhyExplainer({
                   <code className="mono text-[10.5px] text-purple-300">
                     {challengerVersion ?? '—'}
                   </code>
-                  <span className="mono text-[11px] text-purple-300 font-bold">
+                  <span className="mono text-[11px] text-purple-300 font-bold tabular-nums">
                     {challengerProb == null ? '—' : `${(challengerProb * 100).toFixed(1)}%`}
                   </span>
                 </div>
@@ -714,10 +981,12 @@ function WhyExplainer({
 
             {/* SHAP top features */}
             <div>
-              <div className="text-[9.5px] uppercase tracking-wider text-[#5a637a] font-bold mb-1.5 flex items-center gap-1.5">
-                <Brain className="size-3 text-blue-400" aria-hidden="true" />
-                Top {SHAP_TOP_N} Contributing Features (SHAP)
-              </div>
+              <SectionHeader
+                icon={Brain}
+                title={`Top ${SHAP_TOP_N} Contributing Features (SHAP)`}
+                description="signed magnitudes"
+                tone="info"
+              />
               {!tokenId && (
                 <div className="text-[10.5px] text-[#7e8aaa] italic">
                   Select a prediction row below to load its SHAP explanation.
@@ -735,22 +1004,27 @@ function WhyExplainer({
                   <span>{error}</span>
                 </div>
               )}
-              {tokenId && !loading && !error && explanation && (
+              {tokenId && !loading && !error && explanation && topFeatures.length > 0 && (
                 <div className="space-y-1.5">
-                  {explanation.explanation.top_features.map((f, i) => {
-                    const maxAbs = Math.max(
-                      ...explanation.explanation.top_features.map((x) => Math.abs(x.contribution)),
-                      1e-9,
-                    )
+                  {topFeatures.map((f, i) => {
                     const pct = (Math.abs(f.contribution) / maxAbs) * 100
                     const pushesYes = f.contribution >= 0
+                    // W54-c — SHAP bars match AIMLCommandCenter's gradient
+                    // vocabulary: bullish (positive contribution → YES) uses
+                    // the blue→cyan gradient; bearish uses red→amber. Keeps
+                    // the W51-2d visual consistency across panels.
+                    const barColor = pushesYes
+                      ? 'from-blue-600 via-blue-500 to-cyan-400'
+                      : 'from-red-600 via-red-500 to-amber-400'
                     return (
                       <div
                         key={`${f.name}-${i}`}
-                        className="flex items-center gap-2"
+                        className="flex items-center gap-2 hover:bg-[#13161e] px-1 py-0.5 rounded transition-colors"
+                        title={`Feature: ${f.name}\nContribution: ${f.contribution.toFixed(4)}\nDirection: ${pushesYes ? 'bullish (→YES)' : 'bearish (→NO)'}`}
                         data-testid={`shap-feature-${i}`}
+                        data-tone={pushesYes ? 'good' : 'poor'}
                       >
-                        <span className="text-[10px] text-[#5a637a] w-4 text-right mono">
+                        <span className="text-[10px] text-[#5a637a] w-4 text-right mono tabular-nums">
                           {i + 1}
                         </span>
                         <span
@@ -761,16 +1035,12 @@ function WhyExplainer({
                         </span>
                         <div className="flex-1 h-1.5 bg-[#13161e] rounded-full overflow-hidden border border-[#1f2335]">
                           <div
-                            className={`h-full rounded-full ${
-                              pushesYes
-                                ? 'bg-gradient-to-r from-blue-500 to-cyan-400'
-                                : 'bg-gradient-to-r from-red-500 to-orange-400'
-                            }`}
+                            className={`h-full rounded-full bg-gradient-to-r ${barColor} transition-all duration-300`}
                             style={{ width: `${pct}%` }}
                           />
                         </div>
                         <span
-                          className={`mono text-[10px] font-bold w-16 text-right shrink-0 ${
+                          className={`mono text-[10px] font-bold w-16 text-right shrink-0 tabular-nums ${
                             pushesYes ? 'text-blue-300' : 'text-red-300'
                           }`}
                         >
@@ -780,22 +1050,36 @@ function WhyExplainer({
                       </div>
                     )
                   })}
+                  {/* W54-c — Bullish / Bearish legend, matching AIMLCommandCenter. */}
+                  <div className="flex items-center gap-3 pt-2 mt-1 border-t border-[#1f2335] text-[9px] text-[#5a637a] uppercase tracking-wider font-bold">
+                    <span className="inline-flex items-center gap-1">
+                      <span className="inline-block w-3 h-1 rounded-sm bg-gradient-to-r from-blue-600 to-cyan-400" aria-hidden="true" />
+                      Bullish (→YES)
+                    </span>
+                    <span className="inline-flex items-center gap-1">
+                      <span className="inline-block w-3 h-1 rounded-sm bg-gradient-to-r from-red-600 to-amber-400" aria-hidden="true" />
+                      Bearish (→NO)
+                    </span>
+                    <span className="text-[#5a637a] italic normal-case tracking-normal">
+                      SHAP signed contributions
+                    </span>
+                  </div>
                   <div className="text-[9px] text-[#5a637a] italic mt-1">
                     Positive contributions push the prediction toward YES;
                     negative toward NO. Magnitudes are SHAP values (not
                     percentages).
                   </div>
-                  {explanation.explanation.predicted_probability != null && (
+                  {explanation.explanation?.predicted_probability != null && (
                     <div className="text-[10px] text-[#7e8aaa] mt-1 flex items-center gap-1.5">
                       <Info className="size-3 text-blue-400" aria-hidden="true" />
                       Ensemble predicted P(YES) ={' '}
-                      <span className="mono text-blue-300 font-bold">
+                      <span className="mono text-blue-300 font-bold tabular-nums">
                         {(explanation.explanation.predicted_probability * 100).toFixed(1)}%
                       </span>
                       {explanation.explanation.confidence != null && (
                         <>
                           {' '}· confidence{' '}
-                          <span className="mono text-purple-300 font-bold">
+                          <span className="mono text-purple-300 font-bold tabular-nums">
                             {explanation.explanation.confidence.toFixed(2)}
                           </span>
                         </>
@@ -804,15 +1088,15 @@ function WhyExplainer({
                   )}
                 </div>
               )}
-              {tokenId && !loading && !error && !explanation && (
+              {tokenId && !loading && !error && (!explanation || topFeatures.length === 0) && (
                 <div className="text-[10.5px] text-[#7e8aaa] italic">
                   No SHAP explanation available.
                 </div>
               )}
             </div>
 
-            {/* Drift status detail */}
-            <div className="bg-[#13161e] border border-[#1f2335] rounded-md p-2 text-[10.5px]">
+            {/* W54-c — Drift status detail with PsiGauge (mirrors MLPanel). */}
+            <div className="bg-[#13161e] border border-[#1f2335] rounded-md p-2 text-[10.5px] space-y-1.5">
               <div className="flex items-center gap-1.5 text-[#7e8aaa]">
                 <DriftIcon className="size-3" aria-hidden="true" />
                 <span>
@@ -825,6 +1109,9 @@ function WhyExplainer({
                   </span>
                 </span>
               </div>
+              {driftPsi != null && Number.isFinite(driftPsi) && (
+                <PsiGauge psi={driftPsi} />
+              )}
             </div>
           </div>
         </CollapsibleContent>
@@ -850,14 +1137,18 @@ function PredictionHistoryTable({
 }: PredictionHistoryTableProps) {
   return (
     <Card className="bg-[#0e1015] border border-[#1f2335] rounded-md" data-testid="prediction-history-card">
-      <div className="p-3 border-b border-[#1f2335] flex items-center justify-between">
-        <span className="text-[11px] uppercase tracking-wider font-bold text-[#dde1ed] flex items-center gap-1.5">
-          <Activity className="size-3.5 text-blue-400" aria-hidden="true" />
-          Prediction History (last {HISTORY_ROW_LIMIT})
-        </span>
-        <span className="text-[9px] text-[#5a637a]">
-          click a row → load SHAP
-        </span>
+      <div className="p-3 border-b border-[#1f2335]">
+        <SectionHeader
+          icon={Activity}
+          title={`Prediction History (last ${HISTORY_ROW_LIMIT})`}
+          description="counterfactual journal"
+          tone="info"
+          trailing={
+            <span className="text-[9px] text-[#5a637a] italic normal-case tracking-normal">
+              click a row → load SHAP
+            </span>
+          }
+        />
       </div>
       <div className="max-h-80 overflow-y-auto scrollbar-thin">
         <Table>
@@ -889,14 +1180,13 @@ function PredictionHistoryTable({
           <TableBody>
             {rows.length === 0 && (
               <TableRow className="border-[#1f2335]">
-                <TableCell colSpan={7} className="text-center text-[10.5px] text-[#5a637a] py-6">
-                  <div className="flex flex-col items-center gap-1">
-                    <Activity className="size-4 text-[#3e4560]" aria-hidden="true" />
-                    No predictions recorded yet.
-                    <span className="text-[9px] text-[#3e4560]">
-                      Predictions appear here when the model emits a counterfactual signal.
-                    </span>
-                  </div>
+                <TableCell colSpan={7} className="py-2">
+                  <PolishedEmptyState
+                    icon={Activity}
+                    title="No predictions recorded yet."
+                    description="Predictions appear here when the model emits a counterfactual signal."
+                    testId="prediction-history-empty"
+                  />
                 </TableCell>
               </TableRow>
             )}
@@ -941,32 +1231,36 @@ function PredictionHistoryTable({
                     {outcome.label}
                   </Badge>
                 )
+              // W54-c — Refined row hover with inset shadow accent bar
+              // (matches W51-2b PositionsPanel row-hover vocabulary).
+              const rowAccent = isSelected
+                ? 'bg-blue-500/10 shadow-[inset_3px_0_0_0_rgba(96,165,250,0.7)]'
+                : 'hover:bg-blue-500/[0.04] hover:shadow-[inset_3px_0_0_0_rgba(96,165,250,0.4)]'
               return (
                 <TableRow
                   key={trade.id}
                   onClick={() => onSelectToken(trade.token_id)}
-                  className={`border-[#1f2335] cursor-pointer hover:bg-blue-500/5 transition-colors ${
-                    isSelected ? 'bg-blue-500/10 border-l-2 border-l-blue-500' : ''
-                  }`}
+                  className={`border-[#1f2335] cursor-pointer transition-all ${rowAccent}`}
                   data-testid={`prediction-history-row-${trade.id}`}
+                  data-tone={trade.predicted_edge > 0 ? 'positive' : trade.predicted_edge < 0 ? 'negative' : 'neutral'}
                 >
-                  <TableCell className="py-1.5 px-2 text-[10px] text-[#7e8aaa] mono whitespace-nowrap">
+                  <TableCell className="py-1.5 px-2 text-[10px] text-[#7e8aaa] mono tabular-nums whitespace-nowrap">
                     {fmtTimestamp(trade.timestamp)}
                   </TableCell>
-                  <TableCell className="py-1.5 px-2 text-[10px] mono text-[#dde1ed]">
+                  <TableCell className="py-1.5 px-2 text-[10px] mono tabular-nums text-[#dde1ed]">
                     {truncateToken(trade.token_id)}
                   </TableCell>
                   <TableCell className="py-1.5 px-2 text-[10px] mono text-[#7e8aaa]">
                     {trade.strategy || '—'}
                   </TableCell>
-                  <TableCell className="py-1.5 px-2 text-right mono text-[10.5px] text-blue-300 font-bold">
+                  <TableCell className="py-1.5 px-2 text-right mono text-[10.5px] text-blue-300 font-bold tabular-nums">
                     {(probYes * 100).toFixed(1)}%
                   </TableCell>
-                  <TableCell className="py-1.5 px-2 text-right mono text-[10.5px] text-purple-300 font-bold">
+                  <TableCell className="py-1.5 px-2 text-right mono text-[10.5px] text-purple-300 font-bold tabular-nums">
                     {trade.confidence.toFixed(2)}
                   </TableCell>
                   <TableCell
-                    className={`py-1.5 px-2 text-right mono text-[10.5px] ${
+                    className={`py-1.5 px-2 text-right mono text-[10.5px] tabular-nums ${
                       trade.predicted_edge > 0 ? 'text-emerald-400' : trade.predicted_edge < 0 ? 'text-red-400' : 'text-[#dde1ed]'
                     }`}
                   >
@@ -1001,22 +1295,45 @@ function CalibrationCard({ curve, ece }: CalibrationCardProps) {
     actual: b.empirical_freq,
     count: b.count,
   }))
+  // W54-c — Calibration status badge derived from ECE.
+  const calStatus = ece == null
+    ? { label: '—', tone: 'neutral' as Tone }
+    : ece < 0.03
+      ? { label: 'Well-calibrated', tone: 'good' as Tone }
+      : ece < 0.06
+        ? { label: 'Acceptable', tone: 'warn' as Tone }
+        : { label: 'Poor', tone: 'poor' as Tone }
   return (
     <Card className="bg-[#0e1015] border border-[#1f2335] rounded-md p-3" data-testid="calibration-card">
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-[11px] uppercase tracking-wider font-bold text-[#dde1ed] flex items-center gap-1.5">
-          <BadgeCheck className="size-3.5 text-blue-400" aria-hidden="true" />
-          Calibration Curve (predicted vs actual)
-        </span>
-        {ece != null && (
-          <Badge variant="secondary" className="text-[9.5px]" data-testid="ece-badge">
-            ECE {ece.toFixed(4)}
-          </Badge>
-        )}
-      </div>
+      <SectionHeader
+        icon={LineChart}
+        title="Calibration Curve (predicted vs actual)"
+        description="isotonic reliability"
+        tone="info"
+        trailing={
+          ece != null && (
+            <span className="inline-flex items-center gap-1.5">
+              <span
+                className={`text-[9px] uppercase tracking-wider font-bold px-1.5 py-0.5 rounded border ${TONE[calStatus.tone].border} ${TONE[calStatus.tone].bg} ${TONE[calStatus.tone].text}`}
+                data-tone={calStatus.tone}
+              >
+                {calStatus.label}
+              </span>
+              <Badge variant="secondary" className="text-[9.5px] tabular-nums" data-testid="ece-badge">
+                ECE {ece.toFixed(4)}
+              </Badge>
+            </span>
+          )
+        }
+      />
       {chartData.length === 0 ? (
-        <div className="h-[200px] flex items-center justify-center text-[10.5px] text-[#5a637a]">
-          Awaiting reliability curve from /api/ml/metrics…
+        <div className="h-[200px]">
+          <PolishedEmptyState
+            icon={LineChart}
+            title="Awaiting reliability curve"
+            description="Calibration bins populate from /api/ml/metrics once the model is fitted and starts emitting predictions."
+            testId="calibration-empty"
+          />
         </div>
       ) : (
         <ReliabilityDiagram
@@ -1245,6 +1562,68 @@ export default function AIPredictionExplainerPanel() {
     return { label: 'Loaded', tone: 'ok' as const }
   }, [metrics])
 
+  // W54-c — Model status banner config (mirrors W51-2d MLPanel). Wording
+  // deliberately avoids colliding with the test-matched strings ("Loaded"
+  // is the StatusPill value; the banner uses "Model Ready" / "Training" / "Hard Error").
+  const bannerCfg = useMemo<{ tone: Tone; label: string; desc: string; tag: string }>(() => {
+    if (!metrics && !drift && !versions && !snapshot && error) {
+      return { tone: 'poor', label: 'Backend Unreachable', desc: 'All AI/ML endpoints failed — retrying in 20s.', tag: 'Error' }
+    }
+    if (!metrics) return { tone: 'neutral', label: 'Booting', desc: 'Awaiting first telemetry from /api/ml/metrics.', tag: 'Loading' }
+    if (!metrics.model_ready) return { tone: 'warn', label: 'Training', desc: 'Model warming up — awaiting training samples.', tag: 'Warmup' }
+    return { tone: 'good', label: 'Model Ready', desc: 'Ensemble calibrated · explainability surface live.', tag: 'Active' }
+  }, [metrics, drift, versions, snapshot, error])
+
+  // W54-c — Hard-error predicate: when every endpoint returns ok=false
+  // (anyOk=false), the body has no useful content to render — surface a
+  // polished ErrorCard instead of an empty status strip. Trigger key is
+  // the canonical "Unable to reach…" error message set in fetchAll.
+  const isHardError = !!error && error.startsWith('Unable to reach any AI/ML backend endpoint')
+
+  // W54-c — NEW Prediction Quality KPI tiles: Probability, Confidence Score,
+  // Brier Score. Derived from headline data + metrics. Tone-coloured per
+  // spec (green high, amber medium, red low).
+  const probTile = useMemo(() => {
+    const tone: Tone = headlineProbability == null ? 'neutral' : headlineProbability >= 0.6 || headlineProbability <= 0.4 ? 'info' : 'neutral'
+    const quality = headlineProbability == null ? 0 : Math.round(Math.abs(headlineProbability - 0.5) * 2 * 100)
+    return {
+      label: 'Prediction Probability',
+      value: headlineProbability == null ? '—' : fmtPct(headlineProbability, 1),
+      hint: latestTrade ? `token ${truncateToken(latestTrade.token_id)}` : 'no recent prediction',
+      tone,
+      quality,
+      testId: 'ai-prediction-probability-tile',
+    }
+  }, [headlineProbability, latestTrade])
+
+  const confTile = useMemo(() => {
+    const tone = confidenceTone(headlineConfidence)
+    const quality = headlineConfidence == null ? 0 : Math.round(headlineConfidence * 100)
+    return {
+      label: 'Confidence Score',
+      value: headlineConfidence == null ? '—' : headlineConfidence.toFixed(2),
+      hint: '[0,1] · higher = more certain',
+      tone,
+      quality,
+      testId: 'ai-prediction-confidence-tile',
+    }
+  }, [headlineConfidence])
+
+  const brierTile = useMemo(() => {
+    const b = metrics?.brier_score ?? null
+    const tone = brierTone(b)
+    // Quality bar: lower Brier = better. Map [0.4 (worst) → 0 (best)] to [0 → 100].
+    const quality = b == null ? 0 : Math.max(0, Math.min(100, Math.round((0.4 - Math.min(b, 0.4)) / 0.4 * 100)))
+    return {
+      label: 'Brier Score',
+      value: b == null ? '—' : b.toFixed(4),
+      hint: 'lower = sharper (ideal < 0.18)',
+      tone,
+      quality,
+      testId: 'ai-prediction-brier-tile',
+    }
+  }, [metrics?.brier_score])
+
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div
@@ -1263,7 +1642,7 @@ export default function AIPredictionExplainerPanel() {
           </Badge>
         </div>
         <div className="flex items-center gap-2">
-          {error && (
+          {error && !isHardError && (
             <span className="text-[10px] text-amber-300 flex items-center gap-1" data-testid="explainer-error">
               <AlertCircle className="size-3" aria-hidden="true" />
               {error}
@@ -1319,16 +1698,108 @@ export default function AIPredictionExplainerPanel() {
         </span>
       </div>
 
-      {/* Loading skeleton */}
+      {/* W54-c — Model Status Banner. Prominent PulseDot + label +
+          description + tone-tinted background. Sits directly under the
+          permanent NOT A GUARANTEE banner so model readiness is the first
+          thing the trader sees on every render. Hidden during the initial
+          loading skeleton (the skeleton has its own surface) but visible
+          in the hard-error case so the failure tone is reinforced. */}
+      {(metrics || drift || versions || snapshot || isHardError) && (
+        <div className="px-3 pt-3">
+          <div
+            className={`relative rounded p-2.5 border ${TONE[bannerCfg.tone].border} ${TONE[bannerCfg.tone].bg} flex items-center gap-2.5 overflow-hidden`}
+            data-testid="ai-prediction-status-banner"
+            data-tone={bannerCfg.tone}
+            role="status"
+            aria-label={`Model status: ${bannerCfg.label}`}
+          >
+            <PulseDot tone={bannerCfg.tone} />
+            <div className="flex-1 min-w-0">
+              <div className={`text-[11px] font-bold uppercase tracking-wider ${TONE[bannerCfg.tone].text}`}>
+                {bannerCfg.label}
+              </div>
+              <div className="text-[9.5px] text-[#7e8aaa] truncate">{bannerCfg.desc}</div>
+            </div>
+            <span
+              className={`badge ${bannerCfg.tone === 'good' ? 'badge-green' : bannerCfg.tone === 'warn' ? 'badge-amber' : bannerCfg.tone === 'poor' ? 'badge-red' : 'badge-dim'} text-[9px] font-bold shrink-0`}
+            >
+              {bannerCfg.tag}
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Loading skeleton — W54-c shimmer-block pattern mirroring the live
+          structure (banner + KPI tiles + status strip + headline + history +
+          calibration) so the panel reads as a rich loading dashboard rather
+          than a bare spinner. */}
       {loading && !metrics && !drift ? (
-        <div className="p-3 space-y-3">
+        <div className="p-3 space-y-3" role="status" aria-live="polite" data-testid="ai-prediction-loading">
+          {/* Skeleton KPI row */}
           <div className="grid grid-cols-3 gap-2">
-            {[0, 1, 2].map((i) => (
-              <div key={i} className="skeleton h-12 rounded border border-[#1f2335]" />
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="rounded p-2 border border-[#1f2335] bg-[#0e1015]">
+                <ShimmerBlock className="!w-1/2" />
+                <ShimmerBlock className="!w-3/4 !h-3 mt-1.5" />
+                <ShimmerBlock className="!w-2/3 !h-1 mt-1.5" />
+              </div>
             ))}
           </div>
-          <div className="skeleton h-28 rounded border border-[#1f2335]" />
-          <div className="skeleton h-40 rounded border border-[#1f2335]" />
+          {/* Skeleton status strip */}
+          <div className="grid grid-cols-6 gap-1.5">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="rounded p-2 border border-[#1f2335] bg-[#0e1015]">
+                <ShimmerBlock className="!w-2/3" />
+                <ShimmerBlock className="!w-3/4 !h-2.5 mt-1.5" />
+              </div>
+            ))}
+          </div>
+          {/* Skeleton headline + Model vs Market */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="rounded p-3 border border-blue-500/20 bg-[#0e1015]">
+              <ShimmerBlock className="!w-1/3" />
+              <ShimmerBlock className="!w-1/2 !h-6 mt-2" />
+              <ShimmerBlock className="!w-full !h-1.5 mt-3" />
+            </div>
+            <div className="rounded p-3 border border-[#1f2335] bg-[#0e1015]">
+              <ShimmerBlock className="!w-1/4" />
+              <div className="grid grid-cols-3 gap-2 mt-2">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="rounded p-2 border border-[#1f2335]">
+                    <ShimmerBlock className="!w-full" />
+                    <ShimmerBlock className="!w-2/3 !h-3 mt-1.5" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+          {/* Skeleton history + calibration */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="rounded p-3 border border-[#1f2335] bg-[#0e1015]">
+              <ShimmerBlock className="!w-1/2" />
+              <div className="mt-2 space-y-1.5">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <ShimmerBlock key={i} className="!w-full !h-2.5" />
+                ))}
+              </div>
+            </div>
+            <div className="rounded p-3 border border-[#1f2335] bg-[#0e1015]">
+              <ShimmerBlock className="!w-1/2" />
+              <div className="mt-2 h-[200px] flex items-center justify-center">
+                <ShimmerBlock className="!w-3/4 !h-32" />
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : isHardError ? (
+        <div className="p-3">
+          <PolishedErrorCard
+            message={error ?? 'Unable to reach any AI/ML backend endpoint'}
+            detail="All six backend endpoints (ml/metrics, ml/drift, ml/versions, snapshot, shadow/trades, data-quality) returned non-2xx or threw. The panel will auto-retry every 20s; click Retry to fire a refresh immediately."
+            onRetry={() => fetchAll()}
+            retryLabel="Retry now"
+            testId="ai-prediction-error-card"
+          />
         </div>
       ) : (
         <div className="p-3 space-y-3 max-h-[calc(100vh-180px)] overflow-y-auto scrollbar-thin">
@@ -1348,6 +1819,55 @@ export default function AIPredictionExplainerPanel() {
             </span>
           </div>
 
+          {/* W54-c — NEW Prediction Quality KpiTile row — Probability,
+              Confidence Score, Brier Score. Tone-coloured per spec. */}
+          <div>
+            <SectionHeader
+              icon={Target}
+              title="Prediction Quality"
+              description="ensemble-derived"
+              tone="info"
+            />
+            <div className="grid grid-cols-3 gap-1.5">
+              <KpiTile
+                label={probTile.label}
+                value={probTile.value}
+                hint={probTile.hint}
+                tone={probTile.tone}
+                quality={probTile.quality}
+                testId={probTile.testId}
+              />
+              <KpiTile
+                label={confTile.label}
+                value={confTile.value}
+                hint={confTile.hint}
+                tone={confTile.tone}
+                quality={confTile.quality}
+                testId={confTile.testId}
+              />
+              <KpiTile
+                label={brierTile.label}
+                value={brierTile.value}
+                hint={brierTile.hint}
+                tone={brierTile.tone}
+                quality={brierTile.quality}
+                testId={brierTile.testId}
+              />
+            </div>
+          </div>
+
+          {/* W54-c — SectionHeader for the status audit strip. */}
+          <SectionHeader
+            icon={Activity}
+            title="Status Audit Strip"
+            description="every required field"
+            tone="neutral"
+            trailing={lastRefresh && (
+              <span className="text-[9px] text-[#5a637a] mono tabular-nums normal-case tracking-normal italic">
+                refreshed {Math.max(0, Math.floor((Date.now() - lastRefresh.getTime()) / 1000))}s ago
+              </span>
+            )}
+          />
           {/* Status header strip — surfaces every required audit field */}
           <div
             className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-1.5"
@@ -1527,6 +2047,7 @@ export default function AIPredictionExplainerPanel() {
             championProb={championProb}
             challengerProb={challengerProb}
             driftStatus={driftStatus}
+            driftPsi={driftReport?.psi ?? null}
           />
 
           {/* Prediction history table + Calibration curve side-by-side */}
