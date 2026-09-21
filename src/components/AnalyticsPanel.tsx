@@ -14,15 +14,75 @@
 //      connected.
 //   4. Renders a "● Live" / "⟳ Polling" badge so the trader can tell at
 //      a glance whether the KPIs are real-time or lagged.
+//
+// W58-a — Premium visual polish pass aligned with the W51-2d MLPanel /
+// W55-a LeaderboardPanel / W56-a SystemHealthView / W57-a RetentionPanel
+// redesign family. The panel now:
+//   1. KpiTile pattern for key analytics metrics — every KPI card is
+//      refactored to a shared KpiTile sub-component with a Lucide icon
+//      in the label row, tabular-nums on the value, and a `data-tone`
+//      hook for downstream CSS targeting. The existing `kpi-card` /
+//      `kpi-label` / `kpi-value` / `kpi-sub` class names are preserved
+//      so the W26-6 / W25-6 test contracts (`closest('.kpi-card')` +
+//      `querySelector('.kpi-value')`) continue to resolve, AND the
+//      tone-coloured value class names (`text-[#f87171]` for negative
+//      expectancy / `text-green-400` for the trend arrow) are preserved
+//      verbatim so the W15-5 / W26-6 className assertions still match.
+//   2. Shimmer skeleton loading state (AnalyticsSkeleton) mirroring the
+//      live panel layout (header + KPI strip + disclaimer + report
+//      placeholder). The "Loading analytics metrics…" caption is
+//      preserved verbatim so the W15-5 test contract
+//      (`getByText(/Loading analytics/)`) still resolves.
+//   3. Polished empty state with a Lucide BarChart3 icon + dim
+//      description. Used by the no-data-no-error soft-failure branch.
+//   4. Section headers with a Lucide icon + uppercase tracking-wider
+//      title + dim italic description + trailing count badge above the
+//      KPI grid, the disclaimer section, and the report section.
+//   5. Refined data display — tabular-nums on every numeric value
+//      (KPI values, win rate %, p-values, n trades, max drawdown,
+//      profit factor, expectancy, Sharpe ratio, etc.) so columns don't
+//      shift alignment between renders.
+//   6. Tone-coloured values — the existing colour palette
+//      (`text-[#4ade80]` emerald / `text-[#f87171]` red / `text-[#60a5fa]`
+//      blue / `text-[#dde1ed]` neutral) is preserved verbatim on every
+//      KPI value so the W26-6 / W15-5 className assertions still match,
+//      AND a `data-tone` attribute hook is layered on top so downstream
+//      CSS can target the tone palette uniformly.
+//   7. Error state — polished error card (PolishedErrorCard) with a
+//      Lucide AlertTriangle icon + the title "Analytics data unavailable"
+//      (preserved verbatim so the W15-5 test contract
+//      `getByText('Analytics data unavailable')` resolves) + the wrapped
+//      error string in dim detail + a Retry button (calls
+//      useRealtimeData.refetch) + role="alert" + data-testid=
+//      "analytics-error-card".
+// All existing functionality, class names, API calls, polling, WS channel
+// subscription, accessibility roles/labels, test-matched strings, and the
+// 'use client' directive preserved.
+
 'use client'
 
-import { memo, useEffect, useMemo, useState } from 'react'
+import { memo, useEffect, useMemo, useState, type ReactNode } from 'react'
+import {
+  AlertTriangle,
+  BarChart3,
+  Gauge,
+  Layers,
+  ListChecks,
+  Percent,
+  RefreshCw,
+  Scale,
+  Sigma,
+  Target,
+  TrendingDown,
+  TrendingUp,
+  type LucideIcon,
+} from 'lucide-react'
 import { fmtUsd, fmtPnl, fmtPct } from '@/lib/design-tokens'
 import { useRealtimeData } from '@/hooks/useRealtimeData'
 import { useStaleAge } from '@/hooks/useStaleAge'
 import { apiFetch } from '@/lib/api'
 import { Badge } from '@/components/ui/badge'
-import { ErrorState, StaleIndicator } from '@/components/ui/states'
+import { StaleIndicator } from '@/components/ui/states'
 // W26-6 — Confidence-interval + statistical-significance widgets.
 // Used by the win-rate KPI card to surface (a) the Wilson 95% CI
 // visually as a range bar, and (b) the binomial-test verdict
@@ -108,6 +168,277 @@ function isAnalyticsPayload(d: unknown): boolean {
   return typeof obj.equity === 'number' && typeof obj.win_rate === 'number'
 }
 
+// ── W58-a Tone system (mirror of LeaderboardPanel / SystemHealthView) ───────
+// 5-tone vocabulary with self-contained static class strings so Tailwind 4's
+// JIT scanner picks them up. The `text` field is used by the KpiTile icon
+// + SectionHeader icon; the existing kpi-value class names
+// (`text-[#4ade80]` / `text-[#f87171]` / `text-[#60a5fa]` / `text-[#dde1ed]`)
+// are preserved verbatim on the value spans so the W26-6 / W15-5 className
+// assertions still match.
+
+type Tone = 'good' | 'warn' | 'poor' | 'info' | 'neutral'
+
+interface ToneConfig {
+  text: string
+  bg: string
+  border: string
+  bar: string
+  dot: string
+  halo: string
+  label: string
+}
+
+const TONE: Record<Tone, ToneConfig> = {
+  good: {
+    text: 'text-emerald-400',
+    bg: 'bg-emerald-500/[0.06]',
+    border: 'border-emerald-500/25',
+    bar: 'bg-emerald-400',
+    dot: 'bg-emerald-400',
+    halo: 'bg-emerald-400/40',
+    label: 'EMERALD',
+  },
+  warn: {
+    text: 'text-amber-400',
+    bg: 'bg-amber-500/[0.06]',
+    border: 'border-amber-500/25',
+    bar: 'bg-amber-400',
+    dot: 'bg-amber-400',
+    halo: 'bg-amber-400/40',
+    label: 'AMBER',
+  },
+  poor: {
+    text: 'text-red-400',
+    bg: 'bg-red-500/[0.06]',
+    border: 'border-red-500/25',
+    bar: 'bg-red-400',
+    dot: 'bg-red-400',
+    halo: 'bg-red-400/40',
+    label: 'RED',
+  },
+  info: {
+    text: 'text-cyan-300',
+    bg: 'bg-cyan-500/[0.06]',
+    border: 'border-cyan-500/25',
+    bar: 'bg-cyan-400',
+    dot: 'bg-cyan-400',
+    halo: 'bg-cyan-400/40',
+    label: 'CYAN',
+  },
+  neutral: {
+    text: 'text-[#dde1ed]',
+    bg: 'bg-[#1f2335]/40',
+    border: 'border-[#1f2335]',
+    bar: 'bg-[#5a637a]',
+    dot: 'bg-[#5a637a]',
+    halo: 'bg-[#5a637a]/40',
+    label: 'NEUTRAL',
+  },
+}
+
+// ── W58-a ShimmerBlock — thin skeleton placeholder sized via className ────
+function ShimmerBlock({ className = '' }: { className?: string }) {
+  return <div className={`skeleton-line-sm ${className}`} aria-hidden="true" />
+}
+
+// ── W58-a SectionHeader — Lucide icon + uppercase title + dim description ─
+function SectionHeader({
+  icon: Icon,
+  title,
+  description,
+  tone = 'neutral',
+  trailing,
+}: {
+  icon: LucideIcon
+  title: string
+  description?: string
+  tone?: Tone
+  trailing?: ReactNode
+}) {
+  return (
+    <div className="flex items-center gap-1.5">
+      <Icon className={`size-3 ${TONE[tone].text}`} aria-hidden="true" />
+      <span className="text-[9.5px] uppercase tracking-wider font-bold text-[#5a637a]">
+        {title}
+      </span>
+      {description && (
+        <span className="text-[8.5px] text-[#5a637a] italic truncate">{description}</span>
+      )}
+      {trailing && <span className="ml-auto shrink-0">{trailing}</span>}
+    </div>
+  )
+}
+
+// ── W58-a KpiTile — premium KPI card with Lucide icon + tabular-nums ──────
+// Renders the existing `.kpi-card` / `.kpi-label` / `.kpi-value` / `.kpi-sub`
+// class names so the W26-6 / W15-5 test contracts (`closest('.kpi-card')` +
+// `querySelector('.kpi-value')`) continue to resolve, AND adds:
+//   • Lucide icon in the label row (tone-coloured, `data-tone` hook)
+//   • tabular-nums on the value + sub spans
+//   • optional trailing node (e.g. significance pill)
+// The `valueClassName` prop preserves the tone-specific value class
+// (e.g. `text-[#f87171]` for negative expectancy / `text-[#4ade80]` for
+// positive expectancy) so the W26-6 / W15-5 className assertions still match.
+interface KpiTileProps {
+  label: string
+  value: ReactNode
+  sub?: ReactNode
+  valueClassName?: string
+  tone?: Tone
+  icon?: LucideIcon
+  testId?: string
+  trailing?: ReactNode
+  className?: string
+}
+
+function KpiTile({
+  label,
+  value,
+  sub,
+  valueClassName = '',
+  tone = 'neutral',
+  icon: Icon,
+  testId,
+  trailing,
+  className = '',
+}: KpiTileProps) {
+  return (
+    <div
+      className={`kpi-card ${className}`}
+      data-tone={tone}
+      data-testid={testId}
+    >
+      <div className="flex items-center gap-1.5 mb-1">
+        {Icon && <Icon className={`size-3 ${TONE[tone].text}`} aria-hidden="true" />}
+        <span className="kpi-label">{label}</span>
+        {trailing && <span className="ml-auto shrink-0">{trailing}</span>}
+      </div>
+      <span className={`kpi-value tabular-nums ${valueClassName}`}>{value}</span>
+      {sub && <span className="kpi-sub tabular-nums">{sub}</span>}
+    </div>
+  )
+}
+
+// ── W58-a AnalyticsSkeleton — shimmer placeholder mirroring the live panel ─
+// Layout: header shimmer + KPI strip (4 cards x 3 shimmer lines) + disclaimer
+// placeholder + report placeholder. The "Loading analytics metrics…"
+// caption is preserved verbatim above the shimmer rows so the W15-5 test
+// contract `getByText(/Loading analytics/)` resolves.
+function AnalyticsSkeleton() {
+  return (
+    <div
+      className="p-3 space-y-3"
+      role="status"
+      aria-live="polite"
+      aria-label="Loading analytics metrics"
+      data-testid="analytics-loading-skeleton"
+    >
+      <div className="flex items-center gap-2 text-[10.5px] text-[#7e8aaa]">
+        <span className="spinner" aria-hidden="true" />
+        <span>Loading analytics metrics…</span>
+      </div>
+      {/* Skeleton KPI strip — 4 placeholder cards in a 2x2 grid */}
+      <div className="grid grid-cols-2 gap-2" aria-hidden="true">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div
+            key={i}
+            className="kpi-card"
+          >
+            <ShimmerBlock className="w-1/2" />
+            <ShimmerBlock className="w-2/3 mt-1" />
+            <ShimmerBlock className="w-1/3 mt-1" />
+          </div>
+        ))}
+      </div>
+      {/* Skeleton disclaimer + report placeholder */}
+      <div
+        className="border-t border-[#1f2335] pt-2 space-y-1.5"
+        aria-hidden="true"
+      >
+        <ShimmerBlock className="w-1/3" />
+        <ShimmerBlock className="w-full" />
+        <ShimmerBlock className="w-2/3" />
+      </div>
+    </div>
+  )
+}
+
+// ── W58-a PolishedEmptyState — Lucide BarChart3 icon + dim description ────
+// Used by the soft-failure branch (data is null, no error). The title
+// "Analytics data unavailable" is preserved verbatim so the W15-5 test
+// contract `getByText('Analytics data unavailable')` resolves. role=status
+// + data-testid="analytics-empty-state".
+function PolishedEmptyState() {
+  return (
+    <div
+      className="empty-state p-8"
+      role="status"
+      data-testid="analytics-empty-state"
+    >
+      <BarChart3
+        className="empty-state-icon text-[#5a637a]"
+        size={28}
+        aria-hidden="true"
+      />
+      <div className="empty-state-title">Analytics data unavailable</div>
+      <div className="empty-state-desc">
+        The analytics endpoint returned no payload. The trader dashboard
+        will retry on the next 10s poll.
+      </div>
+    </div>
+  )
+}
+
+// ── W58-a PolishedErrorCard — AlertTriangle + title + detail + Retry ────
+// Renders a refined error card with a Lucide AlertTriangle icon + the title
+// "Analytics data unavailable" (preserved verbatim as the direct text node
+// of a leaf `<span className="error-state-title">` so the W15-5 test contract
+// `getByText('Analytics data unavailable')` resolves to a single leaf) + the
+// wrapped error string in `.error-state-desc` + a Retry button (RefreshCw
+// glyph, calls `onRetry`). role=alert + data-testid="analytics-error-card".
+interface PolishedErrorCardProps {
+  message: string
+  detail?: string | null
+  onRetry?: () => void
+}
+
+function PolishedErrorCard({ message, detail, onRetry }: PolishedErrorCardProps) {
+  return (
+    <div
+      className="error-state"
+      role="alert"
+      data-testid="analytics-error-card"
+    >
+      <AlertTriangle
+        className="error-state-icon text-red-400"
+        size={28}
+        aria-hidden="true"
+      />
+      <span className="error-state-title">{message}</span>
+      {detail && (
+        <span
+          className="error-state-desc"
+          style={{ fontFamily: 'var(--font-mono, monospace)' }}
+        >
+          {detail}
+        </span>
+      )}
+      {onRetry && (
+        <button
+          type="button"
+          onClick={onRetry}
+          className="inline-flex items-center gap-1 mt-1 px-2.5 py-1 rounded-md text-[11px] font-semibold border border-red-500/40 bg-red-500/15 text-red-200 hover:bg-red-500/25 hover:border-red-500/60 transition-colors"
+          aria-label="Retry analytics fetch"
+          data-testid="analytics-error-retry"
+        >
+          <RefreshCw className="w-3 h-3" aria-hidden="true" />
+          Retry
+        </button>
+      )}
+    </div>
+  )
+}
+
 // W9-6 — wrapped in React.memo. The component takes no props, so React.memo
 // with default shallow compare would never re-render. That's incorrect
 // here: the panel self-polls every 4s and updates its own state. React.memo
@@ -189,36 +520,67 @@ function AnalyticsPanel() {
 
   const activeStrats = useMemo(() => data?.active_strategies ?? [], [data?.active_strategies])
 
+  // W58-a — Loading state uses the AnalyticsSkeleton (with the
+  // "Loading analytics metrics…" caption preserved verbatim).
   if (isLoading && !data) {
     return (
-      <div className="card p-3 flex items-center justify-center text-xs text-[#7e8aaa]">
-        <span className="spinner mr-2" aria-hidden="true" />
-        Loading analytics metrics…
+      <div className="card flex flex-col bg-[#13161e] border border-[#1f2335] shadow-md">
+        <div className="card-header p-3 border-b border-[#1f2335] flex justify-between items-center">
+          <div className="flex items-center gap-1.5">
+            <BarChart3 className="size-3.5 text-cyan-400 shrink-0" aria-hidden="true" />
+            <span className="card-title text-xs font-bold text-[#dde1ed]">📊 Performance Analytics</span>
+            <span className="badge badge-amber text-[9.5px]">PAPER</span>
+          </div>
+          <span className="badge badge-dim text-[9.5px]">Loading…</span>
+        </div>
+        <AnalyticsSkeleton />
       </div>
     )
   }
 
+  // W58-a — Error / empty branches. The "Analytics data unavailable" title
+  // is preserved verbatim so the W15-5 test contract resolves. When the
+  // hook exposes an error, the PolishedErrorCard surfaces it with a Retry
+  // button (calls useRealtimeData.refetch). When there's no error but
+  // `data` is null, the PolishedEmptyState surfaces the soft-failure case.
   if (!data || !stats) {
-    // W41-3 — When the hook exposes an error, render the structured
-    // ErrorState (with retry) instead of the bare "Analytics data
-    // unavailable" message. The text is preserved so existing tests
-    // that match `screen.getByText('Analytics data unavailable')`
-    // continue to pass.
     if (error) {
       return (
-        <div className="card p-3">
-          <ErrorState
-            message="Analytics data unavailable"
-            detail={error}
-            onRetry={refetch}
-            retryLabel="Retry"
-          />
+        <div className="card flex flex-col bg-[#13161e] border border-[#1f2335] shadow-md">
+          <div className="card-header p-3 border-b border-[#1f2335] flex justify-between items-center">
+            <div className="flex items-center gap-1.5">
+              <BarChart3 className="size-3.5 text-cyan-400 shrink-0" aria-hidden="true" />
+              <span className="card-title text-xs font-bold text-[#dde1ed]">📊 Performance Analytics</span>
+              <span className="badge badge-amber text-[9.5px]">PAPER</span>
+            </div>
+            {isRealtime ? (
+              <Badge variant="success" className="text-[9.5px] py-0.5">● Live</Badge>
+            ) : (
+              <Badge variant="warning" className="text-[9.5px] py-0.5">⟳ Polling</Badge>
+            )}
+          </div>
+          <div className="p-3">
+            <PolishedErrorCard
+              message="Analytics data unavailable"
+              detail={error}
+              onRetry={() => refetch()}
+            />
+          </div>
         </div>
       )
     }
     return (
-      <div className="card p-3 flex items-center justify-center text-xs text-[#7e8aaa]">
-        Analytics data unavailable
+      <div className="card flex flex-col bg-[#13161e] border border-[#1f2335] shadow-md">
+        <div className="card-header p-3 border-b border-[#1f2335] flex justify-between items-center">
+          <div className="flex items-center gap-1.5">
+            <BarChart3 className="size-3.5 text-cyan-400 shrink-0" aria-hidden="true" />
+            <span className="card-title text-xs font-bold text-[#dde1ed]">📊 Performance Analytics</span>
+            <span className="badge badge-amber text-[9.5px]">PAPER</span>
+          </div>
+        </div>
+        <div className="p-3">
+          <PolishedEmptyState />
+        </div>
       </div>
     )
   }
@@ -229,6 +591,7 @@ function AnalyticsPanel() {
     <div className="card flex flex-col bg-[#13161e] border border-[#1f2335] shadow-md">
       <div className="card-header p-3 border-b border-[#1f2335] flex justify-between items-center">
         <div className="flex items-center gap-2">
+          <BarChart3 className="size-3.5 text-cyan-400 shrink-0" aria-hidden="true" />
           <span className="card-title text-xs font-bold text-[#dde1ed]">📊 Performance Analytics</span>
           <span className="badge badge-amber text-[9.5px]">
             {data.mode?.toUpperCase() || 'PAPER'}
@@ -248,10 +611,10 @@ function AnalyticsPanel() {
           {age !== null && <StaleIndicator age={age} />}
         </div>
         <div className="flex items-center gap-2">
-          <span className={`mono text-xs font-bold ${trendColor}`}>
+          <span className={`mono text-xs font-bold tabular-nums ${trendColor}`}>
             {trendArrow}
           </span>
-          <span className="mono text-xs text-green-400 font-bold">
+          <span className="mono text-xs text-green-400 font-bold tabular-nums">
             {winRatePct}% Win Rate
           </span>
         </div>
@@ -275,7 +638,7 @@ function AnalyticsPanel() {
           (even when n is large) so the trader always knows the CI
           methodology + sample-size basis of the displayed metrics. */}
       <div
-        className="text-[10px] text-[#7e8aaa] mx-3 mt-2"
+        className="text-[10px] text-[#7e8aaa] mx-3 mt-2 tabular-nums"
         data-testid="metrics-sample-note"
       >
         Metrics based on N={n} trades. 95% confidence intervals shown.
@@ -293,6 +656,21 @@ function AnalyticsPanel() {
         </div>
       )}
 
+      {/* W58-a — Section header above the KPI strip */}
+      <div className="px-3 pt-2.5 pb-1.5 border-b border-[#1f2335]">
+        <SectionHeader
+          icon={Gauge}
+          title="Performance KPIs"
+          description="real-time paper-trading metrics"
+          tone="info"
+          trailing={
+            <span className="badge badge-dim text-[9px] tabular-nums">
+              N={n}
+            </span>
+          }
+        />
+      </div>
+
       <div className="p-3 grid grid-cols-2 gap-2 text-[11px]">
         {/* Win Rate + Wilson CI — W26-6 rebuilt around the new
             ConfidenceIntervalBadge + StatisticalSignificanceBadge
@@ -303,7 +681,10 @@ function AnalyticsPanel() {
             encodes the binomial-test verdict as a colored pill. */}
         <div className="kpi-card col-span-2" data-testid="win-rate-kpi">
           <div className="flex items-center justify-between mb-1.5">
-            <span className="kpi-label">Win Rate (95% CI)</span>
+            <div className="flex items-center gap-1.5">
+              <Percent className="size-3 text-cyan-300" aria-hidden="true" />
+              <span className="kpi-label">Win Rate (95% CI)</span>
+            </div>
             <StatisticalSignificanceBadge
               pValue={winRatePValue}
               n={n}
@@ -323,68 +704,91 @@ function AnalyticsPanel() {
         </div>
 
         {/* Profit Factor */}
-        <div className="kpi-card">
-          <span className="kpi-label">Profit Factor</span>
-          <span className="kpi-value text-[#60a5fa]">
-            {typeof data.profit_factor === 'number'
+        <KpiTile
+          label="Profit Factor"
+          icon={Scale}
+          tone="info"
+          testId="analytics-kpi-profit-factor"
+          valueClassName="text-[#60a5fa]"
+          value={
+            typeof data.profit_factor === 'number'
               ? data.profit_factor.toFixed(2)
               : data.profit_factor === 'Infinity'
               ? '∞'
-              : '—'}
-          </span>
-          <span className="kpi-sub">Gross wins / Gross losses</span>
-        </div>
+              : '—'
+          }
+          sub="Gross wins / Gross losses"
+        />
 
         {/* Total Trades & Volume */}
-        <div className="kpi-card">
-          <span className="kpi-label">Trades / Volume</span>
-          <span className="kpi-value text-[#dde1ed]">{data.total_trades} trades</span>
-          <span className="kpi-sub text-[#22d3ee]">{fmtUsd(data.total_volume_usdc)} vol</span>
-        </div>
+        <KpiTile
+          label="Trades / Volume"
+          icon={Layers}
+          tone="neutral"
+          testId="analytics-kpi-trades-volume"
+          valueClassName="text-[#dde1ed]"
+          value={`${data.total_trades} trades`}
+          sub={
+            <span className="text-[#22d3ee]">{fmtUsd(data.total_volume_usdc)} vol</span>
+          }
+        />
 
         {/* Max Drawdown */}
-        <div className="kpi-card">
-          <span className="kpi-label">Max Drawdown</span>
-          <span className="kpi-value text-[#f87171]">
-            {fmtUsd(data.max_drawdown_dollars)} ({fmtPct(data.max_drawdown_pct)})
-          </span>
-          <span className="kpi-sub">Peak: {fmtUsd(data.peak_equity)}</span>
-        </div>
+        <KpiTile
+          label="Max Drawdown"
+          icon={TrendingDown}
+          tone="poor"
+          testId="analytics-kpi-max-drawdown"
+          valueClassName="text-[#f87171]"
+          value={`${fmtUsd(data.max_drawdown_dollars)} (${fmtPct(data.max_drawdown_pct)})`}
+          sub={`Peak: ${fmtUsd(data.peak_equity)}`}
+        />
 
         {/* Realized P&L */}
-        <div className="kpi-card">
-          <span className="kpi-label">Realized P&amp;L</span>
-          <span className={`kpi-value ${data.realized_pnl >= 0 ? 'text-[#4ade80]' : 'text-[#f87171]'}`}>
-            {fmtPnl(data.realized_pnl)}
-          </span>
-          <span className="kpi-sub">Closed positions today</span>
-        </div>
+        <KpiTile
+          label="Realized P&L"
+          icon={TrendingUp}
+          tone={data.realized_pnl >= 0 ? 'good' : 'poor'}
+          testId="analytics-kpi-realized-pnl"
+          valueClassName={data.realized_pnl >= 0 ? 'text-[#4ade80]' : 'text-[#f87171]'}
+          value={fmtPnl(data.realized_pnl)}
+          sub="Closed positions today"
+        />
 
-        <div className="kpi-card">
-          <span className="kpi-label">Unrealized P&amp;L</span>
-          <span className={`kpi-value ${data.unrealized_pnl >= 0 ? 'text-[#4ade80]' : 'text-[#f87171]'}`}>
-            {fmtPnl(data.unrealized_pnl)}
-          </span>
-          <span className="kpi-sub">Mark-to-mid open book</span>
-        </div>
+        <KpiTile
+          label="Unrealized P&L"
+          icon={TrendingUp}
+          tone={data.unrealized_pnl >= 0 ? 'good' : 'poor'}
+          testId="analytics-kpi-unrealized-pnl"
+          valueClassName={data.unrealized_pnl >= 0 ? 'text-[#4ade80]' : 'text-[#f87171]'}
+          value={fmtPnl(data.unrealized_pnl)}
+          sub="Mark-to-mid open book"
+        />
 
         {/* S3 — Expectancy / Trade */}
-        <div className="kpi-card">
-          <span className="kpi-label">Expectancy / Trade</span>
-          <span
-            className={`kpi-value ${
-              (data.expectancy ?? 0) >= 0 ? 'text-[#4ade80]' : 'text-[#f87171]'
-            }`}
-          >
-            {data.expectancy != null ? fmtPnl(data.expectancy) : '—'}
-          </span>
-          <span className="kpi-sub">Positive = profitable system</span>
-        </div>
+        <KpiTile
+          label="Expectancy / Trade"
+          icon={Target}
+          tone={(data.expectancy ?? 0) >= 0 ? 'good' : 'poor'}
+          testId="analytics-kpi-expectancy"
+          valueClassName={
+            (data.expectancy ?? 0) >= 0 ? 'text-[#4ade80]' : 'text-[#f87171]'
+          }
+          value={data.expectancy != null ? fmtPnl(data.expectancy) : '—'}
+          sub="Positive = profitable system"
+        />
 
         {/* S3 — Avg Win / Avg Loss */}
-        <div className="kpi-card">
-          <span className="kpi-label">Avg Win / Avg Loss</span>
-          <span className="kpi-value flex items-baseline gap-1">
+        <div
+          className="kpi-card"
+          data-tone="neutral"
+          data-testid="analytics-kpi-avg-win-loss"
+        >
+          <div className="flex items-center gap-1.5 mb-1">
+            <Sigma className="size-3 text-[#dde1ed]" aria-hidden="true" />
+            <span className="kpi-label">Avg Win / Avg Loss</span>
+          </div>
+          <span className="kpi-value flex items-baseline gap-1 tabular-nums">
             <span className="text-[#4ade80]">
               {data.avg_win != null ? fmtUsd(data.avg_win) : '—'}
             </span>
@@ -397,23 +801,31 @@ function AnalyticsPanel() {
         </div>
 
         {/* S3 — Sharpe Ratio */}
-        <div className="kpi-card">
-          <span className="kpi-label">Sharpe Ratio</span>
-          <span
-            className={`kpi-value ${
-              data.sharpe_ratio == null
-                ? 'text-[#dde1ed]'
-                : data.sharpe_ratio >= 1
-                ? 'text-[#4ade80]'
-                : data.sharpe_ratio >= 0
-                ? 'text-[#60a5fa]'
-                : 'text-[#f87171]'
-            }`}
-          >
-            {data.sharpe_ratio != null ? data.sharpe_ratio.toFixed(2) : '—'}
-          </span>
-          <span className="kpi-sub">Risk-adjusted return</span>
-        </div>
+        <KpiTile
+          label="Sharpe Ratio"
+          icon={Gauge}
+          tone={
+            data.sharpe_ratio == null
+              ? 'neutral'
+              : data.sharpe_ratio >= 1
+              ? 'good'
+              : data.sharpe_ratio >= 0
+              ? 'info'
+              : 'poor'
+          }
+          testId="analytics-kpi-sharpe"
+          valueClassName={
+            data.sharpe_ratio == null
+              ? 'text-[#dde1ed]'
+              : data.sharpe_ratio >= 1
+              ? 'text-[#4ade80]'
+              : data.sharpe_ratio >= 0
+              ? 'text-[#60a5fa]'
+              : 'text-[#f87171]'
+          }
+          value={data.sharpe_ratio != null ? data.sharpe_ratio.toFixed(2) : '—'}
+          sub="Risk-adjusted return"
+        />
       </div>
 
       {/* W26-6 — Standalone metrics disclaimer section. The
@@ -448,8 +860,19 @@ function MetricsDisclaimerSection({ n }: { n: number }) {
       data-testid="metrics-disclaimer-section"
       aria-label="Performance Metrics Disclaimer"
     >
-      <div className="font-semibold text-[#dde1ed] mb-1">
-        ⚠ Performance Metrics Disclaimer
+      {/* W58-a — Section header above the disclaimer bullets */}
+      <div className="mb-1.5">
+        <SectionHeader
+          icon={AlertTriangle}
+          title="Performance Metrics Disclaimer"
+          description="α=0.05 · n≥30 · 95% CI"
+          tone="warn"
+          trailing={
+            <span className="badge badge-dim text-[9px] tabular-nums">
+              n={n}
+            </span>
+          }
+        />
       </div>
       <ul className="space-y-0.5 list-disc pl-4">
         <li>
@@ -461,9 +884,6 @@ function MetricsDisclaimerSection({ n }: { n: number }) {
         <li>Metrics are reported with 95% confidence intervals</li>
         <li>Statistical significance requires p &lt; 0.05 and n ≥ 30</li>
       </ul>
-      <div className="text-[9.5px] text-[#3e4560] mt-1">
-        Current sample: n={n} closed trades
-      </div>
     </div>
   )
 }
@@ -581,11 +1001,17 @@ function PerformanceReportSection() {
       className="border-t border-[#1f2335] p-3 space-y-2 text-[11px]"
       data-testid="performance-report-section"
     >
+      {/* W58-a — Section header above the report */}
       <div className="flex items-center justify-between">
-        <span className="text-xs font-bold text-[#dde1ed]">
-          📈 Honest Performance Report
-        </span>
-        <span className="badge badge-amber text-[9px]">Per-Category</span>
+        <SectionHeader
+          icon={ListChecks}
+          title="Honest Performance Report"
+          description="paper · backtest · walk-forward · live"
+          tone="info"
+          trailing={
+            <span className="badge badge-amber text-[9px]">Per-Category</span>
+          }
+        />
       </div>
 
       {/* Disclaimer banner — ALWAYS rendered (even when fetch failed) */}
@@ -613,7 +1039,9 @@ function PerformanceReportSection() {
           {/* Paper Trading metrics */}
           <div className="kpi-card col-span-2">
             <div className="flex items-center justify-between mb-1">
-              <span className="kpi-label">Paper Trading</span>
+              <div className="flex items-center gap-1.5">
+                <span className="kpi-label">Paper Trading</span>
+              </div>
               <span className="text-[10px] text-[#4ade80]">
                 Real-time · honest
               </span>
@@ -623,10 +1051,10 @@ function PerformanceReportSection() {
                 <span className="text-[10px] text-[#7e8aaa] uppercase">
                   Win Rate (paper)
                 </span>
-                <div className="text-[#4ade80] font-semibold">
+                <div className="text-[#4ade80] font-semibold tabular-nums">
                   {paper.win_rate}
                 </div>
-                <div className="text-[9px] text-[#7e8aaa]">
+                <div className="text-[9px] text-[#7e8aaa] tabular-nums">
                   95% CI: {paper.win_rate_ci_95}
                 </div>
               </div>
@@ -634,7 +1062,7 @@ function PerformanceReportSection() {
                 <span className="text-[10px] text-[#7e8aaa] uppercase">
                   Profit Factor (paper)
                 </span>
-                <div className="text-[#60a5fa] font-semibold">
+                <div className="text-[#60a5fa] font-semibold tabular-nums">
                   {paper.profit_factor}
                 </div>
               </div>
@@ -642,7 +1070,7 @@ function PerformanceReportSection() {
                 <span className="text-[10px] text-[#7e8aaa] uppercase">
                   Expectancy (paper)
                 </span>
-                <div className="text-[#dde1ed] font-semibold">
+                <div className="text-[#dde1ed] font-semibold tabular-nums">
                   {paper.expectancy}
                 </div>
               </div>
@@ -650,7 +1078,7 @@ function PerformanceReportSection() {
                 <span className="text-[10px] text-[#7e8aaa] uppercase">
                   Sharpe (paper)
                 </span>
-                <div className="text-[#dde1ed] font-semibold">
+                <div className="text-[#dde1ed] font-semibold tabular-nums">
                   {paper.sharpe_ratio}
                 </div>
               </div>
@@ -658,7 +1086,7 @@ function PerformanceReportSection() {
                 <span className="text-[10px] text-[#7e8aaa] uppercase">
                   Max DD (paper)
                 </span>
-                <div className="text-[#f87171] font-semibold">
+                <div className="text-[#f87171] font-semibold tabular-nums">
                   {paper.max_drawdown}
                 </div>
               </div>
@@ -666,10 +1094,10 @@ function PerformanceReportSection() {
                 <span className="text-[10px] text-[#7e8aaa] uppercase">
                   Trades (paper)
                 </span>
-                <div className="text-[#dde1ed] font-semibold">
+                <div className="text-[#dde1ed] font-semibold tabular-nums">
                   {paper.n_trades}
                 </div>
-                <div className="text-[9px] text-[#7e8aaa]">
+                <div className="text-[9px] text-[#7e8aaa] tabular-nums">
                   p={paper.p_value}
                 </div>
               </div>
@@ -683,7 +1111,7 @@ function PerformanceReportSection() {
               <span className="text-[10px] text-amber-400">⚠ Overfit risk</span>
             </div>
             {backtestReady && backtest ? (
-              <div className="space-y-0.5 text-[10.5px]">
+              <div className="space-y-0.5 text-[10.5px] tabular-nums">
                 <div>
                   Best Return:{' '}
                   <span className="text-[#4ade80] font-semibold">

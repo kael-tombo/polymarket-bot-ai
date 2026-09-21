@@ -5,7 +5,7 @@
 // exit-reason donut breakdown, cumulative P&L timeline, and row expansion.
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   TrendingUp,
   TrendingDown,
@@ -14,10 +14,14 @@ import {
   AlertTriangle,
   ChevronDown,
   ChevronRight,
+  ChevronUp,
   RefreshCw,
   Download,
-  Inbox,
+  Archive,
+  Calendar,
+  Filter,
   Activity,
+  type LucideIcon,
 } from 'lucide-react'
 import { apiFetch } from '@/lib/api'
 import { formatHierarchicalMarket } from '@/lib/formatters'
@@ -151,6 +155,305 @@ const REASON_META: Record<ExitReason, { label: string; cls: string; dot: string;
 }
 
 // ───────────────────────────────────────────────────────────────────────────
+// W58-b — Premium polish layer (W51-2d / W53-c / W57-a redesign family)
+// Self-contained Tone system + sub-components so the closed-positions panel
+// reads as part of the same premium redesign family. All existing class
+// names, test contracts (W38-8 — 8 tests), polling cadence (30s),
+// API calls, aria-labels, data-testids, and the 'use client' directive
+// are preserved verbatim.
+// ───────────────────────────────────────────────────────────────────────────
+
+type Tone = 'good' | 'warn' | 'poor' | 'info' | 'neutral'
+
+interface ToneConfig {
+  bg: string
+  border: string
+  text: string
+  bar: string
+  dot: string
+  label: string
+  halo: string
+  /** Row-hover left-edge accent bar (inset shadow). */
+  rowHover: string
+}
+
+const TONE: Record<Tone, ToneConfig> = {
+  good:    { bg: 'bg-emerald-500/[0.06]',  border: 'border-emerald-500/25',  text: 'text-emerald-400',  bar: 'bg-emerald-500',  dot: 'bg-emerald-400',  label: 'text-emerald-400/80',  halo: 'shadow-emerald-500/10',  rowHover: 'hover:shadow-[inset_3px_0_0_0_rgba(52,211,153,0.55)]' },
+  warn:    { bg: 'bg-amber-500/[0.06]',    border: 'border-amber-500/25',    text: 'text-amber-400',    bar: 'bg-amber-500',    dot: 'bg-amber-400',    label: 'text-amber-400/80',    halo: 'shadow-amber-500/10',    rowHover: 'hover:shadow-[inset_3px_0_0_0_rgba(251,191,36,0.55)]' },
+  poor:    { bg: 'bg-red-500/[0.06]',     border: 'border-red-500/25',     text: 'text-red-400',      bar: 'bg-red-500',      dot: 'bg-red-400',      label: 'text-red-400/80',      halo: 'shadow-red-500/10',      rowHover: 'hover:shadow-[inset_3px_0_0_0_rgba(239,68,68,0.55)]' },
+  info:    { bg: 'bg-cyan-500/[0.06]',    border: 'border-cyan-500/25',    text: 'text-cyan-400',     bar: 'bg-cyan-500',     dot: 'bg-cyan-400',     label: 'text-cyan-400/80',     halo: 'shadow-cyan-500/10',     rowHover: 'hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.55)]' },
+  neutral: { bg: 'bg-[#0e1015]',          border: 'border-[#1f2335]',      text: 'text-[#dde1ed]',    bar: 'bg-[#5a637a]',    dot: 'bg-[#5a637a]',    label: 'text-[#7e8aaa]',       halo: '',                        rowHover: 'hover:shadow-[inset_3px_0_0_0_rgba(125,138,170,0.35)]' },
+}
+
+/** Map a P&L amount to a Tone: positive → good (emerald), negative →
+ *  poor (red), zero → neutral. Used by the row-hover accent bar so the
+ *  hover affordance is tone-aware (green for winning rows, red for
+ *  losing rows). */
+function pnlTone(pnl: number): Tone {
+  if (pnl > 0) return 'good'
+  if (pnl < 0) return 'poor'
+  return 'neutral'
+}
+
+// PulseDot — small status dot with halo + ping animation. Mirrors the
+// W54-a / W55-c / W56-e PulseDot pattern.
+function PulseDot({ tone = 'good', pulse = true }: { tone?: Tone; pulse?: boolean }) {
+  const cfg = TONE[tone]
+  return (
+    <span className="relative inline-flex w-2 h-2 shrink-0" aria-hidden="true">
+      {pulse && (
+        <span className={`absolute inline-flex w-full h-full rounded-full opacity-60 animate-ping ${cfg.dot}`} />
+      )}
+      <span className={`relative inline-flex w-2 h-2 rounded-full ${cfg.dot} shadow-[0_0_6px] ${cfg.halo}`} />
+    </span>
+  )
+}
+
+// SectionHeader — Lucide icon + uppercase tracking-wider title + optional
+// dim italic description + optional trailing node. Title rendered in its
+// own <span> so RTL's `getByText(...)` matches just the span (preserves
+// the W38-8 test contract `/CLOSED POSITIONS LEDGER/`). Mirrors W53-c /
+// W54-a / W55-c / W56-a SectionHeader.
+function SectionHeader({
+  icon: Icon,
+  title,
+  description,
+  tone = 'neutral',
+  trailing,
+}: {
+  icon: LucideIcon
+  title: string
+  description?: string
+  tone?: Tone
+  trailing?: React.ReactNode
+}) {
+  return (
+    <div className="flex items-center justify-between gap-2 flex-wrap">
+      <div className="flex items-center gap-1.5 min-w-0">
+        <Icon className={`size-3.5 shrink-0 ${TONE[tone].text}`} aria-hidden="true" />
+        <span className="text-[10px] uppercase tracking-wider font-bold text-[#dde1ed] truncate">
+          {title}
+        </span>
+        {description && (
+          <span className="text-[9px] text-[#5a637a] italic truncate hidden md:inline">
+            {description}
+          </span>
+        )}
+      </div>
+      {trailing && <span className="shrink-0 text-[10px] text-[#7e8aaa] mono tabular-nums">{trailing}</span>}
+    </div>
+  )
+}
+
+// KpiTile — refined KPI card (tone-tinted bg, Lucide icon in label row,
+// 16px tabular-nums value, optional sub hint + quality bar + trend glyph).
+// Mirrors the W53-c / W56-a KpiTile pattern.
+interface KpiTileProps {
+  label: string
+  value: string
+  hint?: string
+  tone: Tone
+  icon: LucideIcon
+  quality?: number
+  trend?: 'up' | 'down' | 'flat'
+  testId?: string
+}
+
+function KpiTile({ label, value, hint, tone, icon: Icon, quality, trend, testId }: KpiTileProps) {
+  const cfg = TONE[tone]
+  return (
+    <div
+      className={`kpi-card relative overflow-hidden border ${cfg.border} ${cfg.bg} transition-colors`}
+      title={`${label}${hint ? ' — ' + hint : ''}`}
+      data-testid={testId}
+      data-tone={tone}
+    >
+      <div className="flex items-center justify-between gap-1.5">
+        <div className={`kpi-label flex items-center gap-1 ${cfg.label}`}>
+          <Icon className="size-3 shrink-0" aria-hidden="true" />
+          <span>{label}</span>
+        </div>
+        {trend === 'up' && <TrendingUp className="size-3 text-emerald-400 shrink-0" aria-hidden="true" />}
+        {trend === 'down' && <TrendingDown className="size-3 text-red-400 shrink-0" aria-hidden="true" />}
+      </div>
+      <div className={`kpi-value mono tabular-nums ${cfg.text}`}>
+        {value}
+      </div>
+      {hint && <div className="kpi-sub tabular-nums">{hint}</div>}
+      {quality != null && quality > 0 && (
+        <div className="h-0.5 bg-[#1f2335] rounded-full mt-1 overflow-hidden">
+          <div
+            className={`h-full rounded-full transition-all duration-500 ${cfg.bar}`}
+            style={{ width: `${Math.max(0, Math.min(100, quality))}%` }}
+          />
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ShimmerBlock — thin skeleton placeholder that can be sized via the
+// className prop. aria-hidden. Mirrors W54-e / W56-a ShimmerBlock.
+function ShimmerBlock({ className = '' }: { className?: string }) {
+  return (
+    <div className={`skeleton-line-sm ${className}`} aria-hidden="true" />
+  )
+}
+
+// SortIndicator — chevron showing the current sort column + direction.
+// Mirrors the W51-2b PositionsPanel SortIndicator.
+function SortIndicator({ active, direction }: { active: boolean; direction: 'asc' | 'desc' }) {
+  if (!active) {
+    return (
+      <span className="inline-flex flex-col ml-1 opacity-30" aria-hidden="true">
+        <ChevronUp className="size-2.5 -mb-1" />
+        <ChevronDown className="size-2.5" />
+      </span>
+    )
+  }
+  return (
+    <span className="inline-flex flex-col ml-1" aria-hidden="true">
+      <ChevronUp className={`size-2.5 -mb-1 ${direction === 'asc' ? 'text-cyan-400' : 'text-[#3e4560]'}`} />
+      <ChevronDown className={`size-2.5 ${direction === 'desc' ? 'text-cyan-400' : 'text-[#3e4560]'}`} />
+    </span>
+  )
+}
+
+// PolishedEmptyState — Lucide icon + title + helper copy. role=status.
+// Mirrors W56-a / W56-e / W57-a PolishedEmptyState.
+function PolishedEmptyState({
+  icon: Icon,
+  title,
+  description,
+  testId = 'closed-positions-empty-state',
+}: {
+  icon: LucideIcon
+  title: string
+  description: string
+  testId?: string
+}) {
+  return (
+    <div className="empty-state py-10" role="status" data-testid={testId}>
+      <Icon className="empty-state-icon text-[#3e4560]" size={32} strokeWidth={1.5} aria-hidden="true" />
+      <span className="empty-state-title text-sm font-semibold">{title}</span>
+      <span className="empty-state-desc text-xs max-w-sm text-center">{description}</span>
+    </div>
+  )
+}
+
+// PolishedErrorCard — red-tinted error card with Lucide AlertTriangle +
+// the title "Failed to load closed positions" (preserved verbatim as the
+// direct text node of a leaf <span> so the W38-8 test contract
+// `getByText('Failed to load closed positions')` resolves) + the wrapped
+// error string + a Retry button (RefreshCw glyph, calls `onRetry`).
+// role=alert. Mirrors W54-a / W55-c / W56-a / W57-a ErrorCard.
+function PolishedErrorCard({ message, onRetry }: { message: string; onRetry: () => void }) {
+  return (
+    <div
+      className="card h-full flex flex-col p-3 bg-[#13161e] border border-[#1f2335] shadow-xl"
+      data-testid="closed-positions-error-card"
+    >
+      <div className="card-header pb-2 mb-2 border-b border-[#1f2335] flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <PulseDot tone="poor" pulse={false} />
+          <span className="card-title text-xs font-bold text-[#dde1ed]">📕 Closed Positions Ledger</span>
+          <span className="badge badge-red text-[9.5px]">Offline</span>
+        </div>
+      </div>
+      <div
+        className="error-state flex-1 flex flex-col items-center justify-center gap-2 p-6 text-center"
+        role="alert"
+        data-testid="closed-positions-error-state"
+      >
+        <AlertTriangle className="error-state-icon text-[#f87171]" size={28} aria-hidden="true" />
+        <span className="error-state-title text-sm font-semibold">Failed to load closed positions</span>
+        <span className="error-state-desc text-xs max-w-md break-words mono">{message}</span>
+        <button
+          onClick={onRetry}
+          className="mt-2 h-7 text-[10px] gap-1 px-3 py-1 border border-red-500/30 bg-red-500/[0.06] text-red-200 hover:bg-red-500/15 hover:border-red-500/50 hover:text-red-100 rounded transition-colors inline-flex items-center"
+          aria-label="Retry closed-positions fetch"
+          data-testid="closed-positions-error-retry"
+        >
+          <RefreshCw size={11} className="mr-1.5" />
+          Retry
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ClosedPositionsSkeleton — structured shimmer placeholder mirroring the
+// live panel layout (header + KPI strip + donut/timeline row + filter row
+// + table rows). Preserves the "📕 Closed Positions Ledger" header text
+// (test contract `getByText('📕 Closed Positions Ledger')`) so the W38-8
+// loading-state test resolves. role=status + aria-live=polite.
+function ClosedPositionsSkeleton() {
+  return (
+    <div
+      className="card h-full flex flex-col p-3 bg-[#13161e] border border-[#1f2335] shadow-xl"
+      data-testid="closed-positions-panel"
+      role="status"
+      aria-live="polite"
+      aria-label="Loading closed positions ledger…"
+    >
+      <div className="card-header pb-2 mb-2 border-b border-[#1f2335] flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <PulseDot tone="info" />
+          <span className="card-title text-xs font-bold text-[#dde1ed]">📕 Closed Positions Ledger</span>
+          <span className="badge badge-cyan text-[9.5px] animate-pulse">Loading…</span>
+        </div>
+        <span className="spinner inline-block w-3 h-3 border-2 border-cyan-400/40 border-t-cyan-400 rounded-full animate-spin" />
+      </div>
+      {/* KPI strip skeleton */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 mb-3" aria-hidden="true">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div key={i} className="kpi-card space-y-2">
+            <ShimmerBlock className="w-2/5" />
+            <div className="h-4 rounded-sm skeleton-line-md" />
+            <ShimmerBlock className="w-3/5" />
+          </div>
+        ))}
+      </div>
+      {/* Donut + timeline skeleton */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-2 mb-3" aria-hidden="true">
+        <div className="skeleton-card p-3 space-y-2">
+          <ShimmerBlock className="w-32" />
+          <div className="h-20 rounded-md skeleton-line-lg" />
+        </div>
+        <div className="skeleton-card p-3 space-y-2 lg:col-span-2">
+          <ShimmerBlock className="w-40" />
+          <div className="h-20 rounded-md skeleton-line-lg" />
+        </div>
+      </div>
+      {/* Filter row skeleton */}
+      <div className="flex items-center gap-2 mb-2" aria-hidden="true">
+        <ShimmerBlock className="flex-1 min-w-[200px] max-w-xs !h-7 !rounded-md" />
+        <ShimmerBlock className="w-24 !h-7 !rounded-md" />
+        <ShimmerBlock className="w-24 !h-7 !rounded-md" />
+        <ShimmerBlock className="w-32 !h-7 !rounded-md" />
+      </div>
+      {/* Table rows skeleton */}
+      <div className="flex-1 space-y-1.5" aria-hidden="true">
+        {Array.from({ length: 7 }).map((_, i) => (
+          <div
+            key={i}
+            className="flex items-center gap-2 px-2 py-1.5 rounded border border-[#1f2335]"
+          >
+            <ShimmerBlock className="w-4" />
+            <ShimmerBlock className="flex-1" />
+            <ShimmerBlock className="w-12" />
+            <ShimmerBlock className="w-14" />
+            <ShimmerBlock className="w-14" />
+            <ShimmerBlock className="w-12" />
+            <ShimmerBlock className="w-16" />
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// ───────────────────────────────────────────────────────────────────────────
 // Main component
 // ───────────────────────────────────────────────────────────────────────────
 
@@ -167,6 +470,9 @@ export default function ClosedPositionsPanel() {
   const [sideFilter, setSideFilter] = useState<SideFilter>('ALL')
   const [reasonFilter, setReasonFilter] = useState<ReasonFilter>('ALL')
   const [winLossFilter, setWinLossFilter] = useState<WinLossFilter>('ALL')
+  const [dateFrom, setDateFrom] = useState('')
+  const [dateTo, setDateTo] = useState('')
+  const [strategyFilter, setStrategyFilter] = useState<string>('ALL')
   const [sortBy, setSortBy] = useState<SortKey>('date')
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
@@ -247,6 +553,10 @@ export default function ClosedPositionsPanel() {
   // Derived: filter + sort
   const filtered = useMemo(() => {
     const q = filterQuery.trim().toLowerCase()
+    // Pre-compute epoch bounds for the date-range filter so we don't
+    // re-parse on every row iteration. Empty string → unbounded.
+    const fromTs = dateFrom ? Math.floor(new Date(dateFrom).getTime() / 1000) : null
+    const toTs = dateTo ? Math.floor(new Date(dateTo).getTime() / 1000) + 86400 : null
     const out = enriched.filter((p) => {
       if (q) {
         const slug = String(p.data?.slug ?? '').toLowerCase()
@@ -264,6 +574,9 @@ export default function ClosedPositionsPanel() {
       if (winLossFilter === 'WIN' && !(p.pnl > 0)) return false
       if (winLossFilter === 'LOSS' && !(p.pnl < 0)) return false
       if (winLossFilter === 'BREAKEVEN' && p.pnl !== 0) return false
+      if (strategyFilter !== 'ALL' && (p.strategy ?? '') !== strategyFilter) return false
+      if (fromTs != null && (p.timestamp ?? 0) < fromTs) return false
+      if (toTs != null && (p.timestamp ?? 0) > toTs) return false
       return true
     })
 
@@ -277,7 +590,16 @@ export default function ClosedPositionsPanel() {
       }
     })
     return out
-  }, [enriched, filterQuery, sideFilter, reasonFilter, winLossFilter, sortBy])
+  }, [enriched, filterQuery, sideFilter, reasonFilter, winLossFilter, strategyFilter, dateFrom, dateTo, sortBy])
+
+  // Derived: distinct strategy list for the strategy filter dropdown.
+  const strategyOptions = useMemo(() => {
+    const set = new Set<string>()
+    for (const p of enriched) {
+      if (p.strategy) set.add(p.strategy)
+    }
+    return Array.from(set).sort()
+  }, [enriched])
 
   // Derived: exit-reason breakdown
   const reasonBreakdown = useMemo(() => {
@@ -358,44 +680,16 @@ export default function ClosedPositionsPanel() {
     document.body.removeChild(link)
   }
 
-  // ── Render: loading skeleton ──────────────────────────────────────────────
+  // ── Render: loading skeleton (W58-b — shimmer placeholder mirroring the
+  // live layout; preserves the "📕 Closed Positions Ledger" header text
+  // so the W38-8 loading-state test contract resolves). ──────────────
   if (loading && positions.length === 0) {
-    return (
-      <div className="card h-full flex flex-col p-3 bg-[#13161e] border border-[#1f2335] shadow-xl">
-        <div className="flex items-center justify-between pb-2 mb-2 border-b border-[#1f2335]">
-          <span className="card-title text-xs font-bold text-[#dde1ed]">📕 Closed Positions Ledger</span>
-          <span className="spinner inline-block w-3 h-3 border-2 border-cyan-400/40 border-t-cyan-400 rounded-full animate-spin" />
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 mb-3">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-16 bg-[#0e1015] border border-[#1f2335] rounded-md animate-pulse" />
-          ))}
-        </div>
-        <div className="h-32 bg-[#0e1015] border border-[#1f2335] rounded-md mb-3 animate-pulse" />
-        <div className="space-y-2">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-8 bg-[#0e1015] border border-[#1f2335] rounded animate-pulse" />
-          ))}
-        </div>
-      </div>
-    )
+    return <ClosedPositionsSkeleton />
   }
 
-  // ── Render: error state ──────────────────────────────────────────────────
+  // ── Render: error state (W58-b — polished red-tinted card with retry). ─
   if (error && positions.length === 0) {
-    return (
-      <div className="card h-full flex flex-col items-center justify-center p-6 bg-[#13161e] border border-[#1f2335] shadow-xl text-center">
-        <AlertTriangle className="w-8 h-8 text-red-400 mb-2" />
-        <span className="text-sm font-semibold text-[#dde1ed]">Failed to load closed positions</span>
-        <span className="text-xs text-[#7e8aaa] mt-1 max-w-md">{error}</span>
-        <button
-          onClick={() => fetchData()}
-          className="mt-3 px-3 py-1 text-xs bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 rounded hover:bg-cyan-500/25 transition-colors"
-        >
-          Retry
-        </button>
-      </div>
-    )
+    return <PolishedErrorCard message={error} onRetry={() => fetchData()} />
   }
 
   // ── Render: main ──────────────────────────────────────────────────────────
@@ -404,13 +698,14 @@ export default function ClosedPositionsPanel() {
       {/* ── Header ─────────────────────────────────────────────────────────── */}
       <div className="card-header pb-2 mb-2 border-b border-[#1f2335] flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <PulseDot tone="info" />
+          <Activity className="w-3.5 h-3.5 text-cyan-400 shrink-0" aria-hidden="true" />
           <span className="card-title text-xs font-bold text-[#dde1ed] tracking-wide">
             📕 CLOSED POSITIONS LEDGER ({totalClosed})
           </span>
           <span className="badge badge-green text-[9.5px]">Realized P&amp;L Journal</span>
           {lastUpdated && (
-            <span className="text-[9.5px] text-[#5a637a] mono">
+            <span className="text-[9.5px] text-[#5a637a] mono tabular-nums">
               · {new Date(lastUpdated).toLocaleTimeString()}
             </span>
           )}
@@ -419,7 +714,7 @@ export default function ClosedPositionsPanel() {
         <div className="flex items-center gap-2 text-xs">
           <div className="bg-[#0e1015] border border-[#1f2335] px-2.5 py-1 rounded-md flex items-center gap-1.5">
             <span className="text-[10px] text-[#7e8aaa] uppercase font-semibold">Realized:</span>
-            <span className={`mono font-bold text-xs ${totalPnl >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+            <span className={`mono font-bold text-xs tabular-nums ${totalPnl >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
               {fmtPnl(totalPnl)}
             </span>
           </div>
@@ -443,45 +738,55 @@ export default function ClosedPositionsPanel() {
         </div>
       </div>
 
-      {/* ── KPI summary strip ─────────────────────────────────────────────── */}
+      {/* ── KPI summary strip (W58-b — KpiTile pattern: tone-tinted bg +
+          Lucide icon in label + tabular-nums value + optional quality
+          bar + trend glyph). Labels + values + hints preserved verbatim. ─ */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 mb-3">
-        <KpiCard
+        <KpiTile
           label="Total Realized"
           value={fmtPnl(totalPnl)}
-          valueClass={totalPnl >= 0 ? 'text-emerald-400' : 'text-red-400'}
-          icon={totalPnl >= 0 ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
+          tone={totalPnl >= 0 ? 'good' : 'poor'}
+          icon={totalPnl >= 0 ? TrendingUp : TrendingDown}
+          trend={totalPnl >= 0 ? 'up' : 'down'}
+          testId="closed-kpi-total-realized"
         />
-        <KpiCard
+        <KpiTile
           label="Win Rate"
           value={`${(winRate * 100).toFixed(1)}%`}
-          valueClass={winRate >= 0.5 ? 'text-emerald-400' : 'text-amber-400'}
-          sub={`${wins}W / ${losses}L`}
-          icon={<Target className="w-3.5 h-3.5" />}
+          hint={`${wins}W / ${losses}L`}
+          tone={winRate >= 0.5 ? 'good' : 'warn'}
+          icon={Target}
+          quality={winRate * 100}
+          testId="closed-kpi-win-rate"
         />
-        <KpiCard
+        <KpiTile
           label="Avg Win"
           value={fmtUsd(avgWin)}
-          valueClass="text-emerald-400"
-          icon={<TrendingUp className="w-3.5 h-3.5" />}
+          tone="good"
+          icon={TrendingUp}
+          testId="closed-kpi-avg-win"
         />
-        <KpiCard
+        <KpiTile
           label="Avg Loss"
           value={fmtUsd(-avgLoss)}
-          valueClass="text-red-400"
-          icon={<TrendingDown className="w-3.5 h-3.5" />}
+          tone="poor"
+          icon={TrendingDown}
+          testId="closed-kpi-avg-loss"
         />
-        <KpiCard
+        <KpiTile
           label="Profit Factor"
           value={profitFactor == null ? '∞' : profitFactor.toFixed(2)}
-          valueClass={profitFactor == null || profitFactor >= 1 ? 'text-emerald-400' : 'text-red-400'}
-          icon={<Activity className="w-3.5 h-3.5" />}
+          tone={profitFactor == null || profitFactor >= 1 ? 'good' : 'poor'}
+          icon={Activity}
+          testId="closed-kpi-profit-factor"
         />
-        <KpiCard
+        <KpiTile
           label="Avg Hold"
           value={fmtHoldTime(avgHold)}
-          valueClass="text-cyan-400"
-          sub={`${totalClosed} closed`}
-          icon={<Timer className="w-3.5 h-3.5" />}
+          hint={`${totalClosed} closed`}
+          tone="info"
+          icon={Timer}
+          testId="closed-kpi-avg-hold"
         />
       </div>
 
@@ -491,101 +796,180 @@ export default function ClosedPositionsPanel() {
         <CumulativePnLChart timeline={timeline} />
       </div>
 
-      {/* ── Filter row ────────────────────────────────────────────────────── */}
-      <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
-        <div className="relative flex-1 min-w-[200px] max-w-xs">
-          <input
-            type="text"
-            placeholder="Search by market, strategy, token id…"
-            value={filterQuery}
-            onChange={(e) => setFilterQuery(e.target.value)}
-            className="w-full bg-[#0e1015] border border-[#1f2335] focus:border-cyan-500/50 rounded text-xs px-2.5 py-1.5 text-[#dde1ed] placeholder-[#3e4560] outline-none transition-all"
-            aria-label="Search closed positions"
-          />
-          {filterQuery && (
-            <button
-              onClick={() => setFilterQuery('')}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-[#7e8aaa] hover:text-white"
-              aria-label="Clear search"
-            >
-              ✕
-            </button>
-          )}
-        </div>
+      {/* ── Filter row (W58-b — SectionHeader + refined search input +
+          date-range + strategy + side + outcome + reason + sort). ──────── */}
+      <div className="mb-2">
+        <SectionHeader
+          icon={Filter}
+          title="Filters"
+          tone="info"
+          description="date · strategy · side · outcome · reason"
+          trailing={`${filtered.length} / ${enriched.length} shown`}
+        />
+        <div className="flex flex-wrap items-center justify-between gap-2 mt-1.5">
+          <div className="relative flex-1 min-w-[200px] max-w-xs">
+            <input
+              type="text"
+              placeholder="Search by market, strategy, token id…"
+              value={filterQuery}
+              onChange={(e) => setFilterQuery(e.target.value)}
+              className="w-full bg-[#0e1015] border border-[#1f2335] focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-400/40 rounded text-xs px-2.5 py-1.5 text-[#dde1ed] placeholder-[#3e4560] outline-none transition-all"
+              aria-label="Search closed positions"
+            />
+            {filterQuery && (
+              <button
+                onClick={() => setFilterQuery('')}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-[#7e8aaa] hover:text-white"
+                aria-label="Clear search"
+              >
+                ✕
+              </button>
+            )}
+          </div>
 
-        <div className="flex flex-wrap items-center gap-1.5">
-          {/* Side filter */}
-          <FilterPill
-            options={['ALL', 'LONG', 'SHORT'] as const}
-            value={sideFilter}
-            onChange={(v) => setSideFilter(v as SideFilter)}
-            label="Side"
-          />
-          {/* Win/Loss filter */}
-          <FilterPill
-            options={['ALL', 'WIN', 'LOSS', 'BREAKEVEN'] as const}
-            value={winLossFilter}
-            onChange={(v) => setWinLossFilter(v as WinLossFilter)}
-            label="Outcome"
-          />
-          {/* Reason filter */}
-          <select
-            value={reasonFilter}
-            onChange={(e) => setReasonFilter(e.target.value as ReasonFilter)}
-            className="bg-[#0e1015] border border-[#1f2335] text-[#7e8aaa] rounded text-[10px] font-semibold px-2 py-1 outline-none cursor-pointer hover:text-[#dde1ed]"
-            aria-label="Filter by exit reason"
-          >
-            <option value="ALL">All Reasons</option>
-            <option value="SL">Stop Loss</option>
-            <option value="TP">Take Profit</option>
-            <option value="MANUAL">Manual</option>
-            <option value="SETTLEMENT">Settlement</option>
-            <option value="UNKNOWN">Unknown</option>
-          </select>
-          {/* Sort */}
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as SortKey)}
-            className="bg-[#0e1015] border border-[#1f2335] text-[#7e8aaa] rounded text-[10px] font-semibold px-2 py-1 outline-none cursor-pointer hover:text-[#dde1ed]"
-            aria-label="Sort closed positions"
-          >
-            <option value="date">Sort: Date</option>
-            <option value="pnl">Sort: P&amp;L</option>
-            <option value="hold">Sort: Hold Time</option>
-            <option value="size">Sort: Size</option>
-          </select>
+          <div className="flex flex-wrap items-center gap-1.5">
+            {/* Date range (W58-b refinement) */}
+            <div className="flex items-center gap-1" aria-label="Filter by close date">
+              <Calendar className="w-3 h-3 text-[#5a637a]" aria-hidden="true" />
+              <input
+                type="date"
+                value={dateFrom}
+                onChange={(e) => setDateFrom(e.target.value)}
+                className="bg-[#0e1015] border border-[#1f2335] text-[#7e8aaa] rounded text-[10px] px-2 py-1 outline-none cursor-pointer hover:border-[#2d3450] h-7 tabular-nums focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-400/40"
+                aria-label="Filter from date"
+              />
+              <span className="text-[10px] text-[#5a637a]">→</span>
+              <input
+                type="date"
+                value={dateTo}
+                onChange={(e) => setDateTo(e.target.value)}
+                className="bg-[#0e1015] border border-[#1f2335] text-[#7e8aaa] rounded text-[10px] px-2 py-1 outline-none cursor-pointer hover:border-[#2d3450] h-7 tabular-nums focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-400/40"
+                aria-label="Filter to date"
+              />
+            </div>
+            {/* Strategy filter (W58-b refinement) */}
+            <select
+              value={strategyFilter}
+              onChange={(e) => setStrategyFilter(e.target.value)}
+              className="bg-[#0e1015] border border-[#1f2335] text-[#7e8aaa] rounded text-[10px] font-semibold px-2 py-1 outline-none cursor-pointer hover:text-[#dde1ed] h-7 focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-400/40"
+              aria-label="Filter by strategy"
+            >
+              <option value="ALL">All Strategies</option>
+              {strategyOptions.map((s) => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
+            {/* Side filter */}
+            <FilterPill
+              options={['ALL', 'LONG', 'SHORT'] as const}
+              value={sideFilter}
+              onChange={(v) => setSideFilter(v as SideFilter)}
+              label="Side"
+            />
+            {/* Win/Loss filter */}
+            <FilterPill
+              options={['ALL', 'WIN', 'LOSS', 'BREAKEVEN'] as const}
+              value={winLossFilter}
+              onChange={(v) => setWinLossFilter(v as WinLossFilter)}
+              label="Outcome"
+            />
+            {/* Reason filter */}
+            <select
+              value={reasonFilter}
+              onChange={(e) => setReasonFilter(e.target.value as ReasonFilter)}
+              className="bg-[#0e1015] border border-[#1f2335] text-[#7e8aaa] rounded text-[10px] font-semibold px-2 py-1 outline-none cursor-pointer hover:text-[#dde1ed] h-7 focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-400/40"
+              aria-label="Filter by exit reason"
+            >
+              <option value="ALL">All Reasons</option>
+              <option value="SL">Stop Loss</option>
+              <option value="TP">Take Profit</option>
+              <option value="MANUAL">Manual</option>
+              <option value="SETTLEMENT">Settlement</option>
+              <option value="UNKNOWN">Unknown</option>
+            </select>
+            {/* Sort */}
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as SortKey)}
+              className="bg-[#0e1015] border border-[#1f2335] text-[#7e8aaa] rounded text-[10px] font-semibold px-2 py-1 outline-none cursor-pointer hover:text-[#dde1ed] h-7 focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-400/40"
+              aria-label="Sort closed positions"
+            >
+              <option value="date">Sort: Date</option>
+              <option value="pnl">Sort: P&amp;L</option>
+              <option value="hold">Sort: Hold Time</option>
+              <option value="size">Sort: Size</option>
+            </select>
+          </div>
         </div>
       </div>
 
       {/* ── Table ─────────────────────────────────────────────────────────── */}
       <div className="overflow-auto scrollbar-thin flex-1 table-container">
         {filtered.length === 0 ? (
-          <div className="empty-state py-8">
-            <span className="empty-state-icon text-2xl" aria-hidden="true">
-              <Inbox className="w-7 h-7 mx-auto text-[#3e4560]" />
-            </span>
-            <span className="empty-state-title text-sm font-semibold mt-2 block">No closed positions</span>
-            <span className="empty-state-desc text-xs max-w-sm text-center mt-1">
-              {filterQuery || sideFilter !== 'ALL' || reasonFilter !== 'ALL' || winLossFilter !== 'ALL'
+          <PolishedEmptyState
+            icon={Archive}
+            title="No closed positions"
+            description={
+              filterQuery || sideFilter !== 'ALL' || reasonFilter !== 'ALL' || winLossFilter !== 'ALL' || strategyFilter !== 'ALL' || dateFrom || dateTo
                 ? 'No closed positions match your active filters.'
-                : 'Closed positions will appear here once trades round-trip and realize P&L.'}
-            </span>
-          </div>
+                : 'Closed positions will appear here once trades round-trip and realize P&L.'
+            }
+          />
         ) : (
           <table className="data-table text-xs w-full" role="table" aria-label="Closed positions ledger">
             <thead className="sticky top-0 bg-[#13161e] z-10">
               <tr className="border-b border-[#1f2335] text-[#7e8aaa] text-[10.5px]">
-                <th scope="col" className="w-6 py-1.5 text-left" />
-                <th scope="col" className="min-w-[190px] py-1.5 text-left">Market</th>
-                <th scope="col" className="text-center">Side</th>
-                <th scope="col" className="text-right">Entry</th>
-                <th scope="col" className="text-right">Exit</th>
-                <th scope="col" className="text-right">Size</th>
-                <th scope="col" className="text-right">P&amp;L</th>
-                <th scope="col" className="text-right">P&amp;L %</th>
-                <th scope="col" className="text-right">Hold</th>
-                <th scope="col" className="text-center">Reason</th>
-                <th scope="col" className="text-right">Closed At</th>
+                <th scope="col" className="w-6 py-1.5 text-left uppercase tracking-wider" />
+                <th scope="col" className="min-w-[190px] py-1.5 text-left uppercase tracking-wider">Market</th>
+                <th scope="col" className="text-center uppercase tracking-wider px-2">Side</th>
+                <th scope="col" className="text-right uppercase tracking-wider px-2">Entry</th>
+                <th scope="col" className="text-right uppercase tracking-wider px-2">Exit</th>
+                <th scope="col" className="text-right uppercase tracking-wider px-2">
+                  <button
+                    type="button"
+                    onClick={() => setSortBy('size')}
+                    className="inline-flex items-center hover:text-cyan-300 transition-colors"
+                    aria-label="Sort by size"
+                  >
+                    Size
+                    <SortIndicator active={sortBy === 'size'} direction="desc" />
+                  </button>
+                </th>
+                <th scope="col" className="text-right uppercase tracking-wider px-2">
+                  <button
+                    type="button"
+                    onClick={() => setSortBy('pnl')}
+                    className="inline-flex items-center hover:text-cyan-300 transition-colors"
+                    aria-label="Sort by P&L"
+                  >
+                    P&amp;L
+                    <SortIndicator active={sortBy === 'pnl'} direction="desc" />
+                  </button>
+                </th>
+                <th scope="col" className="text-right uppercase tracking-wider px-2">P&amp;L %</th>
+                <th scope="col" className="text-right uppercase tracking-wider px-2">
+                  <button
+                    type="button"
+                    onClick={() => setSortBy('hold')}
+                    className="inline-flex items-center hover:text-cyan-300 transition-colors"
+                    aria-label="Sort by hold time"
+                  >
+                    Hold
+                    <SortIndicator active={sortBy === 'hold'} direction="desc" />
+                  </button>
+                </th>
+                <th scope="col" className="text-center uppercase tracking-wider px-2">Reason</th>
+                <th scope="col" className="text-right uppercase tracking-wider px-2">
+                  <button
+                    type="button"
+                    onClick={() => setSortBy('date')}
+                    className="inline-flex items-center hover:text-cyan-300 transition-colors"
+                    aria-label="Sort by close date"
+                  >
+                    Closed At
+                    <SortIndicator active={sortBy === 'date'} direction="desc" />
+                  </button>
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#1f2335]/50">
@@ -596,10 +980,9 @@ export default function ClosedPositionsPanel() {
                 const isWin = p.pnl > 0
                 const isLoss = p.pnl < 0
                 return (
-                  <>
+                  <Fragment key={p.position_id}>
                     <tr
-                      key={p.position_id}
-                      className="hover:bg-blue-500/10 transition-colors group cursor-pointer"
+                      className={`hover:bg-cyan-500/[0.04] transition-colors group cursor-pointer ${TONE[pnlTone(p.pnl)].rowHover}`}
                       onClick={() => setExpandedId(isExpanded ? null : p.position_id)}
                     >
                       <td className="text-center text-[#5a637a]">
@@ -616,7 +999,7 @@ export default function ClosedPositionsPanel() {
                           >
                             {info.question}
                           </span>
-                          <span className="text-[9px] text-[#5a637a] mono truncate" title={p.position_id}>
+                          <span className="text-[9px] text-[#5a637a] mono tabular-nums truncate" title={p.position_id}>
                             {p.position_id.slice(0, 18)}…
                           </span>
                         </div>
@@ -634,24 +1017,24 @@ export default function ClosedPositionsPanel() {
                           {p._side === 'LONG' ? 'LONG YES' : p._side === 'SHORT' ? 'SHORT NO' : '—'}
                         </span>
                       </td>
-                      <td className="mono text-right text-[#7e8aaa]">
+                      <td className="mono tabular-nums text-right text-[#7e8aaa]">
                         {p.entry_price != null ? `$${p.entry_price.toFixed(3)}` : '—'}
                       </td>
-                      <td className="mono text-right text-[#dde1ed]">
+                      <td className="mono tabular-nums text-right text-[#dde1ed]">
                         {p.exit_price != null ? `$${p.exit_price.toFixed(3)}` : '—'}
                       </td>
-                      <td className="mono text-right font-semibold text-[#dde1ed]">
+                      <td className="mono tabular-nums text-right font-semibold text-[#dde1ed]">
                         {p.shares != null ? p.shares.toFixed(1) : '—'}
                       </td>
                       <td
-                        className={`mono text-right font-bold ${
+                        className={`mono tabular-nums text-right font-bold ${
                           isWin ? 'text-emerald-400' : isLoss ? 'text-red-400' : 'text-[#7e8aaa]'
                         }`}
                       >
                         {fmtPnl(p.pnl)}
                       </td>
                       <td
-                        className={`mono text-right font-semibold ${
+                        className={`mono tabular-nums text-right font-semibold ${
                           p._pnlPct == null
                             ? 'text-[#3e4560]'
                             : p._pnlPct > 0
@@ -663,7 +1046,7 @@ export default function ClosedPositionsPanel() {
                       >
                         {p._pnlPct == null ? '—' : `${p._pnlPct > 0 ? '+' : ''}${p._pnlPct.toFixed(1)}%`}
                       </td>
-                      <td className="mono text-right text-[#7e8aaa] text-[10.5px]">
+                      <td className="mono tabular-nums text-right text-[#7e8aaa] text-[10.5px]">
                         {fmtHoldTime(p.holding_seconds)}
                       </td>
                       <td className="text-center">
@@ -671,7 +1054,7 @@ export default function ClosedPositionsPanel() {
                           {p._reason}
                         </span>
                       </td>
-                      <td className="mono text-right text-[#5a637a] text-[10.5px]" title={p.timestamp ? new Date(p.timestamp * 1000).toISOString() : ''}>
+                      <td className="mono tabular-nums text-right text-[#5a637a] text-[10.5px]" title={p.timestamp ? new Date(p.timestamp * 1000).toISOString() : ''}>
                         {fmtTime(p.timestamp)}
                       </td>
                     </tr>
@@ -744,7 +1127,7 @@ export default function ClosedPositionsPanel() {
                         </td>
                       </tr>
                     )}
-                  </>
+                  </Fragment>
                 )
               })}
             </tbody>
@@ -752,14 +1135,14 @@ export default function ClosedPositionsPanel() {
         )}
       </div>
 
-      {/* ── Footer status ─────────────────────────────────────────────────── */}
+      {/* ── Footer status (W58-b — tabular-nums) ────────────────────── */}
       <div className="pt-2 mt-2 border-t border-[#1f2335] flex items-center justify-between text-[10px] text-[#5a637a]">
         <span>
-          Showing <span className="mono text-[#7e8aaa]">{filtered.length}</span> of{' '}
-          <span className="mono text-[#7e8aaa]">{enriched.length}</span> closed positions
+          Showing <span className="mono tabular-nums text-[#7e8aaa]">{filtered.length}</span> of{' '}
+          <span className="mono tabular-nums text-[#7e8aaa]">{enriched.length}</span> closed positions
           {error && <span className="text-amber-400 ml-2">· {error}</span>}
         </span>
-        <span className="mono">Auto-refresh: 30s {typeof document !== 'undefined' && document.hidden ? '(paused)' : ''}</span>
+        <span className="mono tabular-nums">Auto-refresh: 30s {typeof document !== 'undefined' && document.hidden ? '(paused)' : ''}</span>
       </div>
     </div>
   )
@@ -768,31 +1151,9 @@ export default function ClosedPositionsPanel() {
 // ───────────────────────────────────────────────────────────────────────────
 // Sub-components
 // ───────────────────────────────────────────────────────────────────────────
-
-function KpiCard({
-  label,
-  value,
-  valueClass = 'text-[#dde1ed]',
-  sub,
-  icon,
-}: {
-  label: string
-  value: string
-  valueClass?: string
-  sub?: string
-  icon?: React.ReactNode
-}) {
-  return (
-    <div className="bg-[#0e1015] border border-[#1f2335] rounded-md px-2.5 py-1.5 flex flex-col gap-0.5">
-      <div className="flex items-center justify-between">
-        <span className="text-[9.5px] text-[#7e8aaa] uppercase font-semibold tracking-wide">{label}</span>
-        {icon && <span className="text-[#5a637a]">{icon}</span>}
-      </div>
-      <span className={`mono font-bold text-sm ${valueClass}`}>{value}</span>
-      {sub && <span className="text-[9px] text-[#5a637a] mono">{sub}</span>}
-    </div>
-  )
-}
+// (W58-b — the legacy `KpiCard` sub-component was removed since the live
+// KPI strip now uses the W58-b `KpiTile` pattern above; FilterPill,
+// DetailRow, ExitReasonDonut, and CumulativePnLChart below are still used.)
 
 function FilterPill<T extends string>({
   options,

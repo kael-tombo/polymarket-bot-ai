@@ -47,7 +47,20 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { ShieldAlert } from 'lucide-react'
+import {
+  ShieldAlert,
+  AlertTriangle,
+  RefreshCw,
+  TrendingUp,
+  TrendingDown,
+  Target,
+  Activity,
+  Gauge,
+  Clock,
+  DollarSign,
+  BarChart3,
+  type LucideIcon,
+} from 'lucide-react'
 import { apiFetch } from '@/lib/api'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
@@ -231,6 +244,236 @@ function fmtPValue(p: number | null | undefined): string {
   return `p=${p.toFixed(3)}`
 }
 
+// ────────────────────────────────────────────────────────────────────────────
+// W58-b — Premium polish layer (W51-2d / W53-c / W57-a redesign family)
+// Self-contained Tone system + sub-components so the performance report
+// panel reads as part of the same premium redesign family. All existing
+// class names, test contracts (W26-2 — 19 tests), polling cadence (30s),
+// API calls, aria-labels, data-testids, and the 'use client' directive
+// are preserved verbatim.
+// ────────────────────────────────────────────────────────────────────────────
+
+type Tone = 'good' | 'warn' | 'poor' | 'info' | 'neutral'
+
+interface ToneConfig {
+  bg: string
+  border: string
+  text: string
+  bar: string
+  dot: string
+  label: string
+  halo: string
+}
+
+const TONE: Record<Tone, ToneConfig> = {
+  good:    { bg: 'bg-emerald-500/[0.06]',  border: 'border-emerald-500/25',  text: 'text-emerald-400',  bar: 'bg-emerald-500',  dot: 'bg-emerald-400',  label: 'text-emerald-400/80',  halo: 'shadow-emerald-500/10' },
+  warn:    { bg: 'bg-amber-500/[0.06]',    border: 'border-amber-500/25',    text: 'text-amber-400',    bar: 'bg-amber-500',    dot: 'bg-amber-400',    label: 'text-amber-400/80',    halo: 'shadow-amber-500/10' },
+  poor:    { bg: 'bg-red-500/[0.06]',     border: 'border-red-500/25',     text: 'text-red-400',      bar: 'bg-red-500',      dot: 'bg-red-400',      label: 'text-red-400/80',      halo: 'shadow-red-500/10' },
+  info:    { bg: 'bg-cyan-500/[0.06]',    border: 'border-cyan-500/25',    text: 'text-cyan-400',     bar: 'bg-cyan-500',     dot: 'bg-cyan-400',     label: 'text-cyan-400/80',     halo: 'shadow-cyan-500/10' },
+  neutral: { bg: 'bg-[#0e1015]',          border: 'border-[#1f2335]',      text: 'text-[#dde1ed]',    bar: 'bg-[#5a637a]',    dot: 'bg-[#5a637a]',    label: 'text-[#7e8aaa]',       halo: '' },
+}
+
+/** Map the existing MetricCard tone API onto the W58-b Tone palette so the
+ *  card border + value text read with the correct colour family:
+ *  positive → good (emerald), negative → poor (red), info → info (cyan),
+ *  neutral → neutral (slate). */
+function metricTone(t: 'positive' | 'negative' | 'neutral' | 'info' | undefined): Tone {
+  if (t === 'positive') return 'good'
+  if (t === 'negative') return 'poor'
+  if (t === 'info') return 'info'
+  return 'neutral'
+}
+
+// PulseDot — small status dot with halo + ping animation. Mirrors the
+// W54-a / W55-c / W56-e PulseDot pattern.
+function PulseDot({ tone = 'good', pulse = true }: { tone?: Tone; pulse?: boolean }) {
+  const cfg = TONE[tone]
+  return (
+    <span className="relative inline-flex w-2 h-2 shrink-0" aria-hidden="true">
+      {pulse && (
+        <span className={`absolute inline-flex w-full h-full rounded-full opacity-60 animate-ping ${cfg.dot}`} />
+      )}
+      <span className={`relative inline-flex w-2 h-2 rounded-full ${cfg.dot} shadow-[0_0_6px] ${cfg.halo}`} />
+    </span>
+  )
+}
+
+// SectionHeader — Lucide icon + uppercase tracking-wider title + optional
+// dim italic description + optional trailing node. Mirrors W53-c / W54-a /
+// W55-c / W56-a SectionHeader.
+function SectionHeader({
+  icon: Icon,
+  title,
+  description,
+  tone = 'neutral',
+  trailing,
+}: {
+  icon: LucideIcon
+  title: string
+  description?: string
+  tone?: Tone
+  trailing?: React.ReactNode
+}) {
+  return (
+    <div className="flex items-center justify-between gap-2 flex-wrap">
+      <div className="flex items-center gap-1.5 min-w-0">
+        <Icon className={`size-3.5 shrink-0 ${TONE[tone].text}`} aria-hidden="true" />
+        <span className="text-[10px] uppercase tracking-wider font-bold text-[#dde1ed] truncate">
+          {title}
+        </span>
+        {description && (
+          <span className="text-[9px] text-[#5a637a] italic truncate hidden md:inline">
+            {description}
+          </span>
+        )}
+      </div>
+      {trailing && <span className="shrink-0 text-[10px] text-[#7e8aaa] mono tabular-nums">{trailing}</span>}
+    </div>
+  )
+}
+
+// KpiTile — refined headline KPI card (tone-tinted bg, Lucide icon in
+// label row, 16px tabular-nums value, optional sub hint + quality bar +
+// trend glyph). Mirrors the W53-c / W56-a KpiTile pattern.
+interface KpiTileProps {
+  label: string
+  value: string
+  hint?: string
+  tone: Tone
+  icon: LucideIcon
+  quality?: number
+  trend?: 'up' | 'down' | 'flat'
+  testId?: string
+}
+
+function KpiTile({ label, value, hint, tone, icon: Icon, quality, trend, testId }: KpiTileProps) {
+  const cfg = TONE[tone]
+  return (
+    <div
+      className={`kpi-card relative overflow-hidden border ${cfg.border} ${cfg.bg} transition-colors`}
+      title={`${label}${hint ? ' — ' + hint : ''}`}
+      data-testid={testId}
+      data-tone={tone}
+    >
+      <div className="flex items-center justify-between gap-1.5">
+        <div className={`kpi-label flex items-center gap-1 ${cfg.label}`}>
+          <Icon className="size-3 shrink-0" aria-hidden="true" />
+          <span>{label}</span>
+        </div>
+        {trend === 'up' && <TrendingUp className="size-3 text-emerald-400 shrink-0" aria-hidden="true" />}
+        {trend === 'down' && <TrendingDown className="size-3 text-red-400 shrink-0" aria-hidden="true" />}
+      </div>
+      <div className={`kpi-value mono tabular-nums ${cfg.text}`}>
+        {value}
+      </div>
+      {hint && <div className="kpi-sub tabular-nums">{hint}</div>}
+      {quality != null && quality > 0 && (
+        <div className="h-0.5 bg-[#1f2335] rounded-full mt-1 overflow-hidden">
+          <div
+            className={`h-full rounded-full transition-all duration-500 ${cfg.bar}`}
+            style={{ width: `${Math.max(0, Math.min(100, quality))}%` }}
+          />
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ShimmerBlock — thin skeleton placeholder that can be sized via the
+// className prop. aria-hidden. Mirrors W54-e / W56-a ShimmerBlock.
+function ShimmerBlock({ className = '' }: { className?: string }) {
+  return (
+    <div className={`skeleton-line-sm ${className}`} aria-hidden="true" />
+  )
+}
+
+// PolishedEmptyState — Lucide icon + title + helper copy. role=status.
+// Used by the unavailable-category card (preserves the
+// `category-{X}-unavailable` testid + the unavailable reason text).
+function PolishedEmptyState({
+  icon: Icon,
+  title,
+  description,
+  testId = 'performance-empty-state',
+}: {
+  icon: LucideIcon
+  title: string
+  description?: string
+  testId?: string
+}) {
+  return (
+    <div className="empty-state py-8" role="status" data-testid={testId}>
+      <Icon className="empty-state-icon text-[#3e4560]" size={32} strokeWidth={1.5} aria-hidden="true" />
+      <span className="empty-state-title text-sm font-semibold">{title}</span>
+      {description && (
+        <span className="empty-state-desc text-xs max-w-sm text-center">{description}</span>
+      )}
+    </div>
+  )
+}
+
+// PolishedErrorCard — red-tinted error card with Lucide AlertTriangle +
+// the title "Performance report unavailable" + the wrapped error string +
+// a Retry button (RefreshCw glyph, calls `onRetry`). role=alert. Rendered
+// alongside the existing `report-error` badge so the W26-2 test contract
+// (`getByTestId('report-error')` + text content match) continues to
+// resolve. Mirrors W54-a / W55-c / W56-a / W57-a ErrorCard.
+function PolishedErrorCard({ message, onRetry }: { message: string; onRetry: () => void }) {
+  return (
+    <div
+      className="error-state p-6 border border-red-500/30 bg-red-500/[0.06] rounded-md"
+      role="alert"
+      data-testid="performance-error-card"
+    >
+      <AlertTriangle className="error-state-icon text-[#f87171]" size={28} aria-hidden="true" />
+      <span className="error-state-title text-sm font-semibold">Performance report unavailable</span>
+      <span className="error-state-desc text-xs max-w-md break-words mono" data-testid="performance-error-msg">
+        {message}
+      </span>
+      <button
+        onClick={onRetry}
+        className="mt-2 h-7 text-[10px] gap-1 px-3 py-1 border border-red-500/30 bg-red-500/[0.06] text-red-200 hover:bg-red-500/15 hover:border-red-500/50 hover:text-red-100 rounded transition-colors inline-flex items-center"
+        aria-label="Retry performance-report fetch"
+        data-testid="performance-error-retry"
+      >
+        <RefreshCw size={11} className="mr-1.5" />
+        Retry
+      </button>
+    </div>
+  )
+}
+
+// PerformanceReportSkeleton — structured shimmer placeholder mirroring the
+// 12-card metric grid layout. Rendered in place of the metric grid while
+// the initial fetch is in-flight (loading=true && report=null). Preserves
+// the always-rendered header + disclaimer + tabs so the W26-2 loading-state
+// test contracts (`getByText('📈 Honest Performance Report')` +
+// `getByTestId('performance-disclaimer')` + the 4 tab testids) still
+// resolve. role=status + aria-live=polite.
+function PerformanceReportSkeleton() {
+  return (
+    <div
+      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3"
+      data-testid="performance-loading-skeleton"
+      role="status"
+      aria-live="polite"
+      aria-label="Loading performance report…"
+    >
+      {Array.from({ length: 12 }).map((_, i) => (
+        <div key={i} className="kpi-card space-y-2 border border-[#1f2335] bg-[#0e1015]" aria-hidden="true">
+          <div className="flex items-center justify-between">
+            <ShimmerBlock className="w-2/5" />
+            <ShimmerBlock className="w-4 !h-4 !rounded-full" />
+          </div>
+          <div className="h-5 rounded-sm skeleton-line-md" />
+          <ShimmerBlock className="w-3/5" />
+          <div className="h-1 rounded-full skeleton-line-sm" />
+        </div>
+      ))}
+    </div>
+  )
+}
+
 // ── Confidence interval range bar ─────────────────────────────────────────
 // A tiny horizontal bar showing the 95% CI relative to the full [0,1]
 // range. Used as a visual companion to the textual CI display so the
@@ -306,30 +549,27 @@ function MetricCard({
   badge,
   testId,
 }: MetricCardProps) {
-  const toneColor =
-    tone === 'positive'
-      ? 'text-[#4ade80]'
-      : tone === 'negative'
-        ? 'text-[#f87171]'
-        : tone === 'info'
-          ? 'text-[#60a5fa]'
-          : 'text-[#dde1ed]'
+  // W58-b — map the existing tone API onto the W58-b Tone palette so the
+  // card border + value text + label read with the correct colour family.
+  const t = metricTone(tone)
+  const cfg = TONE[t]
   return (
     <Card
-      className="bg-[#13161e] border border-[#1f2335] shadow-sm p-3 gap-2 rounded-md"
+      className={`bg-[#13161e] border ${cfg.border} ${cfg.bg} shadow-sm p-3 gap-2 rounded-md transition-colors hover:shadow-md`}
       data-testid={testId ?? 'metric-card'}
       data-card-type="metric"
+      data-tone={t}
     >
       <div className="flex items-center justify-between">
-        <span className="text-[10px] font-semibold uppercase tracking-wider text-[#7e8aaa]">
+        <span className={`text-[10px] font-semibold uppercase tracking-wider ${cfg.label}`}>
           {label}
         </span>
         {badge}
       </div>
-      <div className={`mono text-base font-bold ${toneColor}`} data-testid="metric-value">
+      <div className={`mono text-base font-bold tabular-nums ${cfg.text}`} data-testid="metric-value">
         {value}
       </div>
-      {sub && <div className="text-[10px] text-[#7e8aaa] leading-tight">{sub}</div>}
+      {sub && <div className="text-[10px] text-[#7e8aaa] leading-tight tabular-nums">{sub}</div>}
       {ciBar}
     </Card>
   )
@@ -340,27 +580,36 @@ function MetricCard({
 function CategoryMetricsGrid({
   metrics,
   testIdPrefix,
+  loading = false,
 }: {
   metrics: CategoryMetrics
   testIdPrefix: string
+  loading?: boolean
 }) {
-  // When the category is unavailable, render a single full-width
-  // explanation card instead of the 12-metric grid. The disclaimer
-  // banner above still reminds the trader that paper/live are the only
-  // categories that reflect actual system behavior.
+  // W58-b — When the initial fetch is in-flight (loading=true && no report
+  // yet), render the structured shimmer skeleton in place of the metric
+  // grid. The activeMetrics is `makeUnavailable(...)` during loading, but
+  // we don't want to flash the "unavailable" empty state before the first
+  // fetch resolves. The skeleton mirrors the 12-card grid layout so the
+  // panel doesn't visually jump when the data lands.
+  if (loading) {
+    return <PerformanceReportSkeleton />
+  }
+
+  // When the category is unavailable, render a polished empty-state card
+  // (Lucide Clock icon + the unavailable reason as the title) instead of
+  // the 12-metric grid. The disclaimer banner above still reminds the
+  // trader that paper/live are the only categories that reflect actual
+  // system behavior. Preserves the `category-{X}-unavailable` testid +
+  // the unavailable-reason text so the W26-2 test contract resolves.
   if (!metrics.available) {
     return (
-      <Card
-        className="bg-[#13161e] border border-[#1f2335] p-4 rounded-md"
-        data-testid={`${testIdPrefix}-unavailable`}
-      >
-        <div className="flex items-center gap-2 text-[#7e8aaa] text-xs">
-          <span aria-hidden="true">⏸️</span>
-          <span>
-            {metrics.unavailable_reason ?? 'No data available for this category yet.'}
-          </span>
-        </div>
-      </Card>
+      <PolishedEmptyState
+        icon={Clock}
+        title={metrics.unavailable_reason ?? 'No data available for this category yet.'}
+        description="Switch to a category with available data, or wait for the bot to publish metrics for this slice."
+        testId={`${testIdPrefix}-unavailable`}
+      />
     )
   }
 
@@ -404,11 +653,96 @@ function CategoryMetricsGrid({
           ? 'info'
           : 'negative'
 
+  // W58-b — Headline KPI strip tones (mapped onto the W58-b Tone palette).
+  const totalReturn = metrics.expectancy != null
+    ? metrics.expectancy * metrics.n_trades
+    : null
+  const totalReturnTone: Tone =
+    totalReturn == null ? 'neutral' : totalReturn >= 0 ? 'good' : 'poor'
+  const headlineSharpeTone: Tone =
+    metrics.sharpe_ratio == null
+      ? 'neutral'
+      : metrics.sharpe_ratio >= 1
+        ? 'good'
+        : metrics.sharpe_ratio >= 0
+          ? 'info'
+          : 'poor'
+  const headlineWinRateTone: Tone =
+    metrics.win_rate == null
+      ? 'neutral'
+      : metrics.win_rate >= 0.5
+        ? 'good'
+        : 'warn'
+  const headlineExpectancyTone: Tone =
+    metrics.expectancy == null
+      ? 'neutral'
+      : metrics.expectancy >= 0
+        ? 'good'
+        : 'poor'
+
   return (
-    <div
-      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3"
-      data-testid={`${testIdPrefix}-grid`}
-    >
+    <>
+      {/* W58-b — SectionHeader above the metric grid (icon + uppercase
+          title + trailing n-trades count). */}
+      <SectionHeader
+        icon={BarChart3}
+        title="Performance Metrics"
+        tone="info"
+        description="12 metrics · 95% CI · p-value"
+        trailing={`${metrics.n_trades} trades`}
+      />
+
+      {/* W58-b — Headline KPI strip: 4 KpiTile cards (Total Return,
+          Sharpe, Win Rate, Expectancy). Tone-tinted bg + Lucide icon +
+          tabular-nums value + optional quality bar. These are ADDITIVE
+          to the 12-card metric grid below — they do NOT carry
+          `data-card-type="metric"` so the W26-2 test contract
+          (`cards.length === 12`) continues to resolve. */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-2 mb-1">
+        <KpiTile
+          label="Total Return"
+          value={fmtPnl(totalReturn)}
+          hint={`${metrics.n_trades} trades`}
+          tone={totalReturnTone}
+          icon={DollarSign}
+          trend={totalReturn != null && totalReturn >= 0 ? 'up' : 'down'}
+          testId={`${testIdPrefix}-headline-return`}
+        />
+        <KpiTile
+          label="Sharpe"
+          value={fmtNum(metrics.sharpe_ratio)}
+          hint="Risk-adjusted"
+          tone={headlineSharpeTone}
+          icon={Gauge}
+          testId={`${testIdPrefix}-headline-sharpe`}
+        />
+        <KpiTile
+          label="Win Rate"
+          value={fmtPct(metrics.win_rate)}
+          hint={`${metrics.n_trades} trades`}
+          tone={headlineWinRateTone}
+          icon={Target}
+          quality={metrics.win_rate != null ? metrics.win_rate * 100 : 0}
+          testId={`${testIdPrefix}-headline-winrate`}
+        />
+        <KpiTile
+          label="Expectancy"
+          value={fmtPnl(metrics.expectancy)}
+          hint="Per trade"
+          tone={headlineExpectancyTone}
+          icon={Activity}
+          trend={metrics.expectancy != null && metrics.expectancy >= 0 ? 'up' : 'down'}
+          testId={`${testIdPrefix}-headline-expectancy`}
+        />
+      </div>
+
+      {/* 12-metric grid (preserves `data-testid={testIdPrefix + '-grid'}` +
+          `data-card-type="metric"` on each card so the W26-2 test contract
+          `cards.length === 12` resolves). */}
+      <div
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3"
+        data-testid={`${testIdPrefix}-grid`}
+      >
       <MetricCard
         label="Win Rate (95% CI)"
         value={winRateDisplay}
@@ -516,6 +850,7 @@ function CategoryMetricsGrid({
         testId={`${testIdPrefix}-significance`}
       />
     </div>
+    </>
   )
 }
 
@@ -618,9 +953,14 @@ export function PerformanceReportPanel({
       className="flex flex-col gap-3 h-full"
       data-testid="performance-report-panel"
     >
-      {/* Header */}
+      {/* Header (W58-b — PulseDot + Activity icon added before the title;
+          the `📈 Honest Performance Report` text + `Per-Category` badge +
+          `AIPredictionLabel` are preserved verbatim so the W26-2 test
+          contract `getByText('📈 Honest Performance Report')` resolves). */}
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center gap-2">
+          <PulseDot tone="info" />
+          <Activity className="w-3.5 h-3.5 text-cyan-400 shrink-0" aria-hidden="true" />
           <span className="text-sm font-bold text-[#dde1ed]">
             📈 Honest Performance Report
           </span>
@@ -644,7 +984,7 @@ export function PerformanceReportPanel({
             </Badge>
           )}
           {!loading && !error && lastUpdated && (
-            <span data-testid="report-last-updated">
+            <span data-testid="report-last-updated" className="tabular-nums">
               Updated {new Date(lastUpdated).toLocaleTimeString()}
             </span>
           )}
@@ -654,23 +994,35 @@ export function PerformanceReportPanel({
         </div>
       </div>
 
-      {/* W39-6 — Disclaimer banner. Made MORE prominent: bigger font,
-          amber-300 body on amber-50 background, larger icon, full-width
-          bordered card. Always rendered (even when fetch fails). */}
+      {/* W39-6 + W58-b — Disclaimer banner. Made MORE prominent: bigger
+          font, amber-300 body on amber-50 background, larger icon,
+          full-width bordered card, refined border-2 + shadow. Always
+          rendered (even when fetch fails) — the honest-disclosure text
+          is the panel's most important single artefact. Preserves the
+          `performance-disclaimer` testid + the disclaimer text content
+          so the W26-2 test contracts resolve. */}
       <div
-        className="banner-warning p-3.5 text-[12px] rounded-md border-2 border-amber-500/40 bg-amber-500/10 flex items-start gap-2.5 shadow-sm"
+        className="banner-warning p-4 text-[12px] rounded-md border-2 border-amber-500/50 bg-amber-500/[0.12] flex items-start gap-3 shadow-md shadow-amber-500/10"
         role="alert"
         aria-label="Performance Metrics Disclaimer"
         data-testid="performance-disclaimer"
       >
-        <ShieldAlert className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" aria-hidden="true" />
-        <div>
-          <div className="font-bold text-amber-300 mb-1 text-[13px]">
+        <ShieldAlert className="w-6 h-6 text-amber-400 shrink-0 mt-0.5" aria-hidden="true" />
+        <div className="min-w-0">
+          <div className="font-bold text-amber-300 mb-1 text-[13px] uppercase tracking-wider">
             ⚠ Performance Metrics Disclaimer
           </div>
           <div className="text-amber-100/90 leading-relaxed">{disclaimer}</div>
         </div>
       </div>
+
+      {/* W58-b — Polished error card with Retry (rendered alongside the
+          inline `report-error` badge so the W26-2 test contract
+          `getByTestId('report-error')` continues to resolve). Shown only
+          when the fetch failed AND no report has loaded yet. */}
+      {error && !report && (
+        <PolishedErrorCard message={error} onRetry={() => { void fetchReport() }} />
+      )}
 
       {/* Category tabs */}
       <Tabs
@@ -734,6 +1086,7 @@ export function PerformanceReportPanel({
             <CategoryMetricsGrid
               metrics={activeMetrics}
               testIdPrefix={`category-${activeCategory}`}
+              loading={loading && !report}
             />
 
             {/* W39-6 — Permanent NOT A GUARANTEE reminder below the
@@ -747,14 +1100,14 @@ export function PerformanceReportPanel({
                 className="bg-[#13161e] border border-[#1f2335] shadow-sm p-3 rounded-md"
                 data-testid={`category-${activeCategory}-equity`}
               >
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-bold text-[#dde1ed]">
-                    Equity Curve — {activeCategory.replace('_', ' ')}
-                  </span>
-                  <span className="badge badge-amber text-[9.5px]">
-                    {activeMetrics.n_trades} trades
-                  </span>
-                </div>
+                {/* W58-b — SectionHeader above the equity curve. */}
+                <SectionHeader
+                  icon={BarChart3}
+                  title={`Equity Curve — ${activeCategory.replace('_', ' ')}`}
+                  tone="info"
+                  description="cumulative equity"
+                  trailing={`${activeMetrics.n_trades} trades`}
+                />
                 <EquityCurveChart
                   data={equityCurve}
                   height={240}

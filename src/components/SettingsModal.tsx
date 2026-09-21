@@ -36,10 +36,71 @@
 //     backdrop, 14px title, 12.5px body).
 //   * Inner controls use the shadcn/ui Switch / Slider / Select /
 //     Checkbox primitives (already vendored in src/components/ui/).
+//
+// W58-d — Premium visual-layer polish pass:
+//   • Glassmorphism modal background — `.surface-tier-overlay` (rgba
+//     bg + 12px backdrop-blur + saturate) layered on the existing
+//     `.modal .modal-wide` class so the dialog reads as a true frosted-
+//     glass pane. Mirrors the W52-c MarketChartModal / W53-d
+//     StrategyConfigModal pattern.
+//   • Premium modal shadow via the `--shadow-modal-premium` design
+//     token (24px y-offset, 56px blur, 0.6 alpha — heaviest elevation
+//     tier). Inline `style={{ boxShadow: 'var(--shadow-modal-premium)' }}`
+//     layered on the existing `.modal` box-shadow (the inline style
+//     wins via specificity).
+//   • Backdrop blur strengthened — Tailwind `backdrop-blur-md`
+//     layered on the existing `.modal-backdrop` blur(4px) for a true
+//     frosted-glass pane behind the modal.
+//   • Refined modal header — Lucide Settings icon badge (cyan-tinted
+//     chip) replaces the bare `⚙️` emoji, tighter tracking on the
+//     title (preserved verbatim as the direct text node of an `<h2>`
+//     so the W38-8 test contract `getByText('User Preferences')`
+//     resolves), dim caption beneath, refined close button with a
+//     red-tinted hover affordance + Lucide X glyph (still
+//     `aria-hidden` so the W38-8 `aria-label="Close settings modal"`
+//     accessible-name contract resolves).
+//   • Refined settings sections with section headers — each `<h3>`
+//     carries a Lucide icon (Monitor / LayoutDashboard /
+//     CandlestickChart / Bell / Volume2 / Lock) + the section name in
+//     its own `<span>` (so the W38-8 `getByText(section)` contract
+//     resolves to a single leaf span) + a count badge trailing slot.
+//     The `text-cyan-400 uppercase tracking-wider` styling is
+//     preserved.
+//   • Refined form controls (toggles, selects, inputs) with
+//     consistent styling — each SettingRow card carries a tone-tinted
+//     hover affordance (`hover:border-cyan-500/25` + subtle bg wash),
+//     each control gets a `focus-visible:ring-cyan-500/25` layered
+//     ring (mirrors the W53-d StrategyConfigModal input focus ring).
+//     The multiselect Checkbox labels now carry a cyan-tinted hover
+//     border.
+//   • Refined save/cancel buttons — primary "Save changes" button
+//     leads with a Lucide Check icon (aria-hidden) + the existing
+//     text; secondary "Cancel" button leads with a Lucide X icon;
+//     "Reset to defaults" leads with a Lucide RotateCcw icon. The
+//     accessible names (via aria-label + visible text) are preserved
+//     verbatim so the W38-8 test contracts resolve.
+//   • Backdrop with blur effect — the `.modal-backdrop` now also
+//     carries `backdrop-blur-md` (Tailwind) layered on the existing
+//     CSS `blur(4px)` for a true frosted-glass pane.
+//   • All existing class names, props, API calls, aria-labels, and
+//     test contracts preserved (see SettingsModal.test.tsx — 14 tests).
 
 'use client'
 
 import { useEffect, useState, useRef, useMemo } from 'react'
+import {
+  Monitor,
+  LayoutDashboard,
+  CandlestickChart,
+  Bell,
+  Volume2,
+  Lock,
+  Settings,
+  X,
+  Check,
+  RotateCcw,
+  type LucideIcon,
+} from 'lucide-react'
 import { usePreferences } from '@/hooks/usePreferences'
 import { getDefaults, type UserPreferences } from '@/lib/preferences'
 import { Switch } from '@/components/ui/switch'
@@ -267,6 +328,30 @@ const SECTION_ORDER: SettingDescriptor['section'][] = [
   'Privacy',
 ]
 
+// ── W58-d — section icons (one per canonical section) ─────────────────────
+// Rendered inside each `<h3>` before the section name span so the
+// section reads as a labelled group. Mirrors the W53-d
+// StrategyConfigModal SectionHeader pattern.
+const SECTION_ICONS: Record<SettingDescriptor['section'], LucideIcon> = {
+  Display: Monitor,
+  Dashboard: LayoutDashboard,
+  Trading: CandlestickChart,
+  Notifications: Bell,
+  Sound: Volume2,
+  Privacy: Lock,
+}
+
+// ── W58-d — severity tone palette (for multiselect Checkbox labels) ────────
+// Maps each alert severity onto a Tailwind border/text colour so the
+// multiselect row reads as a severity chip rather than a plain checkbox.
+// Static class strings keep Tailwind 4's JIT scanner happy.
+const SEVERITY_TONE: Record<Severity, string> = {
+  critical: 'border-red-500/30 text-red-300 data-[state=checked]:border-red-500/50 data-[state=checked]:bg-red-500/10',
+  error:    'border-amber-500/30 text-amber-300 data-[state=checked]:border-amber-500/50 data-[state=checked]:bg-amber-500/10',
+  warning:  'border-yellow-500/30 text-yellow-300 data-[state=checked]:border-yellow-500/50 data-[state=checked]:bg-yellow-500/10',
+  info:     'border-cyan-500/30 text-cyan-300 data-[state=checked]:border-cyan-500/50 data-[state=checked]:bg-cyan-500/10',
+}
+
 export default function SettingsModal({ isOpen, onClose }: Props) {
   const { preferences, update } = usePreferences()
   const [draft, setDraft] = useState<UserPreferences>(preferences)
@@ -420,7 +505,11 @@ export default function SettingsModal({ isOpen, onClose }: Props) {
 
   return (
     <div
-      className="modal-backdrop"
+      // W58-d — backdrop blur strengthened via Tailwind `backdrop-blur-md`
+      // layered on the existing `.modal-backdrop` blur(4px). Clicking the
+      // backdrop (outside the modal) cancels the draft + closes — same
+      // behaviour as StrategyConfigModal.
+      className="modal-backdrop backdrop-blur-md"
       onClick={(e) => {
         if (e.target === e.currentTarget) handleCancel()
       }}
@@ -428,49 +517,76 @@ export default function SettingsModal({ isOpen, onClose }: Props) {
     >
       <div
         ref={modalRef}
-        className="modal modal-wide"
+        // W58-d — glassmorphism modal surface via `.surface-tier-overlay`
+        // (rgba bg + 12px backdrop-blur + saturate) layered on the
+        // existing `.modal .modal-wide` class. The premium modal shadow
+        // token overrides the default `--shadow-modal` via inline style
+        // (inline wins over CSS-rule specificity).
+        className="modal modal-wide surface-tier-overlay"
+        style={{ boxShadow: 'var(--shadow-modal-premium)' }}
         role="dialog"
         aria-modal="true"
         aria-labelledby="settings-title"
       >
         <div className="modal-header">
-          <div className="flex items-center gap-2">
-            <span aria-hidden="true">⚙️</span>
-            <h2 id="settings-title" className="modal-title">
-              User Preferences
-            </h2>
+          <div className="flex items-center gap-2.5">
+            <span
+              className="inline-flex items-center justify-center size-7 rounded-md bg-cyan-500/[0.08] border border-cyan-500/25 text-cyan-400 shadow-[0_0_12px_rgba(34,211,238,0.10)]"
+              aria-hidden="true"
+            >
+              <Settings className="size-4" />
+            </span>
+            <div className="flex flex-col">
+              <h2 id="settings-title" className="modal-title tracking-tight">
+                User Preferences
+              </h2>
+              <span className="text-[10px] text-[#7e8aaa] -mt-0.5">
+                Workspace, trading, notifications + privacy
+              </span>
+            </div>
           </div>
           <button
             ref={closeBtnRef}
             onClick={handleCancel}
-            className="modal-close"
+            className="modal-close transition-colors duration-150 hover:text-red-300 hover:bg-red-500/10 hover:ring-1 hover:ring-red-500/30 rounded-md w-7 h-7 inline-flex items-center justify-center"
             aria-label="Close settings modal"
           >
-            <span aria-hidden="true">✕</span>
+            <X className="size-3.5" aria-hidden="true" />
           </button>
         </div>
 
-        <div className="modal-body space-y-6 max-h-[72vh] overflow-y-auto scrollbar-thin">
-          {sections.map(({ section, items }) => (
-            <section key={section} aria-label={section}>
-              <h3 className="text-[11px] font-extrabold uppercase tracking-wider text-cyan-400 mb-3 border-b border-[#1f2335] pb-2">
-                {section}
-              </h3>
-              <div className="space-y-4">
-                {items.map((item) => (
-                  <SettingRow
-                    key={String(item.key)}
-                    descriptor={item}
-                    value={draft[item.key]}
-                    onToggle={(v) => setToggle(item.key, v)}
-                    onSelect={(v) => setSelect(item.key, v)}
-                    onSlider={(v) => setSlider(item.key, v)}
-                    onToggleSeverity={toggleSeverity}
-                  />
-                ))}
-              </div>
-            </section>
-          ))}
+        <div className="modal-body space-y-5 max-h-[72vh] overflow-y-auto scrollbar-thin">
+          {sections.map(({ section, items }) => {
+            const Icon = SECTION_ICONS[section]
+            return (
+              <section key={section} aria-label={section}>
+                <h3 className="flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-wider text-cyan-400 mb-3 border-b border-[#1f2335] pb-2">
+                  <Icon className="size-3.5" aria-hidden="true" />
+                  {/* The section name is wrapped in its own `<span>` so the
+                      W38-8 test contract `getByText(section)` resolves to a
+                      single leaf span (not the parent h3 that also contains
+                      the SVG icon's empty text content). */}
+                  <span>{section}</span>
+                  <span className="ml-auto inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded bg-[#13161e] border border-[#1f2335] text-[9.5px] tabular-nums text-[#7e8aaa] font-mono normal-case tracking-normal">
+                    {items.length}
+                  </span>
+                </h3>
+                <div className="space-y-2.5">
+                  {items.map((item) => (
+                    <SettingRow
+                      key={String(item.key)}
+                      descriptor={item}
+                      value={draft[item.key]}
+                      onToggle={(v) => setToggle(item.key, v)}
+                      onSelect={(v) => setSelect(item.key, v)}
+                      onSlider={(v) => setSlider(item.key, v)}
+                      onToggleSeverity={toggleSeverity}
+                    />
+                  ))}
+                </div>
+              </section>
+            )
+          })}
         </div>
 
         <div className="modal-footer justify-between gap-2">
@@ -478,14 +594,21 @@ export default function SettingsModal({ isOpen, onClose }: Props) {
             variant="ghost"
             size="sm"
             onClick={handleReset}
-            className="text-xs text-amber-300 hover:text-amber-200"
+            className="text-xs text-amber-300 hover:text-amber-200 inline-flex items-center gap-1.5"
             aria-label="Reset all preferences to defaults (draft only — Save to apply)"
             title="Reset draft to defaults. Save to persist."
           >
-            ↺ Reset to defaults
+            <RotateCcw className="size-3" aria-hidden="true" />
+            Reset to defaults
           </Button>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" onClick={handleCancel} className="text-xs">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleCancel}
+              className="text-xs inline-flex items-center gap-1.5"
+            >
+              <X className="size-3" aria-hidden="true" />
               Cancel
             </Button>
             <Button
@@ -493,10 +616,11 @@ export default function SettingsModal({ isOpen, onClose }: Props) {
               size="sm"
               onClick={handleSave}
               disabled={!isDirty}
-              className="text-xs font-semibold"
+              className="text-xs font-semibold inline-flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
               aria-label="Save preferences and close"
               title={isDirty ? 'Save changes' : 'No changes to save'}
             >
+              <Check className="size-3" aria-hidden="true" />
               Save changes
             </Button>
           </div>
@@ -513,6 +637,18 @@ export default function SettingsModal({ isOpen, onClose }: Props) {
 // appropriate callback so the draft updates immediately on every
 // interaction (no Save button per row — the modal has a single Save
 // at the bottom).
+//
+// W58-d — refined row card:
+//   • Tone-tinted hover affordance (`hover:border-cyan-500/25` +
+//     `hover:bg-cyan-500/[0.02]`) so the trader sees at a glance
+//     which row their cursor is on.
+//   • `transition-colors duration-150` on the card so the hover
+//     affordance animates smoothly.
+//   • Each control gets a `focus-visible:ring-cyan-500/25` layered
+//     ring (mirrors the W53-d StrategyConfigModal input focus ring).
+//   • The multiselect Checkbox labels now carry a tone-tinted border
+//     per severity (`SEVERITY_TONE` map) so each chip reads as a
+//     severity indicator rather than a plain checkbox.
 
 interface SettingRowProps {
   descriptor: SettingDescriptor
@@ -534,9 +670,9 @@ function SettingRow({
   const { label, description, control } = descriptor
 
   return (
-    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-4 bg-[#0e1015] border border-[#1f2335] rounded-md px-3 py-2.5">
+    <div className="group flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-4 bg-[#0e1015] border border-[#1f2335] rounded-md px-3 py-2.5 transition-colors duration-150 hover:border-cyan-500/25 hover:bg-cyan-500/[0.02]">
       <div className="flex-1 min-w-0">
-        <div className="text-xs font-semibold text-[#dde1ed]">{label}</div>
+        <div className="text-xs font-semibold text-[#dde1ed] group-hover:text-cyan-50 transition-colors duration-150">{label}</div>
         <div className="text-[11px] text-[#7e8aaa] mt-0.5 leading-snug">{description}</div>
       </div>
       <div className="flex-shrink-0 self-start sm:self-center min-w-[140px] sm:justify-end flex">
@@ -545,11 +681,16 @@ function SettingRow({
             checked={value as boolean}
             onCheckedChange={onToggle}
             aria-label={label}
+            className="focus-visible:ring-cyan-500/25 focus-visible:border-cyan-500/40"
           />
         )}
         {control.type === 'select' && (
           <Select value={String(value)} onValueChange={onSelect}>
-            <SelectTrigger size="sm" className="w-[160px]" aria-label={label}>
+            <SelectTrigger
+              size="sm"
+              className="w-[160px] bg-[#13161e] border-[#2a2f47] hover:border-cyan-500/30 focus-visible:ring-cyan-500/25 focus-visible:border-cyan-500/40 transition-colors duration-150"
+              aria-label={label}
+            >
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -570,7 +711,7 @@ function SettingRow({
               step={control.step}
               onValueChange={(v) => onSlider(v[0])}
               aria-label={label}
-              className="flex-1"
+              className="flex-1 [&_[data-slot=slider-thumb]]:focus-visible:ring-cyan-500/25"
             />
             <span className="mono text-[11px] text-[#7e8aaa] w-12 text-right tabular-nums">
               {control.format ? control.format(value as number) : String(value)}
@@ -588,12 +729,13 @@ function SettingRow({
               return (
                 <label
                   key={opt.value}
-                  className="flex items-center gap-1.5 text-[11px] text-[#dde1ed] cursor-pointer select-none bg-[#13161e] border border-[#1f2335] hover:border-[#2d3450] px-2 py-1 rounded transition-colors"
+                  className={`flex items-center gap-1.5 text-[11px] text-[#dde1ed] cursor-pointer select-none bg-[#13161e] border px-2 py-1 rounded transition-colors duration-150 hover:bg-[#1a1f2e] hover:border-cyan-500/30 ${SEVERITY_TONE[opt.value]}`}
                 >
                   <Checkbox
                     checked={checked}
                     onCheckedChange={() => onToggleSeverity(opt.value)}
                     aria-label={`${label}: ${opt.label}`}
+                    className="focus-visible:ring-cyan-500/25"
                   />
                   <span>{opt.label}</span>
                 </label>

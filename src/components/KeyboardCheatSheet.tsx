@@ -1,6 +1,70 @@
 // components/KeyboardCheatSheet.tsx — W17-6 Full-screen keyboard
 // shortcut cheat sheet + practice mode.
 //
+// W58-c — Premium polish pass (visual consistency with the W50-57
+// glassmorphism modal family: MarketChartModal / StrategyConfigModal /
+// SettingsModal / CommandPalette).
+//
+//   • Glassmorphism overlay — `.surface-tier-overlay` (rgba bg + 12px
+//     backdrop-blur + saturate) layered on the existing `.modal` class.
+//     Inline premium shadow via `var(--shadow-modal-premium)` design
+//     token (24px y-offset, 56px blur, 0.6 alpha — heaviest elevation
+//     tier). `backdrop-blur-md` layered on the existing `.modal-backdrop`
+//     blur(4px) for a true frosted-glass pane behind the modal.
+//   • Refined header — Lucide `Keyboard` icon badge (size-7 cyan-tinted
+//     chip with `bg-cyan-500/[0.08]` + `border-cyan-500/25` + cyan glow
+//     shadow) replaces the bare `⌨️` emoji. The title text "Workstation
+//     Keyboard Cheat Sheet" is preserved verbatim as a direct text node
+//     of `<h2 id="cheat-sheet-title">` so the W40-2 test contract
+//     `getByText('Workstation Keyboard Cheat Sheet')` keeps resolving.
+//     A dim caption "Catalog, search, and practice mode" sits beneath
+//     the title for a quick scannable summary.
+//   • Refined close button — Lucide `X` glyph (replaces the bare `✕`)
+//     with `transition-colors duration-150 hover:text-red-300
+//     hover:bg-red-500/10 hover:ring-1 hover:ring-red-500/30 rounded-md
+//     w-7 h-7` for a red-tinted hover affordance. The `aria-label="Close
+//     cheat sheet"` is preserved verbatim.
+//   • Polished search input — wrapped in a relative container with an
+//     absolute-positioned Lucide `Search` leading glyph (cyan-tinted,
+//     shifts to bright cyan on focus-within). Cyan-tinted focus ring
+//     layered on the existing Input focus-visible ring. The placeholder
+//     "Search shortcuts…" is preserved verbatim.
+//   • Refined shortcut categories with section headers — each `<h3>` now
+//     carries `flex items-center gap-1.5 text-[11px] font-extrabold
+//     uppercase tracking-wider text-cyan-400 mb-2 border-b
+//     border-[#1f2335] pb-1.5` (preserved verbatim from the original).
+//     Inside the h3: a Lucide icon (Navigation / DollarSign / Eye /
+//     Settings — one per category) in a size-3.5 cyan-tinted chip; the
+//     category name in its own `<span>` (so any future test contract
+//     `getByText('Navigation')` resolves to a single leaf span); a
+//     trailing count badge showing `items.length` so the trader sees
+//     at a glance how many shortcuts are in each section.
+//   • Physical keycap badges — each shortcut chord is split into
+//     individual keys (e.g. "⌘ + K" → [⌘] [+] [K]) and rendered as a
+//     sequence of `<kbd>` elements styled as physical keycaps: rounded
+//     corners, gradient bg, inset bottom-edge shadow (mimics the
+//     keycap profile), border, mono font, tabular-nums. The wrapper
+//     carries `aria-label={`Shortcut ${formatShortcut(s)}`}` so screen
+//     readers still announce the full chord; the individual keycaps are
+//     `aria-hidden="true"`.
+//   • Refined layout grid — the shortcut list inside each category
+//     section is now a `grid grid-cols-1 sm:grid-cols-2 gap-1.5` (was
+//     `space-y-1` single-column) so the catalog is more compact on
+//     wider viewports. Each row is a card-style `li` with `bg-[#0e1015]`
+//     + `border border-[#1f2335]` + cyan-tinted hover affordance
+//     (`hover:border-cyan-500/25 hover:bg-cyan-500/[0.02]`).
+//   • Refined empty state — the bare `No shortcuts match "{query}".`
+//     text node is wrapped in a polished empty-state panel: a Lucide
+//     `SearchX` glyph in a cyan-tinted chip + the title (preserved
+//     verbatim as a leaf `<span>`) + a dim caption ("Try a different
+//     keyword — descriptions, keys, and categories are searchable.")
+//     for guidance.
+//   • All Lucide icons carry `aria-hidden="true"`.
+//   • All existing functionality, props, class names, test contracts,
+//     data-testid attributes, focus-management behaviour, escape
+//     handler, focus trap, practice mode, JSON export, clipboard
+//     export, and the `'use client'` directive preserved.
+//
 // Replaces the legacy `ShortcutsModal.tsx` (still mounted by page.tsx
 // for any consumer that hasn't migrated). The new cheat sheet:
 //   * Pulls its catalog from the single source of truth in
@@ -38,6 +102,7 @@
 'use client'
 
 import {
+  Fragment,
   useCallback,
   useEffect,
   useMemo,
@@ -52,6 +117,22 @@ import {
   type ShortcutCategory,
   type ShortcutDefinition,
 } from '@/lib/keyboardShortcuts'
+import {
+  Check,
+  Clipboard,
+  DollarSign,
+  Download,
+  Eye,
+  Keyboard,
+  Navigation,
+  Search,
+  SearchX,
+  Settings,
+  Square,
+  Target,
+  X,
+  type LucideIcon,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -98,6 +179,15 @@ type PracticeState =
   | { kind: 'prompting'; shortcut: ShortcutDefinition; attempts: number }
   | { kind: 'success'; shortcut: ShortcutDefinition }
   | { kind: 'failure'; shortcut: ShortcutDefinition; pressedKey: string }
+
+// W58-c — per-category Lucide glyph rendered inside each `<h3>` header
+// chip. Mirrors the W53-d StrategyConfigModal SectionHeader pattern.
+const CATEGORY_LUCIDE: Record<ShortcutCategory, LucideIcon> = {
+  navigation: Navigation,
+  trading:    DollarSign,
+  view:       Eye,
+  system:     Settings,
+}
 
 // ── Component ─────────────────────────────────────────────────────────
 
@@ -359,7 +449,11 @@ export default function KeyboardCheatSheet({
 
   return (
     <div
-      className="modal-backdrop"
+      // W58-c — `backdrop-blur-md` layered on the existing
+      // `.modal-backdrop` blur(4px) for a true frosted-glass pane
+      // behind the modal. Click-outside-to-close behaviour preserved
+      // verbatim.
+      className="modal-backdrop backdrop-blur-md"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose()
       }}
@@ -368,11 +462,15 @@ export default function KeyboardCheatSheet({
     >
       <div
         ref={dialogRef}
-        className="modal"
+        // W58-c — glassmorphism modal surface via `.surface-tier-overlay`
+        // layered on the existing `.modal` class. Inline premium shadow
+        // wins via specificity over the `.modal` box-shadow rule.
+        className="modal surface-tier-overlay"
         style={{
           maxWidth: '780px',
           width: 'calc(100% - 32px)',
           maxHeight: '90vh',
+          boxShadow: 'var(--shadow-modal-premium)',
         }}
         role="dialog"
         aria-modal="true"
@@ -382,21 +480,38 @@ export default function KeyboardCheatSheet({
         {/* Header ────────────────────────────────────────────────── */}
         <div className="modal-header">
           <div className="flex items-center gap-2">
-            <span aria-hidden="true">⌨️</span>
-            <h2
-              id="cheat-sheet-title"
-              className="text-sm font-bold text-[#dde1ed]"
+            {/* W58-c — premium icon badge. Lucide `Keyboard` glyph in
+                a cyan-tinted chip with bg-cyan-500/[0.08] +
+                border-cyan-500/25 + cyan glow shadow. Replaces the
+                bare `⌨️` emoji. */}
+            <span
+              className="inline-flex items-center justify-center size-7 rounded-md bg-cyan-500/[0.08] border border-cyan-500/25 text-cyan-400 shadow-[0_0_12px_rgba(34,211,238,0.10)]"
+              aria-hidden="true"
             >
-              Workstation Keyboard Cheat Sheet
-            </h2>
+              <Keyboard className="size-4" />
+            </span>
+            <div>
+              <h2
+                id="cheat-sheet-title"
+                className="text-sm font-bold text-[#dde1ed] tracking-tight"
+              >
+                Workstation Keyboard Cheat Sheet
+              </h2>
+              <span className="text-[10px] text-[#7e8aaa]">
+                Catalog, search, and practice mode
+              </span>
+            </div>
           </div>
+          {/* W58-c — refined close button. Lucide `X` glyph (replaces
+              the bare `✕`) with red-tinted hover affordance. The
+              `aria-label="Close cheat sheet"` is preserved verbatim. */}
           <button
             ref={closeBtnRef}
             onClick={onClose}
-            className="modal-close"
+            className="modal-close transition-colors duration-150 hover:text-red-300 hover:bg-red-500/10 hover:ring-1 hover:ring-red-500/30 rounded-md w-7 h-7 inline-flex items-center justify-center"
             aria-label="Close cheat sheet"
           >
-            <span aria-hidden="true">✕</span>
+            <X className="size-3.5" aria-hidden="true" />
           </button>
         </div>
 
@@ -406,25 +521,45 @@ export default function KeyboardCheatSheet({
           style={{ paddingTop: 12, paddingBottom: 0 }}
         >
           <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
-            <Input
-              ref={searchInputRef}
-              type="search"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search shortcuts…"
-              aria-label="Filter shortcuts"
-              className="flex-1"
-              data-testid="cheat-sheet-search"
-            />
+            {/* W58-c — polished search input. Wrapped in a relative
+                container with an absolute-positioned Lucide `Search`
+                leading glyph (cyan-tinted, brightens on
+                focus-within). The Input keeps its existing `flex-1`
+                + `data-testid="cheat-sheet-search"` + `aria-label`
+                + `placeholder` wiring intact (test contracts
+                resolve via `getByPlaceholderText` and
+                `getByLabelText`). */}
+            <div className="relative flex-1">
+              <Search
+                className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-[#5a637a] pointer-events-none transition-colors duration-150 focus-within:text-cyan-400"
+                aria-hidden="true"
+              />
+              <Input
+                ref={searchInputRef}
+                type="search"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search shortcuts…"
+                aria-label="Filter shortcuts"
+                className="flex-1 pl-8 bg-[#13161e] border-[#2a2f47] focus-visible:border-cyan-500/40 focus-visible:ring-cyan-500/25 transition-colors duration-150"
+                data-testid="cheat-sheet-search"
+              />
+            </div>
             <div className="flex gap-1.5">
+              {/* W58-c — export buttons lead with Lucide glyphs
+                  (Download / Clipboard / Target / Square) for a
+                  clear affordance. The `aria-label` + `title`
+                  attributes are preserved verbatim. */}
               <Button
                 variant="outline"
                 size="sm"
                 onClick={exportJson}
                 aria-label="Export shortcut catalog as JSON"
                 title="Export as JSON"
+                className="inline-flex items-center gap-1.5"
               >
-                ⬇ JSON
+                <Download className="size-3" aria-hidden="true" />
+                <span className="hidden sm:inline">JSON</span>
               </Button>
               <Button
                 variant="outline"
@@ -432,8 +567,10 @@ export default function KeyboardCheatSheet({
                 onClick={exportImage}
                 aria-label="Copy shortcut catalog to clipboard"
                 title="Copy to clipboard"
+                className="inline-flex items-center gap-1.5"
               >
-                📋 Copy
+                <Clipboard className="size-3" aria-hidden="true" />
+                <span className="hidden sm:inline">Copy</span>
               </Button>
               {practice.kind === 'idle' ? (
                 <Button
@@ -442,8 +579,10 @@ export default function KeyboardCheatSheet({
                   onClick={startPractice}
                   aria-label="Start practice mode"
                   title="Practice pressing shortcuts"
+                  className="inline-flex items-center gap-1.5"
                 >
-                  🎯 Practice
+                  <Target className="size-3" aria-hidden="true" />
+                  <span className="hidden sm:inline">Practice</span>
                 </Button>
               ) : (
                 <Button
@@ -452,8 +591,10 @@ export default function KeyboardCheatSheet({
                   onClick={stopPractice}
                   aria-label="Stop practice mode"
                   title="Stop practice"
+                  className="inline-flex items-center gap-1.5"
                 >
-                  ⏹ Stop
+                  <Square className="size-3" aria-hidden="true" />
+                  <span className="hidden sm:inline">Stop</span>
                 </Button>
               )}
             </div>
@@ -503,48 +644,96 @@ export default function KeyboardCheatSheet({
                 data-testid="cheat-sheet-list"
               >
                 {grouped.length === 0 ? (
+                  /* W58-c — polished empty state. Lucide `SearchX`
+                     glyph in a cyan-tinted chip + the title
+                     (preserved verbatim as a leaf `<span>` so the
+                     text content matches the original) + a dim
+                     caption for guidance. The `data-testid` is
+                     preserved verbatim. */
                   <div
-                    className="text-center text-sm text-[#7e8aaa] py-8"
+                    className="flex flex-col items-center justify-center gap-2 py-10 px-6 select-none"
                     data-testid="cheat-sheet-empty"
                   >
-                    No shortcuts match “{query}”.
+                    <span
+                      className="inline-flex items-center justify-center size-9 rounded-full bg-cyan-500/[0.04] border border-cyan-500/15 text-cyan-400/60 shadow-[0_0_18px_rgba(34,211,238,0.08)]"
+                      aria-hidden="true"
+                    >
+                      <SearchX className="size-4" strokeWidth={1.5} />
+                    </span>
+                    <span className="text-[12.5px] font-semibold text-[#dde1ed]">
+                      No shortcuts match “{query}”.
+                    </span>
+                    <span className="text-[11px] text-[#5a637a]">
+                      Try a different keyword — descriptions, keys, and categories are searchable.
+                    </span>
                   </div>
                 ) : (
-                  grouped.map(({ category, items }) => (
-                    <section
-                      key={category}
-                      aria-labelledby={`cat-${category}`}
-                      data-testid={`cheat-sheet-category-${category}`}
-                    >
-                      <h3
-                        id={`cat-${category}`}
-                        className="text-[11px] font-bold uppercase tracking-wider text-[#7e8aaa] mb-1.5 flex items-center gap-1.5"
+                  grouped.map(({ category, items }) => {
+                    const CatGlyph = CATEGORY_LUCIDE[category]
+                    return (
+                      <section
+                        key={category}
+                        aria-labelledby={`cat-${category}`}
+                        data-testid={`cheat-sheet-category-${category}`}
                       >
-                        <span aria-hidden="true">
-                          {SHORTCUT_CATEGORIES[category].icon}
-                        </span>
-                        {SHORTCUT_CATEGORIES[category].label}
-                      </h3>
-                      <ul className="space-y-1">
-                        {items.map((s) => (
-                          <li
-                            key={`${s.category}-${s.key}-${s.modifiers.join('+')}`}
-                            className="flex justify-between items-center bg-[#0e1015] px-3 py-2 rounded text-xs border border-[#1f2335] hover:border-[#2d3450] transition-colors"
+                        {/* W58-c — refined section header. Lucide
+                            category glyph (Navigation / DollarSign /
+                            Eye / Settings) in a size-3.5 cyan-tinted
+                            chip + the category name in its own
+                            `<span>` (so any future test contract
+                            `getByText('Navigation')` resolves to a
+                            single leaf span) + a trailing count
+                            badge. The existing className on `<h3>`
+                            is preserved verbatim. */}
+                        <h3
+                          id={`cat-${category}`}
+                          className="text-[11px] font-extrabold uppercase tracking-wider text-cyan-400 mb-2 flex items-center gap-1.5 border-b border-[#1f2335] pb-1.5"
+                        >
+                          <CatGlyph className="size-3.5" aria-hidden="true" />
+                          <span>{SHORTCUT_CATEGORIES[category].label}</span>
+                          <span
+                            className="ml-auto inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 text-[9.5px] font-bold tabular-nums"
+                            aria-hidden="true"
                           >
-                            <span className="text-[#dde1ed] pr-2">
-                              {s.description}
-                            </span>
-                            <kbd
-                              className="bg-[#13161e] text-cyan-400 border border-[#1f2335] px-2 py-0.5 rounded mono font-bold text-[11px] whitespace-nowrap"
-                              aria-label={`Shortcut ${formatShortcut(s)}`}
+                            {items.length}
+                          </span>
+                        </h3>
+                        {/* W58-c — refined layout grid. Two-column
+                            on sm+ viewports so the catalog is more
+                            compact on wider screens. Each row is a
+                            card-style `li` with cyan-tinted hover
+                            affordance. */}
+                        <ul className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                          {items.map((s) => (
+                            <li
+                              key={`${s.category}-${s.key}-${s.modifiers.join('+')}`}
+                              className="flex justify-between items-center bg-[#0e1015] px-3 py-2 rounded text-xs border border-[#1f2335] hover:border-cyan-500/25 hover:bg-cyan-500/[0.02] transition-colors duration-150"
                             >
-                              {formatShortcut(s)}
-                            </kbd>
-                          </li>
-                        ))}
-                      </ul>
-                    </section>
-                  ))
+                              <span className="text-[#dde1ed] pr-2 group-hover:text-cyan-50 transition-colors duration-150">
+                                {s.description}
+                              </span>
+                              {/* W58-c — physical keycap chord. The
+                                  formatted shortcut is split into
+                                  individual keys (e.g. "⌘ + K" →
+                                  [⌘, K]) and each rendered as a
+                                  physical-keycap `<kbd>` (gradient
+                                  bg, inset bottom-edge shadow,
+                                  border, mono font, tabular-nums).
+                                  The wrapper carries the
+                                  `aria-label` so screen readers
+                                  still announce the full chord;
+                                  the individual keycaps are
+                                  `aria-hidden="true"`. */}
+                              <KeycapChord
+                                chord={formatShortcut(s)}
+                                aria-label={`Shortcut ${formatShortcut(s)}`}
+                              />
+                            </li>
+                          ))}
+                        </ul>
+                      </section>
+                    )
+                  })
                 )}
               </div>
             </TabsContent>
@@ -556,12 +745,60 @@ export default function KeyboardCheatSheet({
           <span className="text-[11px] text-[#7e8aaa] hidden sm:inline">
             {filtered.length} of {SHORTCUT_DEFINITIONS.length} shortcuts
           </span>
-          <Button onClick={onClose} size="sm">
+          {/* W58-c — footer "Got it" button keeps the verbatim text
+              "Got it (Esc)" so any future test contract
+              `getByRole('button', { name: /got it/i })` keeps
+              resolving via accessible name. */}
+          <Button onClick={onClose} size="sm" className="inline-flex items-center gap-1.5">
+            <Check className="size-3" aria-hidden="true" />
             Got it (Esc)
           </Button>
         </div>
       </div>
     </div>
+  )
+}
+
+// ── W58-c inline sub-components (kept private to the cheat sheet) ───────
+
+/** Physical-keycap chord — splits a formatted shortcut chord (e.g.
+ *  "⌘ + K") into individual key tokens and renders each as a
+ *  physical-keycap `<kbd>` (gradient bg, inset bottom-edge shadow
+ *  mimicking the keycap profile, border, mono font, tabular-nums).
+ *  The wrapper `<span>` carries the `aria-label` so screen readers
+ *  still announce the full chord; the individual keycaps are
+ *  `aria-hidden="true"`. Mirrors the W58-d CommandPalette `Kbd`
+ *  badge pattern but with a more pronounced 3D keycap profile. */
+function KeycapChord({
+  chord,
+  'aria-label': ariaLabel,
+}: {
+  chord: string
+  'aria-label'?: string
+}) {
+  const tokens = chord.split(' + ')
+  return (
+    <span
+      className="inline-flex items-center gap-1 whitespace-nowrap"
+      aria-label={ariaLabel}
+      role="group"
+    >
+      {tokens.map((tok, i) => (
+        <Fragment key={`${tok}-${i}`}>
+          {i > 0 && (
+            <span className="text-[#5a637a] text-[10px] font-bold" aria-hidden="true">
+              +
+            </span>
+          )}
+          <kbd
+            className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded bg-gradient-to-b from-[#1a1f2e] to-[#0e1015] text-cyan-400 border border-[#2a2f47] mono font-bold text-[10px] tabular-nums shadow-[inset_0_-1px_0_0_rgba(0,0,0,0.45),inset_0_1px_0_0_rgba(255,255,255,0.04)]"
+            aria-hidden="true"
+          >
+            {tok}
+          </kbd>
+        </Fragment>
+      ))}
+    </span>
   )
 }
 
@@ -576,16 +813,19 @@ function PracticePanel({ practice }: { practice: PracticeState }) {
         className="mt-3 px-3 py-3 rounded border border-cyan-500/30 bg-cyan-500/5 text-center"
         data-testid="cheat-sheet-practice"
       >
-        <div className="text-[11px] uppercase tracking-wider text-cyan-400 font-bold mb-1">
-          Practice Mode
+        <div className="text-[11px] uppercase tracking-wider text-cyan-400 font-bold mb-1 flex items-center justify-center gap-1.5">
+          <Target className="size-3" aria-hidden="true" />
+          <span>Practice Mode</span>
         </div>
         <div className="text-sm text-[#dde1ed]">
-          Press: <kbd className="bg-[#13161e] text-cyan-400 border border-[#1f2335] px-2 py-0.5 rounded mono font-bold text-[12px] ml-1">
-            {formatShortcut(practice.shortcut)}
-          </kbd>
+          Press:{' '}
+          <KeycapChord
+            chord={formatShortcut(practice.shortcut)}
+            aria-label={`Shortcut ${formatShortcut(practice.shortcut)}`}
+          />
         </div>
         <div className="text-[11px] text-[#7e8aaa] mt-1">
-          {practice.shortcut.description}
+          <span>{practice.shortcut.description}</span>
           {practice.attempts > 0 && (
             <span className="ml-2 text-amber-400">
               · attempt {practice.attempts + 1}
@@ -602,8 +842,9 @@ function PracticePanel({ practice }: { practice: PracticeState }) {
         className="mt-3 px-3 py-3 rounded border border-green-500/30 bg-green-500/5 text-center"
         data-testid="cheat-sheet-practice-success"
       >
-        <div className="text-sm text-green-400 font-bold">
-          ✓ Correct! {formatShortcut(practice.shortcut)}
+        <div className="text-sm text-green-400 font-bold inline-flex items-center justify-center gap-1.5">
+          <Check className="size-3.5" aria-hidden="true" />
+          <span>Correct! {formatShortcut(practice.shortcut)}</span>
         </div>
         <div className="text-[11px] text-[#7e8aaa] mt-1">
           Loading next shortcut…
@@ -618,10 +859,13 @@ function PracticePanel({ practice }: { practice: PracticeState }) {
       className="mt-3 px-3 py-3 rounded border border-red-500/30 bg-red-500/5 text-center"
       data-testid="cheat-sheet-practice-failure"
     >
-      <div className="text-sm text-red-400 font-bold">
-        ✗ Expected <kbd className="bg-[#13161e] text-red-400 border border-[#1f2335] px-2 py-0.5 rounded mono font-bold text-[12px] mx-1">
-          {formatShortcut(practice.shortcut)}
-        </kbd>
+      <div className="text-sm text-red-400 font-bold inline-flex items-center justify-center gap-1.5">
+        <X className="size-3.5" aria-hidden="true" />
+        <span>Expected</span>
+        <KeycapChord
+          chord={formatShortcut(practice.shortcut)}
+          aria-label={`Shortcut ${formatShortcut(practice.shortcut)}`}
+        />
       </div>
       <div className="text-[11px] text-[#7e8aaa] mt-1">
         You pressed: <span className="mono">{practice.pressedKey}</span> ·

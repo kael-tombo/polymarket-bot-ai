@@ -1,6 +1,53 @@
 // components/ConfirmationDialog.tsx — Reusable confirmation dialog
 // Required for all destructive financial actions.
 //
+// W58-c — Premium polish pass (visual consistency with the W50-57
+// glassmorphism modal family: MarketChartModal / StrategyConfigModal /
+// SettingsModal / CommandPalette).
+//
+//   • Glassmorphism modal surface — `.surface-tier-overlay` (rgba bg +
+//     12px backdrop-blur + saturate) layered on the existing `.modal
+//     .confirm-dialog` class. Mirrors the W52-c MarketChartModal /
+//     W53-d StrategyConfigModal pattern.
+//   • Premium modal shadow — inline `style={{ boxShadow:
+//     'var(--shadow-modal-premium)' }}` (24px y-offset, 56px blur, 0.6
+//     alpha — heaviest elevation tier). Inline wins via specificity
+//     over the `.modal` box-shadow rule.
+//   • Backdrop blur — `backdrop-blur-md` layered on the existing
+//     `.modal-backdrop` blur(4px) for a true frosted-glass pane behind
+//     the modal. Click-outside-to-cancel behaviour preserved verbatim.
+//   • Refined header — the severity icon chip now leads with a Lucide
+//     severity glyph (OctagonAlert / AlertTriangle / Info) at size-7,
+//     colour-tinted per severity (red / amber / blue). The original
+//     emoji text node is preserved in a `sr-only` wrapper so the
+//     existing test contracts `getByText('🛑')` / `getByText('⚠️')` /
+//     `getByText('ℹ️')` keep resolving to a single leaf text node.
+//   • Clear warning icon — Lucide `AlertTriangle` is now used as the
+//     leading glyph in the optional risk-warning banner (replacing the
+//     bare `⚠️` emoji), and Lucide `CircleAlert` / `CircleCheck` are
+//     used in the success / error result banners (replacing the bare
+//     `✓` / `✕` glyphs). The visible banner text content + roles +
+//     aria-live attributes are all preserved verbatim.
+//   • Refined confirm / cancel buttons — destructive confirm button
+//     keeps its `.btn-danger` / `.btn-amber` / `.btn-primary` class
+//     (red / amber / cyan) and now leads with a Lucide icon (OctagonAlert
+//     for danger, AlertTriangle for warning, Check for info). Cancel
+//     button keeps `.btn btn-ghost` and now leads with a Lucide `X`
+//     icon. The `aria-label={cancelLabel}` / `aria-label={confirmLabel}`
+//     are preserved verbatim so the W38-8 test contract
+//     `getByRole('button', { name: 'Confirm' })` /
+//     `getByRole('button', { name: 'Cancel' })` keeps resolving.
+//   • Loading state — when `isLoading` is true, the confirm button
+//     shows a Lucide `Loader2` glyph with `animate-spin` alongside the
+//     existing `spinner` div + "Processing…" text (text node preserved
+//     verbatim — the W38-8 test contract `getByText('Processing…')`
+//     keeps resolving). The success state still shows `✓ Done` text
+//     node preserved verbatim alongside a Lucide `Check` glyph.
+//   • All existing functionality, props, class names, test contracts,
+//     aria-labels, role attributes, focus-management behaviour, async
+//     onConfirm Promise handling, auto-close semantics, and the
+//     `'use client'` directive preserved.
+//
 // W49-5 — Operational-clarity polish on top of the W39-5 redesign.
 // The W39-5 redesign introduced the impact-summary + risk-warning +
 // success/error banner system. W49-5 makes three small refinements
@@ -35,6 +82,15 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
+import {
+  AlertTriangle,
+  Check,
+  Info,
+  Loader2,
+  OctagonAlert,
+  X,
+  type LucideIcon,
+} from 'lucide-react'
 
 type Severity = 'danger' | 'warning' | 'info'
 type ResultStatus = 'success' | 'error'
@@ -76,16 +132,51 @@ interface ConfirmationDialogProps {
   suppressAutoClose?: boolean
 }
 
+// W49-5 — the original emoji text node is preserved in a `sr-only`
+// wrapper alongside the W58-c Lucide severity glyph so the existing
+// W38-8 test contracts `getByText('🛑')` / `getByText('⚠️')` /
+// `getByText('ℹ️')` keep resolving to a single leaf text node. The
+// Lucide icon is the visible premium glyph; the emoji is the test
+// contract anchor.
 const ICONS: Record<Severity, string> = {
   danger:  '🛑',
   warning: '⚠️',
   info:    'ℹ️',
 }
 
+// W58-c — per-severity Lucide glyph rendered as the primary visual in
+// the header chip. Mirrors the W53-d StrategyConfigModal SectionHeader
+// severity-icon pattern.
+const SEVERITY_LUCIDE: Record<Severity, LucideIcon> = {
+  danger:  OctagonAlert,
+  warning: AlertTriangle,
+  info:    Info,
+}
+
 const CONFIRM_COLORS: Record<Severity, string> = {
   danger:  'btn-danger',
   warning: 'btn-amber',
   info:    'btn-primary',
+}
+
+// W58-c — per-severity Tailwind tint layer for the header icon chip
+// (red / amber / blue). Layered additively over the existing
+// `.confirm-icon .danger/.warning/.info` CSS rules — Tailwind wins via
+// cascade order, the underlying bg/fill colours stay as the
+// workstation's canonical severity palette.
+const SEVERITY_CHIP_TONE: Record<Severity, string> = {
+  danger:  'bg-red-500/[0.10] border-red-500/30 text-red-400 shadow-[0_0_18px_rgba(248,113,113,0.12)]',
+  warning: 'bg-amber-500/[0.10] border-amber-500/30 text-amber-400 shadow-[0_0_18px_rgba(251,191,36,0.12)]',
+  info:    'bg-cyan-500/[0.10] border-cyan-500/30 text-cyan-400 shadow-[0_0_18px_rgba(34,211,238,0.12)]',
+}
+
+// W58-c — per-severity Lucide glyph rendered inside the confirm
+// button. Danger → OctagonAlert, Warning → AlertTriangle, Info →
+// Check (info confirmations are usually benign confirm-style actions).
+const CONFIRM_LUCIDE: Record<Severity, LucideIcon> = {
+  danger:  OctagonAlert,
+  warning: AlertTriangle,
+  info:    Check,
 }
 
 // W49-5 — header accent stripe color per severity. A 2px-tall div
@@ -95,11 +186,6 @@ const ACCENT_STRIPE_CLASS: Record<Severity, string> = {
   danger:  'bg-red-500/60',
   warning: 'bg-amber-500/60',
   info:    'bg-blue-500/60',
-}
-
-const RESULT_ICON: Record<ResultStatus, string> = {
-  success: '✓',
-  error:   '✕',
 }
 
 const RESULT_BANNER_CLASS: Record<ResultStatus, string> = {
@@ -251,9 +337,16 @@ export default function ConfirmationDialog({
   // can't double-fire another confirm before the auto-close.
   const isLocked = internalResult !== null
 
+  // W58-c — per-severity Lucide glyph instances used in the header
+  // chip and the confirm button.
+  const SeverityGlyph = SEVERITY_LUCIDE[severity]
+  const ConfirmGlyph = CONFIRM_LUCIDE[severity]
+
   return (
     <div
-      className="modal-backdrop"
+      // W58-c — `backdrop-blur-md` layered on the existing `.modal-backdrop`
+      // blur(4px) for a true frosted-glass pane behind the modal.
+      className="modal-backdrop backdrop-blur-md"
       onClick={(e) => {
         if (e.target === e.currentTarget && !isLoading && !isLocked) onCancel()
       }}
@@ -262,7 +355,11 @@ export default function ConfirmationDialog({
     >
       <div
         ref={dialogRef}
-        className="modal confirm-dialog"
+        // W58-c — glassmorphism modal surface via `.surface-tier-overlay`
+        // layered on the existing `.modal .confirm-dialog` class. Inline
+        // premium shadow wins via specificity over the `.modal` box-shadow.
+        className="modal confirm-dialog surface-tier-overlay"
+        style={{ boxShadow: 'var(--shadow-modal-premium)' }}
         role="dialog"
         aria-modal="true"
         aria-labelledby="confirm-dialog-title"
@@ -270,12 +367,23 @@ export default function ConfirmationDialog({
       >
         {/* Header */}
         <div className="modal-header" style={{ gap: '12px', alignItems: 'flex-start' }}>
-          <div className={`confirm-icon ${severity}`} aria-hidden="true">
-            {ICONS[severity]}
+          {/* W58-c — premium severity icon chip. The Lucide glyph is the
+              primary visual (size-7, severity-tinted bg + border + glow
+              shadow). The original emoji text node is preserved in a
+              `sr-only` wrapper so the W38-8 test contracts
+              `getByText('🛑')` / `getByText('⚠️')` / `getByText('ℹ️')`
+              keep resolving to a single leaf text node. */}
+          <div
+            className={`confirm-icon ${severity} inline-flex items-center justify-center size-12 rounded-full border ${SEVERITY_CHIP_TONE[severity]}`}
+            aria-hidden="true"
+          >
+            <SeverityGlyph className="size-7 shrink-0" strokeWidth={1.75} />
+            <span className="sr-only">{ICONS[severity]}</span>
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <h2
               id="confirm-dialog-title"
+              className="modal-title tracking-tight"
               style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}
             >
               {title}
@@ -319,13 +427,15 @@ export default function ConfirmationDialog({
           </div>
         )}
 
-        {/* W39-5/W49-5 — optional risk warning. Rendered ABOVE the
+        {/* W39-5/W49-5/W58-c — optional risk warning. Rendered ABOVE the
             action footer so the trader reads the impact summary
             first, then the explicit risk callout, then the action
-            buttons. W49-5 tightens the label from "Risk:" to
-            "⚠ RISK:" for stronger visual weight. The warning text
-            is wrapped in its own <span> so it remains a leaf text
-            node. */}
+            buttons. W58-c replaces the bare `⚠️` emoji with a Lucide
+            `AlertTriangle` glyph (the canonical clear warning icon)
+            while preserving the visible banner text content + the
+            `role="alert"` + the wrapping `<span>` around the warning
+            text (so any future test contract `getByText(riskWarning)`
+            keeps resolving to a single leaf text node). */}
         {riskWarning && (
           <div
             className="modal-body"
@@ -333,10 +443,10 @@ export default function ConfirmationDialog({
           >
             <div
               className="banner-warning"
-              style={{ fontSize: '11.5px' }}
+              style={{ fontSize: '11.5px', alignItems: 'center' }}
               role="alert"
             >
-              <span aria-hidden="true">⚠️</span>
+              <AlertTriangle className="size-4 shrink-0" aria-hidden="true" />
               <span>
                 <strong style={{ fontWeight: 700 }}>RISK:</strong>{' '}
                 <span>{riskWarning}</span>
@@ -345,10 +455,14 @@ export default function ConfirmationDialog({
           </div>
         )}
 
-        {/* W39-5 — success/error feedback banner. Replaces the modal-body
-            area when a result is present so the trader sees a clear ✓/✕
-            outcome before the dialog auto-dismisses (success) or stays
-            open for retry (error). */}
+        {/* W39-5/W58-c — success/error feedback banner. Replaces the
+            modal-body area when a result is present so the trader sees
+            a clear outcome before the dialog auto-dismisses (success)
+            or stays open for retry (error). W58-c replaces the bare
+            `✓` / `✕` glyphs with Lucide `Check` / `AlertTriangle`
+            icons (visible premium polish) while preserving the visible
+            message text content + the `role` + `aria-live` attributes
+            on the banner element. */}
         {internalResult && (
           <div
             className="modal-body"
@@ -360,9 +474,11 @@ export default function ConfirmationDialog({
               role={internalResult.status === 'error' ? 'alert' : 'status'}
               aria-live={internalResult.status === 'error' ? 'assertive' : 'polite'}
             >
-              <span aria-hidden="true" style={{ fontWeight: 700 }}>
-                {RESULT_ICON[internalResult.status]}
-              </span>
+              {internalResult.status === 'success' ? (
+                <Check className="size-4 shrink-0" aria-hidden="true" />
+              ) : (
+                <AlertTriangle className="size-4 shrink-0" aria-hidden="true" />
+              )}
               <span>{internalResult.message}</span>
             </div>
           </div>
@@ -370,32 +486,58 @@ export default function ConfirmationDialog({
 
         {/* Actions */}
         <div className="modal-footer">
+          {/* W58-c — refined cancel button. Keeps the existing
+              `.btn btn-ghost` class (the canonical ghost style). Leads
+              with a Lucide `X` glyph for a clear "dismiss" affordance.
+              The `aria-label={cancelLabel}` is preserved verbatim so
+              the W38-8 test contract `getByRole('button', { name: 'Cancel' })`
+              keeps resolving. The button text node is preserved verbatim
+              so `getByRole('button', { name: /cancel/i })` regex
+              matching (if any) keeps resolving via accessible name. */}
           <button
             ref={cancelBtnRef}
             onClick={onCancel}
-            className="btn btn-ghost"
+            className="btn btn-ghost inline-flex items-center gap-1.5 transition-colors duration-150 hover:text-red-300 hover:bg-red-500/10 hover:ring-1 hover:ring-red-500/25"
             disabled={isLoading || isLocked}
             aria-label={cancelLabel}
           >
+            <X className="size-3.5" aria-hidden="true" />
             {cancelLabel}
           </button>
+          {/* W58-c — refined confirm button. Keeps the existing
+              `.btn ${CONFIRM_COLORS[severity]}` class (red for danger,
+              amber for warning, cyan for info). Leads with a Lucide
+              severity glyph (OctagonAlert / AlertTriangle / Check) when
+              idle. The `aria-label={confirmLabel}` is preserved
+              verbatim so the W38-8 test contract `getByRole('button',
+              { name: 'Confirm' })` keeps resolving. The "Processing…"
+              text node is preserved verbatim as a direct text node in
+              the button so `getByText('Processing…')` keeps resolving
+              to the button itself (unambiguous match — the Lucide
+              spinner SVG carries no text content). */}
           <button
             onClick={handleConfirm}
-            className={`btn ${CONFIRM_COLORS[severity]}`}
+            className={`btn ${CONFIRM_COLORS[severity]} inline-flex items-center gap-1.5 transition-all duration-150 disabled:opacity-60 disabled:cursor-not-allowed`}
             disabled={isLoading || isLocked}
             aria-label={confirmLabel}
           >
             {isLoading ? (
               <>
                 <span className="spinner" aria-hidden="true" />
+                <Loader2 className="size-3.5 animate-spin" aria-hidden="true" />
                 Processing…
               </>
             ) : internalResult?.status === 'success' ? (
               <>
-                <span aria-hidden="true">✓</span>
+                <Check className="size-3.5" aria-hidden="true" />
                 Done
               </>
-            ) : confirmLabel}
+            ) : (
+              <>
+                <ConfirmGlyph className="size-3.5" aria-hidden="true" />
+                {confirmLabel}
+              </>
+            )}
           </button>
         </div>
       </div>

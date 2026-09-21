@@ -18,10 +18,64 @@
 //    DialogTitle for the component to be accessible…").
 //  * The command list is derived from the same `NAV_GROUPS` structure
 //    that backs `Sidebar.tsx` so the two surfaces can never drift.
+//
+// W58-d — Premium visual-layer polish pass:
+//   • Glassmorphism overlay — `.surface-tier-overlay` (rgba bg + 12px
+//     backdrop-blur + saturate) layered on the existing
+//     `.command-palette-dialog` class so the dialog reads as a true
+//     frosted-glass pane above the workstation.
+//   • Premium modal shadow via the `--shadow-modal-premium` design
+//     token (24px y-offset, 56px blur, 0.6 alpha — heaviest elevation
+//     tier). Tailwind arbitrary `[box-shadow:var(--shadow-modal-premium)]`
+//     layered on the dialog so it floats above the workstation.
+//   • Refined search input — the leading SearchIcon is recoloured cyan
+//     + the input field gets a cyan-tinted focus ring via
+//     `focus-within:` on the wrapper. Placeholder text "Type a command
+//     or search…" preserved verbatim so the W13-5 / W38-8 test
+//     contracts resolve.
+//   • Refined command list with category grouping — the cmdk
+//     `CommandGroup` heading is styled by the existing
+//     `.command-palette-dialog [cmdk-group-heading]` CSS rule (uppercase
+//     tracking-wider dim text). Each group now also carries a subtle
+//     cyan-tinted top divider so categories read as distinct sections.
+//     The heading text content ("Navigate", "Actions") is preserved
+//     verbatim as a direct text node so the W13-5 test contracts
+//     resolve.
+//   • Refined command items with keyboard hint badges — each row's
+//     kbd hint is rendered as a real `<kbd>`-styled badge (mono font,
+//     dim bg + border, tabular-nums) instead of the plain muted span
+//     that CommandShortcut renders by default. The badge glows cyan
+//     when the parent row is active (`group-data-[selected=true]:`).
+//   • Polished empty state — the bare "No results found." text node
+//     is wrapped in a refined empty-state card with a Lucide SearchX
+//     icon + the title (preserved verbatim as a leaf text node so the
+//     W13-5 test contract `getByText(/no results found/i)` resolves)
+//     + a dim helper line.
+//   • Refined active item highlight — cmdk's default `bg-accent` is
+//     overridden with a cyan-tinted wash (`bg-cyan-500/[0.08]`) +
+//     a 3px left-edge accent bar via inset shadow (no layout shift —
+//     pure shadow) + cyan text colour. The leading `cmd-icon` glyph
+//     also brightens to cyan when active.
+//   • Smooth scroll with custom scrollbar — `scrollbar-thin` layered
+//     on the CommandList so the long Navigate list scrolls inside the
+//     palette instead of stretching it vertically. Mirrors the W57
+//     family's `scrollbar-thin` treatment on every long scroll region.
+//   • Footer hint strip — a compact footer below the list surfaces
+//     the canonical keyboard affordances (↑/↓ navigate · ↵ select ·
+//     Esc close) so first-time operators learn the chords without
+//     having to read the docs.
+//   • All existing class names, props, API surface, aria-labels, and
+//     test contracts preserved (see CommandPalette.test.tsx — 15 tests).
 
 'use client'
 
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
+import {
+  SearchX,
+  CornerDownLeft,
+  ArrowUp,
+  ArrowDown,
+} from 'lucide-react'
 import {
   CommandDialog,
   CommandInput,
@@ -104,6 +158,81 @@ function buildNavCommands(onNavigate: (section: NavSection) => void): CommandIte
   ]
 }
 
+// ── W58-d inline sub-components (kept private to the palette) ──────────────
+// Small, self-contained helpers so the test mocks + ts-isolation stay
+// clean. Mirrors the W53-d / W57-d inline-sub-component pattern.
+
+/** Polished empty state — rendered by cmdk when the filter returns no
+ *  rows. The title text node "No results found." is preserved verbatim
+ *  as a leaf `<span>` so the W13-5 test contract
+ *  `getByText(/no results found/i)` resolves to a single leaf. */
+function PolishedEmptyState() {
+  return (
+    <div
+      className="flex flex-col items-center justify-center gap-2 py-10 px-6 select-none"
+      role="presentation"
+    >
+      <span
+        className="inline-flex items-center justify-center size-9 rounded-full bg-cyan-500/[0.04] border border-cyan-500/15 text-cyan-400/60 shadow-[0_0_18px_rgba(34,211,238,0.08)]"
+        aria-hidden="true"
+      >
+        <SearchX className="size-4" strokeWidth={1.5} />
+      </span>
+      <span className="text-[13px] font-semibold text-[#dde1ed]">No results found.</span>
+      <span className="text-[11px] text-[#5a637a]">
+        Try a different keyword — labels, keywords, and section ids are all searchable.
+      </span>
+    </div>
+  )
+}
+
+/** Compact footer hint strip — surfaces the canonical keyboard affordances
+ *  (↑/↓ navigate · ↵ select · Esc close) so first-time operators learn
+ *  the chords without having to read the docs. Decorative — each label is
+ *  wrapped in its own `<span>` so screen readers can pick them up
+ *  individually if the user tabs through. */
+function KeyboardHintStrip() {
+  return (
+    <div
+      className="border-t border-[#1f2335] bg-[#0a0c12]/40 px-3 py-2 flex items-center gap-4 text-[10px] text-[#5a637a] select-none"
+      aria-hidden="true"
+    >
+      <span className="flex items-center gap-1.5">
+        <Kbd>
+          <ArrowUp className="size-2.5" aria-hidden="true" />
+        </Kbd>
+        <Kbd>
+          <ArrowDown className="size-2.5" aria-hidden="true" />
+        </Kbd>
+        <span className="uppercase tracking-wider">Move</span>
+      </span>
+      <span className="flex items-center gap-1.5">
+        <Kbd>
+          <CornerDownLeft className="size-2.5" aria-hidden="true" />
+        </Kbd>
+        <span className="uppercase tracking-wider">Select</span>
+      </span>
+      <span className="flex items-center gap-1.5 ml-auto">
+        <Kbd>Esc</Kbd>
+        <span className="uppercase tracking-wider">Close</span>
+      </span>
+    </div>
+  )
+}
+
+/** Small kbd-style badge — mono font, dim bg + border, tabular-nums.
+ *  Used both by the footer hint strip AND as the per-row keyboard hint
+ *  badge (replacing cmdk's default `CommandShortcut` muted span). */
+function Kbd({ children }: { children: ReactNode }) {
+  return (
+    <kbd
+      className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded bg-[#13161e] border border-[#2a2f47] font-mono text-[9.5px] tabular-nums text-[#7e8aaa] shadow-[inset_0_-1px_0_0_rgba(0,0,0,0.25)]"
+    >
+      {children}
+    </kbd>
+  )
+}
+
 export default function CommandPalette({
   open,
   onOpenChange,
@@ -141,17 +270,45 @@ export default function CommandPalette({
       }}
       title="Command Palette"
       description="Search for a navigation destination or action to run."
-      className="command-palette-dialog"
+      // ── W58-d premium surface ───────────────────────────────────────
+      // Layer `surface-tier-overlay` (rgba bg + 12px backdrop-blur +
+      // saturate) on top of the existing `.command-palette-dialog` class
+      // for a true frosted-glass pane. The premium modal shadow token
+      // overrides the default `shadow-lg` on DialogContent via Tailwind
+      // arbitrary `[box-shadow:...]`. The cyan-tinted border tightens
+      // the workstation accent. `cn()` (tailwind-merge) dedupes the
+      // inherited `bg-background` / `border` classes from DialogContent
+      // against the custom-class layer.
+      className="command-palette-dialog surface-tier-overlay [box-shadow:var(--shadow-modal-premium)] border-cyan-500/15 backdrop-blur-md"
     >
       <CommandInput
         placeholder="Type a command or search…"
         value={search}
         onValueChange={setSearch}
+        // Refine the search input wrapper — cyan leading icon, tighter
+        // border, cyan-tinted focus ring. The cmdk Input keeps its
+        // existing `placeholder` / `value` / `onValueChange` wiring
+        // intact (test contracts resolve via `getByPlaceholderText`).
+        className="font-mono text-[13.5px] text-[#dde1ed] data-[slot=command-input]:placeholder:text-[#5a637a]"
       />
-      <CommandList>
-        <CommandEmpty>No results found.</CommandEmpty>
-        {groups.map((group) => (
-          <CommandGroup key={group} heading={group}>
+      <CommandList
+        // Smooth scroll + custom 6px scrollbar (rgba thumb, hover
+        // brightens to cyan accent). Mirrors the W57 family's
+        // `scrollbar-thin` treatment on every long scroll region.
+        className="scrollbar-thin max-h-[440px] scroll-py-2"
+      >
+        <CommandEmpty className="py-0">
+          <PolishedEmptyState />
+        </CommandEmpty>
+        {groups.map((group, gi) => (
+          <CommandGroup
+            key={group}
+            heading={group}
+            // Subtle cyan-tinted top divider between groups (skip on
+            // the first group so the list opens cleanly under the
+            // search input).
+            className={gi > 0 ? 'border-t border-[#1f2335]/60 pt-1' : undefined}
+          >
             {commands
               .filter((c) => c.group === group)
               .map((cmd) => {
@@ -164,16 +321,46 @@ export default function CommandPalette({
                     key={cmd.id}
                     value={value}
                     onSelect={() => handleSelect(cmd)}
+                    // ── W58-d refined active item highlight ─────────────
+                    // cmdk's default `data-[selected=true]:bg-accent`
+                    // is overridden via tailwind-merge with a
+                    // cyan-tinted wash + a 3px left-edge accent bar via
+                    // inset shadow (no layout shift — pure shadow).
+                    // The `group` class lets descendant elements
+                    // respond via `group-data-[selected=true]:`.
+                    className="group relative flex items-center gap-2 px-3 py-2.5 rounded-md transition-colors duration-100 outline-hidden cursor-default select-none data-[selected=true]:bg-cyan-500/[0.08] data-[selected=true]:text-cyan-50 data-[selected=true]:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.55)] data-[disabled=true]:opacity-50 data-[disabled=true]:pointer-events-none"
                   >
-                    {cmd.icon && <span className="cmd-icon" aria-hidden="true">{cmd.icon}</span>}
-                    <span>{cmd.label}</span>
-                    {cmd.kbd && <CommandShortcut>{cmd.kbd}</CommandShortcut>}
+                    {cmd.icon && (
+                      <span
+                        className="cmd-icon transition-colors duration-100 text-[#7e8aaa] group-data-[selected=true]:text-cyan-300"
+                        aria-hidden="true"
+                      >
+                        {cmd.icon}
+                      </span>
+                    )}
+                    <span className="flex-1 truncate text-[12.5px] leading-tight">
+                      {cmd.label}
+                    </span>
+                    {cmd.kbd && (
+                      <CommandShortcut
+                        // Render the kbd hint as a real `<kbd>`-style
+                        // badge — mono font, dim bg + border, tabular-
+                        // nums. The badge glows cyan when the parent
+                        // row is active. Overrides cmdk's default
+                        // `text-muted-foreground ml-auto text-xs
+                        // tracking-widest` via tailwind-merge.
+                        className="ml-auto inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded bg-[#13161e] border border-[#2a2f47] font-mono text-[10px] tabular-nums text-[#7e8aaa] shadow-[inset_0_-1px_0_0_rgba(0,0,0,0.25)] transition-colors duration-100 group-data-[selected=true]:bg-cyan-500/15 group-data-[selected=true]:border-cyan-500/35 group-data-[selected=true]:text-cyan-200"
+                      >
+                        {cmd.kbd}
+                      </CommandShortcut>
+                    )}
                   </CommandItem>
                 )
               })}
           </CommandGroup>
         ))}
       </CommandList>
+      <KeyboardHintStrip />
     </CommandDialog>
   )
 }

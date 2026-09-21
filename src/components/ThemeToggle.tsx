@@ -4,6 +4,27 @@
 // right-hand cluster (alongside mute, shortcuts, config). Clicking flips
 // the active theme between `dark` (default) and `light`.
 //
+// W58-f — Visual polish pass aligned with the W50-57 design system:
+//   • Smooth icon transition — the emoji is wrapped in a span with
+//     `transition-transform duration-300 ease-out` + a subtle
+//     `hover:scale-110 hover:rotate-12` so the glyph gently lifts and
+//     rotates when the trader approaches it.
+//   • Focus ring — `focus-visible:ring-2 focus-visible:ring-cyan-500/60`
+//     + `ring-offset-1` so keyboard users get the same cyan affordance
+//     as the rest of the W58 family (ShortcutHint, LocaleSwitcher,
+//     ConnectionStatus).
+//   • Accessible label preserved verbatim — `aria-label` announces the
+//     target state ("Switch to light mode" when currently dark),
+//     `aria-pressed` reflects whether dark is active. The
+//     `toHaveTextContent('☀️')` / `toHaveTextContent('🌙')` /
+//     `toHaveAttribute('aria-pressed', 'true' | 'false')` assertions
+//     in `ThemeToggle.test.tsx` still resolve since the emoji remains
+//     the button's sole text content.
+//   • Existing class names preserved — `btn btn-ghost btn-sm p-1.5
+//     text-xs text-[#7e8aaa] hover:text-white` (so the W13-4 contract
+//     that consumers may rely on for `btn-ghost` styling continues to
+//     apply). The W58 affordances are layered additively.
+//
 // Why a separate component:
 //   - `next-themes`'s `useTheme()` only knows the active theme *after*
 //     mount (it reads `document.documentElement.className` or
@@ -33,6 +54,7 @@
 
 import { useTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
+import { cn } from '@/lib/utils'
 
 export default function ThemeToggle() {
   const { theme, setTheme } = useTheme()
@@ -51,12 +73,43 @@ export default function ThemeToggle() {
   return (
     <button
       onClick={() => setTheme(isDark ? 'light' : 'dark')}
-      className="btn btn-ghost btn-sm p-1.5 text-xs text-[#7e8aaa] hover:text-white"
+      className={cn(
+        // Preserved W13-4 base classes — `btn btn-ghost btn-sm` etc. are
+        // referenced by the global CSS rules in `globals.css` so the
+        // ghost-button hover state continues to apply.
+        'btn btn-ghost btn-sm p-1.5 text-xs text-[#7e8aaa] hover:text-white',
+        // W58-f premium affordances layered additively — relative
+        // positioning for the focus ring offset, smooth transition on
+        // hover, and a cyan focus ring that matches the rest of the
+        // W58 family (ShortcutHint, LocaleSwitcher, ConnectionStatus).
+        'relative rounded-md transition-all duration-200',
+        'hover:shadow-md hover:shadow-black/20',
+        'focus:outline-none',
+        'focus-visible:ring-2 focus-visible:ring-cyan-500/60',
+        'focus-visible:ring-offset-1 focus-visible:ring-offset-[#0b0e14]',
+      )}
       aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
       title={isDark ? 'Light mode' : 'Dark mode'}
       aria-pressed={isDark}
     >
-      <span aria-hidden="true">{isDark ? '☀️' : '🌙'}</span>
+      <span
+        aria-hidden="true"
+        className={cn(
+          // W58-f — smooth icon transition. The emoji scales up + rotates
+          // 12° on hover so the toggle feels alive. `inline-block` so
+          // the transform applies; `leading-none` to remove the default
+          // line-height padding around the emoji.
+          'inline-block leading-none',
+          'transition-transform duration-300 ease-out',
+          'hover:scale-110 hover:rotate-12',
+          // Slight entrance animation when the toggle first mounts so
+          // the icon doesn't pop in abruptly after the hydration guard
+          // lifts.
+          'animate-in fade-in zoom-in-50',
+        )}
+      >
+        {isDark ? '☀️' : '🌙'}
+      </span>
     </button>
   )
 }
