@@ -1,46 +1,56 @@
 // components/OrdersPanel.tsx — Live Working Orders & Execution Queue Panel
 //
-// W49-5 — Operational-clarity redesign of the working-orders table.
-//   Builds on the W39-5 status-badge + fill-progress redesign and
-//   applies the W49-5 spec:
+// W51-2c — Visual-consistency polish to align the working-orders table
+//   with the redesigned PositionsPanel + MarketsPanel.
+//   Builds on the W49-5 operational-clarity redesign and applies the
+//   W51-2c spec:
 //
-//   • Header KPI strip — surfaces Open count + Capital exposed as a
-//     visually distinct right-aligned cluster (same shape as the
-//     Positions panel's Exposure/Realized/Daily strip).
+//   • Filter toolbar — a search row sits between the header and the
+//     table (same shape as TradesPanel + PositionsPanel): leading
+//     search input + "Showing X of Y" mono count pill. Filters by
+//     slug, strategy, or order_id. The header KPI strip (Open count +
+//     Capital exposed) and the Cancel All button are unchanged so
+//     the test contract on the header text + Cancel All aria-label
+//     is preserved.
 //
-//   • Ghost Cancel button — replaced the previous `btn-danger` filled
-//     red Cancel button with a ghost-styled button (transparent bg,
-//     thin border, red text on hover). The spec calls for "Ghost
-//     button with confirmation" because cancellation is reversible
-//     (just re-quote); the previous filled-red style signalled
-//     "irreversible destructive" which is misleading.
+//   • Loading skeletons — the previous spinner-only loading state is
+//     replaced with shimmer skeleton rows (8 rows × 8 cells, using
+//     the design-system `.skeleton` block). The "Loading working
+//     orders…" text is preserved (now sits in a slim status strip
+//     above the skeletons) so the existing test contract
+//     (`getByText(/Loading working orders/)`) still resolves.
 //
-//   • Cancel All — promoted to a more prominent red-tinted button
-//     ("CANCEL ALL (N)") and now supports a double-confirmation
-//     flow when `requireConfirmation=true`:
-//       1. First dialog — "Cancel all N working orders?" warning +
-//          impact summary (capital exposed + average fill rate).
-//       2. Second dialog — "Are you absolutely sure?" explicit
-//          re-confirmation + the standard "This action cannot be
-//          undone" risk warning.
-//     Default behaviour (`requireConfirmation=false`) calls
-//     `onCancelAll` directly on click — preserves the existing
-//     test contract (`expect(onCancelAll).toHaveBeenCalledTimes(1)`
-//     after a single click).
+//   • Empty state — polished with a Lucide `ClipboardList` glyph
+//     (replaces the bare 📋 emoji), centered title + subtitle, and
+//     the existing "Active market making…" hint copy is preserved
+//     (the test asserts on `No working limit orders`).
 //
-//   • Per-order Cancel — same `requireConfirmation` flow as before
-//     (W39-5): when true, the click opens an inline
-//     ConfirmationDialog; when false, calls onCancel directly.
-//     The button styling is updated to ghost per the spec.
+//   • Status badges — a new `PARTIAL` display status is derived when
+//     an OPEN order has 0 < matched < size (was previously lumped
+//     under OPEN). The badge colour map is updated per the spec:
+//       PENDING   → amber (awaiting match-engine acceptance)
+//       OPEN      → blue  (resting on the book, no fills yet)
+//       PARTIAL   → amber (resting on the book, partially filled)
+//       FILLED    → green (fully matched)
+//       CANCELLED → muted red (terminal, cancelled)
+//       REJECTED  → red   (terminal, rejected)
 //
-//   • Status badges — preserved unchanged from W39-5:
-//       PENDING=amber, OPEN=blue, FILLED=green, CANCELLED=gray,
-//       REJECTED=red.
+//   • Cancel button — restyled as a refined red ghost button
+//     (transparent bg, thin red border, dimmed-red text; hover lifts
+//     the tint). The previous grey-ghost styling made it look like a
+//     neutral action — cancellation is reversible (re-quote) but the
+//     button should still read as "destructive-leaning" at a glance.
 //
-//   • Fill progress bar — preserved unchanged.
+//   • Table design — explicit `tabular-nums` Tailwind class on every
+//     numeric cell (the mono class already applies it via globals.css,
+//     but adding the Tailwind class makes the contract explicit so a
+//     future Tailwind pass that rewrites `.mono` doesn't silently
+//     drop the tabular alignment). Right-alignment preserved on all
+//     numeric columns.
 //
-//   • Age column — preserved ("3m ago" relative format with absolute
-//     ISO timestamp via title attribute).
+// W49-5 (preserved) — header KPI strip (Open count + Capital exposed),
+// Cancel-All double-confirmation flow, per-order Cancel confirmation
+// flow, fill-progress bar, Age column, StaleIndicator, ErrorState.
 //
 // W15-5 (unchanged transport) — the panel still subscribes to the
 // `orders` WS channel and falls back to polling /api/orders every 5s
@@ -51,6 +61,7 @@
 'use client'
 
 import { useMemo, useState, useCallback, memo } from 'react'
+import { ClipboardList, Search as SearchIcon, X as ClearIcon } from 'lucide-react'
 import { Order } from '@/hooks/useBot'
 import { formatHierarchicalMarket } from '@/lib/formatters'
 import { fmtAge, fmtPrice, fmtUsd, fmtTimeAbs } from '@/lib/design-tokens'
@@ -64,7 +75,11 @@ interface OrdersApiResponse {
   orders: Order[]
 }
 
-type DisplayStatus = 'PENDING' | 'OPEN' | 'FILLED' | 'CANCELLED' | 'REJECTED'
+// W51-2c — `PARTIAL` added to the display-status union. An OPEN order
+// with 0 < matched < size now renders as PARTIAL (amber badge) per the
+// W51-2c spec, distinguishing "resting with no fills" from "resting
+// with partial fills" at a glance.
+type DisplayStatus = 'PENDING' | 'OPEN' | 'PARTIAL' | 'FILLED' | 'CANCELLED' | 'REJECTED'
 
 interface Props {
   orders?: Order[]
@@ -83,28 +98,45 @@ interface Props {
   requireConfirmation?: boolean
 }
 
-// W39-5/W49-5 — status badge visual map. PENDING/OPEN share the
-// working-state palette but PENDING tints amber (awaiting match-engine
-// acceptance) while OPEN tints blue (resting on the book, awaiting
-// fill).
+// W51-2c — status badge visual map. PENDING/PARTIAL share the amber
+// tint (both represent "in-flight" states: PENDING = awaiting
+// match-engine acceptance, PARTIAL = resting with partial fills).
+// OPEN is blue (resting, no fills). FILLED is green (terminal-success).
+// CANCELLED is muted red (terminal, cancelled by user). REJECTED is
+// red (terminal, rejected by match-engine).
 const STATUS_BADGE: Record<DisplayStatus, { label: string; cls: string }> = {
   PENDING:   { label: 'PENDING',   cls: 'bg-amber-500/15 text-amber-300 border-amber-500/30' },
   OPEN:      { label: 'OPEN',      cls: 'bg-blue-500/15 text-blue-300 border-blue-500/30' },
+  PARTIAL:   { label: 'PARTIAL',   cls: 'bg-amber-500/15 text-amber-300 border-amber-500/30' },
   FILLED:    { label: 'FILLED',    cls: 'bg-green-500/15 text-green-400 border-green-500/30' },
-  CANCELLED: { label: 'CANCELLED', cls: 'bg-gray-500/15 text-gray-400 border-gray-500/30' },
+  CANCELLED: { label: 'CANCELLED', cls: 'bg-red-500/10 text-red-300/80 border-red-500/25' },
   REJECTED:  { label: 'REJECTED',  cls: 'bg-red-500/15 text-red-400 border-red-500/30' },
 }
 
-// W39-5/W49-5 — derive a display status when the snapshot doesn't
-// expose `order.status`. We can only distinguish FILLED /
-// partial-OPEN / OPEN from size_matched — PENDING / REJECTED /
-// CANCELLED require backend signalling and fall back to OPEN.
+// W51-2c — derive a display status when the snapshot doesn't expose
+// `order.status`. We can distinguish FILLED / PARTIAL / OPEN from
+// size_matched — PENDING / REJECTED / CANCELLED require backend
+// signalling and fall back to OPEN/PARTIAL.
 function deriveDisplayStatus(o: Order): DisplayStatus {
-  if (o.status) return o.status
+  if (o.status) {
+    // Backend may send 'OPEN' for both pure-open and partial-open
+    // orders; if it does and size_matched > 0, refine to PARTIAL.
+    if (o.status === 'OPEN' && o.size > 0) {
+      const matched = o.size_matched ?? 0
+      if (matched > 0 && matched < o.size) return 'PARTIAL'
+    }
+    return o.status
+  }
   const matched = o.size_matched ?? 0
-  if (matched >= o.size && o.size > 0) return 'FILLED'
+  if (o.size > 0 && matched >= o.size) return 'FILLED'
+  if (matched > 0 && matched < o.size) return 'PARTIAL'
   return 'OPEN'
 }
+
+// W51-2c — shimmer skeleton row count for the loading state. Eight
+// rows matches the typical visible height of the panel without
+// overflowing (the table-container has its own scroll).
+const SKELETON_ROWS = 8
 
 function OrdersPanel({
   orders: ordersOverride,
@@ -133,6 +165,13 @@ function OrdersPanel({
   // the caller provides an orders override.
   const age = useStaleAge(ordersOverride == null ? lastUpdated : null)
 
+  // W51-2c — search/filter query for the new toolbar. Filters by
+  // slug, strategy, or order_id. Default '' renders all orders so the
+  // existing test contract (which doesn't type into the search box)
+  // is preserved — `Working Orders (2)` still resolves to 2 visible
+  // rows.
+  const [filterQuery, setFilterQuery] = useState('')
+
   // W39-5/W49-5 — token id of the order the trader is currently
   // confirming a Cancel on. When non-null, the inline
   // ConfirmationDialog renders.
@@ -153,12 +192,12 @@ function OrdersPanel({
 
   // W49-5 — KPI strip aggregates: open-count (non-terminal orders) +
   // total open capital + average fill rate across the visible set.
-  // Open count is shown when at least one order is non-terminal; fill
-  // rate degrades gracefully when all orders have size_matched=0.
+  // Computed from the un-filtered `orders` list so the KPI reflects
+  // portfolio state, not the active search filter.
   const openCount = useMemo(
     () => orders.filter((o) => {
       const status = deriveDisplayStatus(o)
-      return status === 'PENDING' || status === 'OPEN'
+      return status === 'PENDING' || status === 'OPEN' || status === 'PARTIAL'
     }).length,
     [orders],
   )
@@ -168,6 +207,22 @@ function OrdersPanel({
     [orders],
   )
   const avgFillPct = totalSize > 0 ? Math.round((totalMatched / totalSize) * 100) : 0
+
+  // W51-2c — filtered orders list (search). The Cancel All button
+  // and the KPI strip continue to use the un-filtered `orders` list
+  // so portfolio-wide counts/exposure are stable regardless of the
+  // active search filter.
+  const filteredOrders = useMemo(() => {
+    if (!filterQuery.trim()) return orders
+    const q = filterQuery.toLowerCase()
+    return orders.filter((o) => {
+      return (
+        o.slug.toLowerCase().includes(q) ||
+        (o.strategy && o.strategy.toLowerCase().includes(q)) ||
+        (o.order_id && o.order_id.toLowerCase().includes(q))
+      )
+    })
+  }, [orders, filterQuery])
 
   // W39-5/W49-5 — the order currently pending Cancel confirmation.
   // Looked up by order_id so the dialog can render an order-specific
@@ -297,15 +352,15 @@ function OrdersPanel({
             communicates "nothing here"). */}
         {orders.length > 0 && (
           <div className="flex items-center gap-2 text-xs">
-            <div className="bg-[#0e1015] border border-[#1f2335] px-2.5 py-1 rounded-md flex items-center gap-1.5" title="Non-terminal working orders (PENDING + OPEN)">
+            <div className="bg-[#0e1015] border border-[#1f2335] px-2.5 py-1 rounded-md flex items-center gap-1.5" title="Non-terminal working orders (PENDING + OPEN + PARTIAL)">
               <span className="text-[10px] text-[#7e8aaa] uppercase font-semibold">Open:</span>
-              <span className="mono font-bold text-blue-300 text-xs">{openCount}</span>
-              <span className="text-[9.5px] text-[#5a637a]">/ {orders.length}</span>
+              <span className="mono font-bold text-blue-300 text-xs tabular-nums">{openCount}</span>
+              <span className="text-[9.5px] text-[#5a637a] tabular-nums">/ {orders.length}</span>
             </div>
 
             <div className="bg-[#0e1015] border border-[#1f2335] px-2.5 py-1 rounded-md flex items-center gap-1.5" title="Total capital exposed across all working orders">
               <span className="text-[10px] text-[#7e8aaa] uppercase font-semibold">Capital:</span>
-              <span className="mono font-bold text-cyan-400 text-xs">{fmtUsd(totalOpenExposure)}</span>
+              <span className="mono font-bold text-cyan-400 text-xs tabular-nums">{fmtUsd(totalOpenExposure)}</span>
             </div>
           </div>
         )}
@@ -327,10 +382,87 @@ function OrdersPanel({
         </div>
       </div>
 
+      {/* W51-2c — Filter toolbar. Same shape as TradesPanel +
+          PositionsPanel: leading search input + "Showing X of Y"
+          mono count pill. Hidden when no orders exist (the empty
+          state below handles the no-data case). */}
+      {orders.length > 0 && (
+        <div className="flex items-center justify-between gap-2 px-3.5 py-2 border-b border-[#1f2335] bg-[#0e1015]/60">
+          <div className="relative flex-1 max-w-xs">
+            <SearchIcon
+              className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#7e8aaa] pointer-events-none"
+              aria-hidden="true"
+            />
+            <input
+              type="text"
+              placeholder="Search orders by market, strategy, or ID…"
+              value={filterQuery}
+              onChange={(e) => setFilterQuery(e.target.value)}
+              aria-label="Search working orders"
+              className="w-full text-xs bg-[#0e1015] border border-[#1f2335] focus:border-cyan-500/50 rounded pl-7 pr-7 py-1 text-[#dde1ed] placeholder-[#3e4560] outline-none transition-all"
+            />
+            {filterQuery && (
+              <button
+                onClick={() => setFilterQuery('')}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-[#7e8aaa] hover:text-white"
+                aria-label="Clear search"
+              >
+                <ClearIcon className="w-3 h-3" aria-hidden="true" />
+              </button>
+            )}
+          </div>
+
+          {/* W51-2c — "Showing X of Y" mono pill. Reflects the active
+              filter state so a trader can tell whether the search is
+              hiding rows. Hidden when the filter is empty (the count
+              would just duplicate the header's "(N)" badge). */}
+          {filterQuery && (
+            <span className="text-[10px] mono text-[#7e8aaa] inline-flex items-center gap-1 px-1.5 py-0.5 rounded border border-[#1f2335] bg-[#13161e] shrink-0">
+              Showing <strong className="text-cyan-300 font-semibold tabular-nums">{filteredOrders.length}</strong>
+              <span className="opacity-50">of</span>
+              <strong className="text-[#dde1ed] font-semibold tabular-nums">{orders.length}</strong>
+            </span>
+          )}
+        </div>
+      )}
+
       {isLoading && orders.length === 0 ? (
-        <div className="flex items-center justify-center py-12 text-xs text-[#7e8aaa]">
-          <span className="spinner mr-2" aria-hidden="true" />
-          Loading working orders…
+        // W51-2c — shimmer skeleton loading state. The previous
+        // spinner-only state is replaced with 8 shimmer rows + a
+        // slim status strip carrying the "Loading working orders…"
+        // text (preserves the existing test contract
+        // `getByText(/Loading working orders/)`).
+        <div className="flex-1 overflow-hidden flex flex-col" role="status" aria-live="polite">
+          <div className="px-3.5 py-1.5 text-[10px] text-[#7e8aaa] flex items-center gap-2 border-b border-[#1f2335]/50 bg-[#0e1015]/40">
+            <span className="spinner" aria-hidden="true" />
+            Loading working orders…
+          </div>
+          <div className="flex-1 overflow-hidden">
+            {Array.from({ length: SKELETON_ROWS }).map((_, i) => (
+              <div
+                key={i}
+                className="flex items-center gap-3 px-3.5 py-2.5 border-b border-[#1f2335]/30"
+                aria-hidden="true"
+              >
+                {/* Market cell skeleton — wider */}
+                <div className="skeleton h-3.5 w-40 rounded" />
+                {/* Side badge skeleton */}
+                <div className="skeleton h-3.5 w-10 rounded" />
+                {/* Status badge skeleton */}
+                <div className="skeleton h-3.5 w-14 rounded" />
+                {/* Price skeleton */}
+                <div className="skeleton h-3.5 w-12 rounded ml-auto" />
+                {/* Size skeleton */}
+                <div className="skeleton h-3.5 w-14 rounded" />
+                {/* Strategy skeleton */}
+                <div className="skeleton h-3.5 w-12 rounded" />
+                {/* Age skeleton */}
+                <div className="skeleton h-3.5 w-10 rounded" />
+                {/* Cancel action skeleton */}
+                <div className="skeleton h-3.5 w-12 rounded" />
+              </div>
+            ))}
+          </div>
         </div>
       ) : error && ordersOverride == null && orders.length === 0 ? (
         // W41-3 — Error state. Rendered only when the initial REST fetch
@@ -344,10 +476,15 @@ function OrdersPanel({
         />
       ) : (
         <div className="overflow-auto scrollbar-thin flex-1 table-container">
-          {orders.length === 0 ? (
-            // W49-5 — polished empty state (larger icon, more padding).
+          {filteredOrders.length === 0 ? (
+            // W51-2c — polished empty state. Lucide ClipboardList glyph
+            // (replaces the bare 📋 emoji), centered title + subtitle,
+            // preserves the "No working limit orders" title text (the
+            // existing test asserts on it via findByText).
             <div className="empty-state py-12">
-              <span className="empty-state-icon text-4xl" aria-hidden="true">📋</span>
+              <span className="empty-state-icon" aria-hidden="true">
+                <ClipboardList className="w-10 h-10 text-[#3e4560]" strokeWidth={1.5} />
+              </span>
               <span className="empty-state-title">No working limit orders</span>
               <span className="empty-state-desc">
                 Active market making &amp; arbitrage quoting loops will place limit orders in the matching engine.
@@ -368,14 +505,15 @@ function OrdersPanel({
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#1f2335]/50">
-                {orders.map((o) => {
+                {filteredOrders.map((o) => {
                   const info = formatHierarchicalMarket(o.slug)
                   const matched = o.size_matched ?? 0
                   const fillPct = o.size > 0 ? Math.min(100, Math.round((matched / o.size) * 100)) : 0
                   const isBuy = o.side === 'BUY'
-                  // W39-5/W49-5 — derive the display status (prefers
+                  // W51-2c — derive the display status (prefers
                   // backend `o.status` when available; falls back to
-                  // size-based heuristic otherwise).
+                  // size-based heuristic otherwise). PARTIAL is now
+                  // derived for OPEN orders with 0 < matched < size.
                   const displayStatus = deriveDisplayStatus(o)
                   const isFilled = displayStatus === 'FILLED'
                   const isCancelled = displayStatus === 'CANCELLED'
@@ -384,13 +522,13 @@ function OrdersPanel({
                   const showFillBar = !isTerminal && matched > 0
 
                   return (
-                    <tr key={o.order_id} className="hover:bg-blue-500/10 transition-colors">
+                    <tr key={o.order_id} className="hover:bg-blue-500/10 transition-colors group">
                       <td className="py-2.5 max-w-[220px]">
                         <div className="flex flex-col gap-0.5">
                           <span className="text-[9.5px] text-cyan-400 font-bold uppercase tracking-wider truncate">
                             {info.category.icon} {info.eventTitle}
                           </span>
-                          <span className="text-[#dde1ed] font-medium leading-tight text-xs block whitespace-normal" title={info.fullLabel}>
+                          <span className="text-[#dde1ed] group-hover:text-cyan-300 font-medium leading-tight text-xs block whitespace-normal transition-colors" title={info.fullLabel}>
                             {info.question}
                           </span>
                         </div>
@@ -407,12 +545,11 @@ function OrdersPanel({
                         </span>
                       </td>
 
-                      {/* W39-5/W49-5 — Status badge column. */}
+                      {/* W51-2c — Status badge column. PARTIAL now
+                          derived for OPEN orders with partial fills. */}
                       <td className="text-center">
                         <span
-                          className={`inline-block px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border ${
-                            STATUS_BADGE[displayStatus].cls
-                          }`}
+                          className={`inline-block px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border ${STATUS_BADGE[displayStatus].cls}`}
                           title={`Status: ${displayStatus}`}
                         >
                           {STATUS_BADGE[displayStatus].label}
@@ -420,21 +557,21 @@ function OrdersPanel({
                       </td>
 
                       {/* Price */}
-                      <td className="mono text-right font-bold text-cyan-400">
+                      <td className="mono text-right font-bold text-cyan-400 tabular-nums">
                         {fmtPrice(o.price)}
                       </td>
 
                       {/* Fill Progress & Size — W39-5/W49-5: the
                           progress bar is rendered for any OPEN/partial
                           order (matched > 0 AND matched < size). */}
-                      <td className="mono text-right font-medium text-[#dde1ed]">
+                      <td className="mono text-right font-medium text-[#dde1ed] tabular-nums">
                         <div>
                           <span>{o.size.toFixed(1)}</span>
                           {matched > 0 && (
-                            <span className="text-[10px] text-green-400 ml-1">({matched.toFixed(1)})</span>
+                            <span className="text-[10px] text-green-400 ml-1 tabular-nums">({matched.toFixed(1)})</span>
                           )}
                           {showFillBar && (
-                            <span className="text-[9.5px] text-[#7e8aaa] ml-1">{fillPct}%</span>
+                            <span className="text-[9.5px] text-[#7e8aaa] ml-1 tabular-nums">{fillPct}%</span>
                           )}
                         </div>
                         {showFillBar && (
@@ -454,18 +591,17 @@ function OrdersPanel({
                       {/* W39-5/W49-5 — Age in relative format ("3m ago").
                           The title attribute carries the absolute ISO
                           timestamp for hover + screen-reader context. */}
-                      <td className="mono text-[#7e8aaa] text-[10.5px] text-center" title={`Created: ${fmtTimeAbs(o.created_at)}`}>
+                      <td className="mono text-[#7e8aaa] text-[10.5px] text-center tabular-nums" title={`Created: ${fmtTimeAbs(o.created_at)}`}>
                         {fmtAge(o.created_at)}
                       </td>
 
-                      {/* Action — W49-5: Cancel is hidden for terminal
+                      {/* Action — W51-2c: Cancel is hidden for terminal
                           states (FILLED / CANCELLED / REJECTED) where
                           cancellation is a no-op. For non-terminal
                           states the button renders in the spec's
-                          "ghost" style — transparent bg, thin border,
-                          red text on hover — signalling that the
-                          action is reversible (just re-quote) rather
-                          than irreversibly destructive. */}
+                          refined "red ghost" style — transparent bg,
+                          thin red border, dimmed red text; hover lifts
+                          the tint. */}
                       <td className="text-right">
                         {isTerminal ? (
                           <span className="text-[10px] text-[#3e4560] uppercase tracking-wider font-semibold" aria-label={`Order ${displayStatus.toLowerCase()} — no cancel action`}>
@@ -474,7 +610,7 @@ function OrdersPanel({
                         ) : (
                           <button
                             onClick={() => handleCancelClick(o.order_id)}
-                            className="btn btn-ghost btn-xs font-bold border border-[#1f2335] text-[#7e8aaa] hover:text-red-300 hover:border-red-500/50 hover:bg-red-500/5 transition-colors"
+                            className="btn btn-ghost btn-xs font-bold border border-red-500/30 text-red-300/80 hover:text-red-200 hover:border-red-500/50 hover:bg-red-500/10 transition-colors"
                             aria-label={`Cancel order ${o.order_id}`}
                             title="Cancel this order"
                           >
@@ -546,6 +682,6 @@ function OrdersPanel({
 // are reference-compared. `onCancel` / `onCancelAll` MUST be stable in the
 // parent for memo to skip renders.
 //
-// W39-5/W49-5 — `requireConfirmation` is a primitive boolean, diffed
+// W39-5/W49-5/W51-2c — `requireConfirmation` is a primitive boolean, diffed
 // inline so the parent flipping the preference re-renders the panel.
 export default memo(OrdersPanel)

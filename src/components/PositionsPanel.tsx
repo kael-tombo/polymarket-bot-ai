@@ -142,11 +142,17 @@ const RISK_DOT_TITLE: Record<RiskStatus, string> = {
 // is operationally distinct from an algorithmic position and deserves
 // a different visual). The non-manual badge uses the design system's
 // blue token (per spec) rather than the W39-5 cyan.
+//
+// W51-2b — consistent sizing: enforced min-width + height + center
+// alignment so badges of varying strategy name lengths (Market Maker,
+// Arbitrage, Signal Trader, Manual) all render at the same visual
+// weight. The flex-shrink-0 guards against the badge being squeezed
+// when the Strategy column narrows.
 function StrategyBadge({ strategy }: { strategy: string }) {
   const isManual = /manual/i.test(strategy)
   return (
     <span
-      className={`inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wide border ${
+      className={`inline-flex items-center justify-center h-[16px] min-w-[44px] px-1.5 rounded text-[9px] font-bold uppercase tracking-wide border whitespace-nowrap flex-shrink-0 ${
         isManual
           ? 'bg-purple-500/15 text-purple-300 border-purple-500/30'
           : 'bg-blue-500/15 text-blue-300 border-blue-500/30'
@@ -163,11 +169,74 @@ function StrategyBadge({ strategy }: { strategy: string }) {
 // exactly. The arrow's class is set by the parent cell's color class
 // (text-green-400 for ↑, text-red-400 for ↓) — the arrow inherits the
 // cell color, which is what the test asserts on the td.
+//
+// W51-2b — leading-none + self-center so the arrow vertically centers
+// against the value's cap-height when wrapped in an inline-flex
+// items-baseline container.
 function PnlArrow({ isProfit }: { isProfit: boolean }) {
   return (
-    <span aria-hidden="true" className="text-[10px] mr-0.5 leading-none">
+    <span aria-hidden="true" className="text-[10px] leading-none self-center">
       {isProfit ? '↑' : '↓'}
     </span>
+  )
+}
+
+// W51-2b — small ▲/▼ sort-direction indicator rendered alongside the
+// currently-active sort column header. Direction is inferred from the
+// W49-5 sort comparator: size/pnl are descending (b - a), market is
+// ascending (localeCompare a-b). aria-hidden because the sort dropdown
+// already exposes the active sort to assistive tech as the selected
+// <option>.
+function SortIndicator({ active, direction }: { active: boolean; direction: 'asc' | 'desc' }) {
+  if (!active) return null
+  return (
+    <span aria-hidden="true" className="ml-1 text-[9px] leading-none text-cyan-400">
+      {direction === 'desc' ? '▼' : '▲'}
+    </span>
+  )
+}
+
+// W51-2b — Shimmer skeleton rows rendered below the "Loading
+// positions…" status text while the initial REST fetch is in flight.
+// The number of skeleton cells per row mirrors the live table's
+// column count (including conditional P&L / Strategy / Age columns)
+// so the loading state communicates the expected shape of the data.
+// Uses the existing .skeleton-table / .skeleton-row / .skeleton-cell
+// classes from globals.css (which already carry the skeleton-shimmer
+// animation). aria-hidden because the "Loading positions…" text +
+// spinner already carry the loading announcement for screen readers.
+function SkeletonRows({
+  showUnrealizedPnl,
+  showStrategyColumn,
+  showAgeColumn,
+  rowCount = 4,
+}: {
+  showUnrealizedPnl: boolean
+  showStrategyColumn: boolean
+  showAgeColumn: boolean
+  rowCount?: number
+}) {
+  return (
+    <div className="skeleton-table" aria-hidden="true">
+      {Array.from({ length: rowCount }).map((_, i) => (
+        <div className="skeleton-row" key={i}>
+          <div className="skeleton-cell" style={{ flex: '2 1 0' }} />
+          <div className="skeleton-cell" />
+          <div className="skeleton-cell" />
+          <div className="skeleton-cell" />
+          <div className="skeleton-cell" />
+          <div className="skeleton-cell" />
+          <div className="skeleton-cell" />
+          <div className="skeleton-cell" />
+          {showUnrealizedPnl && <div className="skeleton-cell" />}
+          {showUnrealizedPnl && <div className="skeleton-cell" />}
+          <div className="skeleton-cell" />
+          {showStrategyColumn && <div className="skeleton-cell" />}
+          {showAgeColumn && <div className="skeleton-cell" />}
+          <div className="skeleton-cell" />
+        </div>
+      ))}
+    </div>
   )
 }
 
@@ -371,47 +440,71 @@ function PositionsPanel({
           {age !== null && <StaleIndicator age={age} />}
         </div>
 
-        {/* W49-5 — Aggregate KPI strip. Three cards (Exposure, Realized,
-            Daily PnL) clustered on the right side of the header so the
-            trader can scan portfolio health without parsing the table.
-            Each card has the same shape: tiny uppercase label + bold
-            color-coded value + (for Exposure) the % of cap. */}
+        {/* W49-5/W51-2b — Aggregate KPI strip. Three cards (Exposure,
+            Realized, Daily PnL) clustered on the right side of the header
+            so the trader can scan portfolio health without parsing the
+            table. Each cell now carries the .kpi-card class + a
+            data-tone attribute (positive/negative/neutral) so the CSS
+            layer can apply tone-tinted backgrounds/halos without touching
+            the value color. The value spans keep their text-green-400 /
+            text-red-400 classes (preserves the existing test contract
+            that asserts on the <span>'s className for sign-color). */}
         <div className="flex items-center gap-2 text-xs">
-          <div className="bg-[#0e1015] border border-[#1f2335] px-2.5 py-1 rounded-md flex items-center gap-1.5" title="Total Invested / $25 Exposure Cap">
-            <span className="text-[10px] text-[#7e8aaa] uppercase font-semibold">Exposure:</span>
-            <span className="mono font-bold text-cyan-400 text-xs">{fmtUsd(totalInvested)}</span>
-            <span className="text-[9.5px] text-[#5a637a]">({portfolioExposurePct.toFixed(0)}%)</span>
+          <div
+            className="kpi-card kpi-card-strip bg-[#0e1015] border border-[#1f2335] px-2.5 py-1 rounded-md flex items-center gap-1.5 shadow-sm"
+            data-tone="neutral"
+            title="Total Invested / $25 Exposure Cap"
+          >
+            <span className="text-[10px] text-[#7e8aaa] uppercase font-semibold tracking-wide">Exposure:</span>
+            <span className="mono font-bold text-cyan-400 text-xs tabular-nums">{fmtUsd(totalInvested)}</span>
+            <span className="text-[9.5px] text-[#5a637a] tabular-nums">({portfolioExposurePct.toFixed(0)}%)</span>
           </div>
 
-          <div className="bg-[#0e1015] border border-[#1f2335] px-2.5 py-1 rounded-md flex items-center gap-1.5">
-            <span className="text-[10px] text-[#7e8aaa] uppercase font-semibold">Realized:</span>
-            <span className={`mono font-bold text-xs ${totalRealized >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+          <div
+            className="kpi-card kpi-card-strip bg-[#0e1015] border border-[#1f2335] px-2.5 py-1 rounded-md flex items-center gap-1.5 shadow-sm"
+            data-tone={totalRealized >= 0 ? 'positive' : 'negative'}
+            title="Total Realized P&L across open positions"
+          >
+            <span className="text-[10px] text-[#7e8aaa] uppercase font-semibold tracking-wide">Realized:</span>
+            <span className={`mono font-bold text-xs tabular-nums ${totalRealized >= 0 ? 'text-green-400' : 'text-red-400'}`}>
               {fmtPnl(totalRealized)}
             </span>
           </div>
 
-          <div className="bg-[#0e1015] border border-[#1f2335] px-2.5 py-1 rounded-md flex items-center gap-1.5">
-            <span className="text-[10px] text-[#7e8aaa] uppercase font-semibold">Daily PnL:</span>
-            <span className={`mono font-bold text-xs ${dailyPnl >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+          <div
+            className="kpi-card kpi-card-strip bg-[#0e1015] border border-[#1f2335] px-2.5 py-1 rounded-md flex items-center gap-1.5 shadow-sm"
+            data-tone={dailyPnl >= 0 ? 'positive' : 'negative'}
+            title="Daily P&L (session-realized + unrealized)"
+          >
+            <span className="text-[10px] text-[#7e8aaa] uppercase font-semibold tracking-wide">Daily PnL:</span>
+            <span className={`mono font-bold text-xs tabular-nums ${dailyPnl >= 0 ? 'text-green-400' : 'text-red-400'}`}>
               {fmtPnl(dailyPnl)}
             </span>
           </div>
-
-          <button
-            onClick={handleExportCsv}
-            disabled={positions.length === 0}
-            className="btn btn-ghost btn-sm text-[10px] px-2 py-0.5 border border-[#1f2335] text-[#7e8aaa] hover:text-white hover:border-[#2d3450] flex items-center gap-1"
-            title="Export Positions CSV"
-          >
-            📥 CSV
-          </button>
         </div>
       </div>
 
       {isLoading && positions.length === 0 && (
-        <div className="flex items-center justify-center py-8 text-xs text-[#7e8aaa]">
-          <span className="spinner mr-2" aria-hidden="true" />
-          Loading positions…
+        // W51-2b — Enhanced loading state: the "Loading positions…"
+        // status text (preserved for the existing test contract that
+        // matches /Loading positions/) is now followed by shimmer
+        // skeleton rows that mirror the live table's column count.
+        // The skeleton uses the existing .skeleton-table /
+        // .skeleton-row / .skeleton-cell classes from globals.css
+        // (which already carry the skeleton-shimmer animation). The
+        // skeleton is aria-hidden because the status text + spinner
+        // already announce the loading state for screen readers.
+        <div className="flex flex-col py-3 gap-2">
+          <div className="flex items-center justify-center text-xs text-[#7e8aaa]">
+            <span className="spinner mr-2" aria-hidden="true" />
+            Loading positions…
+          </div>
+          <SkeletonRows
+            showUnrealizedPnl={showUnrealizedPnl}
+            showStrategyColumn={false}
+            showAgeColumn={false}
+            rowCount={4}
+          />
         </div>
       )}
 
@@ -429,21 +522,30 @@ function PositionsPanel({
         />
       )}
 
-      {/* Filter & Search Bar */}
-      <div className="flex items-center justify-between gap-2 mb-2">
-        <div className="relative flex-1 max-w-xs">
+      {/* W51-2b — Unified toolbar: search + outcome filter + sort + CSV
+          export grouped into a single cohesive bar with subtle 1px
+          vertical dividers between control groups. CSV export was
+          previously in the header; moving it into the toolbar groups
+          all data-shaping controls together. The "Export Positions CSV"
+          title is preserved so the existing test contract still matches.
+          The search input's .relative wrapper is preserved so the
+          existing test that walks `input.closest('.relative')` to find
+          the clear ✕ button still passes. */}
+      <div className="positions-toolbar flex items-center gap-2 mb-2 bg-[#0e1015] border border-[#1f2335] rounded-md px-2 py-1.5">
+        {/* Search group */}
+        <div className="relative flex-1 min-w-[160px] max-w-xs">
           <input
             type="text"
             placeholder="Search position by market / contract..."
             value={filterQuery}
             onChange={(e) => setFilterQuery(e.target.value)}
             aria-label="Search positions by market name or contract token ID"
-            className="w-full bg-[#0e1015] border border-[#1f2335] focus:border-cyan-500/50 rounded text-xs px-2.5 py-1.5 text-[#dde1ed] placeholder-[#3e4560] outline-none transition-all"
+            className="w-full bg-[#13161e] border border-[#1f2335] focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 rounded text-xs px-2.5 py-1.5 text-[#dde1ed] placeholder-[#3e4560] outline-none transition-all"
           />
           {filterQuery && (
             <button
               onClick={() => setFilterQuery('')}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-[#7e8aaa] hover:text-white"
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-[#7e8aaa] hover:text-white transition-colors"
               aria-label="Clear search filter"
             >
               ✕
@@ -451,35 +553,57 @@ function PositionsPanel({
           )}
         </div>
 
-        <div className="flex items-center gap-1.5">
-          <div className="inline-flex bg-[#0e1015] border border-[#1f2335] rounded p-0.5 text-[10px]" role="group" aria-label="Filter positions by outcome">
-            {(['ALL', 'YES', 'NO'] as const).map((side) => (
-              <button
-                key={side}
-                onClick={() => setOutcomeFilter(side)}
-                aria-pressed={outcomeFilter === side}
-                className={`px-2 py-0.5 rounded font-bold transition-all ${
-                  outcomeFilter === side
-                    ? 'bg-blue-500/20 text-cyan-300 shadow-sm'
-                    : 'text-[#7e8aaa] hover:text-[#dde1ed]'
-                }`}
-              >
-                {side}
-              </button>
-            ))}
-          </div>
+        {/* Divider between search and outcome filter */}
+        <div className="w-px h-5 bg-[#1f2335] flex-shrink-0" aria-hidden="true" />
 
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as 'size' | 'pnl' | 'market')}
-            aria-label="Sort positions by"
-            className="bg-[#0e1015] border border-[#1f2335] text-[#7e8aaa] rounded text-[10px] font-semibold px-2 py-1 outline-none cursor-pointer"
-          >
-            <option value="size">Sort: Size ($)</option>
-            <option value="pnl">Sort: Realized P&amp;L</option>
-            <option value="market">Sort: Market Name</option>
-          </select>
+        {/* Outcome filter group */}
+        <div className="inline-flex bg-[#13161e] border border-[#1f2335] rounded p-0.5 text-[10px]" role="group" aria-label="Filter positions by outcome">
+          {(['ALL', 'YES', 'NO'] as const).map((side) => (
+            <button
+              key={side}
+              onClick={() => setOutcomeFilter(side)}
+              aria-pressed={outcomeFilter === side}
+              className={`px-2 py-0.5 rounded font-bold transition-all ${
+                outcomeFilter === side
+                  ? 'bg-blue-500/20 text-cyan-300 shadow-sm'
+                  : 'text-[#7e8aaa] hover:text-[#dde1ed]'
+              }`}
+            >
+              {side}
+            </button>
+          ))}
         </div>
+
+        {/* Divider between outcome filter and sort */}
+        <div className="w-px h-5 bg-[#1f2335] flex-shrink-0" aria-hidden="true" />
+
+        {/* Sort group */}
+        <select
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value as 'size' | 'pnl' | 'market')}
+          aria-label="Sort positions by"
+          className="bg-[#13161e] border border-[#1f2335] text-[#7e8aaa] rounded text-[10px] font-semibold px-2 py-1 outline-none cursor-pointer focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 transition-all"
+        >
+          <option value="size">Sort: Size ($)</option>
+          <option value="pnl">Sort: Realized P&amp;L</option>
+          <option value="market">Sort: Market Name</option>
+        </select>
+
+        {/* Flexible spacer pushes CSV export to the right edge */}
+        <div className="flex-1" aria-hidden="true" />
+
+        {/* Divider between sort and CSV export */}
+        <div className="w-px h-5 bg-[#1f2335] flex-shrink-0" aria-hidden="true" />
+
+        {/* CSV export (moved from header in W51-2b) */}
+        <button
+          onClick={handleExportCsv}
+          disabled={positions.length === 0}
+          className="btn btn-ghost btn-sm text-[10px] px-2 py-0.5 border border-[#1f2335] text-[#7e8aaa] hover:text-white hover:border-[#2d3450] flex items-center gap-1 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          title="Export Positions CSV"
+        >
+          <span aria-hidden="true">📥</span> CSV
+        </button>
       </div>
 
       {/* Positions Table */}
@@ -499,13 +623,34 @@ function PositionsPanel({
             </span>
           </div>
         ) : (
-          <table className="data-table text-xs w-full" role="table" aria-label="Portfolio open positions">
+          <table className="data-table positions-table text-xs w-full" role="table" aria-label="Portfolio open positions">
             <thead>
-              <tr className="border-b border-[#1f2335] text-[#7e8aaa] text-[10.5px]">
-                <th scope="col" className="min-w-[190px] py-1.5 text-left">Token</th>
+              {/* W51-2b — header row refined: .data-table th already applies
+                  uppercase + letter-spacing + a subtle bottom border via
+                  globals.css. The inline `uppercase tracking-wider
+                  text-[11px] font-semibold` classes reinforce the
+                  typographic treatment at the Tailwind layer (in case
+                  the cascade resolves Tailwind utilities above the
+                  component-layer rule). The dimmed color (`text-[#7e8aaa]`)
+                  + tight `py-1.5` keeps the header visually subordinate
+                  to the row data. */}
+              <tr className="border-b border-[#1f2335] text-[#7e8aaa] text-[11px] uppercase tracking-wider font-semibold">
+                {/* W51-2b — Token sortable (sortBy='market', asc). */}
+                <th scope="col" className="min-w-[190px] py-1.5 text-left">
+                  <span className="inline-flex items-baseline">
+                    Token
+                    <SortIndicator active={sortBy === 'market'} direction="asc" />
+                  </span>
+                </th>
                 <th scope="col" className="text-center">Risk</th>
                 <th scope="col" className="text-center">Side</th>
-                <th scope="col" className="text-right">Size</th>
+                {/* W51-2b — Size sortable (sortBy='size', desc). */}
+                <th scope="col" className="text-right">
+                  <span className="inline-flex items-baseline justify-end">
+                    Size
+                    <SortIndicator active={sortBy === 'size'} direction="desc" />
+                  </span>
+                </th>
                 <th scope="col" className="text-right">Entry</th>
                 <th scope="col" className="text-right">Current</th>
                 <th scope="col" className="text-right">Cost Basis</th>
@@ -521,7 +666,13 @@ function PositionsPanel({
                 {showUnrealizedPnl && (
                   <th scope="col" className="text-right">P&amp;L (%)</th>
                 )}
-                <th scope="col" className="text-right">Realized</th>
+                {/* W51-2b — Realized sortable (sortBy='pnl', desc). */}
+                <th scope="col" className="text-right">
+                  <span className="inline-flex items-baseline justify-end">
+                    Realized
+                    <SortIndicator active={sortBy === 'pnl'} direction="desc" />
+                  </span>
+                </th>
                 {/* W49-5 — dedicated Strategy column (previously inline
                     in the Token cell). Only rendered when at least one
                     visible row exposes a strategy field. */}
@@ -623,25 +774,28 @@ function PositionsPanel({
                       </span>
                     </td>
 
-                    {/* W49-5 — Size (Shares). */}
-                    <td className="mono text-right font-semibold text-[#dde1ed]">
+                    {/* W49-5/W51-2b — Size (Shares). tabular-nums
+                        ensures the decimal points line up across rows
+                        for clean vertical scanning. */}
+                    <td className="mono text-right font-semibold text-[#dde1ed] tabular-nums">
                       {p.yes_shares > 0 ? p.yes_shares.toFixed(1) : (p.no_shares ?? 0).toFixed(1)}
                     </td>
 
-                    {/* W49-5 — Entry (Avg Entry). */}
-                    <td className="mono text-right text-[#7e8aaa] text-xs">
+                    {/* W49-5/W51-2b — Entry (Avg Entry). */}
+                    <td className="mono text-right text-[#7e8aaa] text-xs tabular-nums">
                       ${p.avg_entry_price.toFixed(3)}
                     </td>
 
-                    {/* W49-5 — Current (Mark) with flash class. */}
-                    <td className={`mono text-right text-[#dde1ed] text-xs${flashClass}`}>
+                    {/* W49-5/W51-2b — Current (Mark) with flash class. */}
+                    <td className={`mono text-right text-[#dde1ed] text-xs tabular-nums${flashClass}`}>
                       {typeof p.current_price === 'number'
                         ? `$${p.current_price.toFixed(3)}`
                         : <span className="text-[#3e4560]">—</span>}
                     </td>
 
-                    {/* Cost Basis. */}
-                    <td className="mono text-right font-semibold text-cyan-300">
+                    {/* W51-2b — Cost Basis. tabular-nums for decimal
+                        alignment with Size / Entry / Current. */}
+                    <td className="mono text-right font-semibold text-cyan-300 tabular-nums">
                       {fmtUsd(p.total_invested)}
                     </td>
 
@@ -662,14 +816,19 @@ function PositionsPanel({
                       </div>
                     </td>
 
-                    {/* W49-5 — P&L ($) = Unrealized dollar PnL with
-                        direction arrow. The arrow lives in its own
-                        <span> so getByText('+$5.00') still matches
-                        the value span exactly (preserves the test
-                        contract for color-coded unrealized PnL). */}
+                    {/* W49-5/W51-2b — P&L ($) = Unrealized dollar PnL
+                        with direction arrow. The arrow + value are now
+                        wrapped in an inline-flex items-baseline gap-0.5
+                        justify-end container so the arrow sits cleanly
+                        aligned with the value's baseline (the W49-5
+                        margin-based approach left the arrow floating in
+                        inline-flow). The value still lives in its own
+                        <span> so getByText('+$5.00') matches exactly
+                        (preserves the test contract for color-coded
+                        unrealized PnL). */}
                     {showUnrealizedPnl && (
                       <td
-                        className={`mono text-right font-bold text-xs ${
+                        className={`mono text-right font-bold text-xs tabular-nums ${
                           hasUnrealized
                             ? unrealizedProfit
                               ? 'text-green-400'
@@ -678,20 +837,21 @@ function PositionsPanel({
                         }`}
                       >
                         {hasUnrealized ? (
-                          <>
+                          <span className="inline-flex items-baseline gap-0.5 justify-end">
                             <PnlArrow isProfit={unrealizedProfit} />
                             <span>{fmtPnl(p.unrealized_pnl)}</span>
-                          </>
+                          </span>
                         ) : '—'}
                       </td>
                     )}
 
-                    {/* W49-5 — P&L (%) = Unrealized percentage return.
-                        Falls back to "—" when unrealized_pnl isn't
-                        published OR total_invested is zero. */}
+                    {/* W49-5/W51-2b — P&L (%) = Unrealized percentage
+                        return. Falls back to "—" when unrealized_pnl
+                        isn't published OR total_invested is zero. Same
+                        inline-flex arrow + value alignment as P&L ($). */}
                     {showUnrealizedPnl && (
                       <td
-                        className={`mono text-right font-bold text-xs ${
+                        className={`mono text-right font-bold text-xs tabular-nums ${
                           unrealizedPct !== null
                             ? unrealizedPct >= 0
                               ? 'text-green-400'
@@ -700,23 +860,27 @@ function PositionsPanel({
                         }`}
                       >
                         {unrealizedPct !== null ? (
-                          <>
+                          <span className="inline-flex items-baseline gap-0.5 justify-end">
                             <PnlArrow isProfit={unrealizedPct >= 0} />
                             <span>{fmtPct(unrealizedPct)}</span>
-                          </>
+                          </span>
                         ) : '—'}
                       </td>
                     )}
 
-                    {/* Realized P&L — also with direction arrow per
-                        the W49-5 spec ("P&L coloring with arrow"). */}
+                    {/* W49-5/W51-2b — Realized P&L — also with
+                        direction arrow per the W49-5 spec ("P&L coloring
+                        with arrow"). Same inline-flex alignment as the
+                        unrealized P&L cells. */}
                     <td
-                      className={`mono text-right font-bold text-xs ${
+                      className={`mono text-right font-bold text-xs tabular-nums ${
                         p.realised_pnl >= 0 ? 'text-green-400' : 'text-red-400'
                       }`}
                     >
-                      <PnlArrow isProfit={realizedProfit} />
-                      <span>{fmtPnl(p.realised_pnl)}</span>
+                      <span className="inline-flex items-baseline gap-0.5 justify-end">
+                        <PnlArrow isProfit={realizedProfit} />
+                        <span>{fmtPnl(p.realised_pnl)}</span>
+                      </span>
                     </td>
 
                     {/* W49-5 — dedicated Strategy column. Only rendered
@@ -734,12 +898,14 @@ function PositionsPanel({
                       </td>
                     )}
 
-                    {/* W49-5 — Age (renamed from "Time Held"). The
-                        title attribute carries the absolute timestamp
-                        for hover tooltips + screen-reader context. */}
+                    {/* W49-5/W51-2b — Age (renamed from "Time Held").
+                        tabular-nums for clean decimal alignment.
+                        The title attribute carries the absolute
+                        timestamp for hover tooltips + screen-reader
+                        context. */}
                     {showAgeColumn && (
                       <td
-                        className="mono text-right text-[#7e8aaa] text-[10.5px]"
+                        className="mono text-right text-[#7e8aaa] text-[10.5px] tabular-nums"
                         title={typeof p.opened_at === 'number' ? fmtTimeAbs(p.opened_at) : undefined}
                       >
                         {typeof p.opened_at === 'number' ? fmtDurationHm(p.opened_at) : '—'}
@@ -756,14 +922,19 @@ function PositionsPanel({
                         >
                           Trade
                         </button>
-                        {/* W39-5/W49-5 — Close Position button styled
-                            as an explicitly destructive red ghost
-                            action. When `requireConfirmation` is true,
-                            the click opens the ConfirmationDialog
-                            instead of calling onClosePosition directly. */}
+                        {/* W39-5/W49-5/W51-2b — Close Position button
+                            styled as an explicitly destructive red ghost
+                            action. W51-2b refines the hover: slightly
+                            darker red background (red-500/30) with a
+                            transition-colors so the lift is smooth.
+                            Border width stays 1px on both states so
+                            there is no layout shift on hover. When
+                            `requireConfirmation` is true, the click opens
+                            the ConfirmationDialog instead of calling
+                            onClosePosition directly. */}
                         <button
                           onClick={() => handleCloseClick(p.token_id)}
-                          className="btn btn-sm text-[10px] px-2 py-0.5 border border-red-500/40 bg-red-500/10 text-red-400 hover:text-white hover:bg-red-500/30 hover:border-red-500/60 font-bold flex items-center gap-1"
+                          className="btn btn-sm text-[10px] px-2 py-0.5 border border-red-500/40 bg-red-500/10 text-red-400 hover:text-white hover:bg-red-500/30 hover:border-red-500/70 font-bold flex items-center gap-1 transition-colors"
                           aria-label={`Close position for ${info.fullLabel}`}
                           title="Close position at market"
                         >

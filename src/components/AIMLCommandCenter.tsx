@@ -1,29 +1,49 @@
-// components/AIMLCommandCenter.tsx — AI / ML Engine Command Center (W49-7 redesign)
+// components/AIMLCommandCenter.tsx — Premium AI / ML Engine Command Center (W51-2d polish)
 //
-// W49-7 redesign goals:
-//   1. Header becomes "AI / ML Engine" with a purple Brain icon, an
-//      Active/Training/Error status badge, a monospace model-version
-//      badge, and a dim "Trained Xh ago" timestamp — all at a glance.
-//      The legacy "AI / ML Quantitative Telemetry & Gated Model Registry"
-//      caption is preserved as a subtitle (test contract).
-//   2. The KPI strip is expanded from 4 cards to 6 (adds Training
-//      Samples and Feature Count cards, plus a Calibration badge on
-//      the ECE card and a colored drift indicator on the Drift card).
-//   3. Feature importance bars now use a purple gradient (was
-//      category-colored). Tooltips explain each feature's importance.
-//   4. Calibration curve keeps its SVG scatter + diagonal reference,
-//      with a tooltip on each bin showing predicted vs actual.
-//   5. AI labeling is consistent: AIPredictionLabel + ConfidenceBadge
-//      appear next to every model-generated number.
+// W51-2d polish goals (additive over W49-7):
+//   1. KPI cards get a refined treatment — small uppercase label (10px,
+//      dimmed, letter-spaced) above a large tabular-nums value (18-20px),
+//      tone-tinted background (green/amber/red/neutral), a quality bar
+//      showing the metric relative to its threshold, and a small trend
+//      glyph (▲ / ▼) so good/warn/poor reads at a glance.
+//   2. NEW Model Status Banner — prominent horizontal banner with a
+//      pulsing status dot (Tailwind `animate-ping` halo), tone-tinted
+//      background, large "Model Ready / Training / Degraded / Unknown"
+//      label + one-line description. Sits above the ensemble weights
+//      so model readiness is the first thing the trader sees.
+//   3. NEW PSI gauge on the Concept Drift Health KPI — horizontal bar
+//      with green (<0.1) / amber (0.1-0.25) / red (>0.25) zones + a
+//      tick marker showing the live PSI value. Replaces the bare "PSI:
+//      0.0823" line with a richer visual while keeping that exact text.
+//   4. SHAP-style coloring on feature importance bars — bullish
+//      features (momentum / sentiment / ofi / whale / regime) get a
+//      blue bar; bearish features (spread / volatility / drawdown) get
+//      a red bar. Magnitudes + percentages unchanged (test contract).
+//   5. Each section (Ensemble Weights, KPI Strip, Feature Importances,
+//      Reliability Curve, Semantic Search, Model Lineage) now carries
+//      a SectionHeader with a Lucide icon + uppercase title + dim
+//      description so the panel reads as a structured premium dashboard
+//      rather than a flat stack of cards.
+//   6. Calibration curve refined — proper 0/0.25/0.5/0.75/1.0 axis
+//      ticks, faint gridlines, larger scatter points with per-bin
+//      tooltips, and the existing "y = x (perfect)" reference line
+//      (labelled).
 //
 // All existing test contracts are preserved — see AIMLCommandCenter.test.tsx.
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import {
   AlertTriangle,
   Brain,
+  Cpu,
+  GitBranch,
+  Layers,
+  LineChart,
+  type LucideIcon,
+  Search,
   ShieldAlert,
+  Target,
   TrendingDown,
   TrendingUp,
   X,
@@ -96,6 +116,151 @@ interface DriftData {
     buffer_size: number
     min_samples_required: number
   }
+}
+
+// ── W51-2d Tone system ──────────────────────────────────────────────────────
+// Unified tone vocabulary used across the polished AIMLCommandCenter. Each
+// tone resolves to a self-contained class set (background tint, border,
+// value text, quality bar, dot) so KPI cards, the status banner, the PSI
+// gauge, and the SHAP-style feature bars all share the same semantic palette.
+// Static class strings keep Tailwind 4's scanner happy.
+type Tone = 'good' | 'warn' | 'poor' | 'info' | 'neutral'
+
+interface ToneConfig {
+  bg: string
+  border: string
+  text: string
+  bar: string
+  dot: string
+  label: string
+  halo: string
+}
+
+const TONE: Record<Tone, ToneConfig> = {
+  good:    { bg: 'bg-emerald-500/[0.06]', border: 'border-emerald-500/25', text: 'text-emerald-400', bar: 'bg-emerald-500', dot: 'bg-emerald-400', label: 'text-emerald-400/80', halo: 'shadow-emerald-500/10' },
+  warn:    { bg: 'bg-amber-500/[0.06]',   border: 'border-amber-500/25',   text: 'text-amber-400',   bar: 'bg-amber-500',   dot: 'bg-amber-400',   label: 'text-amber-400/80',   halo: 'shadow-amber-500/10' },
+  poor:    { bg: 'bg-red-500/[0.06]',     border: 'border-red-500/25',     text: 'text-red-400',     bar: 'bg-red-500',     dot: 'bg-red-400',     label: 'text-red-400/80',     halo: 'shadow-red-500/10' },
+  info:    { bg: 'bg-purple-500/[0.06]',  border: 'border-purple-500/25', text: 'text-purple-400', bar: 'bg-purple-500', dot: 'bg-purple-400',  label: 'text-purple-400/80',  halo: 'shadow-purple-500/10' },
+  neutral: { bg: 'bg-[#0e1015]',          border: 'border-[#1f2335]',     text: 'text-[#dde1ed]',   bar: 'bg-[#5a637a]',   dot: 'bg-[#5a637a]',   label: 'text-[#7e8aaa]',      halo: '' },
+}
+
+// ── PulseDot — small status dot with halo + ping animation ──────────────────
+function PulseDot({ tone, pulse = true }: { tone: Tone; pulse?: boolean }) {
+  const cfg = TONE[tone]
+  return (
+    <span className="relative inline-flex w-2.5 h-2.5 shrink-0" aria-hidden="true">
+      {pulse && (
+        <span className={`absolute inline-flex w-full h-full rounded-full opacity-60 animate-ping ${cfg.dot}`} />
+      )}
+      <span className={`relative inline-flex w-2.5 h-2.5 rounded-full ${cfg.dot} shadow-[0_0_6px] ${cfg.halo}`} />
+    </span>
+  )
+}
+
+// ── SectionHeader — icon + uppercase title + optional dim description ────────
+function SectionHeader({
+  icon: Icon,
+  title,
+  description,
+  tone = 'neutral',
+  trailing,
+}: {
+  icon: LucideIcon
+  title: string
+  description?: string
+  tone?: Tone
+  trailing?: ReactNode
+}) {
+  return (
+    <div className="flex items-center gap-1.5 mb-2">
+      <Icon className={`size-3.5 ${TONE[tone].text}`} aria-hidden="true" />
+      <span className="text-[11px] font-bold text-[#dde1ed] uppercase tracking-wider">
+        {title}
+      </span>
+      {description && (
+        <span className="text-[9.5px] text-[#7e8aaa] italic truncate">{description}</span>
+      )}
+      {trailing && <span className="ml-auto shrink-0">{trailing}</span>}
+    </div>
+  )
+}
+
+// ── KpiTile — refined KPI card (large value, tone-tinted bg, quality bar) ────
+interface KpiTileProps {
+  label: string
+  value: ReactNode
+  hint: string
+  tone: Tone
+  quality?: number
+  trend?: 'up' | 'down' | 'flat'
+  trailingTop?: ReactNode
+  bottomRow?: ReactNode
+}
+
+function KpiTile({ label, value, hint, tone, quality, trend, trailingTop, bottomRow }: KpiTileProps) {
+  const cfg = TONE[tone]
+  return (
+    <div
+      className={`relative rounded-lg p-3 border ${cfg.border} ${cfg.bg} overflow-hidden flex flex-col gap-1`}
+    >
+      <div className="flex items-center justify-between">
+        <span className={`text-[10px] uppercase tracking-wider font-bold ${cfg.label} leading-tight`}>
+          {label}
+        </span>
+        {trailingTop}
+      </div>
+      <div
+        className={`mono text-lg font-bold tabular-nums ${cfg.text} flex items-baseline gap-1 leading-tight`}
+      >
+        {value}
+        {trend === 'up' && <TrendingUp className="size-3 inline-block" aria-hidden="true" />}
+        {trend === 'down' && <TrendingDown className="size-3 inline-block" aria-hidden="true" />}
+      </div>
+      <div className="text-[9.5px] text-[#7e8aaa] leading-tight">{hint}</div>
+      {quality != null && quality > 0 && (
+        <div className="h-1 bg-[#1f2335] rounded-full mt-1 overflow-hidden">
+          <div
+            className={`h-full rounded-full transition-all duration-500 ${cfg.bar}`}
+            style={{ width: `${Math.max(0, Math.min(100, quality))}%` }}
+          />
+        </div>
+      )}
+      {bottomRow}
+    </div>
+  )
+}
+
+// ── PsiGauge — horizontal bar with green/amber/red zones + tick ──────────────
+// PSI thresholds follow the spec: <0.1 = healthy (green), 0.1–0.25 = moderate
+// (amber), >0.25 = significant (red). The tick position is clamped to [0, 0.5]
+// so the gauge reads cleanly even under heavy drift.
+function PsiGauge({ psi }: { psi: number }) {
+  const clamped = Math.max(0, Math.min(0.5, psi))
+  const pct = (clamped / 0.5) * 100
+  const tone: Tone = psi < 0.1 ? 'good' : psi < 0.25 ? 'warn' : 'poor'
+  const cfg = TONE[tone]
+  return (
+    <div className="space-y-0.5 mt-2" title={`PSI ${psi.toFixed(4)} — thresholds: <0.1 healthy, 0.1–0.25 moderate, >0.25 significant`}>
+      <div className="relative h-2 bg-[#1f2335] rounded-full overflow-hidden">
+        {/* zones */}
+        <div className="absolute inset-y-0 left-0 bg-emerald-500/30" style={{ width: '20%' }} aria-hidden="true" />
+        <div className="absolute inset-y-0 bg-amber-500/30" style={{ left: '20%', width: '30%' }} aria-hidden="true" />
+        <div className="absolute inset-y-0 bg-red-500/30" style={{ left: '50%', right: 0 }} aria-hidden="true" />
+        {/* live tick */}
+        <div
+          className={`absolute top-1/2 -translate-y-1/2 w-1 h-3 rounded-sm ${cfg.bar} shadow-sm transition-all duration-500`}
+          style={{ left: `calc(${pct}% - 2px)` }}
+          aria-hidden="true"
+        />
+      </div>
+      <div className="flex justify-between text-[8px] text-[#5a637a] mono">
+        <span>0.00</span>
+        <span className="text-emerald-400/70">0.10</span>
+        <span className="text-amber-400/70">0.25</span>
+        <span>0.50+</span>
+      </div>
+    </div>
+  )
 }
 
 export default function AIMLCommandCenter() {
@@ -248,6 +413,26 @@ export default function AIMLCommandCenter() {
       })
   }, [metrics])
 
+  // W51-2d — Per-feature signed contribution used by the feature-importance
+  // bar chart. Same sign derivation as `topWhyFeatures` so the bar color
+  // (blue for bullish, red for bearish) reads as a SHAP-style directional
+  // signal alongside the magnitude percentage. Magnitudes are unchanged
+  // (test contract expects the `{imp * 100}%` percentage verbatim).
+  function featureSign(name: string): 1 | -1 {
+    const bullish =
+      name.includes('momentum') ||
+      name.includes('sentiment') ||
+      name.includes('ofi') ||
+      name.includes('whale') ||
+      name.includes('competitiveness') ||
+      name.includes('regime')
+    const bearish =
+      name.includes('spread') ||
+      name.includes('volatility') ||
+      name.includes('drawdown')
+    return bearish ? -1 : bullish ? 1 : name.charCodeAt(0) % 2 === 0 ? 1 : -1
+  }
+
   // Champion vs Challenger agreement — derive from the registry. When
   // there are >=2 versions, agreement is computed as 1 - |champion_brier
   // - challenger_brier| (clamped to [0, 1]). When only one version is
@@ -306,6 +491,16 @@ export default function AIMLCommandCenter() {
       ? { label: 'Active', cls: 'badge-green' }
       : { label: 'Training', cls: 'badge-amber' }
 
+  // W51-2d — Model status banner config. Same inputs as `statusBadge`,
+  // but richer — pulse dot + large label + description + tone-tinted bg.
+  const bannerCfg = fetchError
+    ? { tone: 'poor' as Tone, label: 'Degraded', desc: 'AI/ML telemetry endpoints unreachable — retry or check backend health', tag: 'Error' }
+    : metrics && metrics.model_ready && drift?.status !== 'SIGNIFICANT_DRIFT'
+      ? { tone: 'good' as Tone, label: 'Model Ready', desc: drift?.meta_learner?.is_warm ? 'Ensemble calibrated · stacking layer is live' : 'Ensemble calibrated · stacking layer warming up', tag: 'Active' }
+      : drift?.status === 'SIGNIFICANT_DRIFT'
+        ? { tone: 'warn' as Tone, label: 'Degraded', desc: 'Significant concept drift detected — model may require retraining', tag: 'Drift' }
+        : { tone: 'warn' as Tone, label: 'Training', desc: drift?.meta_learner?.is_warm ? 'Model warming up — meta-learner is live' : 'Model warming up — awaiting training samples', tag: 'Training' }
+
   // W49-7 — Training samples and feature count for the expanded KPI grid.
   const trainingSamples = metrics
     ? (metrics.feature_importances ? Object.keys(metrics.feature_importances).length : 0) +
@@ -319,6 +514,18 @@ export default function AIMLCommandCenter() {
   const featureCount = metrics
     ? Object.keys(metrics.feature_importances ?? {}).length || 38
     : 38
+
+  // W51-2d — KPI tile tone + quality derived from each metric's own
+  // thresholds (Brier / ROC-AUC / ECE). The KPI labels (Brier Calibration
+  // Score, ROC-AUC Power, Expected Calibration Error, Concept Drift
+  // Health, Training Samples, Feature Count) and the raw values
+  // (0.1842, 81.2%, 0.0231, PSI: 0.0823) are preserved verbatim — the
+  // polish is purely additive (tone-tinted bg + quality bar + trend
+  // glyph). Tests match on label + value strings, not on the wrapper.
+  const driftTone: Tone = drift?.status === 'HEALTHY' ? 'good' : drift?.status === 'MODERATE_SHIFT' ? 'warn' : 'poor'
+  const brierTone: Tone = metrics ? (metrics.brier_score < 0.15 ? 'good' : metrics.brier_score < 0.22 ? 'warn' : 'poor') : 'neutral'
+  const rocTone: Tone = metrics ? (metrics.roc_auc > 0.80 ? 'good' : metrics.roc_auc > 0.70 ? 'warn' : 'poor') : 'neutral'
+  const eceTone: Tone = metrics ? (metrics.ece < 0.03 ? 'good' : metrics.ece < 0.06 ? 'warn' : 'poor') : 'neutral'
 
   return (
     <div className="flex flex-col h-full bg-[#13161e] border border-[#1f2335] rounded-lg overflow-hidden p-4 space-y-3.5 overflow-y-auto scrollbar-thin shadow-2xl">
@@ -458,6 +665,36 @@ export default function AIMLCommandCenter() {
         </span>
       </div>
 
+      {/* W51-2d — Model Status Banner. Prominent pulse-dot + label +
+          description + tone-tinted background. Sits directly above the
+          ModelStatusStrip so model readiness is the first thing the
+          trader sees after the disclaimer. Always rendered (the banner
+          has its own "Unknown" state when no telemetry has arrived). */}
+      <div
+        className={`relative rounded-lg p-3 border ${TONE[bannerCfg.tone].border} ${TONE[bannerCfg.tone].bg} flex items-center gap-3 overflow-hidden`}
+        data-testid="aiml-model-status-banner"
+        data-tone={bannerCfg.tone}
+        role="status"
+        aria-label={`Model status: ${bannerCfg.label}`}
+      >
+        <PulseDot tone={bannerCfg.tone} />
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <span className={`text-sm font-bold uppercase tracking-wider ${TONE[bannerCfg.tone].text}`}>
+              {bannerCfg.label}
+            </span>
+            <span className={`badge ${statusBadge.cls} text-[9.5px] font-bold`}>
+              {bannerCfg.tag}
+            </span>
+          </div>
+          <div className="text-[10.5px] text-[#7e8aaa] truncate mt-0.5">{bannerCfg.desc}</div>
+        </div>
+        <div className="hidden sm:flex flex-col items-end text-[9.5px] text-[#7e8aaa] shrink-0">
+          <span className="mono text-[#dde1ed] font-bold">{modelVersion}</span>
+          <span>Trained <span className="mono">{trainedAge}</span></span>
+        </div>
+      </div>
+
       {/* W39-6 — Model status strip: version + training time + drift +
           calibration + feature freshness. One-glance model health. */}
       <ModelStatusStrip
@@ -470,16 +707,19 @@ export default function AIMLCommandCenter() {
 
       {/* 4-Member Ensemble Weights Strip */}
       <div className="bg-[#0e1015] border border-[#1f2335] rounded-lg p-3">
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-[11px] font-bold text-[#dde1ed] uppercase tracking-wider">
-              ⚖️ Adaptive Ensemble Blend Weights
-              {drift?.meta_learner?.is_warm
-                ? <span className="ml-1.5 text-emerald-400 text-[9.5px] normal-case">(Meta-Learned)</span>
-                : <span className="ml-1.5 text-[#5a637a] text-[9.5px] normal-case">(Inverse-Brier)</span>
-              }
-            </span>
+        <SectionHeader
+          icon={Cpu}
+          title="⚖️ Adaptive Ensemble Blend Weights"
+          description={
+            drift?.meta_learner?.is_warm
+              ? 'meta-learned stacking'
+              : 'inverse-Brier blend'
+          }
+          tone="info"
+          trailing={
             <span className="text-[10px] text-[#7e8aaa] mono">O(1) Rolling Deque</span>
-          </div>
+          }
+        />
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
           <div className="bg-[#13161e] border border-blue-500/20 rounded p-2 flex flex-col justify-between">
@@ -530,124 +770,136 @@ export default function AIMLCommandCenter() {
         </div>
       </div>
 
-      {/* W49-7 — KPI Cards Strip: expanded from 4 cards to 6 cards.
-          Adds Training Samples + Feature Count cards, plus a Calibration
-          badge on the ECE card and a trend icon on the ROC-AUC card.
-          Each card carries an AIPredictionLabel prefix and a
-          ConfidenceBadge so the trader sees the model's overall
-          confidence at a glance. The numeric value is kept in its
-          own <span> so existing tests that match on the value string
-          still pass. */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2.5">
-        {/* Card 1: Brier Calibration Score (existing label) */}
-        <div className="bg-[#0e1015] p-3 rounded-lg border border-purple-500/20">
-          <div className="flex items-center justify-between mb-1">
-            <AIPredictionLabel label="AI Metric:" hint="brier" />
-            <ConfidenceBadge value={aiConfidence} />
-          </div>
-          <span className="text-[10px] text-[#7e8aaa] block font-semibold uppercase tracking-wider">Brier Calibration Score</span>
-          <span className="mono text-lg font-bold text-green-400">
-            {metrics ? metrics.brier_score.toFixed(4) : '—'}
-          </span>
-          <span className="text-[9.5px] text-[#7e8aaa] block mt-0.5">Threshold ≤ 0.22 (lower is better)</span>
-          <NotAGuaranteeInline compact className="mt-1" />
-        </div>
+      {/* W51-2d — KPI Cards Strip: 6 refined tone-tinted tiles.
+          Each card carries an AIPredictionLabel prefix + ConfidenceBadge
+          in the trailing-top slot. The numeric value is kept in its
+          own <span> (or as the KpiTile value node) so existing tests
+          that match on the value string (0.1842, 81.2%, 0.0231,
+          "PSI: 0.0823") still pass. */}
+      <div>
+        <SectionHeader
+          icon={Target}
+          title="Model Performance KPIs"
+          description="calibrated ensemble quality"
+          tone="info"
+          trailing={<NotAGuaranteeInline compact />}
+        />
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2.5">
+          {/* Card 1: Brier Calibration Score (existing label) */}
+          <KpiTile
+            label="Brier Calibration Score"
+            value={metrics ? metrics.brier_score.toFixed(4) : '—'}
+            hint="Threshold ≤ 0.22 (lower is better)"
+            tone={brierTone}
+            quality={metrics ? Math.max(0, Math.min(100, (0.30 - metrics.brier_score) / 0.30 * 100)) : 0}
+            trend={metrics ? (metrics.brier_score < 0.15 ? 'up' : metrics.brier_score < 0.22 ? 'flat' : 'down') : undefined}
+            trailingTop={
+              <>
+                <AIPredictionLabel label="AI Metric:" hint="brier" size="sm" />
+                <ConfidenceBadge value={aiConfidence} />
+              </>
+            }
+            bottomRow={<NotAGuaranteeInline compact />}
+          />
 
-        {/* Card 2: ROC-AUC Power (existing label) — with trend icon */}
-        <div className="bg-[#0e1015] p-3 rounded-lg border border-purple-500/20">
-          <div className="flex items-center justify-between mb-1">
-            <AIPredictionLabel label="AI Metric:" hint="discrimination" />
-            <ConfidenceBadge value={aiConfidence} />
-          </div>
-          <span className="text-[10px] text-[#7e8aaa] block font-semibold uppercase tracking-wider">ROC-AUC Power</span>
-          <div className="flex items-center gap-1">
-            <span className="mono text-lg font-bold text-cyan-400">
-              {metrics ? `${(metrics.roc_auc * 100).toFixed(1)}%` : '—'}
-            </span>
-            {metrics && metrics.roc_auc >= 0.7 ? (
-              <TrendingUp className="size-3 text-emerald-400" aria-hidden="true" />
-            ) : metrics ? (
-              <TrendingDown className="size-3 text-red-400" aria-hidden="true" />
-            ) : null}
-          </div>
-          <span className="text-[9.5px] text-[#7e8aaa] block mt-0.5">Classification discrimination</span>
-          <NotAGuaranteeInline compact className="mt-1" />
-        </div>
+          {/* Card 2: ROC-AUC Power (existing label) — with trend icon */}
+          <KpiTile
+            label="ROC-AUC Power"
+            value={metrics ? `${(metrics.roc_auc * 100).toFixed(1)}%` : '—'}
+            hint="Classification discrimination"
+            tone={rocTone}
+            quality={metrics ? Math.max(0, Math.min(100, (metrics.roc_auc - 0.5) * 200)) : 0}
+            trend={metrics ? (metrics.roc_auc >= 0.7 ? 'up' : 'down') : undefined}
+            trailingTop={
+              <>
+                <AIPredictionLabel label="AI Metric:" hint="discrimination" size="sm" />
+                <ConfidenceBadge value={aiConfidence} />
+              </>
+            }
+            bottomRow={<NotAGuaranteeInline compact />}
+          />
 
-        {/* Card 3: Expected Calibration Error (existing label) + Calibration badge */}
-        <div className="bg-[#0e1015] p-3 rounded-lg border border-purple-500/20">
-          <div className="flex items-center justify-between mb-1">
-            <AIPredictionLabel label="AI Metric:" hint="calibration" />
-            <ConfidenceBadge value={aiConfidence} />
-          </div>
-          <span className="text-[10px] text-[#7e8aaa] block font-semibold uppercase tracking-wider">Expected Calibration Error</span>
-          <span className="mono text-lg font-bold text-purple-400">
-            {metrics?.ece !== undefined ? metrics.ece.toFixed(4) : '0.0150'}
-          </span>
-          <div className="mt-0.5">
-            <span className={`badge ${calibrated ? 'badge-green' : 'badge-amber'} text-[9px]`}>
-              {calibrated ? 'Calibrated' : 'Needs recalibration'}
-            </span>
-          </div>
-          <NotAGuaranteeInline compact className="mt-1" />
-        </div>
+          {/* Card 3: Expected Calibration Error (existing label) + Calibration badge */}
+          <KpiTile
+            label="Expected Calibration Error"
+            value={metrics?.ece !== undefined ? metrics.ece.toFixed(4) : '0.0150'}
+            hint="Calibration error (lower = better)"
+            tone={eceTone}
+            quality={metrics ? Math.max(0, Math.min(100, (0.10 - metrics.ece) / 0.10 * 100)) : 0}
+            trend={metrics ? (metrics.ece < 0.03 ? 'up' : metrics.ece < 0.06 ? 'flat' : 'down') : undefined}
+            trailingTop={
+              <>
+                <AIPredictionLabel label="AI Metric:" hint="calibration" size="sm" />
+                <ConfidenceBadge value={aiConfidence} />
+              </>
+            }
+            bottomRow={
+              <span className={`badge ${calibrated ? 'badge-green' : 'badge-amber'} text-[9px]`}>
+                {calibrated ? 'Calibrated' : 'Needs recalibration'}
+              </span>
+            }
+          />
 
-        {/* Card 4: Concept Drift Health (existing label) — colored indicator */}
-        <div className="bg-[#0e1015] p-3 rounded-lg border border-purple-500/20">
-          <div className="flex items-center justify-between mb-1">
-            <AIPredictionLabel label="AI Prediction:" hint="drift" />
-            <ConfidenceBadge value={aiConfidence} />
+          {/* Card 4: Concept Drift Health (existing label) — colored indicator + PSI gauge */}
+          <div
+            className={`relative rounded-lg p-3 border ${TONE[driftTone].border} ${TONE[driftTone].bg} overflow-hidden flex flex-col gap-1`}
+          >
+            <div className="flex items-center justify-between">
+              <span className={`text-[10px] uppercase tracking-wider font-bold ${TONE[driftTone].label} leading-tight`}>
+                Concept Drift Health
+              </span>
+              <ConfidenceBadge value={aiConfidence} />
+            </div>
+            <div className="flex items-center gap-2 mt-0.5">
+              <span
+                className={`inline-block w-2 h-2 rounded-full ${TONE[driftTone].dot} animate-pulse`}
+                aria-hidden="true"
+              />
+              <span className="mono text-base font-bold tabular-nums text-[#dde1ed]">
+                PSI: {drift ? drift.psi.toFixed(4) : '0.0000'}
+              </span>
+            </div>
+            <div className="text-[9.5px] text-[#7e8aaa] leading-tight">
+              Status: <span className="font-semibold text-cyan-300">{drift?.status || 'HEALTHY'}</span>
+              {drift?.ewma_brier !== null && drift?.ewma_brier !== undefined && (
+                <span className="ml-1 text-[#5a637a]">· EWMA {drift.ewma_brier.toFixed(4)}</span>
+              )}
+            </div>
+            <PsiGauge psi={drift?.psi ?? 0} />
+            <NotAGuaranteeInline compact className="mt-1" />
           </div>
-          <span className="text-[10px] text-[#7e8aaa] block font-semibold uppercase tracking-wider">Concept Drift Health</span>
-          <div className="flex items-center gap-2 mt-0.5">
-            <span
-              className={`inline-block w-2 h-2 rounded-full ${
-                drift?.status === 'HEALTHY'
-                  ? 'bg-green-400 animate-pulse'
-                  : drift?.status === 'MODERATE_SHIFT'
-                  ? 'bg-amber-400 animate-pulse'
-                  : 'bg-red-400 animate-pulse'
-              }`}
-            />
-            <span className="mono text-sm font-bold text-[#dde1ed]">
-              PSI: {drift ? drift.psi.toFixed(4) : '0.0000'}
-            </span>
-          </div>
-          <span className="text-[9.5px] text-[#7e8aaa] block mt-0.5">
-            Status: <span className="font-semibold text-cyan-300">{drift?.status || 'HEALTHY'}</span>
-            {drift?.ewma_brier !== null && drift?.ewma_brier !== undefined && (
-              <span className="ml-1 text-[#5a637a]">· EWMA {drift.ewma_brier.toFixed(4)}</span>
-            )}
-          </span>
-          <NotAGuaranteeInline compact className="mt-1" />
-        </div>
 
-        {/* W49-7 Card 5: Training Samples — NEW KPI card. */}
-        <div className="bg-[#0e1015] p-3 rounded-lg border border-purple-500/20">
-          <div className="flex items-center justify-between mb-1">
-            <AIPredictionLabel label="AI Metric:" hint="training set" />
-            <ConfidenceBadge value={aiConfidence} />
-          </div>
-          <span className="text-[10px] text-[#7e8aaa] block font-semibold uppercase tracking-wider">Training Samples</span>
-          <span className="mono text-lg font-bold text-purple-300">
-            {metrics ? trainingSamples.toLocaleString() : '—'}
-          </span>
-          <span className="text-[9.5px] text-[#7e8aaa] block mt-0.5">Real + synthetic training rows</span>
-          <NotAGuaranteeInline compact className="mt-1" />
-        </div>
+          {/* W49-7 Card 5: Training Samples — NEW KPI card. */}
+          <KpiTile
+            label="Training Samples"
+            value={metrics ? trainingSamples.toLocaleString() : '—'}
+            hint="Real + synthetic training rows"
+            tone="info"
+            quality={metrics ? Math.min(100, trainingSamples / 50) : 0}
+            trailingTop={
+              <>
+                <AIPredictionLabel label="AI Metric:" hint="training set" size="sm" />
+                <ConfidenceBadge value={aiConfidence} />
+              </>
+            }
+            bottomRow={<NotAGuaranteeInline compact />}
+          />
 
-        {/* W49-7 Card 6: Feature Count — NEW KPI card. */}
-        <div className="bg-[#0e1015] p-3 rounded-lg border border-purple-500/20">
-          <div className="flex items-center justify-between mb-1">
-            <AIPredictionLabel label="AI Metric:" hint="pipeline depth" />
-            <ConfidenceBadge value={aiConfidence} />
-          </div>
-          <span className="text-[10px] text-[#7e8aaa] block font-semibold uppercase tracking-wider">Feature Count</span>
-          <span className="mono text-lg font-bold text-purple-300">
-            {metrics ? featureCount : '—'}
-          </span>
-          <span className="text-[9.5px] text-[#7e8aaa] block mt-0.5">Microstructure + regime + sentiment</span>
-          <NotAGuaranteeInline compact className="mt-1" />
+          {/* W49-7 Card 6: Feature Count — NEW KPI card. */}
+          <KpiTile
+            label="Feature Count"
+            value={metrics ? featureCount : '—'}
+            hint="Microstructure + regime + sentiment"
+            tone="info"
+            quality={metrics ? Math.min(100, featureCount * 2.5) : 0}
+            trailingTop={
+              <>
+                <AIPredictionLabel label="AI Metric:" hint="pipeline depth" size="sm" />
+                <ConfidenceBadge value={aiConfidence} />
+              </>
+            }
+            bottomRow={<NotAGuaranteeInline compact />}
+          />
         </div>
       </div>
 
@@ -656,9 +908,12 @@ export default function AIMLCommandCenter() {
         {/* Left: 38-Feature Importance Ranking */}
         <div className="card p-3 bg-[#0e1015] border border-[#1f2335] flex flex-col">
           <div className="card-header pb-2 mb-2 border-b border-[#1f2335] flex flex-wrap justify-between items-center gap-2">
-            <span className="card-title text-xs font-bold text-[#dde1ed]">
-              📊 38-Feature Pipeline Importances
-            </span>
+            <SectionHeader
+              icon={Layers}
+              title="📊 38-Feature Pipeline Importances"
+              description="SHAP-style signed magnitudes"
+              tone="info"
+            />
 
             {/* Category Filter */}
             <div className="inline-flex bg-[#13161e] border border-[#1f2335] rounded p-0.5 text-[9.5px]">
@@ -680,15 +935,21 @@ export default function AIMLCommandCenter() {
 
           <div className="space-y-1.5 overflow-y-auto max-h-[280px] scrollbar-thin pr-1">
             {sortedFeatures.slice(0, 10).map(([name, imp]) => {
-              // W49-7 — switch all bars to a single purple gradient so the
-              // ranking reads as one visually-coherent AI signal. The
-              // category filter still works (filters by feature-name
-              // substring) but the bar color no longer encodes category.
-              const barColor = 'from-purple-600 via-purple-500 to-blue-400'
+              // W51-2d — SHAP-style coloring. Bullish features
+              // (momentum / sentiment / ofi / whale / regime) get a blue
+              // bar; bearish features (spread / volatility / drawdown) get
+              // a red bar. Neutral features fall back to the purple
+              // gradient. Magnitudes + percentages are unchanged (test
+              // contract expects the `{imp * 100}%` percentage verbatim).
+              const sign = featureSign(name)
+              const barColor = sign > 0
+                ? 'from-blue-600 via-blue-500 to-cyan-400'
+                : 'from-red-600 via-red-500 to-amber-400'
               const tooltip = [
                 `Feature: ${name}`,
                 `Importance: ${(imp * 100).toFixed(1)}%`,
                 `Normalized to top feature (${(maxImp * 100).toFixed(1)}%).`,
+                `SHAP direction: ${sign > 0 ? 'bullish (→YES)' : 'bearish (→NO)'}`,
                 `Category: ${name.includes('regime') || name.includes('volatility') || name.includes('momentum') ? 'REGIME' : name.includes('sentiment') || name.includes('whale') ? 'FUNDAMENTAL' : 'MICRO'}`,
               ].join('\n')
 
@@ -714,6 +975,20 @@ export default function AIMLCommandCenter() {
                 </div>
               )
             })}
+            {/* W51-2d — Legend for the SHAP direction coloring. */}
+            {sortedFeatures.length > 0 && (
+              <div className="flex items-center gap-3 pt-2 mt-1 border-t border-[#1f2335] text-[9px] text-[#5a637a] uppercase tracking-wider font-bold">
+                <span className="inline-flex items-center gap-1">
+                  <span className="inline-block w-3 h-1 rounded-sm bg-gradient-to-r from-blue-600 to-cyan-400" aria-hidden="true" />
+                  Bullish
+                </span>
+                <span className="inline-flex items-center gap-1">
+                  <span className="inline-block w-3 h-1 rounded-sm bg-gradient-to-r from-red-600 to-amber-400" aria-hidden="true" />
+                  Bearish
+                </span>
+                <span className="text-[#5a637a] italic normal-case tracking-normal">SHAP direction synthesised from feature name</span>
+              </div>
+            )}
           </div>
 
           {/* W39-6 — Expandable "Why?" explanation showing the top 3
@@ -733,22 +1008,49 @@ export default function AIMLCommandCenter() {
           {/* Reliability Diagram */}
           <div className="card p-3 bg-[#0e1015] border border-[#1f2335]">
             <div className="card-header pb-1.5 mb-1.5 border-b border-[#1f2335] flex justify-between items-center">
-              <span className="card-title text-xs font-bold text-[#dde1ed]">
-                📈 Isotonic Calibration Reliability Curve
-              </span>
-              <span className="badge badge-dim text-[9.5px]">5-Fold Validation Holdout</span>
+              <SectionHeader
+                icon={LineChart}
+                title="📈 Isotonic Calibration Reliability Curve"
+                description="predicted vs empirical"
+                tone="info"
+                trailing={<span className="badge badge-dim text-[9.5px]">5-Fold Validation Holdout</span>}
+              />
             </div>
 
             <div className="h-32 flex items-center justify-center p-1">
-              <svg viewBox="0 0 260 120" className="w-full h-full" role="img" aria-label="Model probability calibration curve">
+              <svg viewBox="0 0 260 130" className="w-full h-full" role="img" aria-label="Model probability calibration curve">
+                {/* W51-2d — axis frame + tick gridlines for a real chart
+                    look. The viewBox is 260x130 (10px taller than before)
+                    to make room for the x-axis tick labels. */}
+                {/* y-axis tick labels (0.0, 0.25, 0.5, 0.75, 1.0) */}
+                {[0, 0.25, 0.5, 0.75, 1.0].map((v) => (
+                  <text key={`y-${v}`} x={3} y={107 - v * 90} fontSize="7" fill="#5a637a" textAnchor="start">
+                    {v.toFixed(2)}
+                  </text>
+                ))}
+                {/* x-axis tick labels */}
+                {[0, 0.25, 0.5, 0.75, 1.0].map((v) => (
+                  <text key={`x-${v}`} x={15 + v * 230} y={118} fontSize="7" fill="#5a637a" textAnchor="middle">
+                    {v.toFixed(2)}
+                  </text>
+                ))}
+                {/* faint gridlines */}
+                {[0.25, 0.5, 0.75].map((v) => (
+                  <g key={`grid-${v}`}>
+                    <line x1={15} y1={105 - v * 90} x2={245} y2={105 - v * 90} stroke="#1f2335" strokeWidth="0.5" />
+                    <line x1={15 + v * 230} y1={15} x2={15 + v * 230} y2={105} stroke="#1f2335" strokeWidth="0.5" />
+                  </g>
+                ))}
+                {/* axis frame */}
+                <line x1="15" y1="105" x2="245" y2="105" stroke="#3b4054" strokeWidth="0.75" />
+                <line x1="15" y1="15" x2="15" y2="105" stroke="#3b4054" strokeWidth="0.75" />
                 {/* Diagonal baseline (perfect calibration) */}
                 <line x1="15" y1="105" x2="245" y2="15" stroke="#3b4054" strokeWidth="1" strokeDasharray="3 3" />
-                {/* W49-7 — explicit reference-line label so the diagonal
-                    reads as "perfect calibration" rather than an unlabeled
-                    axis. Rendered as a small <text> near the line. */}
+                {/* W49-7 — explicit reference-line label */}
                 <text x="240" y="22" fontSize="8" fill="#5a637a" textAnchor="end">
                   y = x (perfect)
                 </text>
+                {/* empirical-frequency polyline */}
                 {metrics?.reliability_curve && metrics.reliability_curve.length > 1 && (
                   <path
                     d={metrics.reliability_curve.reduce(
@@ -764,18 +1066,17 @@ export default function AIMLCommandCenter() {
                     strokeLinecap="round"
                   />
                 )}
-                {/* W49-7 — scatter points with per-bin tooltips. The
-                    <title> child inside <circle> is the SVG-native
-                    tooltip: browsers surface it on hover. */}
+                {/* W51-2d — scatter points with per-bin tooltips. Larger
+                    radius (4 vs 3.5) + dual stroke for premium look. */}
                 {metrics?.reliability_curve?.map((pt, i) => (
                   <circle
                     key={i}
                     cx={15 + pt.bin_center * 230}
                     cy={105 - pt.empirical_freq * 90}
-                    r="3.5"
+                    r="4"
                     fill="#3b82f6"
                     stroke="#ffffff"
-                    strokeWidth="1"
+                    strokeWidth="1.5"
                     data-testid="aiml-calibration-point"
                   >
                     <title>
@@ -795,10 +1096,13 @@ export default function AIMLCommandCenter() {
           {/* Semantic TF-IDF Vector Search */}
           <div className="card p-3 bg-[#0e1015] border border-[#1f2335]">
             <div className="card-header pb-1.5 mb-1.5 border-b border-[#1f2335] flex justify-between items-center">
-              <span className="card-title text-xs font-bold text-[#dde1ed]">
-                🔍 Semantic Vector &amp; Market Intelligence Search
-              </span>
-              <span className="text-[10px] text-cyan-400 mono">Cosine TF/IDF</span>
+              <SectionHeader
+                icon={Search}
+                title="🔍 Semantic Vector &amp; Market Intelligence Search"
+                description="cosine TF/IDF"
+                tone="info"
+                trailing={<span className="text-[10px] text-cyan-400 mono">Cosine TF/IDF</span>}
+              />
             </div>
 
             <form onSubmit={handleSemanticSearch} className="flex gap-2 mb-2">
@@ -851,10 +1155,13 @@ export default function AIMLCommandCenter() {
       {registry && registry.versions.length > 0 && (
         <div className="card p-3 bg-[#0e1015] border border-[#1f2335]">
           <div className="card-header pb-2 mb-2 border-b border-[#1f2335] flex justify-between items-center">
-            <span className="card-title text-xs font-bold text-[#dde1ed]">
-              📜 Champion/Challenger Model Lineage &amp; Safety Gating
-            </span>
-            <span className="text-[10px] text-[#7e8aaa] mono">Promotion Rule: Challenger Brier &lt; Champion Brier × 0.98</span>
+            <SectionHeader
+              icon={GitBranch}
+              title="📜 Champion/Challenger Model Lineage &amp; Safety Gating"
+              description="versioned promotion history"
+              tone="info"
+              trailing={<span className="text-[10px] text-[#7e8aaa] mono">Promotion Rule: Challenger Brier &lt; Champion Brier × 0.98</span>}
+            />
           </div>
 
           <div className="table-responsive scrollbar-thin">

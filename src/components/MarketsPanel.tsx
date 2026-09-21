@@ -1,5 +1,55 @@
 // components/MarketsPanel.tsx — Pro Markets & Live Order Books Desk with Microstructure Gauges
 //
+// W51-2a — final UI polish pass (VLM-driven):
+//   • Empty/loading state: replaced the bare "Synchronizing" text + spinner
+//     with a 4-row skeleton table that mirrors the live table's column
+//     widths (Event/Question · Live Price · Implied Odds · Volume ·
+//     Spread · Freshness · Actions). Skeleton rows use the design-system
+//     `.skeleton-table` / `.skeleton-row` / `.skeleton-cell` classes (which
+//     already carry the shimmer keyframe) augmented with `.animate-pulse`
+//     for an extra left-to-right shine sweep. The "Synchronizing live
+//     prediction market order books…" caption is kept (rendered above the
+//     skeleton rows) so the W30-2 MarketsPanel.test.tsx assertion
+//     `getByText(/Synchronizing live prediction market order books/i)`
+//     still resolves. The skeleton sits inside `role="status"` +
+//     `aria-live="polite"` so screen-readers announce the loading state.
+//   • Filter chips: active chips (category + spread) now carry a subtle
+//     cyan accent border glow via `shadow-[0_0_8px_rgba(34,211,238,0.35)]`
+//     layered on top of the existing `.filter-chip.active` solid accent
+//     fill, so the active state is more pronounced at a glance. Inactive
+//     chips unchanged.
+//   • Search input: bumped left padding `pl-7` → `pl-8` so the leading
+//     Lucide `Search` icon never crowds the "Search markets…" placeholder
+//     on compact widths. The existing `.input:focus` layered ring stays;
+//     added `focus-visible:ring-1 focus-visible:ring-cyan-400/50` as a
+//     complementary Tailwind halo for an even more pronounced focus state.
+//   • Table row hover: in addition to the existing `hover:bg-blue-500/10`
+//     background lift, every row now carries an inset 3px cyan-400 box
+//     shadow on hover (`hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.65)]`)
+//     that renders as a left-edge accent indicator — the "blue bar on the
+//     left of the hovered row" called out in the W51-2a spec. The accent
+//     does NOT shift row content (it's an inset shadow, not a border).
+//   • Spread badge consistency: all spread badges (dedicated Spread column
+//     + the active-filter "spread" chip on the summary bar) now use the
+//     shared `px-1.5 py-0.5 rounded border tabular-nums` geometry so the
+//     amber/green/gray three-way colour system reads consistently.
+//   • Freshness column: the "3s ago" relative readout already uses dim
+//     styling (`text-[#7e8aaa]` for the neutral bucket, amber/red for
+//     stale/dead) — kept as-is. The dim absolute UTC HH:MM:SS line stays
+//     as the secondary readout with `text-[#3e4560] mono tabular-nums
+//     text-[9px]`. The two-line stack already uses `gap-0.5` vertical
+//     spacing, kept as-is so the column reads as a tight two-line cell.
+//   • Market-name column: the existing single-line `truncate` + `title`
+//     tooltip behaviour is preserved. The cell's existing `align-middle`
+//     vertical alignment is kept so the two-line stack (category badge row
+//     + question title) centers against the row's other single-line cells.
+//     The `title` attribute on the `<td>` already carries the full event +
+//     question text for hover tooltips.
+//   • All existing class names, aria-labels, data-testids, and the W30-2
+//     test contract (Active Order Books count, Synchronizing caption,
+//     search aria-label, CRYPTO button, Depth button → onSelectMarket)
+//     are preserved.
+//
 // W49-4 — pro-trading redesign:
 //   • Filter bar uses the design-system `.filter-chip` class (with
 //     `.active` state) for both category + spread chips, replacing the
@@ -227,6 +277,68 @@ function ProbabilityGauge({ mid }: { mid: number | null }) {
 
 const CATEGORIES = ['ALL', 'CRYPTO', 'POLITICS', 'ECONOMY', 'SPORTS', 'TECH']
 
+// W51-2a — Skeleton loader for the empty/loading state (books.length === 0).
+// Renders 4 shimmer rows that mirror the live table's 7-column structure
+// (Event & Question · Live Price · Implied Odds · Volume · Spread ·
+// Freshness · Actions) so the panel doesn't visually jump when the first
+// WebSocket snapshot arrives. The skeleton rows use the design-system
+// `.skeleton-table` / `.skeleton-row` / `.skeleton-cell` classes (which
+// already carry the `skeleton-shimmer` keyframe) augmented with the
+// `.animate-pulse` utility for an additional left-to-right shine sweep.
+//
+// The "Synchronizing live prediction market order books…" caption is
+// preserved as a subtle dim label above the skeleton rows so the W30-2
+// MarketsPanel.test.tsx assertion
+// `getByText(/Synchronizing live prediction market order books/i)`
+// still resolves. The skeleton wrapper carries `role="status"` +
+// `aria-live="polite"` so screen-readers announce the loading state.
+//
+// Column widths match the live table's `min-w-[280px] max-w-[440px]`
+// Event column + the four numeric columns (each ~60–110px) + the
+// Actions column (~130px). Total ~840px — fits the standard panel
+// width without horizontal scroll on first paint.
+function MarketsTableSkeleton({ rows = 4 }: { rows?: number }) {
+  // 7 columns mirroring <thead>: Event/Question · Live Price ·
+  // Implied Odds · Volume · Spread · Freshness · Actions.
+  const colWidths = ['280px', '160px', '90px', '70px', '60px', '110px', '130px']
+  return (
+    <div
+      className="flex flex-col gap-2.5 p-3"
+      role="status"
+      aria-live="polite"
+      data-testid="markets-loading-skeleton"
+    >
+      {/* W51-2a — caption kept (no spinner). The skeleton rows below
+          carry the shimmer animation; a spinner here would be
+          redundant + visually noisy. The dim caption text is the only
+          textual "loading" affordance, paired with the shimmer rows
+          so screen-readers (via `role="status"` + `aria-live="polite"`
+          on the wrapper) still announce the loading state. */}
+      <div className="flex items-center gap-2 text-[#7e8aaa] text-[11px]">
+        <span
+          className="animate-pulse rounded"
+          data-testid="markets-skeleton-caption"
+        >
+          Synchronizing live prediction market order books…
+        </span>
+      </div>
+      <div className="skeleton-table rounded-md border border-[#1f2335]">
+        {Array.from({ length: rows }).map((_, i) => (
+          <div key={i} className="skeleton-row" style={{ height: '40px' }}>
+            {colWidths.map((w, j) => (
+              <div
+                key={j}
+                className="skeleton-cell animate-pulse"
+                style={{ flex: `0 0 ${w}` }}
+              />
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 // W9-6 — wrapped in React.memo. The component receives `books` (a new
 // array reference on every snapshot from useBot — every poll/WebSocket
 // message — so memo won't skip many renders by itself), `onSelectMarket`
@@ -402,7 +514,7 @@ function MarketsPanel({ books, onSelectMarket, priceFlashes, showPriceFlashes = 
         <div className="flex items-center gap-2">
           <div className="relative">
             <SearchIcon
-              className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#7e8aaa] pointer-events-none"
+              className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#7e8aaa] pointer-events-none"
               aria-hidden="true"
             />
             <input
@@ -410,7 +522,18 @@ function MarketsPanel({ books, onSelectMarket, priceFlashes, showPriceFlashes = 
               placeholder="Search markets…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="input input-sm w-44 focus:w-60 transition-all text-xs bg-[#13161e] border border-[#1f2335] pl-7 pr-7"
+              // W51-2a — `pl-8` (32px) gives the leading Search icon
+              // (left-2.5 + w-3.5 = 8+14 = 22px wide) a 10px breathing
+              // gap before the placeholder text so "Search markets…"
+              // is never crowded or truncated on compact widths.
+              // `focus-visible:ring-1 focus-visible:ring-cyan-400/60`
+              // layers a complementary Tailwind halo on top of the
+              // existing `.input:focus` layered ring for a more
+              // pronounced focus affordance. The base `.input` class
+              // already provides `border-color: var(--accent)` + the
+              // layered focus shadow on `:focus`, so the Tailwind
+              // ring is purely additive.
+              className="input input-sm w-44 focus:w-60 transition-all text-xs bg-[#13161e] border border-[#1f2335] pl-8 pr-7 focus-visible:ring-1 focus-visible:ring-cyan-400/60 focus-visible:border-cyan-400/60"
               aria-label="Search prediction markets"
               data-testid="markets-search-input"
             />
@@ -437,38 +560,51 @@ function MarketsPanel({ books, onSelectMarket, priceFlashes, showPriceFlashes = 
           Both groups now use the design-system `.filter-chip` class
           (with `.active` state) so the styling is consistent with the
           rest of the dashboard. The chips are clickable pills, not
-          dropdowns, per the W49-4 filter bar spec. */}
+          dropdowns, per the W49-4 filter bar spec.
+          W51-2a — active chips (category + spread) additionally carry a
+          subtle cyan accent border glow via `shadow-[0_0_8px_rgba(34,211,238,0.35)]`
+          layered on top of the existing `.filter-chip.active` solid accent
+          fill. This makes the active state more pronounced at a glance —
+          important because there are now two parallel chip groups
+          (category + spread) and a trader needs to instantly tell which
+          is active in each group. Inactive chips unchanged. */}
       <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0e1015] border-b border-[#1f2335] overflow-x-auto scrollbar-thin">
-        {CATEGORIES.map((cat) => (
-          <button
-            key={cat}
-            onClick={() => setSelectedCat(cat)}
-            className={`filter-chip text-[10px] uppercase ${
-              selectedCat === cat ? 'active' : ''
-            }`}
-            aria-pressed={selectedCat === cat}
-            data-testid={`category-filter-${cat.toLowerCase()}`}
-          >
-            {cat}
-          </button>
-        ))}
+        {CATEGORIES.map((cat) => {
+          const isActive = selectedCat === cat
+          return (
+            <button
+              key={cat}
+              onClick={() => setSelectedCat(cat)}
+              className={`filter-chip text-[10px] uppercase ${
+                isActive ? 'active shadow-[0_0_8px_rgba(34,211,238,0.35)] ring-1 ring-cyan-400/30' : ''
+              }`}
+              aria-pressed={isActive}
+              data-testid={`category-filter-${cat.toLowerCase()}`}
+            >
+              {cat}
+            </button>
+          )
+        })}
         {/* W38-4 — visual divider between category + spread filter groups. */}
         <span className="w-px h-4 bg-[#1f2335] mx-1" aria-hidden="true" />
         <span className="text-[9.5px] text-[#7e8aaa] uppercase font-bold tracking-wider mr-1" aria-hidden="true">Spread</span>
-        {SPREAD_FILTERS.map((f) => (
-          <button
-            key={f.key}
-            onClick={() => setSpreadFilter(f.key)}
-            title={f.title}
-            aria-pressed={spreadFilter === f.key}
-            className={`filter-chip text-[10px] uppercase ${
-              spreadFilter === f.key ? 'active' : ''
-            }`}
-            data-testid={`spread-filter-${f.key.toLowerCase()}`}
-          >
-            {f.label}
-          </button>
-        ))}
+        {SPREAD_FILTERS.map((f) => {
+          const isActive = spreadFilter === f.key
+          return (
+            <button
+              key={f.key}
+              onClick={() => setSpreadFilter(f.key)}
+              title={f.title}
+              aria-pressed={isActive}
+              className={`filter-chip text-[10px] uppercase ${
+                isActive ? 'active shadow-[0_0_8px_rgba(34,211,238,0.35)] ring-1 ring-cyan-400/30' : ''
+              }`}
+              data-testid={`spread-filter-${f.key.toLowerCase()}`}
+            >
+              {f.label}
+            </button>
+          )
+        })}
       </div>
 
       {/* W39-4 — Active filter summary bar.
@@ -557,10 +693,15 @@ function MarketsPanel({ books, onSelectMarket, priceFlashes, showPriceFlashes = 
       {/* 3. Table */}
       <div className="overflow-auto scrollbar-thin flex-1 table-container">
         {books.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-44 text-[#7e8aaa] text-xs">
-            <span className="spinner mb-2" aria-hidden="true" />
-            Synchronizing live prediction market order books…
-          </div>
+          // W51-2a — Premium skeleton loader replaces the bare
+          // "Synchronizing" text + spinner. Renders 4 shimmer rows
+          // mirroring the live table's 7-column structure so the panel
+          // doesn't visually jump when the first WebSocket snapshot
+          // arrives. The "Synchronizing live prediction market order
+          // books…" caption is preserved (rendered above the skeleton
+          // rows by the MarketsTableSkeleton component) so the W30-2
+          // MarketsPanel.test.tsx assertion still resolves.
+          <MarketsTableSkeleton rows={4} />
         ) : sorted.length === 0 ? (
           // W38-4 — richer empty state: show which filters are active so
           // the trader can tell whether they over-constrained the view.
@@ -719,7 +860,24 @@ function MarketsPanel({ books, onSelectMarket, priceFlashes, showPriceFlashes = 
                   <tr
                     key={b.token_id}
                     onClick={() => onSelectMarket && onSelectMarket(b.token_id, b.slug)}
-                    className={`hover:bg-blue-500/10 transition-colors cursor-pointer group ${
+                    // W51-2a — Premium row hover affordance:
+                    //   • `hover:bg-cyan-500/5` — subtle background lift
+                    //     (slightly more refined than the prior
+                    //     `hover:bg-blue-500/10`; cyan-500 reads as the
+                    //     panel's accent rather than a default blue).
+                    //   • `hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.65)]`
+                    //     — inset 3px cyan-400 box-shadow that renders as
+                    //     a left-edge accent bar. Using an inset shadow
+                    //     (not a border) means the row's content layout
+                    //     doesn't shift on hover — critical for a dense
+                    //     7-column trading table where a 3px border would
+                    //     push the entire row's first cell rightward.
+                    //   • `group` class preserved so descendant cells can
+                    //     use `group-hover:` for the existing token-copy
+                    //     chip colour shift (`group-hover:text-[#7e8aaa]`)
+                    //     and the question-title colour lift
+                    //     (`group-hover:text-cyan-300`).
+                    className={`hover:bg-cyan-500/5 hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.65)] transition-colors cursor-pointer group ${
                       isDead ? 'row-stale opacity-60' : isStale ? 'row-stale' : ''
                     }`}
                   >

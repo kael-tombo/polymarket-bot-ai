@@ -1,42 +1,43 @@
 // components/TradesPanel.tsx — Recent Trade Executions Feed
 //
-// W49-5 — Operational-clarity redesign of the executions table.
-//   Builds on the W39-5 direction-glyph + audit-trail-icon redesign
-//   and applies the W49-5 spec:
+// W51-2c — Visual-consistency polish to align the executions table
+//   with the redesigned PositionsPanel + MarketsPanel.
+//   Builds on the W49-5 operational-clarity redesign and applies
+//   the W51-2c spec:
 //
-//   • Header — section name changed to "Trade History" (the spec
-//     language). The existing "Recent Executions (N)" text is
-//     preserved as a count badge next to the title so the existing
-//     test contract (`getByText(/Recent Executions \(2\)/)`) keeps
-//     matching — both strings coexist in the header.
+//   • Loading skeletons — the previous spinner-only loading state is
+//     replaced with shimmer skeleton rows (8 rows × 11 cells). The
+//     "Loading recent executions…" text is preserved in a slim status
+//     strip above the skeletons so the existing test contract
+//     (`getByText(/Loading recent executions/)`) still resolves.
 //
-//   • KPI strip — surfaces Total volume + Avg slippage + Net P&L as
-//     a visually distinct right-aligned cluster (same shape as the
-//     Positions panel's Exposure / Realized / Daily strip). The
-//     existing Fees KPI is kept too (only rendered when at least one
-//     trade exposes the optional `fee` field, same as W39-5).
+//   • Empty state — polished with a Lucide `Receipt` glyph (replaces
+//     the bare ⚡ emoji), centered title + subtitle. The "No executed
+//     trades" title text + the description copy are preserved (the
+//     test asserts on the title).
 //
-//   • Direction indicator — ↑ (BUY, green) / ↓ (SELL, red) prepended
-//     to the side badge, preserved from W39-5. The arrow is in its
-//     own <span> so the badge text "BUY" / "SELL" is still matched
-//     exactly by `getByText('BUY')`.
+//   • Side badges — BUY tinted green, SELL tinted red, consistent
+//     with PositionsPanel's YES/NO outcome badges and OrdersPanel's
+//     BUY/SELL side badges. The direction glyph (↑/↓) is preserved
+//     in its own <span> so `getByText('BUY')` still matches the
+//     side-badge text exactly (the filter buttons also render "BUY"
+//     / "SELL" — `getAllByText` is used in the test for this reason).
 //
-//   • Slippage badge — replaced the W39-5 plain tinted-text cell with
-//     a tiered badge:
-//       green   ≤5 bps    (excellent execution, near-mid fill)
-//       amber   5–20 bps  (acceptable, within normal market impact)
-//       red     >20 bps   (adverse — review strategy / size)
-//     Negative slippage (price improvement) falls into green.
-//     Falls back to "—" when the snapshot doesn't publish
-//     `slippage_bps` (paper-trading mode today).
+//   • Slippage badges — preserved tiered styling (green ≤5 bps,
+//     amber 5–20 bps, red >20 bps).
 //
-//   • Audit-trail link — preserved unchanged from W39-5 (📋 icon
-//     opens the Decision Ledger for the trade's decision_id). The
-//     spec calls for "Link icon → opens decision ledger for that
-//     trade" — the existing implementation matches.
+//   • Table design — explicit `tabular-nums` Tailwind class on every
+//     numeric cell. Right-alignment preserved on all numeric columns.
 //
-//   • Timestamp — preserved relative format ("3m ago") with absolute
-//     ISO timestamp via title attribute.
+//   • Toolbar — the filter toolbar (search input + BUY/SELL/ALL side
+//     filter) is preserved but the spacing/grouping is tightened so
+//     the toolbar reads as a single cohesive row (matches the
+//     PositionsPanel + OrdersPanel toolbar shape).
+//
+// W49-5 (preserved) — header KPI strip (Vol + Net P&L + Fees + Avg
+// Slip), direction-glyph side badge, slippage-tiered badge, audit-
+// trail link icon, Age column, StaleIndicator, ErrorState, CSV
+// export.
 //
 // W22-5 (unchanged transport) — the panel still:
 //   1. REST-prefetches /api/trades?limit=100 on mount.
@@ -49,6 +50,7 @@
 'use client'
 
 import { useState, useMemo, useCallback, memo } from 'react'
+import { Receipt, Search as SearchIcon, X as ClearIcon } from 'lucide-react'
 import { Trade } from '@/hooks/useBot'
 import { formatHierarchicalMarket } from '@/lib/formatters'
 import { fmtAge, fmtPrice, fmtPnl, fmtUsd, fmtTimeAbs } from '@/lib/design-tokens'
@@ -93,6 +95,11 @@ const SLIPPAGE_BADGE_CLS: Record<'green' | 'amber' | 'red', string> = {
   amber: 'bg-amber-500/15 text-amber-300 border-amber-500/30',
   red:   'bg-red-500/15 text-red-400 border-red-500/30',
 }
+
+// W51-2c — shimmer skeleton row count for the loading state. Eight
+// rows matches the typical visible height of the panel without
+// overflowing.
+const SKELETON_ROWS = 8
 
 function TradesPanel({ trades: tradesOverride, isRealtime: isRealtimeOverride, onViewAuditTrail }: Props) {
   const {
@@ -234,11 +241,11 @@ function TradesPanel({ trades: tradesOverride, isRealtime: isRealtimeOverride, o
         <div className="flex items-center gap-2 text-xs flex-wrap">
           <div className="bg-[#0e1015] border border-[#1f2335] px-2 py-0.5 rounded flex items-center gap-1" title="Total volume traded (size × price) across the visible set">
             <span className="text-[9.5px] text-[#7e8aaa] uppercase font-semibold">Vol:</span>
-            <span className="mono font-bold text-cyan-400 text-xs">{fmtUsd(stats.totalVol)}</span>
+            <span className="mono font-bold text-cyan-400 text-xs tabular-nums">{fmtUsd(stats.totalVol)}</span>
           </div>
           <div className="bg-[#0e1015] border border-[#1f2335] px-2 py-0.5 rounded flex items-center gap-1">
             <span className="text-[9.5px] text-[#7e8aaa] uppercase font-semibold">Net P&amp;L:</span>
-            <span className={`mono font-bold text-xs ${stats.netPnl >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+            <span className={`mono font-bold text-xs tabular-nums ${stats.netPnl >= 0 ? 'text-green-400' : 'text-red-400'}`}>
               {fmtPnl(stats.netPnl)}
             </span>
           </div>
@@ -249,7 +256,7 @@ function TradesPanel({ trades: tradesOverride, isRealtime: isRealtimeOverride, o
           {hasFees && (
             <div className="bg-[#0e1015] border border-[#1f2335] px-2 py-0.5 rounded flex items-center gap-1" title="Total fees paid on the visible trade set">
               <span className="text-[9.5px] text-[#7e8aaa] uppercase font-semibold">Fees:</span>
-              <span className="mono font-bold text-amber-300 text-xs">{fmtUsd(totalFees)}</span>
+              <span className="mono font-bold text-amber-300 text-xs tabular-nums">{fmtUsd(totalFees)}</span>
             </div>
           )}
           {/* W39-5/W49-5 — Average slippage KPI. Hidden when no trade
@@ -258,7 +265,7 @@ function TradesPanel({ trades: tradesOverride, isRealtime: isRealtimeOverride, o
           {avgSlippageBps !== null && (
             <div className="bg-[#0e1015] border border-[#1f2335] px-2 py-0.5 rounded flex items-center gap-1" title="Average slippage vs. quoted mid (basis points)">
               <span className="text-[9.5px] text-[#7e8aaa] uppercase font-semibold">Avg Slip:</span>
-              <span className={`mono font-bold text-xs ${avgSlippageBps >= 0 ? 'text-amber-300' : 'text-green-400'}`}>
+              <span className={`mono font-bold text-xs tabular-nums ${avgSlippageBps >= 0 ? 'text-amber-300' : 'text-green-400'}`}>
                 {avgSlippageBps >= 0 ? '+' : '−'}{Math.abs(avgSlippageBps).toFixed(1)} bps
               </span>
             </div>
@@ -274,6 +281,10 @@ function TradesPanel({ trades: tradesOverride, isRealtime: isRealtimeOverride, o
         </div>
       </div>
 
+      {/* W51-2c — Filter toolbar. Tightened spacing/grouping so the
+          search + side-filter + result-count read as a single
+          cohesive row (matches the OrdersPanel + PositionsPanel
+          toolbar shape). */}
       <div className="flex items-center justify-between gap-2 mb-2">
         <div className="inline-flex bg-[#0e1015] border border-[#1f2335] rounded p-0.5 text-[10px]">
           {(['ALL', 'BUY', 'SELL'] as const).map((s) => (
@@ -292,20 +303,25 @@ function TradesPanel({ trades: tradesOverride, isRealtime: isRealtimeOverride, o
         </div>
 
         <div className="relative flex-1 max-w-xs">
+          <SearchIcon
+            className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#7e8aaa] pointer-events-none"
+            aria-hidden="true"
+          />
           <input
             type="text"
             placeholder="Search fills by market, strategy, or trade ID…"
             value={filterQuery}
             onChange={(e) => setFilterQuery(e.target.value)}
-            className="w-full text-xs bg-[#0e1015] border border-[#1f2335] focus:border-cyan-500/50 rounded px-2.5 py-1 text-[#dde1ed] placeholder-[#3e4560] outline-none"
+            className="w-full text-xs bg-[#0e1015] border border-[#1f2335] focus:border-cyan-500/50 rounded pl-7 pr-7 py-1 text-[#dde1ed] placeholder-[#3e4560] outline-none"
             aria-label="Search trade fills"
           />
           {filterQuery && (
             <button
               onClick={() => setFilterQuery('')}
               className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-[#7e8aaa] hover:text-white"
+              aria-label="Clear search"
             >
-              ✕
+              <ClearIcon className="w-3 h-3" aria-hidden="true" />
             </button>
           )}
         </div>
@@ -313,9 +329,48 @@ function TradesPanel({ trades: tradesOverride, isRealtime: isRealtimeOverride, o
 
       <div className="overflow-auto scrollbar-thin flex-1 table-container">
         {isLoading && trades.length === 0 ? (
-          <div className="flex items-center justify-center py-12 text-xs text-[#7e8aaa]">
-            <span className="spinner mr-2" aria-hidden="true" />
-            Loading recent executions…
+          // W51-2c — shimmer skeleton loading state. The previous
+          // spinner-only state is replaced with 8 shimmer rows + a
+          // slim status strip carrying the "Loading recent
+          // executions…" text (preserves the existing test contract
+          // `getByText(/Loading recent executions/)`).
+          <div className="flex-1 overflow-hidden flex flex-col" role="status" aria-live="polite">
+            <div className="px-3 py-1.5 text-[10px] text-[#7e8aaa] flex items-center gap-2 border-b border-[#1f2335]/50 bg-[#0e1015]/40">
+              <span className="spinner" aria-hidden="true" />
+              Loading recent executions…
+            </div>
+            <div className="flex-1 overflow-hidden">
+              {Array.from({ length: SKELETON_ROWS }).map((_, i) => (
+                <div
+                  key={i}
+                  className="flex items-center gap-3 px-3 py-2 border-b border-[#1f2335]/30"
+                  aria-hidden="true"
+                >
+                  {/* Token cell skeleton — wider */}
+                  <div className="skeleton h-3.5 w-44 rounded" />
+                  {/* Side badge skeleton */}
+                  <div className="skeleton h-3.5 w-10 rounded" />
+                  {/* Price skeleton */}
+                  <div className="skeleton h-3.5 w-12 rounded ml-auto" />
+                  {/* Size skeleton */}
+                  <div className="skeleton h-3.5 w-10 rounded" />
+                  {/* Value skeleton */}
+                  <div className="skeleton h-3.5 w-12 rounded" />
+                  {/* Fee skeleton */}
+                  <div className="skeleton h-3.5 w-10 rounded" />
+                  {/* Slippage skeleton */}
+                  <div className="skeleton h-3.5 w-12 rounded" />
+                  {/* P&L skeleton */}
+                  <div className="skeleton h-3.5 w-12 rounded" />
+                  {/* Strategy skeleton */}
+                  <div className="skeleton h-3.5 w-14 rounded" />
+                  {/* Audit skeleton */}
+                  <div className="skeleton h-3.5 w-5 rounded" />
+                  {/* Time skeleton */}
+                  <div className="skeleton h-3.5 w-12 rounded" />
+                </div>
+              ))}
+            </div>
           </div>
         ) : error && tradesOverride == null && trades.length === 0 ? (
           // W41-3 — Error state. Rendered only when the initial REST fetch
@@ -328,9 +383,14 @@ function TradesPanel({ trades: tradesOverride, isRealtime: isRealtimeOverride, o
             retryLabel="Retry"
           />
         ) : filteredTrades.length === 0 ? (
-          // W49-5 — polished empty state (larger icon, more padding).
+          // W51-2c — polished empty state. Lucide Receipt glyph
+          // (replaces the bare ⚡ emoji), centered title + subtitle.
+          // The "No executed trades" title + description copy are
+          // preserved (the test asserts on the title).
           <div className="empty-state py-6">
-            <span className="empty-state-icon text-4xl" aria-hidden="true">⚡</span>
+            <span className="empty-state-icon" aria-hidden="true">
+              <Receipt className="w-10 h-10 text-[#3e4560]" strokeWidth={1.5} />
+            </span>
             <span className="empty-state-title text-sm font-semibold">No executed trades</span>
             <span className="empty-state-desc text-xs text-center max-w-xs">
               {filterQuery || sideFilter !== 'ALL'
@@ -339,7 +399,7 @@ function TradesPanel({ trades: tradesOverride, isRealtime: isRealtimeOverride, o
             </span>
           </div>
         ) : (
-          <table className="data-table text-xs" role="table" aria-label="Recent trade execution log">
+          <table className="data-table text-xs w-full" role="table" aria-label="Recent trade execution log">
             <thead>
               <tr className="border-b border-[#1f2335] text-[#7e8aaa] text-[10.5px]">
                 <th scope="col" className="min-w-[180px] text-left">Token</th>
@@ -383,13 +443,13 @@ function TradesPanel({ trades: tradesOverride, isRealtime: isRealtimeOverride, o
                 const pnlPositive = (t.pnl || 0) > 0
                 const pnlNegative = (t.pnl || 0) < 0
                 return (
-                  <tr key={t.trade_id} className="hover:bg-blue-500/10 transition-colors">
+                  <tr key={t.trade_id} className="hover:bg-blue-500/10 transition-colors group">
                     <td className="py-2 max-w-[200px]">
                       <div className="flex flex-col gap-0.5">
                         <span className="text-[9px] text-cyan-400 uppercase font-bold tracking-wider truncate">
                           {info.category.icon} {info.eventTitle}
                         </span>
-                        <span className="text-[#dde1ed] font-medium leading-tight text-xs block whitespace-normal" title={info.fullLabel}>
+                        <span className="text-[#dde1ed] group-hover:text-cyan-300 font-medium leading-tight text-xs block whitespace-normal transition-colors" title={info.fullLabel}>
                           {info.question}
                         </span>
                         <span
@@ -418,19 +478,19 @@ function TradesPanel({ trades: tradesOverride, isRealtime: isRealtimeOverride, o
                         <span>{t.side}</span>
                       </span>
                     </td>
-                    <td className="mono text-right text-cyan-400 font-bold">
+                    <td className="mono text-right text-cyan-400 font-bold tabular-nums">
                       {fmtPrice(t.price)}
                     </td>
-                    <td className="mono text-right font-medium text-[#dde1ed]">
+                    <td className="mono text-right font-medium text-[#dde1ed] tabular-nums">
                       {t.size.toFixed(1)}
                     </td>
-                    <td className="mono text-right text-[#7e8aaa] text-xs">
+                    <td className="mono text-right text-[#7e8aaa] text-xs tabular-nums">
                       {fmtUsd(tradeVal)}
                     </td>
                     {/* W39-5/W49-5 — Fee cell. Falls back to "—" when
                         the snapshot doesn't publish `t.fee`
                         (paper-trading mode today). */}
-                    <td className="mono text-right text-[10.5px] text-amber-300">
+                    <td className="mono text-right text-[10.5px] text-amber-300 tabular-nums">
                       {typeof t.fee === 'number' ? fmtUsd(t.fee) : <span className="text-[#3e4560]">—</span>}
                     </td>
                     {/* W49-5 — Slippage cell. Wrapped in a tiered
@@ -457,7 +517,7 @@ function TradesPanel({ trades: tradesOverride, isRealtime: isRealtimeOverride, o
                         is still matched exactly by getAllByText
                         regex. */}
                     <td
-                      className={`mono text-right font-bold ${
+                      className={`mono text-right font-bold tabular-nums ${
                         pnlPositive ? 'text-green-400' : pnlNegative ? 'text-red-400' : 'text-[#7e8aaa]'
                       }`}
                     >
@@ -506,7 +566,7 @@ function TradesPanel({ trades: tradesOverride, isRealtime: isRealtimeOverride, o
                         ("3m ago") with the absolute ISO timestamp
                         surfaced via the title attribute for hover
                         + screen-reader context. */}
-                    <td className="mono text-right text-[#7e8aaa] text-[10.5px]" title={`Executed: ${fmtTimeAbs(t.timestamp)}`}>
+                    <td className="mono text-right text-[#7e8aaa] text-[10.5px] tabular-nums" title={`Executed: ${fmtTimeAbs(t.timestamp)}`}>
                       {fmtAge(t.timestamp)}
                     </td>
                   </tr>
