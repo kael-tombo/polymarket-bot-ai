@@ -454,12 +454,12 @@
   --status-critical:    #dc2626;
   --status-info:        #2563eb;
 
-  /* ── Shadows — softer slate-900 shadows, not black smudges ───────────── */
-  --shadow-xs: 0 1px 2px  rgba(15, 23, 42, 0.06);
-  --shadow-sm: 0 2px 4px  rgba(15, 23, 42, 0.08);
-  --shadow-md: 0 4px 10px rgba(15, 23, 42, 0.10);
-  --shadow-lg: 0 10px 24px rgba(15, 23, 42, 0.12);
-  --shadow-xl: 0 20px 48px rgba(15, 23, 42, 0.16);
+  /* ── Shadows — W61-d: darker slate-900 shadows for crisper depth on white ── */
+  --shadow-xs: 0 1px 2px  rgba(15, 23, 42, 0.10);
+  --shadow-sm: 0 2px 4px  rgba(15, 23, 42, 0.12);
+  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.15);
+  --shadow-lg: 0 10px 28px rgba(15, 23, 42, 0.20);
+  --shadow-xl: 0 24px 56px rgba(15, 23, 42, 0.26);
 
   /* ── Chart palette — darker variants for white-bg legibility ─────────── */
   --chart-primary:   #2563eb;
@@ -617,6 +617,11 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow: hidden;
+  /* W61-d — Smooth theme transition. Only color channels animate so
+     layout/transforms stay deterministic. Note: next-themes' `disableTransitionOnChange`
+     suppresses this during the actual toggle event (instant flip); the rule still
+     applies to subsequent style changes (e.g. background-image swap). */
+  transition: background-color 200ms ease, color 200ms ease, border-color 200ms ease;
 }
 
 /* ── Smooth transitions on interactive elements ───────────────────────────
@@ -2670,20 +2675,21 @@ svg[tabindex="0"]:focus-visible,
   /* Layered focus ring: 2px page-color moat + 4px accent halo. */
   --ring-focus-layered: 0 0 0 2px var(--bg-base), 0 0 0 4px var(--accent);
 }
-/* Light-theme: softer slate-900 ambient shadows, white focus moat. */
+/* Light-theme: W61-d — softer slate-900 ambient shadows bumped for
+   crisper visibility on white, white focus moat. */
 .light {
-  --shadow-ambient: 0 12px 32px -10px rgba(15, 23, 42, 0.18);
-  --shadow-key:     0 4px 12px -2px  rgba(15, 23, 42, 0.10);
-  --shadow-contact: 0 1px 2px   0     rgba(15, 23, 42, 0.06);
+  --shadow-ambient: 0 14px 36px -10px rgba(15, 23, 42, 0.22);
+  --shadow-key:     0 4px 12px -2px  rgba(15, 23, 42, 0.14);
+  --shadow-contact: 0 1px 2px   0     rgba(15, 23, 42, 0.08);
   --shadow-card-premium:
     0 1px 0 0 rgba(255, 255, 255, 0.80) inset,
     var(--shadow-contact), var(--shadow-key), var(--shadow-ambient);
   --shadow-popover-premium:
     0 1px 0 0 rgba(255, 255, 255, 0.90) inset,
-    0 2px 4px rgba(15, 23, 42, 0.08), 0 12px 28px rgba(15, 23, 42, 0.14);
+    0 2px 4px rgba(15, 23, 42, 0.10), 0 14px 32px rgba(15, 23, 42, 0.18);
   --shadow-modal-premium:
     0 1px 0 0 rgba(255, 255, 255, 0.95) inset,
-    0 4px 8px rgba(15, 23, 42, 0.10), 0 24px 56px rgba(15, 23, 42, 0.20);
+    0 4px 8px rgba(15, 23, 42, 0.12), 0 24px 56px rgba(15, 23, 42, 0.26);
   --ring-focus-layered: 0 0 0 2px var(--bg-page), 0 0 0 4px var(--accent);
 }
 
@@ -2907,4 +2913,990 @@ svg[tabindex="0"]:focus-visible,
   .sidebar-status-dot.is-stale,
   .animate-pulse { animation: none !important; }
   .kpi-card::after { transition: none; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   W61-b — ACCESSIBILITY POLISH (WCAG AA enhancement pass)
+   Additive layer — extends (never renames) existing classes/tokens so
+   all component tests continue to pass. 10 refinements:
+     1. Layered focus-visible ring on every interactive element.
+     2. Skip link → high-contrast accent fill + bold weight.
+     3. `.sr-only` confirmed + `.not-sr-only` undo utility.
+     4. Consolidated reduced-motion safety net.
+     5. `@media (prefers-contrast: more)` boosts text/border tokens.
+     6. Color contrast: text-dim lifted above 4.5:1; semantic borders widen.
+     7. `.light` audit — every token has a counterpart (no action needed).
+     8. `[aria-live]` visual styling (polite=stripe, assertive=flash).
+     9. `:focus` outline visible everywhere, suppressed on mouse focus.
+    10. Color-blind support: diagonal stripes on heatmap + exposure-bar;
+        `.status-dot[data-status]` reveals label on hover/focus.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* 1. Layered focus-visible ring on ALL interactive elements ───────────────
+   Extends W50-2a layered ring (already on .btn/.input/.select/etc.) to
+   every focusable element — native + ARIA roles + [tabindex]. Element/
+   attribute selectors (specificity 0,1,1) win over the earlier
+   generic `*:focus-visible` (0,1,0). */
+a:focus-visible,
+button:focus-visible,
+input:not([type="hidden"]):focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+summary:focus-visible,
+[role="button"]:focus-visible,
+[role="tab"]:focus-visible,
+[role="link"]:focus-visible,
+[role="menuitem"]:focus-visible,
+[role="menuitemcheckbox"]:focus-visible,
+[role="menuitemradio"]:focus-visible,
+[role="option"]:focus-visible,
+[role="checkbox"]:focus-visible,
+[role="radio"]:focus-visible,
+[role="switch"]:focus-visible,
+[role="treeitem"]:focus-visible,
+[contenteditable="true"]:focus-visible,
+[tabindex]:not([tabindex="-1"]):focus-visible {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  box-shadow: var(--ring-focus-layered);
+  border-radius: var(--radius-sm);
+}
+
+/* 2. Skip-link high-contrast polish ───────────────────────────────────────
+   The default skip-link (above) uses `bg-elevated` + `text-primary`
+   which is ~7.8:1 dark / ~17:1 light — already WCAG AAA. But the
+   spec asks for "high contrast" — flip to the accent fill so the link
+   reads instantly when it appears on Tab. */
+.skip-link {
+  background: var(--accent);
+  color: var(--text-on-accent);
+  font-weight: var(--font-bold);
+  border: 2px solid var(--text-on-accent);
+  box-shadow: var(--shadow-md);
+}
+.skip-link:hover {
+  background: var(--accent-hover);
+  color: var(--text-on-accent);
+}
+.skip-link:focus,
+.skip-link:focus-visible {
+  transform: translateY(0);
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+  box-shadow: var(--ring-focus-layered), var(--shadow-md);
+}
+
+/* 3. `.not-sr-only` — undo `.sr-only` for responsive reveal ──────────────
+   Mirror of Tailwind's `.not-sr-only`. Use when a screen-reader-only
+   label should become visible at a breakpoint (e.g. `.not-sr-only.md:not-sr-only`). */
+.not-sr-only {
+  position: static !important;
+  width: auto !important;
+  height: auto !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow: visible !important;
+  clip: auto !important;
+  clip-path: none !important;
+  white-space: normal !important;
+  border: 0 !important;
+}
+
+/* 4. Consolidated reduced-motion safety net ───────────────────────────────
+   The existing per-component `prefers-reduced-motion` blocks above remain
+   in effect; this is the global backstop that catches anything they
+   miss (framer-motion inline styles, third-party widget transitions). */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto !important; }
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.001ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
+    caret-color: auto !important;
+  }
+  [style*="transition"],
+  [style*="animation"],
+  .recharts-tooltip-wrapper,
+  .recharts-surface,
+  .recharts-active-dot,
+  .recharts-bar-rectangle,
+  .value-updated,
+  [aria-live="assertive"] {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* 5 + 6. High-contrast mode (prefers-contrast: more) ──────────────────────
+   Boosts every text/border token so the dimmest label clears 4.5:1 and
+   every UI border is at least 3:1 (WCAG 1.4.11 non-text contrast).
+   Lightens `--text-dim` from #6b7280 (4.2:1 on dark bg) to #a1a8b5 (7.8:1)
+   in dark, and from #94a3b8 to #334155 in light. */
+@media (prefers-contrast: more) {
+  :root {
+    --text-primary:    #ffffff;
+    --text-secondary:  #c8cfe0;
+    --text-dim:        #a1a8b5;
+    --text-muted:      #7e8aaa;
+    --border:          #3a3f4a;
+    --border-strong:   #4a5161;
+    --border-dim:      #2a2e3a;
+    --border-hover:    #5a6172;
+  }
+  .light {
+    --text-primary:    #000000;
+    --text-secondary:   #1e293b;
+    --text-dim:         #334155;
+    --text-muted:       #475569;
+    --border:           #475569;
+    --border-strong:    #334155;
+    --border-dim:       #64748b;
+    --border-hover:     #1e293b;
+  }
+  /* Widen semantic borders so they read at distance. */
+  .badge, .banner-experimental, .banner-warning, .banner-danger,
+  .banner-info, .banner-success, .kill-switch-banner,
+  .observation-banner, .mode-badge { border-width: 2px; }
+  .card, .kpi-card, .modal, .input, .select, .filter-chip,
+  .tab-item, .tab-bar, .sidebar, .topbar, .data-table th,
+  .data-table td, .table-footer { border-width: 1.5px; }
+  /* Boost status-dot halo so it clears 3:1 non-text contrast. */
+  .status-dot {
+    box-shadow: 0 0 0 2px var(--bg-base), 0 0 0 4px currentColor;
+  }
+  /* Disable translucent backgrounds — solid tints read better. */
+  .badge, .banner-experimental, .banner-warning, .banner-danger,
+  .banner-info, .banner-success {
+    background-image: none;
+    backdrop-filter: none;
+  }
+}
+
+/* 7. Light-theme parity audit (no additions needed) ───────────────────────
+   Every token declared in `:root` has a `.light` counterpart (lines
+   371-520 above). The W50-2a `.light` block (lines 2674-2688) flips the
+   premium shadows + ring-focus-layered. No further action required. */
+
+/* 8. ARIA live region visual styling ──────────────────────────────────────
+   `[aria-live="polite"]` — subtle accent stripe on the left edge so
+   sighted users also perceive the region without it screaming.
+   `[aria-live="assertive"]` — amber flash + prominent background so
+   sighted users notice the urgent update. Empty regions are hidden to
+   avoid stray borders on mount. */
+[aria-live="polite"]:not([aria-hidden="true"]):not(:empty) {
+  position: relative;
+  border-left: 2px solid var(--accent-bd);
+  padding-left: var(--space-2);
+}
+[aria-live="polite"]:empty { display: none; }
+[aria-live="assertive"]:not([aria-hidden="true"]):not(:empty) {
+  position: relative;
+  border-left: 3px solid var(--color-amber);
+  background: var(--color-amber-bg);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  animation: aria-live-assertive-flash 0.6s ease-out;
+}
+[aria-live="assertive"]:empty { display: none; }
+@keyframes aria-live-assertive-flash {
+  0%   { background: var(--color-amber); color: var(--text-on-accent); }
+  100% { background: var(--color-amber-bg); color: inherit; }
+}
+/* Visually-hidden live regions stay invisible — the rules above only
+   apply when the region has visible content. */
+[aria-live].sr-only,
+[aria-live].sr-live {
+  border: 0 !important;
+  background: transparent !important;
+  padding: 0 !important;
+  animation: none !important;
+}
+
+/* 9. Keyboard navigation — `:focus` outlines visible on all focusable ────
+   `:focus-visible` is the modern trigger (mouse-clicks don't show the
+   ring), but some AT pairings fire `:focus` first. Set the outline
+   color here so the transition is smooth; suppress on mouse focus
+   via `:focus:not(:focus-visible)`. */
+*:focus {
+  outline-color: var(--accent);
+}
+*:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* 10. Color-blind support — patterns alongside color-only indicators ──────
+    WCAG 1.4.1 Use of Color: never rely on color alone. Add diagonal
+    stripes (positive vs negative) on heatmap cells and hatching on
+    warning/danger exposure-bar fills. Status dots that expose a
+    `data-status` attribute get a hover/focus-revealed text label. */
+.heatmap-cell-pos-1, .heatmap-cell-pos-2, .heatmap-cell-pos-3 {
+  background-image: repeating-linear-gradient(
+    45deg, transparent 0, transparent 3px,
+    rgba(255, 255, 255, 0.12) 3px, rgba(255, 255, 255, 0.12) 4px);
+}
+.heatmap-cell-neg-1, .heatmap-cell-neg-2, .heatmap-cell-neg-3 {
+  background-image: repeating-linear-gradient(
+    -45deg, transparent 0, transparent 3px,
+    rgba(0, 0, 0, 0.18) 3px, rgba(0, 0, 0, 0.18) 4px);
+}
+.exposure-bar-fill.warning {
+  background-image: repeating-linear-gradient(
+    45deg, var(--color-amber) 0, var(--color-amber) 6px,
+    rgba(0, 0, 0, 0.18) 6px, rgba(0, 0, 0, 0.18) 9px);
+}
+.exposure-bar-fill.danger {
+  background-image: repeating-linear-gradient(
+    45deg, var(--color-red) 0, var(--color-red) 6px,
+    rgba(0, 0, 0, 0.22) 6px, rgba(0, 0, 0, 0.22) 9px);
+}
+/* Status-dot label reveal — opt-in via `data-status` attribute.
+   Components render `<span class="status-dot healthy"
+   data-status="healthy" />` and the label appears on hover/focus. */
+.status-dot[data-status] { position: relative; }
+.status-dot[data-status]::after {
+  content: attr(data-status);
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: var(--text-2xs);
+  font-weight: var(--font-bold);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--duration-fast) var(--easing-std);
+}
+.status-dot[data-status]:hover::after,
+.status-dot[data-status]:focus-visible::after { opacity: 1; }
+
+/* High-contrast parity for color-blind patterns — solidify stripes. */
+@media (prefers-contrast: more) {
+  .heatmap-cell-pos-1, .heatmap-cell-pos-2, .heatmap-cell-pos-3 {
+    background-image: repeating-linear-gradient(
+      45deg, transparent 0, transparent 2px,
+      rgba(255, 255, 255, 0.35) 2px, rgba(255, 255, 255, 0.35) 3px);
+  }
+  .heatmap-cell-neg-1, .heatmap-cell-neg-2, .heatmap-cell-neg-3 {
+    background-image: repeating-linear-gradient(
+      -45deg, transparent 0, transparent 2px,
+      rgba(0, 0, 0, 0.40) 2px, rgba(0, 0, 0, 0.40) 3px);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   W61-a — RESPONSIVE / MOBILE POLISH (additive over W49-1 + W50-2a)
+   Targets the 32-panel workstation across mobile (≤640), tablet
+   (641–1024), desktop (≥1025). All rules below are either @media
+   overrides of earlier defaults OR new additive classes that do NOT
+   collide with existing selectors. No tokens/class names renamed.
+   Breakpoint ladder: xs 480 · sm 640 · md 768 · lg 1024 · xl 1280.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── 1. Mobile sidebar drawer — slide-in keyframe + refined backdrop ────── */
+@keyframes w61-sidebar-slide-in {
+  from { transform: translateX(-100%); opacity: 0.4; }
+  to   { transform: translateX(0);     opacity: 1; }
+}
+@keyframes w61-backdrop-fade-in {
+  from { opacity: 0; } to { opacity: 1; }
+}
+@media (max-width: 767px) {
+  .sidebar {
+    animation: w61-sidebar-slide-in var(--duration-slow) var(--easing-enter);
+    box-shadow: var(--shadow-modal-premium);
+    z-index: 45;
+  }
+  .sidebar:not(.mobile-open) { box-shadow: none; animation: none; }
+  /* Refine backdrop — radial vignette + blur bloom. Selector matches
+     Sidebar.tsx markup so the test contract (`[aria-hidden="true"].fixed.inset-0`) still resolves. */
+  [aria-hidden="true"].fixed.inset-0 {
+    background: radial-gradient(circle at 50% 50%, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.72) 100%);
+    -webkit-backdrop-filter: blur(6px) saturate(120%);
+            backdrop-filter: blur(6px) saturate(120%);
+    animation: w61-backdrop-fade-in var(--duration-base) var(--easing-enter);
+  }
+}
+
+/* ── 2. Responsive breakpoint audit — 3-col → 2-col → 1-col ladder ─────── */
+@media (max-width: 1280px) and (min-width: 1025px) {
+  .command-center-layout { gap: var(--space-1); }
+  .page-area { padding: var(--space-2); }
+}
+@media (max-width: 768px) {
+  .page-area { padding: var(--space-2); }
+  .main-content { overflow: visible; }
+}
+
+/* ── 3. KPI card grid responsive — hero 3→2→1, P&L 5→3→2 ────────────────── */
+.dashboard-hero-row { display: grid; grid-template-columns: 1fr; gap: var(--space-3); }
+@media (min-width: 480px) { .dashboard-hero-row { grid-template-columns: 1fr 1fr; } }
+@media (min-width: 768px) { .dashboard-hero-row { grid-template-columns: 1fr 1fr 1fr; } }
+.dashboard-pnl-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2); }
+@media (min-width: 640px)  { .dashboard-pnl-row { grid-template-columns: 1fr 1fr 1fr; } }
+@media (min-width: 1024px) { .dashboard-pnl-row { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+@media (max-width: 640px) {
+  .kpi-card { padding: var(--space-2); }
+  .kpi-card .kpi-value { font-size: var(--text-lg); }
+  .kpi-card .kpi-label { font-size: var(--text-xs); }
+}
+
+/* ── 4. Table responsive — sticky first column + styled thin scrollbar ─── */
+@media (max-width: 768px) {
+  .table-responsive {
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(161,168,181,0.22) transparent;
+  }
+  .table-responsive::-webkit-scrollbar { height: 5px; width: 5px; }
+  .table-responsive::-webkit-scrollbar-track { background: transparent; }
+  .table-responsive::-webkit-scrollbar-thumb {
+    background: rgba(161,168,181,0.22); border-radius: 9999px;
+    border: 1px solid transparent; background-clip: padding-box;
+  }
+  .table-responsive::-webkit-scrollbar-thumb:hover {
+    background: rgba(59,130,246,0.55); background-clip: padding-box;
+  }
+  /* Sticky first column — header sits at z-10, first-cell at z-11,
+     corner cell at z-12 so both axes can scroll independently. */
+  .table-responsive th:first-child,
+  .table-responsive td:first-child,
+  .table-responsive .data-table th:first-child,
+  .table-responsive .data-table td:first-child {
+    position: sticky; left: 0; z-index: 11;
+    background: var(--bg-surface);
+    box-shadow: inset -1px 0 0 0 var(--border);
+  }
+  .table-responsive thead th:first-child { background: var(--bg-elevated); z-index: 12; }
+  .table-responsive tbody tr:hover td:first-child { background: var(--bg-elevated); }
+  .light .table-responsive th:first-child,
+  .light .table-responsive td:first-child { background: var(--bg-surface); }
+  .light .table-responsive thead th:first-child { background: var(--bg-elevated); }
+}
+
+/* ── 5. Top status bar responsive — graceful control collapse ──────────── */
+@media (max-width: 480px) {
+  .topbar { padding: 0 var(--space-2); gap: var(--space-2); }
+}
+@media (max-width: 640px) {
+  .topbar { gap: var(--space-2); }
+}
+
+/* ── 6. Touch targets — minimum 44×44px on mobile (WCAG 2.5.5) ─────────── */
+@media (max-width: 768px) and (pointer: coarse) {
+  .btn, .sidebar-item, .tab-item, .filter-chip, .modal-close,
+  [role="button"], [role="tab"], [role="link"],
+  button:not([disabled]), .touch-target {
+    min-height: 44px; min-width: 44px;
+  }
+  /* Inline icon-only buttons with aria-labels stay 36px. */
+  .btn-ico.btn-sm, .btn-icon.btn-sm, button[aria-label].btn-sm {
+    min-height: 36px; min-width: 36px;
+  }
+}
+
+/* ── 7. Mobile bottom navigation (opt-in, additive — no consumer yet) ──── */
+.mobile-bottom-nav { display: none; }
+@media (max-width: 768px) and (pointer: coarse) {
+  .mobile-bottom-nav {
+    display: flex; position: fixed; left: 0; right: 0; bottom: 0;
+    padding: var(--space-1) var(--space-1) env(safe-area-inset-bottom, 0px);
+    height: calc(56px + env(safe-area-inset-bottom, 0px));
+    background: rgba(20,22,28,0.92);
+    -webkit-backdrop-filter: blur(12px) saturate(140%);
+            backdrop-filter: blur(12px) saturate(140%);
+    border-top: 1px solid var(--border-strong);
+    box-shadow: 0 -8px 24px -8px rgba(0,0,0,0.55);
+    z-index: var(--z-topbar);
+    align-items: stretch; justify-content: space-around; gap: var(--space-1);
+  }
+  .mobile-bottom-nav .mbn-item {
+    flex: 1 1 0; min-height: 44px; min-width: 44px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 2px; border-radius: var(--radius-md);
+    color: var(--text-secondary);
+    font-size: var(--text-2xs); font-weight: var(--font-semibold);
+    letter-spacing: 0.04em; text-transform: uppercase; text-decoration: none;
+    border: 1px solid transparent;
+    transition: background var(--duration-fast) var(--easing-std),
+                color var(--duration-fast) var(--easing-std);
+  }
+  .mobile-bottom-nav .mbn-item:hover,
+  .mobile-bottom-nav .mbn-item:active {
+    background: var(--bg-elevated); color: var(--accent-fg);
+  }
+  .mobile-bottom-nav .mbn-item.is-active {
+    color: var(--accent-fg); background: var(--accent-muted); border-color: var(--accent-bd);
+  }
+  .app-shell:has(.mobile-bottom-nav) .main-content {
+    padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* ── 8. Font sizes — ≥14px body, ≥12px labels on mobile ────────────────── */
+@media (max-width: 768px) {
+  html { font-size: 15px; }
+  body { font-size: var(--text-md); line-height: var(--leading-normal); }
+  .kpi-label, .sidebar-label, .tab-item, .filter-chip, .data-table th {
+    font-size: max(12px, var(--text-xs));
+  }
+  .mono, .data-table td, [class*="tabular-nums"] {
+    font-size: max(12px, var(--text-sm));
+  }
+  .kpi-card .kpi-value { font-size: max(18px, var(--text-lg)); }
+}
+
+/* ── 9. Safe area insets — iOS notch / home indicator ──────────────────── */
+@media (max-width: 768px) {
+  .app-shell {
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+  }
+  .topbar { padding-top: env(safe-area-inset-top, 0px); }
+  .page-area { padding-bottom: env(safe-area-inset-bottom, 0px); }
+}
+@media (display-mode: standalone), (display-mode: fullscreen) {
+  .app-shell { padding-top: env(safe-area-inset-top, 0px); }
+}
+
+/* ── 10. Print styles — hide chrome, show only main content ─────────────── */
+@media print {
+  .sidebar, .sidebar ~ [aria-hidden="true"], .topbar, .mobile-bottom-nav,
+  .modal-backdrop, .modal, [role="dialog"],
+  [data-tooltip]::after, [data-tooltip]::before,
+  .toast-container, .sonner-toast, [class*="toast-"],
+  [aria-hidden="true"].fixed.inset-0 {
+    display: none !important; visibility: hidden !important;
+  }
+  .app-shell {
+    display: block !important; background: #ffffff !important; padding: 0 !important;
+  }
+  .main-content {
+    display: block !important; overflow: visible !important; width: 100% !important;
+  }
+  .page-area { overflow: visible !important; padding: 0 !important; height: auto !important; }
+  .command-center-layout, .workstation-split-layout {
+    display: block !important; height: auto !important; overflow: visible !important;
+  }
+  .command-center-layout > *, .workstation-split-layout > * {
+    page-break-inside: avoid; margin-bottom: 12px;
+  }
+  html, body { background: #ffffff !important; color: #0a0b0f !important; }
+  .card, .kpi-card, .data-table thead th, .data-table td {
+    background: #ffffff !important; color: #0a0b0f !important;
+    box-shadow: none !important; border-color: #d1d5db !important;
+  }
+  .data-table thead th { background: #f3f4f6 !important; }
+  .data-table tr, .data-table td, .data-table th { page-break-inside: avoid; }
+  * { animation: none !important; transition: none !important; }
+}
+
+/* Reduced-motion parity for W61-a drawer/backdrop animations. */
+@media (prefers-reduced-motion: reduce) {
+  .sidebar { animation: none !important; }
+  [aria-hidden="true"].fixed.inset-0 { animation: none !important; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   W61-c — ANIMATION & TRANSITION POLISH
+   Additive layer over W49-1 / W50-2a / W58-f / W61-a. Premium motion
+   polish: spring panel entrances, directional value-flash, gradient-sweep
+   shimmer, refined pulse-dot halo, scale+fade modal transitions, smooth
+   scroll, staggered list entrances, button micro-interactions. All new
+   animations honor prefers-reduced-motion (the global reduced-motion
+   block at the top of this file collapses animation-duration to 0.01ms
+   on every element, so the keyframes below effectively no-op; the
+   reduced-motion block at the end of this section adds explicit
+   visibility guards for opacity-0 initial states). NO existing class
+   names or tokens are renamed; cascade layering means later rules of
+   equal specificity win per-property.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Motion tokens — additive, do not override existing ─────────────────── */
+:root {
+  --duration-page:    320ms;   /* panel / page entrance */
+  --duration-stagger:  55ms;    /* per-item stagger step */
+  --duration-flash:   700ms;   /* value-flash background pulse */
+  --duration-ping:      1.8s;   /* pulse-dot halo period */
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   1. PAGE / PANEL TRANSITIONS — spring-eased fade + translateY
+   Apply .animate-panel-enter to route wrappers / panel containers for a
+   delightful spring entrance (fade + 8px rise). Pair with
+   .animate-panel-exit (fade + 6px fall, --easing-exit) for unmount.
+   .transition-spring is a spring-eased opacity+transform bundle for
+   Framer-Motion-less panel swaps.
+   ═══════════════════════════════════════════════════════════════════════════ */
+@keyframes w61c-panel-enter {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes w61c-panel-exit {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(-6px); }
+}
+.animate-panel-enter {
+  animation: w61c-panel-enter var(--duration-page) var(--easing-spring) both;
+}
+.animate-panel-exit {
+  animation: w61c-panel-exit var(--duration-base) var(--easing-exit) both;
+}
+.transition-spring {
+  transition:
+    opacity var(--duration-base) var(--easing-spring),
+    transform var(--duration-base) var(--easing-spring);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   2. NUMBER FLASH — directional (green up / red down) + bg pulse
+   Enhances the existing .value-updated (accent-blue flash). Add .value-up
+   or .value-down alongside .value-updated to flash green / red. The
+   keyframes animate background-color only (no color shift) so the
+   number text stays legible. .value-flash-pulse is a neutral radial
+   halo for non-colored flash targets.
+   ═══════════════════════════════════════════════════════════════════════════ */
+@keyframes w61c-value-flash-up {
+  0%   { background-color: rgba(16, 185, 129, 0.30); }
+  50%  { background-color: rgba(16, 185, 129, 0.12); }
+  100% { background-color: transparent; }
+}
+@keyframes w61c-value-flash-down {
+  0%   { background-color: rgba(239, 68, 68, 0.30); }
+  50%  { background-color: rgba(239, 68, 68, 0.12); }
+  100% { background-color: transparent; }
+}
+@keyframes w61c-value-flash-bg {
+  0%   { box-shadow: 0 0 0 0   rgba(59, 130, 246, 0.30); }
+  100% { box-shadow: 0 0 0 6px rgba(59, 130, 246, 0); }
+}
+.value-updated.value-up   { animation: w61c-value-flash-up   var(--duration-flash) var(--easing-std); }
+.value-updated.value-down { animation: w61c-value-flash-down var(--duration-flash) var(--easing-std); }
+.value-flash-pulse        { animation: w61c-value-flash-bg   var(--duration-flash) var(--easing-std); }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   3. SHIMMER — smooth gradient sweep using --easing-std
+   The existing skeleton classes use skeleton-shimmer with ease-in-out.
+   .shimmer-sweep is an opt-in overlay that layers a moving bright band
+   (105deg diagonal, 1.8s --easing-std loop) over any element. Apply to
+   .skeleton-card, .kpi-skeleton, or custom loading placeholders for a
+   glossy "glass sweeping" sheen. Light-theme variant included.
+   ═══════════════════════════════════════════════════════════════════════════ */
+@keyframes w61c-shimmer-sweep {
+  0%   { background-position: -150% 0; }
+  100% { background-position:  250% 0; }
+}
+.shimmer-sweep {
+  position: relative;
+  overflow: hidden;
+}
+.shimmer-sweep::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.06) 48%,
+    rgba(255, 255, 255, 0.12) 50%,
+    rgba(255, 255, 255, 0.06) 52%,
+    transparent 70%
+  );
+  background-size: 250% 100%;
+  background-repeat: no-repeat;
+  animation: w61c-shimmer-sweep 1.8s var(--easing-std) infinite;
+  pointer-events: none;
+  border-radius: inherit;
+}
+.light .shimmer-sweep::after {
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    rgba(15, 23, 42, 0.04) 48%,
+    rgba(15, 23, 42, 0.10) 50%,
+    rgba(15, 23, 42, 0.04) 52%,
+    transparent 70%
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   4. HOVER TIMING CONSISTENCY
+   --duration-fast (120ms) for simple color changes; --duration-base
+   (180ms) for transforms. The broad transition rule at the top of this
+   file already covers button/a/input/select/textarea/.btn/.card/.badge/
+   .filter-chip/.sidebar-item/.tab-item/.modal-close/[data-tooltip]
+   with --duration-fast on background/border/color. Below we extend
+   consistent timing to freshness indicators + exposure bars.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.kpi-stale-pill,
+.kpi-error-pill,
+.freshness-fresh,
+.freshness-ok,
+.freshness-stale,
+.freshness-dead {
+  transition:
+    background-color var(--duration-fast) var(--easing-std),
+    border-color var(--duration-fast) var(--easing-std),
+    color var(--duration-fast) var(--easing-std);
+}
+.exposure-bar-fill {
+  transition:
+    width var(--duration-base) var(--easing-std),
+    background-color var(--duration-base) var(--easing-std);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   5. PULSE DOT — refined ping halo with smooth opacity falloff
+   Two-layer dot: .pulse-dot-core (solid dot + soft glow) sits above
+   .pulse-dot-halo (expanding ring that fades 0.55 → 0 over 70% of the
+   cycle, then holds invisible). Tone modifiers swap the core + halo
+   color. .slow / .fast modifiers scale the halo period.
+   ═══════════════════════════════════════════════════════════════════════════ */
+@keyframes w61c-pulse-dot-ping {
+  0%   { transform: scale(0.85); opacity: 0.55; }
+  70%  { transform: scale(1.85); opacity: 0; }
+  100% { transform: scale(1.85); opacity: 0; }
+}
+.pulse-dot {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+}
+.pulse-dot > .pulse-dot-core {
+  position: relative;
+  z-index: 1;
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--color-green);
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.55);
+}
+.pulse-dot > .pulse-dot-halo {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-full);
+  background: var(--color-green);
+  opacity: 0.55;
+  animation: w61c-pulse-dot-ping var(--duration-ping) var(--easing-std) infinite;
+}
+.pulse-dot.tone-amber  > .pulse-dot-core { background: var(--color-amber);  box-shadow: 0 0 6px rgba(245, 158, 11, 0.55); }
+.pulse-dot.tone-amber  > .pulse-dot-halo { background: var(--color-amber); }
+.pulse-dot.tone-red    > .pulse-dot-core { background: var(--color-red);    box-shadow: 0 0 6px rgba(239, 68, 68, 0.55); }
+.pulse-dot.tone-red    > .pulse-dot-halo { background: var(--color-red); }
+.pulse-dot.tone-blue   > .pulse-dot-core { background: var(--color-blue);   box-shadow: 0 0 6px rgba(59, 130, 246, 0.55); }
+.pulse-dot.tone-blue   > .pulse-dot-halo { background: var(--color-blue); }
+.pulse-dot.tone-cyan   > .pulse-dot-core { background: var(--color-cyan);   box-shadow: 0 0 6px rgba(6, 182, 212, 0.55); }
+.pulse-dot.tone-cyan   > .pulse-dot-halo { background: var(--color-cyan); }
+.pulse-dot.tone-purple > .pulse-dot-core { background: var(--color-purple); box-shadow: 0 0 6px rgba(139, 92, 246, 0.55); }
+.pulse-dot.tone-purple > .pulse-dot-halo { background: var(--color-purple); }
+.pulse-dot.slow > .pulse-dot-halo { animation-duration: calc(var(--duration-ping) * 1.4); }
+.pulse-dot.fast > .pulse-dot-halo { animation-duration: calc(var(--duration-ping) * 0.6); }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   6. MODAL / DRAWER TRANSITIONS — scale 0.96→1.0 + fade
+   .modal-backdrop fades in (--easing-enter); .modal scales 0.96→1.0
+   with a spring (--easing-spring) for a delightful entrance. Add
+   .is-exiting to reverse the animation for unmount. .drawer-enter-right
+   / .drawer-enter-left slide in 24px with spring for side sheets.
+   ═══════════════════════════════════════════════════════════════════════════ */
+@keyframes w61c-modal-enter {
+  from { opacity: 0; transform: scale(0.96) translateY(8px); }
+  to   { opacity: 1; transform: scale(1)    translateY(0); }
+}
+@keyframes w61c-modal-exit {
+  from { opacity: 1; transform: scale(1)    translateY(0); }
+  to   { opacity: 0; transform: scale(0.96) translateY(8px); }
+}
+@keyframes w61c-backdrop-enter {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes w61c-drawer-right {
+  from { opacity: 0; transform: translateX(24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes w61c-drawer-left {
+  from { opacity: 0; transform: translateX(-24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.modal-backdrop { animation: w61c-backdrop-enter var(--duration-base) var(--easing-enter) both; }
+.modal          { animation: w61c-modal-enter   var(--duration-slow) var(--easing-spring) both; }
+.modal.is-exiting,
+.modal-backdrop.is-exiting { animation-direction: reverse; }
+.drawer-enter-right { animation: w61c-drawer-right var(--duration-slow) var(--easing-spring) both; }
+.drawer-enter-left  { animation: w61c-drawer-left  var(--duration-slow) var(--easing-spring) both; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   7. SCROLL BEHAVIOR — smooth anchor scrolling + sticky-header offset
+   Smooth scrolling for in-page anchors; scroll-padding-top ensures
+   anchor targets aren't hidden behind the sticky .topbar (42px) +
+   12px breathing room. Mobile tightens the offset to 8px.
+   ═══════════════════════════════════════════════════════════════════════════ */
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: calc(var(--topbar-height) + var(--space-3));
+}
+@media (max-width: 768px) {
+  html { scroll-padding-top: calc(var(--topbar-height) + var(--space-2)); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   8. STAGGER ENTRANCE — fade+rise per Nth item
+   Apply .stagger-item to a list of cards / table rows; pair with
+   .stagger-1 .. .stagger-12 to delay each sibling by N × 55ms. For
+   dynamic lists, set --stagger-index on each item and use
+   .stagger-by-index (no per-N class needed). Each item fades in
+   (opacity 0→1) + rises 6px with --easing-enter.
+   ═══════════════════════════════════════════════════════════════════════════ */
+@keyframes w61c-stagger-fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.stagger-item,
+.stagger-by-index {
+  opacity: 0;
+  animation: w61c-stagger-fade-in var(--duration-base) var(--easing-enter) forwards;
+}
+.stagger-by-index {
+  animation-delay: calc(var(--stagger-index, 0) * var(--duration-stagger));
+}
+.stagger-1  { animation-delay: calc(var(--duration-stagger) * 1); }
+.stagger-2  { animation-delay: calc(var(--duration-stagger) * 2); }
+.stagger-3  { animation-delay: calc(var(--duration-stagger) * 3); }
+.stagger-4  { animation-delay: calc(var(--duration-stagger) * 4); }
+.stagger-5  { animation-delay: calc(var(--duration-stagger) * 5); }
+.stagger-6  { animation-delay: calc(var(--duration-stagger) * 6); }
+.stagger-7  { animation-delay: calc(var(--duration-stagger) * 7); }
+.stagger-8  { animation-delay: calc(var(--duration-stagger) * 8); }
+.stagger-9  { animation-delay: calc(var(--duration-stagger) * 9); }
+.stagger-10 { animation-delay: calc(var(--duration-stagger) * 10); }
+.stagger-11 { animation-delay: calc(var(--duration-stagger) * 11); }
+.stagger-12 { animation-delay: calc(var(--duration-stagger) * 12); }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   10. MICRO-INTERACTIONS — scale(0.98) on :active
+   The .btn family already has scale(0.985)+spring on :active (W50-2a).
+   Below we extend the same affordance to other interactive primitives
+   that lacked it. .press-scale is an opt-in utility for custom elements.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.press-scale {
+  transition: transform var(--duration-fast) var(--easing-spring);
+}
+.sidebar-item:active,
+.tab-item:active,
+.filter-chip:active,
+.modal-close:active,
+[role="button"]:active,
+[role="tab"]:active,
+[role="link"]:active,
+.press-scale:active {
+  transform: scale(0.98);
+  transition: transform var(--duration-fast) var(--easing-spring);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   9. REDUCED MOTION — disable all non-essential W61-c animations
+   The global reduced-motion block at the top of this file already
+   collapses animation-duration to 0.01ms on every element. Below we add
+   explicit visibility guards so opacity-0 initial states (stagger) and
+   looping halos (pulse-dot) don't trap content invisibly or pulse.
+   Modals remain visible without motion.
+   ═══════════════════════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  .animate-panel-enter,
+  .animate-panel-exit,
+  .transition-spring,
+  .drawer-enter-right,
+  .drawer-enter-left,
+  .stagger-item,
+  .stagger-by-index,
+  .stagger-1, .stagger-2, .stagger-3, .stagger-4, .stagger-5, .stagger-6,
+  .stagger-7, .stagger-8, .stagger-9, .stagger-10, .stagger-11, .stagger-12,
+  .value-updated.value-up,
+  .value-updated.value-down,
+  .value-flash-pulse,
+  .shimmer-sweep::after,
+  .pulse-dot > .pulse-dot-halo {
+    animation: none !important;
+    transition: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  /* Modals still appear — keep visible without motion. */
+  .modal,
+  .modal-backdrop,
+  .modal.is-exiting,
+  .modal-backdrop.is-exiting {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  /* Spring :active scale collapses. */
+  .sidebar-item:active,
+  .tab-item:active,
+  .filter-chip:active,
+  .modal-close:active,
+  [role="button"]:active,
+  [role="tab"]:active,
+  [role="link"]:active,
+  .press-scale:active { transform: none !important; }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   W61-d — DARK/LIGHT THEME POLISH
+   Completes the dual-theme system. Adds theme-aware status-dot halos,
+   light-mode rim highlights for buttons/cards/KPI tiles (dark-mode
+   rules use white-tinted inset rims that vanish on white), light-mode
+   selection highlight, refined glassmorphism, and reduced-motion
+   parity for the new animations. All rules are additive — existing
+   class names, tokens, and test contracts preserved. Light-mode rules
+   win via later cascade + `.light` prefix specificity.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* 1. Light theme — selection highlight uses a darker accent tint so
+   selected text is still legible on white. Dark mode keeps the W49-1
+   default (rgba(59,130,246,0.35) + white text). */
+.light ::selection,
+.light ::-moz-selection {
+  background: rgba(37, 99, 235, 0.22);
+  color: #0f172a;
+  text-shadow: none;
+}
+
+/* 2. Light theme — refined glassmorphism: brighter white-tinted rgba
+   (was 0.86 → 0.92), stronger saturation, visible slate border. */
+.light .surface-tier-overlay {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  border: 1px solid rgba(203, 213, 225, 0.55);
+}
+
+/* 3. Light theme — inset rim highlights. The W50-2a .card-hover:hover,
+   .kpi-card.is-interactive:hover, .btn, .btn-primary rules use
+   rgba(255,255,255,…) inset rims which are invisible on white.
+   Override with slate-tinted rims so the layered premium effect
+   survives the theme flip. */
+.light .btn {
+  box-shadow: 0 1px 0 0 rgba(15, 23, 42, 0.04) inset, var(--shadow-contact);
+}
+.light .btn:hover {
+  box-shadow:
+    0 1px 0 0 rgba(15, 23, 42, 0.05) inset,
+    var(--shadow-contact), 0 2px 4px rgba(15, 23, 42, 0.10);
+}
+.light .btn:active {
+  transform: translateY(0) scale(0.985);
+  box-shadow:
+    0 1px 0 0 rgba(15, 23, 42, 0.02) inset,
+    0 0 0 1px rgba(15, 23, 42, 0.20) inset;
+  transition: transform var(--duration-fast) var(--easing-spring);
+}
+.light .btn-primary {
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.35) inset,
+    0 1px 2px rgba(15, 23, 42, 0.18),
+    0 4px 12px rgba(37, 99, 235, 0.30);
+}
+.light .btn-primary:hover {
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.40) inset,
+    0 2px 4px rgba(15, 23, 42, 0.20),
+    0 6px 18px rgba(37, 99, 235, 0.40);
+}
+.light .btn-primary:active {
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.25) inset,
+    0 0 0 1px rgba(255, 255, 255, 0.30) inset;
+}
+.light .card-hover:hover {
+  box-shadow:
+    0 1px 0 0 rgba(15, 23, 42, 0.04) inset,
+    0 0 0 1px var(--accent-bd), var(--shadow-key), var(--shadow-ambient);
+}
+.light .kpi-card.is-interactive:hover {
+  box-shadow:
+    0 1px 0 0 rgba(15, 23, 42, 0.04) inset,
+    0 0 0 1px var(--accent-bd), var(--shadow-key), var(--shadow-ambient);
+}
+
+/* 4. Light theme — status-dot halos use the darker light-mode semantic
+   hues (#16a34a / #dc2626 / #d97706) for crisp visibility on white.
+   Keyframes can't be scoped by .light, so swap the animation-name to
+   light-specific variants. */
+.light .status-dot.healthy {
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.22);
+  animation: status-dot-live-light 2.4s var(--easing-std) infinite;
+}
+.light .status-dot.connecting {
+  box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.24);
+  animation: status-dot-pulse-strong 1s var(--easing-std) infinite;
+}
+.light .status-dot.degraded    { box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.24); }
+.light .status-dot.unavailable { box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.24); }
+@keyframes status-dot-live-light {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.22); }
+  50%      { box-shadow: 0 0 0 5px rgba(22, 163, 74, 0.12); }
+}
+
+/* 5. Light theme — sidebar-status-dot halo uses darker light green
+   (#16a34a) for visibility on white. The .is-stale variant uses
+   the darker amber (#d97706). */
+.light .sidebar-status-dot {
+  background: var(--color-green);
+  box-shadow: 0 0 6px rgba(22, 163, 74, 0.55);
+  animation: sidebar-status-pulse-light 2.2s var(--easing-std) infinite;
+}
+.light .sidebar-status-dot.is-stale {
+  background: var(--color-amber);
+  box-shadow: 0 0 6px rgba(217, 119, 6, 0.55);
+  animation: sidebar-status-pulse-light-stale 1.4s var(--easing-std) infinite;
+}
+@keyframes sidebar-status-pulse-light {
+  0%, 100% { opacity: 1;    box-shadow: 0 0 6px rgba(22, 163, 74, 0.55); }
+  50%      { opacity: 0.60; box-shadow: 0 0 4px rgba(22, 163, 74, 0.30); }
+}
+@keyframes sidebar-status-pulse-light-stale {
+  0%, 100% { opacity: 1;    box-shadow: 0 0 6px rgba(217, 119, 6, 0.55); }
+  50%      { opacity: 0.60; box-shadow: 0 0 4px rgba(217, 119, 6, 0.30); }
+}
+
+/* 6. Light theme — recharts tooltip reinforcement. The chart-tooltip
+   tokens are already overridden in .light (lines ~484-488); this rule
+   forces the recharts-default-tooltip wrapper to honor them so the
+   tooltip border + bg + text all flip cleanly. */
+.light .recharts-tooltip-wrapper,
+.light .recharts-default-tooltip {
+  background: var(--chart-tooltip-bg) !important;
+  border: 1px solid var(--chart-tooltip-border) !important;
+  color: var(--chart-tooltip-text) !important;
+  box-shadow: var(--shadow-md);
+  border-radius: var(--radius-md);
+}
+
+/* 7. Light theme — premium scrollbar hover state uses the darker
+   accent (#2563eb) instead of the dark-mode #3b82f6 so the hover
+   affordance stays consistent with the rest of the light palette. */
+.light .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: rgba(37, 99, 235, 0.55);
+  background-clip: padding-box;
+}
+
+/* 8. Reduced-motion parity for W61-d animations. */
+@media (prefers-reduced-motion: reduce) {
+  .light .status-dot.healthy,
+  .light .status-dot.connecting,
+  .light .sidebar-status-dot,
+  .light .sidebar-status-dot.is-stale { animation: none !important; }
 }
