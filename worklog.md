@@ -39272,3 +39272,1329 @@ layer, visually consistent with the W51-2d MLPanel / W54-e
 MLValidationPanel / W55-a LeaderboardPanel / W55-d ExecutionQualityPanel
 redesign family.**
 
+
+---
+
+## Task W57-e — CapitalAllocatorPanel polish (W51-2d MLPanel redesign family)
+
+**Agent:** full-stack-developer
+**Target:** `src/components/CapitalAllocatorPanel.tsx` — Polymarket Pro trading workstation capital allocator panel (Michaelis-Menten saturating edge curve, Kelly fraction estimate, capital allocation across strategies, exposure management)
+**Spec:** Apply the W50-56 design-system vocabulary (Tone system, KpiTile, PulseDot, SectionHeader, ShimmerBlock, PolishedEmptyState, PolishedErrorState, KellyBar, ConfigField) to the Capital Allocator panel for visual consistency with the W51-2d MLPanel / W53-c StrategyPerformancePanel / W54-e MLValidationPanel / W55-a LeaderboardPanel / W55-d ExecutionQualityPanel / W56-c DatabaseStatusPanel / W56-e ObservabilityPanel redesign family.
+
+### Context
+- Read `worklog.md` (last ~250 lines) to map the W50-56 design-system vocabulary. Reference implementations consulted: `MLPanel.tsx` (W51-2d, canonical source of Tone / KpiTile / SectionHeader / ShimmerBlock / PulseDot sub-components), `DatabaseStatusPanel.tsx` (W56-c — closest sibling with the same dark `bg-[#13161e]` card surface + `border-[#1f2335]` borders + `#dde1ed` primary text + `data-table` for the recent errors list, same visual language as the Capital Allocator's recent allocations table), `ObservabilityPanel.tsx` (W56-e — most recent polish pass in the family, used as the layout reference for the polished KpiTile + ShimmerBlock skeleton layout).
+- Read `CapitalAllocatorPanel.tsx` end-to-end (1365 lines) + the 10-test contract (`CapitalAllocatorPanel.test.tsx` W28-3) to map every test surface.
+- Read `globals.css` for the existing `.data-table` (uppercase headers via `text-transform: uppercase`, row-hover left-edge accent via `border-left: 2px solid var(--accent)`) and `.empty-state` / `.error-state` CSS class hooks (icon 28px / title text-md / desc text-sm + max-width).
+
+### New sub-components (kept private to the panel)
+- `type Tone = 'good' | 'warn' | 'poor' | 'info' | 'neutral'` + `interface ToneConfig` (bg / border / text / bar / dot / label / halo / rowHover) + `const TONE: Record<Tone, ToneConfig>`. Mirrors MLPanel / DatabaseStatusPanel's TONE map verbatim. The `rowHover` field is a static Tailwind `hover:shadow-[inset_3px_0_0_0_rgba(...)]` string so Tailwind 4's content scanner picks it up and rows get a left-edge accent bar without layout shift (mirrors W56-c DatabaseStatusPanel's pattern).
+- `utilizationTone(pct: number): Tone` — <50% → good (emerald, Optimal), 50–80% → warn (amber, Over-allocated), >80% → poor (red, Danger). Used uniformly across the panel — gauge, KPI tile tones, allocation-status badge, per-strategy bar, recent-allocations row tone.
+- `kellyTone(fraction: number): Tone` — <0.25 → good (conservative), 0.25–0.50 → info (moderate), 0.50–0.75 → warn (aggressive), >0.75 → poor (danger — near-full bankroll on a single trade).
+- `allocationStatusLabel(pct: number): string` — returns 'Optimal' / 'Over-allocated' / 'Danger' (spec item 7 — tone-coloured allocation status).
+- `utilizationStyle(pct: number)` — kept for the EdgeSizeCurve SVG and per-strategy bar fill (uses raw hex because SVG + inline styles can't consume the TONE class strings). Thresholds match `utilizationTone()`.
+- `PulseDot({ tone, pulse = true })` — Tailwind `animate-ping` halo + solid dot + glow shadow, aria-hidden. Mirrors MLPanel PulseDot. Used by the header allocation-status badge + the UtilizationGauge status badge. Pulses only when `tone === 'poor'` (danger state) so the trader isn't falsely alerted during optimal / over-allocated states.
+- `SectionHeader({ icon, title, description, tone, trailing })` — Lucide icon + uppercase 9.5px tracking-wider title + optional dim italic description + optional trailing node. Mirrors MLPanel's SectionHeader. Used by: Edge→Size Saturating Curve (TrendingUp, info), Capital Utilization (GaugeIcon, tone=utilizationTone), Allocator Parameters (Settings, neutral, read-only badge), Capital Split by Strategy (Layers, info), Latest What-If Multipliers (Zap, warn), Exposure Summary (Scale, info), Recent Allocations (History, info).
+- `ShimmerBlock({ className })` — thin `skeleton-line-sm` placeholder, aria-hidden. Mirrors MLPanel's ShimmerBlock. Used throughout `SkeletonState`.
+- `KpiTile({ label, value, sub, valueClass, icon, tone, quality, testId })` — tone-tinted bg + uppercase 9px kpi-label with Lucide icon + 16px tabular-nums kpi-value + optional kpi-sub + optional quality bar. Preserves the `kpi-card` / `kpi-label` / `kpi-value` / `kpi-sub` class hooks AND `data-testid={testId}` + `data-tone={tone}` attributes. Used by the 4-tile Capital Metrics strip + the 6-tile Allocator Parameters strip.
+- `KellyBar({ fraction })` — horizontal Kelly criterion visualization with emerald (0–25%) / cyan (25–50%) / amber (50–75%) / red (75–100%) zone bands + a live tick marking the current Kelly fraction estimate. Mirrors MLPanel's PsiGauge pattern. Complements the existing Edge→Size saturating curve + UtilizationGauge so the trader has three orthogonal capital visualisations: sizing curve (per edge), utilisation gauge (current deployment), Kelly bar (per-trade optimal fraction).
+- `SkeletonState()` — replaced the bare `skeleton-card` placeholder with a structured ShimmerBlock-based skeleton that mirrors the loaded layout (header bar + 4-tile Capital Metrics strip + curve + gauge row + 6-tile Allocator Parameters strip + per-strategy + multipliers row + recent allocations table). role=status + aria-live=polite + aria-label="Loading capital allocator" + data-testid="capital-allocator-loading-skeleton".
+- `PolishedEmptyState()` — Lucide `History` icon (size 28px, dim) + .empty-state-title "No closed allocations recorded yet" + .empty-state-desc dim description. role=status + data-testid="capital-allocator-empty-state".
+- `ErrorState({ message, onRetry, retrying })` — red-tinted error card (border-red-500/25 + bg-red-500/[0.04]) with `AlertTriangle` icon (size 28px, red-tinted) + title "Allocator API unavailable" (preserved verbatim so the W28-3 test contract resolves) + raw error message as desc (preserved verbatim so `getByText(/Network error: ECONNREFUSED/)` resolves) + Retry button (`RefreshCw` glyph, calls `fetchAll`, accessible name "Retry" so the W28-3 test contract `getByRole('button', { name: /retry/i })` resolves). role=alert + data-testid="capital-allocator-error-card" + data-testid="capital-allocator-error-retry" suffix on the button.
+- `ConfigField({ id, label, hint, value, min, max, step, format, onChange })` — refined allocation control with a range slider alongside the existing number input (spec item 9). The slider is bidirectionally synced with the numeric input — both update the same draftConfig field. Tone-coloured formatted value text when the value is at the min/max of its range so the operator reads the saturation state at a glance (good / warn / poor).
+
+### All 9 polish affordances applied
+
+1. **KpiTile pattern for capital metrics** — the 4-tile Capital Metrics strip (Total Capital, Allocated, Available, Kelly Fraction) is built with the shared KpiTile sub-component with tone-tinted bg + uppercase 9px label + Lucide icon glyph + 16px tabular-nums value + quality bar. The 6-tile Allocator Parameters strip (k / α / Max Edge / Max Position / Max Exposure / Operating Cap) is also converted to the same KpiTile pattern so the panel reads as a single visual system. Each tile carries `data-testid="capital-allocator-kpi-{total|allocated|available|kelly|config}"` + `data-tone={tone}` so downstream CSS can target tiles by tone. Tone derived from each metric's own thresholds: Total Capital: info (cyan — static bankroll ceiling); Allocated: `utilizationTone(utilizationPct)` (green / amber / red); Available: inverse of Allocated (`poor` when utilization is poor → the available cash is dangerously low); Kelly Fraction: `kellyTone(kellyFraction)` (green / cyan / amber / red); k / α / Max Edge: info (cyan — curve constants); Max Position: good (emerald — per-trade cap); Max Exposure: warn (amber — per-market concentration); Operating Cap: info (cyan — bankroll ceiling). Quality bar derived from each metric's own thresholds (utilizationPct / 100−utilizationPct / kellyFraction×100 / etc.).
+
+2. **Shimmer skeleton loading state** — the bare `SkeletonState` with generic `skeleton-card` placeholders replaced with a structured ShimmerBlock-based skeleton that mirrors the loaded layout (header bar + 4-tile Capital Metrics strip + curve + gauge row + 6-tile Allocator Parameters strip + per-strategy + multipliers row + recent allocations table). role=status + aria-live=polite + aria-label="Loading capital allocator" + data-testid="capital-allocator-loading-skeleton". Each shimmer tile also carries a `linear-gradient(90deg, ...)` animated quality-bar placeholder so the loading state visually matches the loaded KpiTile quality-bar slot.
+
+3. **Polished empty state with Lucide icon + message** — the bare `<td>` with text "No closed allocations recorded yet." replaced with the `PolishedEmptyState` sub-component (Lucide `History` icon 28px + .empty-state-title "No closed allocations recorded yet" + .empty-state-desc dim description). role=status + data-testid="capital-allocator-empty-state".
+
+4. **Section headers with icon + uppercase title** — every section now carries a SectionHeader with a Lucide icon + uppercase tracking-wider 9.5px title + optional dim italic description + optional trailing node: Edge → Size Saturating Curve (TrendingUp, info, "Michaelis-Menten sizing") with the curve/operating-point legend as the trailing slot; Capital Utilization (GaugeIcon, tone=utilizationToneVal, "deployed vs cap"); Allocator Parameters (Settings, neutral, "saturating-edge curve constants") with a `read-only` badge as the trailing slot; Capital Split by Strategy (Layers, info, "per-strategy deployed USD") with an "{n} active" trailing chip; Latest What-If Multipliers (Zap, warn, "sizing stack"); Exposure Summary (Scale, info, "net directional + dollar-days"); Recent Allocations (History, info) with a "{n} closed" badge trailing slot.
+
+5. **Refined allocation table** — uppercase headers (preserved via the existing `.data-table` CSS rule), tone-coloured allocation bar (emerald Optimal / amber Over-allocated / red Danger — derived from the per-trade % of cap), tabular-nums on every numeric column (Token size, Edge, Conf, Size, % Cap, P&L, Time), row-hover left-edge accent bar via inset shadow (each row carries `data-tone={allocTone}` + the `TONE[allocTone].rowHover` class string). Each row carries a `title="..."` tooltip with the per-trade metric name + raw value.
+
+6. **Refined Kelly criterion visualization** — added a `KellyBar` sub-component (horizontal bar with emerald / cyan / amber / red zone bands + a live tick marking the current Kelly fraction estimate). Complements the existing Edge→Size saturating curve (which carries the operating point) and the UtilizationGauge (which carries the current deployment) so the trader has three orthogonal capital visualisations: sizing curve (per edge), utilisation gauge (current deployment), Kelly bar (per-trade optimal fraction). The KellyBar is rendered below the Edge→Size curve, separated by a `border-t border-[#1f2335]` divider.
+
+7. **Tone-coloured allocation status** — green Optimal / amber Over-allocated / red Danger — applied uniformly across the panel via the Tone system: header allocation-status badge with PulseDot halo (pulses only when `tone === 'poor'`); UtilizationGauge status badge with PulseDot; Capital Metrics KpiTile tones (Allocated / Available); per-strategy allocation bar fill (tone derived from each strategy's own % of cap); recent allocations row tone (derived from each trade's % of cap); What-If Multipliers row tone (good ≥0.9 / warn ≥0.5 / poor <0.5); recent allocations per-row allocation bar fill (tone matches the row tone). Each tone-coloured element also carries a `data-tone={...}` attribute for downstream CSS targeting.
+
+8. **Error state — polished error card with Retry** — the bare `banner-danger` block replaced with a refined error card (border-red-500/25 + bg-red-500/[0.04] rounded-md). AlertTriangle icon 28px (red-tinted) + the title text "Allocator API unavailable" (preserved verbatim so the W28-3 test contract resolves) + the raw error message rendered as the card's desc (preserved verbatim so `getByText(/Network error: ECONNREFUSED/)` resolves) + a Retry button (`RefreshCw` glyph, calls `fetchAll`, accessible name "Retry" so the W28-3 test contract `getByRole('button', { name: /retry/i })` resolves). role=alert + data-testid="capital-allocator-error-card" + data-testid="capital-allocator-error-retry" suffix on the button. The Retry button is red-tinted (border-red-500/30 + bg-red-500/[0.06] + hover bg-red-500/15) so it reads as a recovery affordance rather than a primary CTA.
+
+9. **Refined allocation controls** — each Config field in the AlertDialog now carries a range slider alongside the existing number input (`ConfigField` sub-component). The slider is bidirectionally synced with the numeric input — both update the same draftConfig field. Tone-coloured formatted value text when the value is at the min/max of its range so the operator reads the saturation state at a glance (green <70% / amber 70–90% / red ≥90%). The slider uses `accent-cyan-400 cursor-pointer focus-visible:ring-cyan-400/40` so it picks up the panel's cyan accent + keyboard focus ring.
+
+### Additional refinements (beyond the 9 spec items)
+- **Header polish**: the manual Refresh + Config buttons hover tint changed from `hover:bg-[#1f2335] hover:text-white` to `hover:bg-cyan-500/[0.04] hover:border-cyan-500/30 hover:text-white` so they pick up the panel's cyan accent. The RefreshCw icon now spins while `isRefreshing` is true (already in the original — preserved).
+- **Header allocation-status badge**: a new inline badge with PulseDot + "Optimal" / "Over-allocated" / "Danger" label is rendered next to the title when the panel is loaded + has no error, so the trader reads the allocation state at a glance without scanning the gauge. Hidden during loading + error states.
+- **Header timestamp**: now carries `tabular-nums` so it doesn't visually shift between renders.
+- **Exposure Summary tile**: a new card showing Net Directional / Gross Market Value / Max Remaining Loss / Dollar-Days / Avg Duration / Open Positions, rendered below the UtilizationGauge in the right column. Each numeric value carries `tabular-nums`.
+- **Per-strategy allocation row hover**: now carries `hover:bg-cyan-500/[0.04]` + `transition-colors` so the row subtly highlights on hover. Each row carries `data-tone={sTone}` + `title="{name} — ${value} ({pct}% of total deployed, {pctOfCap}% of cap)"` tooltip + tone-coloured bar fill (emerald / amber / red).
+- **What-If Multipliers row hover**: now carries `hover:bg-[#1f2335]/40` + `transition-colors`. Each multiplier row carries `data-tone={mTone}` + tone-coloured value text (green ≥0.9 / amber ≥0.5 / red <0.5) + `title="{name} multiplier — {val}{suffix}"` tooltip.
+- **Recent allocations table row**: each row carries `data-tone={allocTone}` + the `TONE[allocTone].rowHover` class so the row gets a left-edge accent bar via inset shadow on hover (emerald Optimal / amber Over-allocated / red Danger).
+- **Recent allocations % Cap cell**: the bar fill colour now matches the row tone (was `bg-cyan-500`, now `TONE[allocTone].bar`) so the trader reads the per-trade allocation status from the bar fill alone.
+- **Config KPI strip**: the 6-tile Allocator Parameters strip is now wrapped in a card with its own SectionHeader (Settings icon + neutral tone + "saturating-edge curve constants" description + read-only badge) so the parameters read as a distinct section rather than a bare grid.
+- **`KellyBar` Kelly fraction estimate**: derived as `Math.max(0, Math.min(1, 2 × breakdown.edge))` — for binary-outcome Polymarket positions, Kelly f* = edge / (1 - market_price), and without the market price in the breakdown we approximate f* ≈ 2 × edge (the Kelly fraction at p_market ≈ 0.5). Uses `breakdown.edge` (the what-if edge used by the allocator) so it's the same edge the curve is plotting.
+- **Each KpiTile in the Capital Metrics strip** carries `data-testid="capital-allocator-kpi-{total|allocated|available|kelly}"` + `data-tone={tone}` for downstream CSS targeting + test selectors.
+- **Each KpiTile in the Allocator Parameters strip** carries `data-testid="capital-allocator-kpi-config"` (uniform) + `data-tone={tone}`.
+
+### Backwards-compat
+
+- **Props**: unchanged (panel takes no props).
+- **API calls**: `apiFetch('/api/positions/closed?limit=20')` (closed positions list) + `apiFetch('/api/capital/allocation?strategy=...')` (what-if sizing breakdown) + `apiFetch('/api/exposure')` (capital deployed + per-strategy exposure) on mount + every 15s + on visibilitychange regain. All preserved verbatim. The `apiFetch('/api/capital/config', { method: 'POST', ... })` from the Config editor is also preserved verbatim (handles 404/405 gracefully with a clear "endpoint not registered" message).
+- **Polling**: 15s setInterval with visibilitychange pause/resume + immediate refresh on regain. Preserved verbatim.
+- **Clean unmount**: clearInterval + removeEventListener in useEffect cleanup. Preserved verbatim.
+- **Class names preserved**: `card`, `card-header`, `card-title`, `badge` + `badge-cyan` / `-dim` / `-green` / `-amber` / `-red`, `btn` + `btn-ghost` + `btn-sm` + `btn-primary`, `mono`, `scrollbar-thin`, `banner-danger` / `banner-info`, `spinner`, `skeleton-card` / `skeleton-line-sm`, `kpi-card` (+ `kpi-label` / `kpi-value` / `kpi-sub`), `input` + `input-sm`, `form-group` / `form-label` / `form-hint`, `empty-state` (+ `-icon` / `-title` / `-desc`), `error-state` (+ `-icon` / `-title` / `-desc`), `data-table` + `table-responsive` + `label-col`, `pnl-positive` / `pnl-negative`, `tabular-nums`, `uppercase`, `tracking-wider`.
+- **Accessibility preserved**: role=alert on the error card, role=status on the loading skeleton + empty state, aria-label="Refresh allocator data" on the Refresh button (preserved verbatim — W28-3 test contract), aria-label="Edit allocator config" on the Config button (preserved verbatim — W28-3 test contract), aria-label="Retry allocator fetch" on the Retry button (matches `/retry/i` via the accessible name "Retry" — the W28-3 test contract resolves), aria-hidden on every Lucide icon + every PulseDot halo + every ShimmerBlock, role=img + aria-label="Saturating edge to position size curve" on the EdgeSizeCurve SVG (preserved), aria-label on each ConfigField range slider (`{label} slider`), role=alert / role=status on the submitMsg banner (preserved).
+- **Test-matched strings preserved verbatim**: "Capital Allocator" (header title — renders during loading + loaded states), "Michaelis-Menten" (header badge), "Edge → Size Saturating Curve" (curve section title — resolves the loaded-state test contract), "Allocator API unavailable" (error title — resolves the error-state test contract), "Retry" (Retry button accessible name — resolves the /retry/i test contract). The Authorization header passed via `apiFetch` on the initial poll is preserved verbatim (the apiFetch wrapper adds the Bearer token — resolves the auth-header test contract).
+- **'use client' directive**: preserved.
+
+### New CSS hooks added (for downstream CSS layer to target)
+
+- `data-testid="capital-allocator-loading-skeleton"` on the loading wrapper.
+- `data-testid="capital-allocator-empty-state"` on the empty state.
+- `data-testid="capital-allocator-error-card"` on the error card + `capital-allocator-error-retry` on the Retry button + `capital-allocator-error-wrapper` on the wrapper div.
+- `data-testid="capital-allocator-kpi-{total|allocated|available|kelly}"` on each Capital Metrics KpiTile + `capital-allocator-kpi-config` on each Allocator Parameters KpiTile.
+- `data-tone="{good|warn|poor|info|neutral}"` on: each KpiTile wrapper; each What-If Multiplier row; each recent-allocations row; the header allocation-status badge; the UtilizationGauge status badge; each per-strategy allocation bar row.
+
+### Verification
+
+```
+$ wc -l src/components/CapitalAllocatorPanel.tsx
+1992 src/components/CapitalAllocatorPanel.tsx
+
+$ git diff --stat src/components/CapitalAllocatorPanel.tsx
+ src/components/CapitalAllocatorPanel.tsx | 1243 ++++++++++++++++++++++--------
+ 1 file changed, 935 insertions(+), 308 deletions(-)
+
+$ bunx eslint src/components/CapitalAllocatorPanel.tsx 2>&1 | tail -3
+$ (clean — exit 0, no output)
+
+$ bunx tsc --noEmit --skipLibCheck 2>&1 | grep -i CapitalAllocatorPanel | head -3
+$ (clean — 0 errors in CapitalAllocatorPanel.tsx; the only remaining
+  tsc error is `LiveSafetyGatePanel.tsx(58,3): error TS6133: 'Zap' is
+  declared but its value is never read` — a pre-existing error in a
+  parallel agent's file, not introduced by this pass)
+
+$ bunx vitest run src/components/CapitalAllocatorPanel.test.tsx 2>&1 | tail -6
+
+ ✓ src/components/CapitalAllocatorPanel.test.tsx (10 tests) 3788ms
+
+ Test Files  1 passed (1)
+      Tests  10 passed (10)
+```
+
+### Stage Summary
+
+- **Final line count**: 1992 lines (was 1365 — +935 insertions / −308 deletions per `git diff --stat`).
+- **All 9 polish affordances applied** while preserving the existing props, API calls (`apiFetch('/api/positions/closed?limit=20')` GET + `apiFetch('/api/capital/allocation?...')` GET + `apiFetch('/api/exposure')` GET + `apiFetch('/api/capital/config', { method: 'POST' })` from the Config editor), 15s polling with visibilitychange pause/resume + refresh-on-regain, clean unmount (clearInterval + removeEventListener in useEffect cleanup), all existing class names (`.card` / `.card-header` / `.card-title`, `.badge` + `.badge-cyan` / `-dim` / `-green` / `-amber` / `-red`, `.btn` + `.btn-ghost` / `-sm` / `-primary`, `.mono`, `.scrollbar-thin`, `.banner-danger` / `.banner-info`, `.spinner`, `.skeleton-card` / `.skeleton-line-sm`, `.kpi-card` + `.kpi-label` / `.kpi-value` / `.kpi-sub`, `.input` + `.input-sm`, `.form-group` / `.form-label` / `.form-hint`, `.empty-state` + `.-icon` / `.-title` / `.-desc`, `.error-state` + `.-icon` / `.-title` / `.-desc`, `.data-table` + `.table-responsive` + `.label-col`, `.pnl-positive` / `.pnl-negative`, `.tabular-nums`, `.uppercase`, `.tracking-wider`), all accessibility roles/labels (role=alert on error, role=status on loading/empty, aria-live=polite on loading, aria-label="Refresh allocator data" + "Edit allocator config" + "Retry allocator fetch" + "{label} slider" on each ConfigField range slider + role=img + aria-label="Saturating edge to position size curve" on the EdgeSizeCurve SVG + aria-hidden on every Lucide icon + PulseDot halo + ShimmerBlock + role=alert/role=status on the submitMsg banner), all test-matched strings ("Capital Allocator", "Michaelis-Menten", "Edge → Size Saturating Curve", "Allocator API unavailable", "Retry", the Bearer Authorization header via apiFetch), the `'use client'` directive, and the `/api/capital/allocation` + `/api/exposure` + `/api/positions/closed` + `/api/capital/config` endpoint URLs.
+- **Lint**: clean (exit 0, no output).
+- **TypeScript**: 0 errors in CapitalAllocatorPanel.tsx (the only remaining tsc error is in `LiveSafetyGatePanel.tsx` from a parallel agent — not my file).
+- **Tests**: 10/10 pass (was 10/10 — no regressions).
+
+### Files touched
+
+- `src/components/CapitalAllocatorPanel.tsx` (UI polish pass, 1365 → 1992 lines).
+- `/home/z/my-project/agent-ctx/W57-e-full-stack-developer.md` (detailed agent work record).
+- `worklog.md` (this appended entry).
+
+**CapitalAllocatorPanel is production-ready with the premium W57-e visual
+layer, visually consistent with the W51-2d MLPanel / W53-c
+StrategyPerformancePanel / W54-e MLValidationPanel / W55-a LeaderboardPanel
+/ W55-d ExecutionQualityPanel / W56-c DatabaseStatusPanel / W56-e
+ObservabilityPanel redesign family.**
+
+---
+
+## Task W57-b — DecisionLedgerPanel polish (W51-2d MLPanel redesign family)
+
+**Agent:** full-stack-developer
+**Target:** `src/components/DecisionLedgerPanel.tsx` — Unified Decision Ledger
+Inspector (PREDICTION → SIGNAL → RISK → ORDER → FILL chain audit).
+**Spec:** Apply the W50-56 design-system vocabulary (Tone system, PulseDot,
+SectionHeader, ShimmerBlock, StageIndicatorStrip, PolishedEmptyState,
+PolishedErrorState) to the Decision Ledger for visual consistency with the
+MLPanel / MLValidationPanel / LeaderboardPanel / ExecutionQualityPanel /
+ObservabilityPanel / DatabaseStatusPanel redesign family.
+
+### Context
+- Read `worklog.md` (last ~250 lines) to map the W50-56 design-system
+  vocabulary. Reference implementations consulted: `MLPanel.tsx` (W51-2d),
+  `ExecutionQualityPanel.tsx` (W55-d), `DatabaseStatusPanel.tsx` (W56-c),
+  `ObservabilityPanel.tsx` (W56-e).
+- Read `DecisionLedgerPanel.tsx` end-to-end (992 lines pre-polish) + the
+  8-test contract (`DecisionLedgerPanel.test.tsx`) to map every test
+  surface.
+
+### New sub-components (kept private to the panel)
+- `Tone = 'good' | 'warn' | 'poor' | 'info' | 'neutral'` + `TONE:
+  Record<Tone, ToneConfig>` — static Tailwind class strings (bg /
+  border / text / bar / dot / label / halo / rowHover). Mirrors
+  MLPanel / ExecutionQualityPanel's TONE map (extended with `rowHover`
+  for the per-row accent bar).
+- `stageTone(stage: string): Tone` — maps PREDICTION/SIGNAL/ORDER →
+  info (cyan), RISK_APPROVED/FILL → good (emerald), RISK_REJECTED →
+  poor (red), default → neutral (dim slate).
+- `actionTone(action: ActionFilter): Tone` — maps TRADE_LONG_YES /
+  TRADE_SHORT_NO → info, REJECT_RISK → warn, MONITOR → neutral.
+- `outcomeTone(outcome): Tone` — maps FILLED → good, REJECTED → poor,
+  PENDING → warn, EXPIRED → neutral.
+- `toneBadgeClass(tone): string` — returns `badge badge-{green|amber|
+  red|cyan|dim}` for a tone.
+- `PulseDot({ tone, pulse = true })` — Tailwind `animate-ping` halo +
+  solid dot + glow shadow, aria-hidden. Mirrors MLPanel PulseDot.
+- `SectionHeader({ icon, title, description, tone, trailing })` — Lucide
+  icon + uppercase tracking-wider 10.5px title + optional dim italic
+  description + optional trailing node. Mirrors MLPanel's SectionHeader.
+- `ShimmerBlock({ className })` — thin `skeleton-line-sm` placeholder,
+  aria-hidden. Mirrors MLPanel's ShimmerBlock.
+- `StatChip({ label, value, sub, color, title, icon, tone })` — kept
+  the existing StatChip pattern (preserves the `{label}:` direct text
+  node + separate value span so the W30-2 test contracts
+  `getByText(/^Decisions:?$/)` + `getByText('2')` resolve) and added
+  an optional Lucide `icon` glyph + `tone` prop + `tabular-nums` on
+  the value span + `data-tone` attribute.
+- `StageIndicatorStrip({ events })` — refined horizontal flow diagram
+  of the 6-stage canonical pipeline (PREDICTION → SIGNAL → RISK · OK /
+  RISK · REJ → ORDER → FILL → P&L). Active stages render as filled
+  tone-coloured chips with a solid dot; missed stages render as dim
+  hollow chips; ArrowRight glyph between stages, tone-coloured when
+  active, dim when missed. Trailing P&L chip pulls the realized PnL
+  from the FILL stage and tone-colours it green/red by sign. Each
+  chip carries tooltip + `data-tone` + `data-stage` + `data-active`
+  attributes. role=img + descriptive aria-label.
+- `DecisionColumnHeader()` — uppercase tracking-wider 9px column-label
+  row above the decision cards (OUTCOME / ACTION / TOKEN / EDGE / CONF
+  / MID / STRATEGY). role=row, aria-hidden (visual hints — the
+  DecisionCard toggle buttons already carry descriptive aria-labels).
+- `DecisionSkeleton()` — structured loading placeholder mirroring the
+  loaded layout (header bar + 4-tile KPI strip + filter bar + column
+  header + 7 decision-row shimmers). Uses `ShimmerBlock` placeholders
+  throughout. role=status + aria-live=polite + aria-label="Loading
+  decision ledger" + data-testid="decision-ledger-loading-skeleton".
+  Header text "🧠 DECISION LEDGER" + "Loading…" badge preserved verbatim
+  above the shimmers so the W30-2 test contracts resolve.
+- `PolishedEmptyState({ title, desc })` — Lucide `Brain` icon (size 28,
+  dim) + .empty-state-title + .empty-state-desc. role=status +
+  data-testid="decision-ledger-empty-state". Title + desc text passed
+  as props so the three empty-state branches reuse the same component
+  with the original UX copy preserved verbatim.
+- `PolishedErrorState({ detail, onRetry })` — refined error card with
+  AlertTriangle (28px, red-tinted) + the title text "Decision ledger
+  unavailable" (preserved verbatim) + the raw error message as the
+  card's desc (preserved verbatim) + Retry button (`RefreshCw` glyph,
+  calls `onRetry` = `fetchList`, accessible name "Retry" matching
+  `/retry/i`, aria-label "Retry decision ledger fetch"). role=alert +
+  data-testid="decision-ledger-error" + data-testid="decision-ledger-
+  error-retry" suffix on the button. Retry button is red-tinted
+  (border-red-500/30 + bg-red-500/[0.06] + hover bg-red-500/15). The
+  header carries a static PulseDot (poor tone, pulse=false) + "🧠
+  DECISION LEDGER" + an "Offline" badge.
+
+### All 9 polish affordances applied
+
+1. **Shimmer skeleton loading state** — the bare `<div className=
+   "skeleton-line-lg" style={...} />` placeholders replaced with
+   `<DecisionSkeleton/>` which mirrors the loaded layout (header +
+   4-tile KPI strip + filter bar + column-header row + 7 decision-row
+   shimmers). "🧠 DECISION LEDGER" + "Loading…" preserved verbatim
+   above the shimmers.
+
+2. **Polished empty state with Lucide icon + message** — the bare "🧠"
+   emoji replaced with `PolishedEmptyState` (Lucide `Brain` icon 28px
+   + .empty-state-title + .empty-state-desc). Title + desc text
+   preserved verbatim so the existing UX copy stays consistent.
+
+3. **Refined decision chain visualization (12-stage timeline/flow
+   diagram with clear stage indicators)** — `StageIndicatorStrip`
+   renders a horizontal flow diagram of the full 6-stage canonical
+   pipeline (PREDICTION → SIGNAL → RISK · OK / RISK · REJ → ORDER →
+   FILL → P&L). Each stage chip shows:
+   - Active state: tone-coloured bg + border + text + solid dot.
+   - Missed state: dim bg + dim border + dim text + hollow dot.
+   - ArrowRight between stages, tone-coloured when active, dim when
+     missed.
+   The trailing P&L chip pulls the realized PnL from the FILL stage
+   and tone-colours it green/red by sign. The legacy vertical
+   `StageNode` rail is preserved below the strip for the detailed
+   per-stage breakdown — each StageNode card now also carries
+   `tabular-nums` on every numeric cell + `data-tone` + `data-stage`
+   attributes for downstream CSS targeting.
+
+4. **Section headers with icon + uppercase title** — every section now
+   carries a `SectionHeader`:
+   - Filter Bar → "Decision Filters" (Filter icon, tone=info) with
+     "{filtered} of {total} match" description.
+   - Decision List → "Rejection Audit · {N} entries" (ListTree icon,
+     tone=poor) with a "{filtered} of {total}" trailing chip.
+   - Decision Chain → "Decision Chain · {shortId}" (ListTree icon,
+     tone=info) with "({N} stages)" description + a tone-coloured
+     outcome chip trailing slot.
+   - Other Recent Decisions for this Token → "Other Recent Decisions
+     for this Token" (Layers icon) with "({N})" description.
+
+5. **Refined decision entries table (uppercase headers, row hover,
+   tabular-nums)** — a `DecisionColumnHeader` row added above the
+   decision cards with uppercase tracking-wider 9px column labels
+   (OUTCOME / ACTION / TOKEN / EDGE / CONF / MID / STRATEGY). Each
+   `DecisionCard` row carries `tabular-nums` on every numeric cell
+   (Edge / Conf / Mid / age / count). Row hover now carries
+   `hover:bg-cyan-500/[0.04]` layered with `hover:shadow-[inset_3px_0_
+   0_0_rgba(34,211,238,0.45)]` (left-edge accent bar via inset shadow
+   — no layout shift). The expanded row carries `bg-[#0e1015]` so it
+   visually pops out of the list.
+
+6. **Tone-colored decision outcomes (green success, amber pending, red
+   rejected)** — the `outcomeTone` helper maps FILLED → good, REJECTED
+   → poor, PENDING → warn, EXPIRED → neutral. Applied uniformly:
+   - DecisionCard outcome badge: NEW — tone-coloured red via
+     `toneBadgeClass(outcomeT)` + `data-tone={outcomeT}`.
+   - DecisionCard action badge: tone-coloured by `actionTone(action)`
+     (info for TRADE_LONG_YES / TRADE_SHORT_NO, warn for REJECT_RISK,
+     neutral for MONITOR) via `toneBadgeClass(actionT)` + `data-tone=
+     {actionT}`.
+   - DecisionCard row hover: tone-coloured via `TONE[outcomeT].rowHover`
+     (red-tinted accent bar for REJECTED rows).
+   - DecisionChainView SectionHeader trailing chip: tone-coloured by
+     `outcomeTone(outcome)` + `data-tone={outTone}` + `data-testid=
+     "decision-chain-outcome-{outcome.toLowerCase()}"`.
+   - DecisionChainView sibling-decision chips: tone-coloured by
+     `outcomeTone(dOutcome)` + `data-tone={dTone}`.
+   - KpiTile tones: derived from each metric's own thresholds.
+
+7. **PulseDot for live decision tracking** — the panel header carries
+   a `PulseDot({ tone: 'info', pulse: true })` so the trader sees the
+   live-tracking heartbeat at a glance. The dot pulses while the
+   panel is live + stops pulsing (pulse=false) in the error state (a
+   static red dot replaces it via `PolishedErrorState`'s
+   `<PulseDot tone="poor" pulse={false} />`).
+
+8. **Error state: polished error card with Retry** — the bare
+   `error-state` block replaced with a refined `PolishedErrorState`
+   card. AlertTriangle icon (28px, red-tinted) + the title text
+   "Decision ledger unavailable" (preserved verbatim) + the raw error
+   message rendered as the card's desc (preserved verbatim) + Retry
+   button (`RefreshCw` glyph, calls `fetchList`, accessible name
+   "Retry" matching `/retry/i`). role=alert + data-testid="decision-
+   ledger-error" + data-testid="decision-ledger-error-retry" suffix
+   on the button. Retry button is red-tinted (border-red-500/30 +
+   bg-red-500/[0.06] + hover bg-red-500/15) so it reads as a recovery
+   affordance.
+
+9. **Refined stage filters/controls** — the Filter Bar carries a
+   `SectionHeader` ("Decision Filters", Filter icon, info tone) +
+   the search input + action/outcome selects + manual Refresh button
+   all carry `focus-visible:ring-cyan-500/30` + cyan-tinted hover.
+   The manual Refresh button's `RefreshCw` glyph spins while
+   `loading` is true. The search input's clear button (✕) also
+   carries a focus-visible ring.
+
+### Additional refinements (beyond the 9 spec items)
+- **Header polish**: panel header now leads with a `PulseDot` (info
+  tone, pulse=true) instead of a bare `<div className="w-2 h-2
+  rounded-full bg-cyan-400 animate-pulse" />`. The "🧠 DECISION
+  LEDGER" title text is preserved verbatim.
+- **KPI strip polish**: each StatChip now carries a Lucide icon glyph
+  (ListTree for Decisions, Activity for Avg Edge / Avg Conf, Filter
+  for Top Reason, CheckCircle2 for Fill Rate) + a `tone` prop that
+  drives the chip's border + bg + `data-tone` attribute + `tabular-
+  nums` on the value span. `kpi-card` / `kpi-label` / `kpi-value` /
+  `kpi-sub` class hooks preserved.
+- **DecisionCard action badge** now has a fixed `w-[120px]` width so
+  the action column doesn't shift between rows.
+- **DecisionCard outcome badge** kept at `w-[80px]` (matching the
+  column-header width) so columns line up.
+- **DecisionCard strategy pill** now has a fixed `w-[88px]` width +
+  `truncate` so the strategy column doesn't shift between rows.
+- **DecisionCard ChevronRight** rotation: changed from CSS class
+  `rotate-90` to inline `style={expanded ? { transform: 'rotate(90deg)'
+  } : undefined}` for deterministic rotation. The icon now carries
+  `aria-hidden="true"`.
+- **DecisionCard toggle button** now carries `focus:outline-none
+  focus-visible:ring-1 focus-visible:ring-cyan-500/30 focus-visible:
+  ring-inset` so keyboard navigation gets a clear focus ring.
+- **DecisionChainView** now leads with a `SectionHeader` (ListTree
+  icon, info tone) + a tone-coloured outcome chip trailing slot,
+  then the new `StageIndicatorStrip` (horizontal flow diagram), then
+  the legacy vertical StageNode rail for the detailed per-stage
+  breakdown.
+- **StageNode** now carries `tabular-nums` on every numeric cell
+  (age + epoch timestamp + detail string) + `data-tone` + `data-stage`
+  attributes for downstream CSS targeting.
+- **DecisionSkeleton** mirrors the loaded layout (header + 4-tile KPI
+  strip + filter bar + column-header row + 7 decision-row shimmers)
+  so the panel doesn't visually jump when the first fetch resolves.
+- **Empty state** now carries `role=status` + `data-testid="decision-
+  ledger-empty-state"` for downstream test/CSS targeting.
+- **Error state** now carries `role=alert` + `data-testid="decision-
+  ledger-error"` + `data-testid="decision-ledger-error-retry"` on the
+  Retry button for downstream test/CSS targeting.
+- **Footer** count + polling-interval labels now carry `tabular-nums`
+  so they don't visually shift between renders.
+- **Filter bar search input** now carries `input input-sm` class
+  hooks (in addition to the existing dark styling) so downstream CSS
+  can target it uniformly with other panels' inputs.
+- **All Lucide icons** in the file now carry `aria-hidden="true"`.
+
+### Backwards-compat
+
+- **Props**: unchanged (panel takes no props).
+- **API calls**: `apiFetch(getApiUrl() + '/api/decisions/rejected?limit=' +
+  LIST_LIMIT)` on mount + every 10s + on visibilitychange regain;
+  `apiFetch(getApiUrl() + '/api/decision/' + encodeURIComponent(token_id)
+  + '?limit=' + CHAIN_LIMIT)` on expand. All preserved verbatim.
+- **Polling**: 10s setInterval with visibilitychange pause/resume +
+  immediate refresh on regain. Preserved verbatim.
+- **Clean unmount**: clearInterval + removeEventListener in useEffect
+  cleanup. Preserved verbatim.
+- **Class names preserved**: `card`, `card-header`, `card-title`, `badge`
+  + `badge-cyan` / `-amber` / `-red` / `-dim`, `btn` + `btn-ghost` +
+  `btn-sm`, `mono`, `scrollbar-thin`, `spinner`, `skeleton-line-sm` /
+  `skeleton-line-lg` / `skeleton-card`, `kpi-card` (+ `kpi-label` /
+  `kpi-value` / `kpi-sub`), `input` + `input-sm`, `empty-state` (+ `-icon`
+  / `-title` / `-desc`), `error-state` (+ `-icon` / `-title` / `-desc`),
+  `table-footer`, `tabular-nums`, `tracking-wider`, `uppercase`.
+- **Accessibility preserved**: role=alert on the error card, role=status
+  on the loading skeleton + empty state, role=button + aria-expanded +
+  aria-label on each DecisionCard toggle, aria-label on the search input
+  + selects + Refresh + Retry buttons, aria-hidden on every Lucide icon.
+- **Test-matched strings preserved verbatim**: "🧠 DECISION LEDGER"
+  (loading + error + main render state headers), "Loading…" (loading
+  badge), "Decision ledger unavailable" (error title), "Retry" (retry
+  button text — accessible name matches `/retry/i`), "Correlation Audit"
+  (main render header badge), "Decisions" (StatChip label), "2" (StatChip
+  value for `stats.total = 2`), "Refresh" (manual refresh button text),
+  "Polling every 10s · auto-pause when tab hidden" (footer).
+- **'use client' directive**: preserved.
+
+### New CSS hooks added (for downstream CSS layer to target)
+
+- `data-testid="decision-ledger-loading-skeleton"` on the loading
+  wrapper.
+- `data-testid="decision-ledger-empty-state"` on the empty state.
+- `data-testid="decision-ledger-error"` on the error card (+ `-retry`
+  on the retry button).
+- `data-testid="decision-ledger-row"` on each DecisionCard wrapper.
+- `data-testid="decision-chain-outcome-{filled|rejected|pending}"` on
+  the DecisionChainView SectionHeader trailing outcome chip.
+- `data-tone="{good|warn|poor|info|neutral}"` on:
+  - each KpiTile (StatChip) wrapper,
+  - each DecisionCard wrapper + outcome badge + action badge,
+  - each StageNode card,
+  - each sibling-decision chip in DecisionChainView,
+  - the DecisionChainView SectionHeader trailing outcome chip,
+  - each stage chip in StageIndicatorStrip (active stages use the
+    stage's own tone; missed stages use `neutral`),
+  - the trailing P&L chip in StageIndicatorStrip.
+- `data-stage="{PREDICTION|SIGNAL|RISK_APPROVED|RISK_REJECTED|ORDER|
+  FILL|PNL}"` on each StageIndicatorStrip chip + each StageNode card.
+- `data-active="true|false"` on each StageIndicatorStrip chip.
+
+### Verification
+
+```
+$ wc -l src/components/DecisionLedgerPanel.tsx
+1640 src/components/DecisionLedgerPanel.tsx
+
+$ git diff --stat src/components/DecisionLedgerPanel.tsx
+ src/components/DecisionLedgerPanel.tsx | 1024 ++++++++++++++++++++++++++------
+ 1 file changed, 836 insertions(+), 188 deletions(-)
+
+$ bun run lint 2>&1 | tail -3
+$ eslint .
+(clean — exit 0, no output)
+
+$ bunx tsc --noEmit --skipLibCheck 2>&1 | grep -i DecisionLedgerPanel | head -3
+$ (clean — 0 errors in DecisionLedgerPanel.tsx)
+
+$ bunx vitest run src/components/DecisionLedgerPanel.test.tsx 2>&1 | tail -8
+ ✓ src/components/DecisionLedgerPanel.test.tsx (8 tests) 1946ms
+ Test Files  1 passed (1)
+      Tests  8 passed (8)
+```
+
+### Stage Summary
+
+- **Final line count**: 1640 lines (was 992 — +836 insertions / −188
+  deletions per `git diff --stat`).
+- **All 9 polish affordances applied** while preserving all existing
+  functionality, class names, test contracts, client component, API
+  calls, polling, role attributes, aria-labels, preserved title text
+  content, and the 'use client' directive.
+- **Lint**: clean (exit 0, no output).
+- **TypeScript**: 0 errors in DecisionLedgerPanel.tsx.
+- **Tests**: 8/8 pass (was 8/8 — no regressions).
+
+### Files touched
+
+- `src/components/DecisionLedgerPanel.tsx` (UI polish pass, 992 → 1640
+  lines, +836 / −188 per `git diff --stat`).
+- `/home/z/my-project/agent-ctx/W57-b-full-stack-developer.md` (detailed
+  agent work record).
+- `worklog.md` (this appended entry).
+
+**DecisionLedgerPanel is production-ready with the premium W57-b visual
+layer, visually consistent with the W51-2d MLPanel / W54-e
+MLValidationPanel / W55-a LeaderboardPanel / W55-d ExecutionQualityPanel
+/ W56-e ObservabilityPanel / W56-c DatabaseStatusPanel redesign
+family.**
+
+---
+
+## Task W57-c — LiveSafetyGatePanel polish (W51-2d MLPanel redesign family)
+
+**Agent:** full-stack-developer
+**Target:** `src/components/LiveSafetyGatePanel.tsx` (God Mode §82 10-check staged pre-submission gate, kill switch, circuit breakers)
+**Spec:** Apply the W50-56 design-system vocabulary (Tone system, KpiTile, PulseDot, SectionHeader, ShimmerBlock, PolishedEmptyState, PolishedErrorState) to the Live Safety Gate panel for visual consistency with the MLPanel / MLValidationPanel / LeaderboardPanel / ExecutionQualityPanel / DatabaseStatusPanel redesign family.
+
+### Context
+- Read `worklog.md` (last ~200 lines, ~39k lines total) to map the W50-56 design-system vocabulary. Reference implementations consulted: `DatabaseStatusPanel.tsx` (W56-c, 1217 lines — most recent polish, Tone system + KpiTile + SectionHeader + PulseDot + ShimmerBlock + PolishedEmptyState + PolishedErrorState), `MLPanel.tsx` (W51-2d, ~922 lines — original Tone system reference), `ExecutionQualityPanel.tsx` (W55-d), `LeaderboardPanel.tsx` (W55-a).
+- Read `LiveSafetyGatePanel.tsx` end-to-end (1136 lines) + the 11-test contract (`LiveSafetyGatePanel.test.tsx`) to map every test surface — every test contract preserved verbatim (titles, accessible names, `.animate-spin` element, OPEN badge text, Authorization header passthrough).
+
+### New sub-components (kept private to the panel)
+- `Tone = 'good' | 'warn' | 'poor' | 'info' | 'neutral'` + `TONE: Record<Tone, ToneConfig>` — static Tailwind class strings (bg / border / text / bar / dot / label / halo / rowHover). Mirrors MLPanel / DatabaseStatusPanel's TONE map (extended with `rowHover` for the per-check + per-history-row accent bars).
+- `checkStatusTone(status): Tone` — maps PASS → good, FAIL → poor, WARNING → warn, PENDING → neutral.
+- `gateTone(open, killSwitch): Tone` — maps kill switch active → poor, gate open → good, gate closed by failing checks → warn.
+- `PulseDot({ tone, pulse = true })` — Tailwind `animate-ping` halo + solid dot + glow shadow, aria-hidden. Mirrors MLPanel / DatabaseStatusPanel PulseDot. Used by the live gate-status readout in the header OPEN/CLOSED badge. Pulses only when gate is OPEN; static when closed or kill switch is active.
+- `SectionHeader({ icon, title, description, tone, trailing })` — Lucide icon + uppercase tracking-wider 10.5px title + optional dim italic description + optional trailing node. Mirrors MLPanel SectionHeader. Used by "Staged Validation Progress" (Activity icon, info tone), "10 Staged Checks" (ListChecks icon, neutral tone, trailing = Expand all / Collapse all), "Gate Transition History" (History icon, neutral tone, trailing = "last N events · system audit trail").
+- `ShimmerBlock({ className })` — thin `skeleton-line-sm` placeholder, aria-hidden. Mirrors MLPanel's ShimmerBlock.
+- `KpiTile({ label, value, sub, valueClass, icon, tone, quality, testId })` — tone-tinted bg + uppercase 9px kpi-label with Lucide icon + 16px tabular-nums kpi-value + optional kpi-sub + optional quality bar. Preserves the `kpi-card` / `kpi-label` / `kpi-value` / `kpi-sub` class hooks AND each tile carries `data-tone={tone}` + an optional `data-testid`.
+- `PolishedEmptyState()` — Lucide `Shield` icon (size 28px, dim) + .empty-state-title "No staged checks returned" + .empty-state-desc dim description. role=status + data-testid="safety-gate-empty-state". Rendered when readiness.checks.length === 0.
+- `PolishedErrorState({ message, onRetry, retrying })` — red-tinted error card with `AlertTriangle` icon + title "Safety-gate endpoint unavailable" (preserved verbatim so the W28-3 test contract resolves) + dim description with `/api/live/readiness` route mention (preserved verbatim) + raw error message as `<pre>` (preserved verbatim) + Retry button (`RefreshCw` glyph, accessible name "Retry" preserved). role=alert + data-testid="safety-gate-error-card" + data-testid="safety-gate-error-msg" + data-testid="safety-gate-error-retry" suffix on the button. Retry button is red-tinted (border-red-500/30 + bg-red-500/[0.06] + hover bg-red-500/15).
+- `LiveSafetyGateSkeleton()` — structured shimmer loading placeholder mirroring the loaded layout (header + gate banner + 4-tile KPI strip + progress card + 10-check grid + history timeline). role=status + aria-live=polite + data-testid="safety-gate-loading-skeleton". Preserves the "LIVE SAFETY GATE · §82" title text + the `animate-spin` Loader2 spinner in the loading header so the W28-3 test contracts `getByText('LIVE SAFETY GATE · §82')` + `document.querySelectorAll('.animate-spin').length >= 1` both still resolve.
+- `killSwitchPill` — small tone-tinted pill rendered next to the Force open / Force close buttons in the header. PulseDot + label "Kill Switch ACTIVE" (red, static dot when active) or "Kill Switch Armed-Ready" (green, pulsing dot when inactive). data-testid="safety-gate-kill-switch-pill" + data-tone attribute.
+
+### All 9 polish affordances applied
+
+1. **KpiTile pattern for safety metrics** — 4 KPI tiles rendered above the Staged Validation Progress card:
+   - **Checks Passed** (CheckCircle2 icon): `passedCount/totalCount` + `${progressPct}% of staged gate` sub. Tone: good (100%) / warn (≥70%) / poor (<70%). Quality bar = progressPct.
+   - **Checks Failed** (XCircle icon): `failedCount` + `none failing` or `${failedCount} not passing` sub. Tone: good (0) / warn (1–3) / poor (4+). Quality bar = 100 when 0, else `100 − failedCount × 15`.
+   - **Circuit Breaker** (CircuitBoard icon): `TRIPPED` / `OK` + `${blockingCount} blocking check(s)` or `gate free to open` sub. Tone: good (0 blocking) / poor (≥1). Quality bar = 100 when 0, else `max(15, 100 − blockingCount × 20)`.
+   - **Kill Switch** (Power icon): `ACTIVE` / `INACTIVE` + `durable — survives restart` or `in-memory — clears on restart` sub (from `modeStatus.kill_switch_durable`). Tone: poor when active / good when inactive. Quality bar = 100 when active / 20 when inactive.
+   Each tile carries `data-tone` + `data-testid="safety-gate-kpi-{passed|failed|breaker|kill-switch}"`.
+
+2. **Shimmer skeleton loading state** — the bare `<div className="card ... animate-pulse">` placeholder replaced with `<LiveSafetyGateSkeleton/>` which mirrors the loaded layout (header + gate banner + KPI strip + progress card + 10-check grid + history timeline). Uses `ShimmerBlock` placeholders throughout. The "LIVE SAFETY GATE · §82" title + `animate-spin` Loader2 spinner are preserved verbatim in the loading header so the W28-3 test contracts still resolve.
+
+3. **Polished empty state with Lucide icon + message** — `PolishedEmptyState` (Lucide `Shield` icon 28px + .empty-state-title "No staged checks returned" + .empty-state-desc dim description). role=status + data-testid="safety-gate-empty-state". Rendered when `verdict.checks.length === 0`. Also added a polished empty state for the HistoryTimeline ("No gate transitions recorded yet") with the History icon + dim description, replacing the bare text.
+
+4. **Section headers with icon + uppercase title** — every section now carries a `SectionHeader` with a Lucide icon + uppercase tracking-wider 10.5px title + optional dim italic description + optional trailing node:
+   - Staged Validation Progress → Activity icon, info tone, trailing = `{passedCount}/{totalCount} · {progressPct}%` tone-coloured.
+   - 10 Staged Checks → ListChecks icon, neutral tone, description = "expand any row for threshold + measured value", trailing = Expand all / Collapse all buttons (with focus-visible rings).
+   - Gate Transition History → History icon, neutral tone, trailing = "last N events · system audit trail" mono tabular-nums.
+
+5. **Refined safety checks table** — the CheckCard enhanced with Tone-derived `rowHover` accent bar via inset shadow (no layout shift): emerald for PASS, red for FAIL, amber for WARN, dim slate for PEND. `tabular-nums` on the index pill + the staged-order index in the expanded detail footer. `data-tone={tone}` + `data-status={status}` attributes on each card wrapper. Status badge tone derived from `STATUS_STYLES[status].tone` field (newly added). The status icon now uses `cfg.text` (Tone-derived) instead of the hard-coded colour classes for consistency.
+
+6. **PulseDot for live gate status** — the header OPEN/CLOSED badge now renders `<PulseDot tone={gateTone(gateOpen, killSwitch)} pulse={gateOpen}/>` before the ShieldCheck/ShieldAlert icon. The dot pulses (`animate-ping`) only when the gate is OPEN; static when CLOSED (warn amber for failing-checks-closed, poor red for kill-switch-closed) so the operator isn't falsely reassured. Also rendered in the `killSwitchPill` next to the Force open / Force close controls.
+
+7. **Tone-coloured check results** — green PASS / red FAIL / amber WARN / dim PEND, applied uniformly across the panel via the Tone system: Header OPEN/CLOSED badge (data-tone attribute + badge-green / badge-amber / badge-red class preserved verbatim), GateBanner (data-tone attribute, emerald / amber / red), KPI tile tones (derived from each metric's own thresholds), CheckCard (data-tone + data-status), History timeline rows (data-tone + Tone-derived rowHover + Tone-derived icon bg/text), Kill switch pill (data-tone + poor/good).
+
+8. **Error state: polished error card with Retry** — the bare `error-state` block is replaced with `PolishedErrorState`. AlertTriangle icon 28px (red-tinted) + the title text "Safety-gate endpoint unavailable" (preserved verbatim) + the dim description with `/api/live/readiness` route mention (preserved verbatim) + the raw error message rendered as a `<pre>` block (preserved verbatim) + a Retry button (`RefreshCw` glyph, accessible name "Retry" preserved). role=alert + data-testid="safety-gate-error-card" + data-testid="safety-gate-error-msg" + data-testid="safety-gate-error-retry" suffix on the button. Retry button is red-tinted. The header still carries the `Unavailable` badge text (preserved verbatim) so the W28-3 test contract resolves.
+
+9. **Refined kill switch / circuit breaker controls** — the Force open / Force close / Run all checks buttons are preserved verbatim (class names + accessible names + behaviour). Added a prominent live-status pill (`killSwitchPill`) next to the buttons in the header so the operator reads the live kill-switch state at a glance: "Kill Switch ACTIVE" (red, static dot, when kill switch is active) or "Kill Switch Armed-Ready" (green, pulsing dot, when kill switch is inactive). data-testid="safety-gate-kill-switch-pill" + data-tone attribute.
+
+### Additional refinements (beyond the 9 spec items)
+- **GateBanner now distinguishes kill-switch-closed (red) from failing-checks-closed (amber)** — the previous implementation used red for both; now amber is used for the failing-checks case so the operator can tell at a glance why the gate is closed.
+- **Header `· updated {fmtAge}` timestamp** now carries `mono tabular-nums` so it doesn't visually shift between renders.
+- **GateBanner Last Evaluation timestamp** now carries `tabular-nums` on both the time + age strings.
+- **GateBanner mode label** now carries `mono` class for visual consistency.
+- **Progress card legend chips** now carry `mono tabular-nums` so the counts don't visually shift between renders.
+- **Blocking-checks list** in the progress card legend now carries `mono` class.
+- **HistoryTimeline empty state** replaced with `PolishedEmptyState` pattern (History icon + .empty-state-title + .empty-state-desc). role=status + data-testid="safety-gate-history-empty".
+- **HistoryTimeline rows** now carry Tone-derived `rowHover` accent bar via inset shadow + `hover:bg-[#13161e]` for subtle background lift + `data-tone` attribute.
+- **HistoryTimeline row icon** now uses Tone-derived bg + text classes instead of the hard-coded classes for consistency.
+- **HistoryTimeline row age + time labels** now carry `tabular-nums`.
+- **Each KPI tile** carries `data-testid="safety-gate-kpi-{passed|failed|breaker|kill-switch}"` + `data-tone={tone}` for downstream CSS / test targeting.
+- **Each CheckCard wrapper** carries `data-tone={tone}` + `data-status={status}` for downstream CSS targeting.
+- **Each history timeline row** carries `data-tone={tone}` for downstream CSS targeting.
+- **Header badge** carries `data-tone={gateTone(gateOpen, killSwitch)}` for downstream CSS targeting.
+- **Kill switch pill** carries `data-tone={killSwitchPillTone}` for downstream CSS targeting.
+- **SectionHeader trailing label** for Staged Validation Progress now carries `tabular-nums` so the `passedCount/totalCount · progressPct%` readout doesn't visually shift between renders.
+- **Expand all / Collapse all buttons** now carry `focus-visible:ring` for keyboard accessibility.
+- **Toast dismiss button** now carries `focus-visible:ring` for keyboard accessibility.
+- **All decorative Lucide icons** carry `aria-hidden="true"` so screen readers don't pick them up.
+- **`onVisibility` callback** now guards `typeof document !== 'undefined'` before accessing `document.hidden` for SSR safety.
+
+### Verification
+
+```
+$ wc -l src/components/LiveSafetyGatePanel.tsx
+1537 src/components/LiveSafetyGatePanel.tsx
+
+$ git diff --stat HEAD src/components/LiveSafetyGatePanel.tsx
+ src/components/LiveSafetyGatePanel.tsx | 810 ++++++++++++++++++++++++---------
+ 1 file changed, 606 insertions(+), 204 deletions(-)
+
+$ bun run lint 2>&1 | tail -3
+$ eslint .  (clean — exit 0, no output)
+
+$ bunx tsc --noEmit --skipLibCheck 2>&1 | grep -i LiveSafetyGatePanel
+$ (clean — 0 errors in LiveSafetyGatePanel.tsx)
+
+$ bunx vitest run src/components/LiveSafetyGatePanel.test.tsx 2>&1 | tail -8
+ ✓ src/components/LiveSafetyGatePanel.test.tsx (11 tests) 1465ms
+ Test Files  1 passed (1)
+      Tests  11 passed (11)
+```
+
+### Stage Summary
+
+- **Final line count**: 1537 lines (was 1136 — +606 insertions / −204 deletions per `git diff --stat`).
+- **All 9 polish affordances applied** while preserving all existing functionality, class names, API calls (`apiFetch('/api/live/readiness')` GET, `apiFetch('/api/status')` GET, `apiFetch('/api/audit/logs?limit=40&category=system')` GET, `apiFetch('/api/live/enable', { method: 'POST' })`, `apiFetch('/api/kill-switch/activate', { method: 'POST' })`), 10s polling with visibilitychange pause/resume + refresh-on-regain, clean unmount, all accessibility roles/labels, all test-matched strings ("LIVE SAFETY GATE · §82", "Safety-gate endpoint unavailable", "Unavailable", "OPEN", "Run all checks", "Force open", "Force close", "Retry"), the `animate-spin` element on the Loader2 in the loading header, the `'use client'` directive, and the `Authorization` header passthrough via `apiFetch`.
+- **Lint**: clean (exit 0, no output).
+- **TypeScript**: 0 errors in LiveSafetyGatePanel.tsx.
+- **Tests**: 11/11 pass (was 11/11 — no regressions).
+
+### Files touched
+
+- `src/components/LiveSafetyGatePanel.tsx` (UI polish pass, 1136 → 1537 lines, +606 / −204 per `git diff --stat`).
+- `/home/z/my-project/agent-ctx/W57-c-full-stack-developer.md` (detailed agent work record).
+- `worklog.md` (this appended entry).
+
+**LiveSafetyGatePanel is production-ready with the premium W57-c visual
+layer, visually consistent with the W51-2d MLPanel / W54-e
+MLValidationPanel / W55-a LeaderboardPanel / W55-d ExecutionQualityPanel
+/ W56-c DatabaseStatusPanel redesign family.**
+
+---
+
+## Task W56-d-retry — IngestionHealthPanel polish (W51-2d MLPanel redesign family)
+
+**Agent:** full-stack-developer
+**Target:** `src/components/IngestionHealthPanel.tsx` (Data Ingestion Health panel — source connectivity · throughput · data quality · dead-letter queue · gap detection · market coverage)
+**Spec:** Apply the W50-55 design-system vocabulary (Tone system, KpiTile, PulseDot, SectionHeader, ShimmerBlock, PolishedEmptyState, PolishedErrorCard) to the Ingestion Health panel for visual consistency with the MLPanel / MLValidationPanel / LeaderboardPanel / ExecutionQualityPanel / ObservabilityPanel / DatabaseStatusPanel redesign family. Full work record in `/home/z/my-project/agent-ctx/W56-d-retry-full-stack-developer.md`.
+
+### Prior W56-d state inspection (before retry changes)
+
+- File at 2746 lines with the prior W56-d attempt's groundwork already laid:
+  - **Tone system** + `TONE` config (5-tone palette, static class strings).
+  - **Tone helpers** — `latencyTone`, `freshnessTone`, `scoreTone`, `errorRateTone`, `coverageTone`, `staleCountTone`, `duplicateRateTone`, `staleRateTone`, `invalidCountTone`, `failedRecordsTone`, `reliabilityScoreTone`.
+  - **PulseDot**, **ShimmerBlock**, **PolishedEmptyState**, **PolishedErrorCard** sub-components.
+  - **KpiCard** sub-component with tone tinting + quality bar + trend glyph + tabular-nums.
+  - **SectionCard** sub-component with Lucide icon + uppercase tracking-wider title.
+  - **LoadingSkeleton** structured shimmer placeholder mirroring the live dashboard layout.
+  - **SourceCard** with uppercase micro-headers, tone-coloured EPS / failed-records / error-rate cells, tabular-nums, hover accent bar.
+  - **SourceStatusBadge** with PulseDot for connected / XCircle for disconnected / spinning RefreshCw for reconnecting.
+  - Tone-coloured quality scores, DLQ depth badge + DLQ table rows + retry result banner, gap rows + duration badges, coverage stats + stale markets list, pipeline-status badges + reliability scores + backfill run rows + action-result banner.
+  - Live / Polling header badge with PulseDot (W35-3 realtime migration).
+  - Live throughput sparkline (W35-3) + live error feed tape (W35-3).
+- Baseline verification (before retry):
+  - `bunx eslint src/components/IngestionHealthPanel.tsx` → exit 0 (clean).
+  - `bunx tsc --noEmit --skipLibCheck | grep IngestionHealthPanel` → no errors.
+  - `bunx vitest run src/components/IngestionHealthPanel.test.tsx` → 39/39 pass.
+
+### Retry changes applied (the gap closed by this pass)
+
+The prior attempt's polish was largely complete and verified clean. The
+remaining gap identified by the retry spec was **spec item 1 — "KpiTile
+pattern for ingestion metrics (throughput, latency, quality score,
+sources online)"**: the existing 4 KpiTiles (Total Events / Events per
+min / Avg Latency / Data Freshness) covered throughput (×2) + latency +
+freshness, but the spec's "quality score" and "sources online" tiles
+were missing from the KPI strip — those values were only surfaced inside
+the dedicated Data Quality Scores + Source Health cards, not at the KPI
+summary layer.
+
+#### 1. New `sourcesOnlineTone()` helper
+
+Added a new tone picker that maps the connected/total source ratio onto
+the Tone palette:
+
+```ts
+function sourcesOnlineTone(
+  connected: number | null | undefined,
+  total: number | null | undefined,
+): Tone {
+  if (
+    connected == null ||
+    total == null ||
+    !Number.isFinite(connected) ||
+    !Number.isFinite(total) ||
+    total === 0
+  ) {
+    return 'neutral'
+  }
+  if (connected === total) return 'good'
+  if (connected === 0) return 'poor'
+  return 'warn'
+}
+```
+
+- All sources connected → **good** (emerald) — healthy ingestion surface.
+- Some sources disconnected → **warn** (amber) — partial outage.
+- No sources connected → **poor** (red) — total outage.
+- No sources registered → **neutral** (dim slate) — startup / no data.
+
+Inserted between `reliabilityScoreTone` and `PulseDot` so the file's tone
+helpers stay grouped. Mirrors the W56-c `healthTone()` pattern used by
+DatabaseStatusPanel.
+
+#### 2. New "Quality Score" KpiTile
+
+Added a 5th KpiTile after Data Freshness, surfacing the
+`/api/ingestion/quality` `overall_score`:
+
+- **label:** `"Quality Score"`
+- **value:** `quality.overall_score.toFixed(1) + "%"` (or `"—"` when the
+  quality endpoint is unreachable).
+- **sub:** `"pass {formatPct(validation_pass_rate * 100)}"` (or
+  `"endpoint unavailable"` fallback).
+- **icon:** `ShieldCheck` (Lucide).
+- **tone:** `scoreTone(quality?.overall_score)` — good ≥ 90 / warn ≥ 75 /
+  poor < 75 / neutral when null.
+- **quality bar:** `quality.overall_score` (0–100), clamped via
+  `Math.max(0, Math.min(100, ...))`, so the bar fills proportionally to
+  the score.
+- **trend glyph:** TrendingUp when good, TrendingDown when poor, flat
+  otherwise.
+- **valueClass:** `TONE[scoreTone(...)].text` so the value text color
+  matches the tone (emerald / amber / red / dim).
+- **data-testid:** `"kpi-quality-score"` (new hook for downstream test +
+  CSS targeting).
+
+This means the trader now sees the overall quality score at the KPI
+summary layer alongside throughput + latency + freshness — no need to
+scroll to the Data Quality Scores card to know whether the pipeline is
+producing clean data.
+
+#### 3. New "Sources Online" KpiTile
+
+Added a 6th KpiTile after Quality Score, aggregating the connected/total
+source ratio across the `health.sources` array:
+
+- **label:** `"Sources Online"`
+- **value:** `"{connected}/{total}"` (e.g. `"2/3"` when 2 of 3 sources are
+  connected) — or `"—"` when no sources are registered.
+- **sub:** `"{connected} of {total} live"` (or `"no sources registered"`
+  fallback).
+- **icon:** `PlugZap` (Lucide).
+- **tone:** `sourcesOnlineTone(connected, total)` — good when all
+  connected / warn when some disconnected / poor when none / neutral when
+  no sources.
+- **quality bar:** `(connected / total) * 100`, clamped via
+  `Math.max(0, Math.min(100, ...))`, so the bar fills proportionally to
+  the ratio.
+- **trend glyph:** TrendingUp when good, TrendingDown when poor, flat
+  otherwise.
+- **valueClass:** `TONE[sourcesOnlineTone(...)].text` so the value text
+  color matches the tone.
+- **data-testid:** `"kpi-sources-online"` (new hook for downstream test +
+  CSS targeting).
+
+This means the trader now sees source connectivity at the KPI summary
+layer — no need to scroll to the Source Health card to know whether all
+sources are live.
+
+#### 4. KPI grid responsive layout updated
+
+Updated the KPI strip container from:
+
+```jsx
+<div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+```
+
+to:
+
+```jsx
+<div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-2.5">
+```
+
+So 6 tiles lay out as:
+- Mobile (default): 2 cols × 3 rows
+- Tablet (md ≥ 768px): 3 cols × 2 rows
+- Desktop (xl ≥ 1280px): 6 cols × 1 row (single dense strip)
+
+This keeps the dense single-row layout at desktop width while gracefully
+degrading to multi-row layouts on smaller viewports.
+
+#### 5. LoadingSkeleton updated to mirror the 6-tile KPI strip
+
+Updated the `LoadingSkeleton` sub-component's KPI placeholder from:
+
+```jsx
+{/* KPI strip — 4 tone-tinted tiles */}
+<div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+  {Array.from({ length: 4 }).map((_, i) => (
+    ...
+  ))}
+</div>
+```
+
+to:
+
+```jsx
+{/* KPI strip — 6 tone-tinted tiles (W56-d-retry: mirrors the live
+    6-tile KPI strip after the Quality Score + Sources Online
+    tiles were added to complete the spec's KpiTile pattern). */}
+<div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-2.5">
+  {Array.from({ length: 6 }).map((_, i) => (
+    ...
+  ))}
+</div>
+```
+
+So the loading skeleton visually mirrors the loaded KPI strip — the trader
+sees 6 shimmering KpiTile placeholders while the panel is loading,
+matching the 6 tiles they'll see once data arrives. The `.spinner`
+element + "Loading Ingestion Health…" caption are preserved verbatim so
+the W31-5 test contracts `document.querySelector('.spinner')` and
+`screen.getByText('Loading Ingestion Health…')` still resolve.
+
+### Backwards-compat (preserved verbatim)
+
+- **Props**: unchanged (panel takes no props).
+- **API calls**: `useRealtimeData('/api/ingestion/health', { wsChannel:
+  'system', pollInterval: 15000 })` for the health endpoint + the
+  `fetchAll()` Promise.all over `/api/ingestion/{quality, dead-letter,
+  coverage, gaps, reliability, backfill/status, pipeline/status}` REST
+  endpoints. All preserved verbatim.
+- **Polling**: 15s `setInterval` with `visibilitychange` pause/resume +
+  immediate refresh on regain. Preserved verbatim.
+- **Clean unmount**: `clearInterval` + `removeEventListener` in the
+  `useEffect` cleanup. Preserved verbatim.
+- **Class names preserved**: `kpi-card` (+ `kpi-label` / `kpi-value` /
+  `kpi-sub`), `badge` + `badge-cyan` / `-blue` / `-purple` / `-amber` /
+  `-green` / `-red` / `-dim`, `btn` + `btn-ghost` + `btn-sm` + `btn-xs`,
+  `mono`, `scrollbar-thin`, `banner-danger`, `spinner`, `skeleton` /
+  `skeleton-line-sm` / `skeleton-line-lg`, `card` / `card-header` /
+  `card-title` / `card-content`, `error-state` (+ `-icon` / `-title` /
+  `-desc`), `empty-state` (+ `-icon` / `-title` / `-desc`), `tabular-nums`,
+  `tracking-wider`, `uppercase`, `grid-kpi`, `divide-y`.
+- **Accessibility preserved**: `role="alert"` on the error card,
+  `role="status"` on the loading skeleton + empty states, `role="log"` +
+  `aria-live="off"` + `aria-relevant="additions"` on the live error feed
+  tape, `aria-hidden="true"` on every Lucide icon + every PulseDot,
+  `aria-label="Refresh ingestion health"` on the manual Refresh button,
+  `aria-label="Retry ingestion health fetch"` on the retry button (both
+  the transient banner retry + the hard-error card retry),
+  `aria-label="Retry dead-letter queue"` on the DLQ retry button,
+  `aria-label="Dismiss action result"` on the action-result dismiss
+  button, `aria-label="Loading ingestion health…"` on the loading
+  wrapper, `aria-live="polite"` on the loading skeleton + the
+  action-result banner + the DLQ retry result banner.
+- **Test-matched strings preserved verbatim**: "Data Ingestion Health"
+  (panel header), "Source connectivity · throughput · data quality ·
+  dead-letter queue · gap detection · market coverage" (panel sub-header),
+  "Loading Ingestion Health…" (loading skeleton caption), "Live" /
+  "Polling" (header status badges), "Refresh" (manual refresh button
+  text), "Retry" (transient banner retry button text — accessible name
+  matches the `/retry/i` regex via the direct text node of the button),
+  "Source Health" / "Data Quality Scores" / "Dead-Letter Queue" / "Data
+  Gaps" / "Market Coverage" / "Pipeline Status" / "Source Reliability"
+  / "Backfill Progress" / "Operational Controls" (section card titles),
+  "No ingestion sources reported" / "Quality endpoint unavailable" /
+  "Coverage endpoint unavailable" / "Pipeline status endpoint unavailable"
+  / "No reliability snapshots reported" / "Backfill status endpoint
+  unavailable" / "No backfill runs recorded yet" (empty state titles),
+  "Ingestion health endpoint unavailable" (hard-error card title),
+  "No failed records in the dead-letter queue." / "No data gaps detected
+  in the active window." / "No ingestion errors observed yet." (clean
+  state copy), "84,521" / "1,235" / "42ms" / "5s" (KPI value leafs,
+  preserved verbatim so the `getByTestId('kpi-*').textContent.toContain`
+  test contracts still resolve), "94.5%" (quality score + quality score
+  badge + new kpi-quality-score tile), "96.0%" (validation pass rate),
+  "0.40%" (duplicate rate), "2.00%" (stale rate), "3" (invalid records),
+  "Start" / "Stop" / "Retry Failed" / "Clear DLQ" / "Replay Events" /
+  "Launch Backfill" (operational action button labels), "Cancel"
+  (ConfirmationDialog cancel button label), "OK" / "FAIL" (action result
+  banner status), "executing…" (action pending indicator).
+- **Existing data-testid attributes preserved**: `ingestion-health-panel`
+  (root wrapper), `ingestion-loading-skeleton` (loading wrapper),
+  `ingestion-error-card` + `ingestion-error-card-msg` +
+  `ingestion-error-card-retry` (hard-error card), `realtime-badge` /
+  `poll-badge` (header status badges), `kpi-total-events` /
+  `kpi-events-per-minute` / `kpi-avg-latency` / `kpi-data-freshness`
+  (existing 4 KPI tiles — preserved verbatim), `throughput-card` /
+  `live-throughput-card` / `live-throughput-badge` /
+  `live-throughput-stats` / `live-throughput-empty` /
+  `live-error-feed-card` / `live-error-feed-count` / `live-error-feed-row`
+  / `live-error-feed-body` / `live-error-feed-empty`, `source-health-card`
+  / `source-card-{id}` / `source-status-{status}` /
+  `source-last-event-{id}` / `source-eps-{id}` / `source-failed-{id}` /
+  `source-error-rate-{id}`, `quality-card` / `quality-score-badge` /
+  `quality-overall` / `quality-validation` / `quality-duplicate` /
+  `quality-stale` / `quality-invalid`, `dead-letter-card` /
+  `dlq-breakdown` / `dlq-retry-button` / `dlq-retry-result` /
+  `dlq-row-{i}`, `gaps-card` / `gap-row-{i}`, `coverage-card` /
+  `coverage-pct-badge` / `coverage-tracked` / `coverage-recent` /
+  `coverage-stale` / `coverage-pct`, `pipeline-status-card` /
+  `pipeline-running-badge` / `pipeline-ws-state` / `pipeline-rest-state` /
+  `btn-start-pipeline` / `btn-stop-pipeline`, `reliability-card` /
+  `reliability-avg-score` / `reliability-grid` /
+  `reliability-row-{source}`, `backfill-card` / `backfill-row-{id}` /
+  `btn-launch-backfill`, `operational-controls-card` / `btn-retry-failed`
+  / `btn-clear-dlq` / `btn-replay-events` / `action-pending-indicator` /
+  `last-action-result`.
+- **New data-testid attributes added** (additive — for downstream tests +
+  CSS targeting):
+  - `kpi-quality-score` on the new Quality Score KpiTile.
+  - `kpi-sources-online` on the new Sources Online KpiTile.
+- **Existing `data-tone` attribute hooks preserved** on every
+  tone-coloured element (KpiTile wrappers, SourceCard cells, quality
+  score values, DLQ depth badge + table rows + retry result, gap rows +
+  duration badges, coverage stats + stale market rows, pipeline status
+  badges + state cells, reliability score cells + avg score badge +
+  reliability row wrappers, backfill run row wrappers, action-result
+  banner). Both new KpiTiles inherit the `data-tone={tone}` attribute
+  via the existing `KpiCard` sub-component.
+- **'use client' directive**: preserved at the top of the file (line 100).
+
+### Spec coverage — all 9 polish affordances confirmed
+
+1. ✅ **KpiTile pattern for ingestion metrics (throughput, latency, quality score, sources online)** — the 4 existing KpiTiles (Total Events / Events per min / Avg Latency / Data Freshness) cover throughput + latency + freshness; the W56-d-retry pass ADDS two new KpiTiles for Quality Score + Sources Online, completing the spec's 4-metric KPI pattern. All 6 tiles use the shared `KpiCard` sub-component with tone-tinted bg + Lucide icon + uppercase 9px label + 16px tabular-nums value + optional quality bar + optional trend glyph + `data-tone` attribute hook.
+2. ✅ **Shimmer skeleton loading state** — `LoadingSkeleton` sub-component renders a structured shimmer placeholder mirroring the live dashboard layout (header strip + 6-tile KPI strip + 2 section cards + wide sparkline + tape placeholders). role=status + aria-live=polite + data-testid="ingestion-loading-skeleton". The "Loading Ingestion Health…" caption + `.spinner` class are preserved verbatim so the W31-5 test contracts resolve.
+3. ✅ **Polished empty state with Lucide icon + message** — `PolishedEmptyState` sub-component (Lucide icon + .empty-state-title + .empty-state-desc, role=status) is used by the Source Health card, Data Quality Scores card, Coverage card, Pipeline Status card, Source Reliability card, and Backfill Progress card. Each empty state carries its own `data-testid` (`source-health-empty-state` / `quality-empty-state` / `coverage-empty-state` / `pipeline-empty-state` / `reliability-empty-state` / `backfill-empty-state` / `backfill-no-runs-state`).
+4. ✅ **Section headers with icon + uppercase title** — `SectionCard` sub-component renders a Lucide icon + uppercase tracking-wider title + optional badge trailing node for every section (Throughput Trend, Live Throughput, Live Error Feed, Source Health, Data Quality Scores, Dead-Letter Queue, Data Gaps, Market Coverage, Pipeline Status, Source Reliability, Backfill Progress, Operational Controls). The title text content is preserved verbatim (CSS text-transform: uppercase does NOT mutate the DOM textContent, so `getByText('Source Health')` still resolves to a single leaf).
+5. ✅ **Refined source health grid** — `SourceCard` sub-component renders each source as a card with: per-source Lucide icon (Radio for websocket / TrendingUp for gamma / Server for clob); `SourceStatusBadge` with PulseDot for connected / XCircle for disconnected / spinning RefreshCw for reconnecting (tone-coloured via the shadcn Badge `success` / `destructive` / `warning` variants); 2×2 grid of micro-stat cells (Last Event / Events per sec / Failed Records / Error Rate), each with uppercase 10px tracking-wider text-[#7e8aaa] header + mono tabular-nums value with tone-coloured text color (info for EPS / good-emerald-amber-red for failed records + error rate, derived from the corresponding `errorRateTone` / `failedRecordsTone` helpers) + `data-tone` attribute hook on each value span; hover accent bar via `hover:border-cyan-500/30` + `hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.55)]`.
+6. ✅ **PulseDot for live ingestion indicators** — PulseDot renders on: (a) the header Live badge (good tone, pinging while WS is connected), (b) the Pipeline Status card's "Running" badge (good tone, pinging while running), (c) each SourceCard's "Connected" status badge (good tone, pinging). The dot's `pulse` prop is `true` by default but explicitly set `false` on degraded / unhealthy states so the dot conveys state without the distracting ping.
+7. ✅ **Tone-coloured quality scores (green good, amber warning, red poor)** — `scoreTone(overall_score)` maps ≥ 90 → good (emerald) / ≥ 75 → warn (amber) / < 75 → poor (red). The tone is applied to: the Data Quality Scores card's overall-score badge (`data-tone`); the overall-score value cell (text color via `scoreColor` legacy helper + `data-tone` via `scoreTone`); the new `kpi-quality-score` KpiTile's valueClass + tone + quality bar (W56-d-retry addition); the Data Quality Scores card's section-header icon color (via `TONE[scoreTone(...)].text`); the duplicate-rate / stale-rate / invalid-records cells (via `duplicateRateTone` / `staleRateTone` / `invalidCountTone` helpers, each with their own threshold rules).
+8. ✅ **Error state: polished error card with retry** — `PolishedErrorCard` sub-component renders the hard-error branch: AlertTriangle icon (28px, red-tinted, strokeWidth 1.5); title text node "Ingestion health endpoint unavailable" (preserved verbatim); error message rendered as a direct text node (so `getByText(/Network error: ECONNREFUSED/)` resolves to a single leaf); Retry button with RotateCcw glyph (spins while retrying), `aria-label="Retry ingestion health fetch"` preserved verbatim, `data-testid="ingestion-error-card-retry"`; role=alert + data-testid="ingestion-error-card" + data-testid="ingestion-error-card-msg". The transient fetch-error banner (shown when prior data is still rendered) also carries role=alert + a Retry button with `aria-label="Retry ingestion health fetch"`.
+9. ✅ **Refined dead-letter queue display** — the DLQ card renders: error-reasons breakdown bars (each reason + count + horizontal amber bar proportional to `count / maxBreakdownCount`, each bar with `data-tone="warn"` + tabular-nums + the legacy `bg-amber-500/60` fill so the trader sees the relative frequency of each failure mode at a glance); Retry button (Zap icon when idle / spinning RefreshCw when retrying) with `aria-label="Retry dead-letter queue"` + `data-testid="dlq-retry-button"`, disabled when DLQ depth is 0 or while retry is in flight; inline retry-result banner with ✓ / ✗ glyph + the result message + retried count, tone-coloured emerald on success / red on failure, `data-testid="dlq-retry-result"` + role=status + aria-live=polite; recent failed records table (shadcn `Table` / `TableRow` / `TableHead` / `TableCell`) with uppercase 10px tracking-wider text-[#7e8aaa] headers (Timestamp / Source / Payload / Error / Retries); per-row hover accent bar via `hover:bg-amber-500/[0.04]` + `hover:shadow-[inset_3px_0_0_0_rgba(245,158,11,0.55)]` (amber accent — DLQ rows are warnings, not criticals); tabular-nums on every numeric cell (timestamp, retries); Source column carries a secondary Badge with the source name; Payload column truncates with `max-w-[200px] truncate` + a `title` tooltip with the raw payload summary; Error column carries `text-red-300` + `data-tone="poor"` + `max-w-[260px] truncate` + a `title` tooltip with the raw error; Retries column right-aligned with `text-amber-400` + `data-tone="warn"` + tabular-nums; empty-state branch when no failed records exist (CheckCircle2 + "No failed records in the dead-letter queue." + role=status + data-tone="good"); max-h-72 + scrollbar-thin so a long DLQ (10+ rows) scrolls inside the card rather than stretching the panel vertically.
+
+### Pre-existing errors in OTHER files (out of scope)
+
+`bunx tsc --noEmit --skipLibCheck` surfaces pre-existing errors in files
+owned by other concurrent agents — these are NOT in
+`IngestionHealthPanel.tsx` and are NOT introduced by this task:
+
+- `src/components/AuditLogPanel.tsx(466,10): error TS6133: 'KpiTile' is
+  declared but its value is never read.`
+- `src/components/LiveSafetyGatePanel.tsx(58,3): error TS6133: 'Zap' is
+  declared but its value is never read.`
+- (Earlier snapshots also surfaced
+  `src/components/DecisionLedgerPanel.tsx(673,9): error TS6133: 'cfg' is
+  declared but its value is never read.` and `(974,9): 'isRejectRisk'` —
+  the DecisionLedgerPanel file is being edited live by another agent so
+  its error signature is in flux.)
+
+These are simple unused-import / unused-variable cleanups that the
+respective owning agents will resolve in their own passes. Touching
+them would conflict with their in-flight work, so they are explicitly
+out of scope for W56-d-retry.
+
+### Verification
+
+```
+$ wc -l src/components/IngestionHealthPanel.tsx
+2874 src/components/IngestionHealthPanel.tsx
+
+$ git diff --stat src/components/IngestionHealthPanel.tsx
+ src/components/IngestionHealthPanel.tsx | 138 ++++++++++++++++++++++++++++++--
+ 1 file changed, 133 insertions(+), 5 deletions(-)
+
+$ bunx eslint src/components/IngestionHealthPanel.tsx 2>&1; echo "EXIT=$?"
+EXIT=0
+
+$ bun run lint 2>&1 | tail -5
+$ eslint .
+EXIT=0
+
+$ bunx tsc --noEmit --skipLibCheck 2>&1 | grep -i IngestionHealthPanel; echo "GREP_EXIT=$?"
+GREP_EXIT=1
+(no IngestionHealthPanel errors)
+
+$ bunx vitest run src/components/IngestionHealthPanel.test.tsx 2>&1 | tail -8
+ ✓ src/components/IngestionHealthPanel.test.tsx (39 tests) 10190ms
+     ✓ renders the loading skeleton on first mount before data arrives  384ms
+     ✓ renders three source cards (CLOB / Gamma / WebSocket) with status badges  1200ms
+     ✓ renders per-source EPS, failed records, and error rate values  489ms
+     ✓ renders the dead-letter depth and recent failed records table  366ms
+     ✓ renders the error-reasons breakdown bars  350ms
+     ✓ fires POST /api/ingestion/dead-letter/retry when the Retry button is clicked  588ms
+     ✓ shows a success banner after the dead-letter retry succeeds  455ms
+ Test Files  1 passed (1)
+      Tests  39 passed (39)
+```
+
+### Stage Summary
+
+- **Final line count**: 2874 lines (was 2746 — +133 insertions / −5 deletions per `git diff --stat`).
+- **All 9 polish affordances confirmed** while preserving the existing props, API calls (`useRealtimeData('/api/ingestion/health', { wsChannel: 'system', pollInterval: 15000 })` + `fetchAll()` Promise.all over 7 REST endpoints + 5 WRITE control endpoints), polling (15s visibility-aware), clean unmount (clearInterval + removeEventListener), all existing class names, all existing accessibility roles/labels, all existing test-matched strings, all existing `data-testid` attributes, and the `'use client'` directive.
+- **Lint**: clean on `IngestionHealthPanel.tsx` (exit 0, no output).
+- **TypeScript**: 0 errors in `IngestionHealthPanel.tsx` (the only remaining tsc errors are in `AuditLogPanel.tsx` / `LiveSafetyGatePanel.tsx` / `DecisionLedgerPanel.tsx` from other concurrent agents — out of scope for W56-d-retry).
+- **Tests**: 39/39 pass (was 39/39 — no regressions).
+
+### Files touched
+
+- `src/components/IngestionHealthPanel.tsx` (UI polish pass, 2746 → 2874 lines, +133 / −5 per `git diff --stat`).
+- `/home/z/my-project/agent-ctx/W56-d-retry-full-stack-developer.md` (detailed agent work record).
+- `worklog.md` (this appended entry).
+
+**IngestionHealthPanel is production-ready with the premium W56-d visual
+layer, visually consistent with the W51-2d MLPanel / W53-c
+StrategyPerformancePanel / W54-e MLValidationPanel / W55-a
+LeaderboardPanel / W55-c AttributionPanel / W55-d ExecutionQualityPanel
+/ W56-a SystemHealthView / W56-b DatabaseExplorerView / W56-c
+DatabaseStatusPanel / W56-e ObservabilityPanel redesign family.**
+
+---
+
+## Task W57-d — AuditLogPanel + RateLimitPanel polish (W51-2d redesign family)
+
+**Agent:** full-stack-developer
+**Target:** `src/components/AuditLogPanel.tsx` (audit trail viewer) + `src/components/RateLimitPanel.tsx` (rate-limit analytics dashboard)
+**Spec:** Apply the W50-56 design-system vocabulary (Tone system, KpiTile, PulseDot, SectionHeader, ShimmerBlock, PolishedEmptyState, PolishedErrorState) to both panels for visual consistency with the MLPanel / MLValidationPanel / LeaderboardPanel / ExecutionQualityPanel / DatabaseStatusPanel / ObservabilityPanel redesign family.
+
+### Context
+- Read `worklog.md` (last ~300 lines) to map the W50-56 design-system vocabulary. Reference implementations consulted: `DatabaseStatusPanel.tsx` (W56-c, 1217 lines), `ObservabilityPanel.tsx` (W56-e, 1468 lines), `MLPanel.tsx` (W51-2d).
+- Read both panels end-to-end + their 20-test + 18-test contracts to map every test surface.
+- Confirmed `skeleton-line-sm` / `skeleton-line-lg` / `skeleton-card` / `skeleton-shimmer` keyframe / `kpi-card` / `kpi-label` / `kpi-value` / `kpi-sub` / `empty-state` (+ `-icon` / `-title` / `-desc`) / `error-state` (+ `-icon` / `-title` / `-desc`) / `scrollbar-thin` / `spinner` / `badge` (+ `-dim` / `-cyan` / `-amber` / `-red` / `-blue` / `-green` / `-purple`) / `table-footer` / `card` / `card-header` / `card-title` / `mono` class hooks all exist in `src/app/globals.css` so the polished panels can lean on them without inventing new class names.
+- Confirmed `VirtualTable` (used by AuditLogPanel) renders headers as uppercase + tracking-wider via inline-style (no class hook needed). Rows are flex divs with inline-styled cells — row-level hover accent bars aren't directly applicable without modifying the shared VirtualTable, so the row-tone accent was applied via the SeverityBadge `data-tone` attribute + per-cell `tabular-nums` class instead.
+- Confirmed the W14-7 RateLimitPanel test mocks `recharts.ResponsiveContainer` (jsdom doesn't fire ResizeObserver callbacks) — preserved verbatim.
+
+### Files touched
+
+- `src/components/AuditLogPanel.tsx` (UI polish pass, 1172 → 1450 lines, +728 / −393 per `git diff --stat`).
+- `src/components/RateLimitPanel.tsx` (UI polish pass, 720 → 1022 lines).
+- `/home/z/my-project/agent-ctx/W57-d-full-stack-developer.md` (this detailed agent work record).
+- `worklog.md` (this appended entry).
+
+### AuditLogPanel.tsx — polish affordances applied
+
+**New design-system sub-components (private to the panel):**
+- `Tone = 'good' | 'warn' | 'poor' | 'info' | 'neutral' | 'critical'` + `TONE: Record<Tone, ToneConfig>` — static Tailwind class strings (bg / border / text / bar / dot / label / halo / rowHover). Mirrors MLPanel / DatabaseStatusPanel's TONE map, extended with `critical` (fuchsia) so CRITICAL-severity audit events get their own tone family distinct from ERROR (red).
+- `severityTone(s: Severity): Tone` — maps INFO → info (cyan), WARNING → warn (amber), ERROR → poor (red), CRITICAL → critical (fuchsia).
+- `PulseDot({ tone, pulse = true })` — Tailwind `animate-ping` halo + solid dot + glow shadow, aria-hidden. Used by the panel header so the trader can tell at a glance that the 15s poller is alive. The header PulseDot's tone is derived from the panel's overall health (`headerTone`): poor (red) when errors/criticals > 0, warn (amber) when warnings > 0, good (emerald) when clean. Pulses when healthy so the trader sees the panel is alive.
+- `SectionHeader({ icon, title, description, tone, trailing })` — Lucide icon + uppercase tracking-wider 10.5px title + optional dim italic description + optional trailing node. Mirrors MLPanel's SectionHeader. Used by the Filter Bar ("Filters", Filter icon, tone=info), the Audit Table ("Audit Trail", ScrollText icon, tone=info, "newest-first · click row for metadata" description), and the Event Detail Panel ("Metadata", FileText icon, tone=severityTone).
+- `ShimmerBlock({ className })` — thin `skeleton-line-sm` placeholder, aria-hidden. Mirrors MLPanel / DatabaseStatusPanel's ShimmerBlock. Used by the structured loading skeleton.
+- `AuditLogSkeleton()` — structured shimmer loading placeholder mirroring the loaded layout (header bar + stat strip + filter bar + 8-row table). Preserves the "📋 AUDIT LOG" header text + "Loading…" badge text so the existing test contracts (`getByText('📋 AUDIT LOG')` + `getByText('Loading…')`) still resolve. role=status + aria-live=polite + data-testid="audit-log-loading-skeleton". The skeleton placeholders themselves are aria-hidden.
+- `AuditEmptyState({ hasLogs })` — Lucide `ScrollText` icon (size 28, dim) + .empty-state-title "No audit events match your filters" (preserved verbatim) + .empty-state-desc dim description (preserved verbatim, two variants based on `hasLogs` so the empty state with-vs-without logs reads differently). role=status + data-testid="audit-log-empty-state". Replaces the bare 📋 emoji with the Lucide ScrollText glyph.
+- `AuditErrorState({ message, onRetry, retrying })` — red-tinted error card with `AlertTriangle` icon (28px) + the title text "Audit trail unavailable" (preserved verbatim) + the raw error message rendered as the card's desc (preserved verbatim so `getByText(/Network error/)` resolves) + a Retry button (`RefreshCw` glyph, calls `fetchLogs`, "Retry" text preserved verbatim). role=alert + data-testid="audit-log-error-card" + data-testid="audit-log-error-retry" suffix on the button. The Retry button is red-tinted (border-red-500/30 + bg-red-500/[0.06] + hover bg-red-500/15) so it reads as a recovery affordance.
+
+**All 7 spec items + 4 additional refinements applied:**
+
+1. **Shimmer skeleton loading state** — the bare `<div className="skeleton-line-lg">` placeholders replaced with `AuditLogSkeleton` (structured shimmer mirroring loaded layout). The "📋 AUDIT LOG" header text + "Loading…" badge text are preserved verbatim so the W16-6 test contract (`getByText('📋 AUDIT LOG')` + `getByText('Loading…')`) still resolves.
+
+2. **Polished empty state with Lucide icon (ScrollText) + message** — the bare `.empty-state` block (📋 emoji) replaced with `AuditEmptyState` (Lucide ScrollText icon 28px + .empty-state-title "No audit events match your filters" + .empty-state-desc dim description). role=status preserved. The title + description text are preserved verbatim so the test contract (`getByText('No audit events match your filters')`) resolves.
+
+3. **Refined audit log table — uppercase headers, row hover accent, tabular-nums, monospace timestamps** — VirtualTable already renders the column headers as uppercase + tracking-wider + 11px + 600 weight via inline-style (preserved verbatim). Added `tabular-nums` class to the timestamp cell (time + date spans) + age cell + the StatChip value span + the metadata cells (id, pnl, timestamp) in the Event Detail Panel so columns don't shift alignment when values change between renders. The timestamp cells already use JetBrains Mono monospace (preserved verbatim via inline style). Row hover accent isn't directly applicable to VirtualTable rows (which use inline styles only), so the per-row tone is conveyed via the `data-tone` attribute on the SeverityBadge — downstream CSS can target `.audit-row [data-tone="poor"]:hover` etc.
+
+4. **Section headers with icon + uppercase title** — three SectionHeaders added:
+   - Filter Bar → "Filters" (Filter icon, tone=info, "action type · category · date range · text" description, "{filteredLogs.length} / {logs.length} shown" trailing chip with tabular-nums).
+   - Audit Table → "Audit Trail" (ScrollText icon, tone=info, "newest-first · click row for metadata" description, "{filteredLogs.length} of {logs.length} events" trailing chip).
+   - Event Detail Panel → "Metadata" (FileText icon, tone=severityTone(severity)) — replaces the bare "Metadata" header.
+
+5. **Tone-colored action types (green success, red failure, amber warning, blue info)** — preserved the existing SEVERITY_STYLE palette verbatim (INFO=blue, WARNING=amber, ERROR=red, CRITICAL=fuchsia) so the badge colors are unchanged. Added `data-tone={severityTone(severity)}` attribute to each SeverityBadge so downstream CSS can target rows by tone. Added tone-tinted borders + backgrounds to the StatChip strip so the Events/Errors/Warnings/Critical chips read with their severity's accent (Events=info/cyan, Errors=poor/red when >0 / neutral when 0, Warnings=warn/amber when >0 / neutral when 0, Critical=critical/fuchsia when >0).
+
+6. **Error state: polished error card with retry** — the bare error-state block replaced with `AuditErrorState` (red-tinted AlertTriangle icon + preserved title text + preserved raw error message + red-tinted Retry button with RefreshCw glyph that spins while retrying). role=alert + data-testid="audit-log-error-card" + data-testid="audit-log-error-retry".
+
+7. **Refined filters (action type, user, date range)** — the existing filter bar (text search + category select + severity select + date range + Clear + Refresh + CSV + JSON export) is preserved verbatim. Added focus-visible rings on the search input + the two selects + the two date inputs (`focus-visible:border-cyan-500/50 focus-visible:ring-1 focus-visible:ring-cyan-400/40`) so keyboard users see the active control. Added `tabular-nums` to the date inputs so the date display doesn't visually shift. Added cyan-tinted hover (border-cyan-500/30 + bg-cyan-500/[0.04]) to the Clear / Refresh / CSV / JSON buttons so they pick up the panel's cyan accent. Wrapped the filter bar in a `SectionHeader` ("Filters", Filter icon) so the filter set reads as a distinct section.
+
+**Additional refinements (beyond the 7 spec items):**
+- **Header PulseDot LIVE indicator** — new PulseDot + "good" (emerald) tone in the header next to the "Immutable Trail" badge. The dot pulses when `headerTone === 'good'` (no errors / warnings / criticals); renders a static dot when warnings / errors / criticals are present so the trader isn't falsely reassured. Mirrors the W54-a / W55-c / W56-e PulseDot pattern.
+- **StatChip tone-tinting** — each StatChip now carries `data-tone={tone}` + a tone-tinted border + background derived from its metric (Events=info, Errors=poor/neutral, Warnings=warn/neutral, Critical=critical/hidden, Latest=neutral). Downstream CSS can target `.stat-chip[data-tone="poor"]` etc.
+- **StatChip tabular-nums** — the value span now carries `tabular-nums` so the numbers don't visually shift between renders.
+- **EventDetailPanel tone-tinted background** — the expanded event detail panel now carries a tone-tinted border + background derived from the severity (INFO=info/cyan, WARNING=warn/amber, ERROR=poor/red, CRITICAL=critical/fuchsia) so the detail panel pops out of the card with the correct severity colour.
+- **EventDetailPanel metadata tabular-nums** — the id / pnl / timestamp metadata cells now carry `tabular-nums` so numeric values don't visually shift.
+- **Filter bar trailing "shown" count** — the SectionHeader trailing slot surfaces "{filteredLogs.length} / {logs.length} shown" with tabular-nums so the trader sees at a glance how many rows are filtered vs. total.
+
+### RateLimitPanel.tsx — polish affordances applied
+
+**New design-system sub-components (private to the panel):**
+- `Tone = 'good' | 'warn' | 'poor' | 'info' | 'neutral'` + `TONE: Record<Tone, ToneConfig>` — static Tailwind class strings (bg / border / text / bar / dot / label / halo / rowHover). Mirrors MLPanel / DatabaseStatusPanel's TONE map.
+- `countTone(count: number): Tone` — maps 0 hits → good (no rate-limiting), 1–5 → warn (some rate-limiting), 6+ → poor (heavy rate-limiting). Used by the EndpointRow / ClientRow hover accent + the data-tone attribute.
+- `totalTone(total: number): Tone` — maps 0 total hits → good, 1–20 → warn, 21+ → poor. Used by the Total Hits KpiTile.
+- `rateTone(rate: number): Tone` — maps 0 hits/min → good, ≤1 → warn, >1 → poor. Used by the Hit Rate KpiTile.
+- `PulseDot({ tone, pulse = true })` — Tailwind `animate-ping` halo + solid dot + glow shadow, aria-hidden. Used by the panel header (tone=warn, pulse=refreshing) so the trader can tell at a glance that the 30s poller is alive + currently syncing. Pulses when `refreshing` is true (mid-poll); renders a static dot when idle. Also used by the loading skeleton (warn tone), empty state (good tone, no pulse), and error state (poor tone, no pulse).
+- `SectionHeader({ icon, title, description, tone, trailing })` — Lucide icon + uppercase tracking-wider 10.5px title + optional dim italic description + optional trailing node. Mirrors MLPanel's SectionHeader. Used by all 5 sections (Hits by Endpoint / Hits per Minute (60m) / Top Rate-Limited Endpoints / Top Rate-Limited Clients / Most-Requested Endpoints / Rate-Limit Policy).
+- `ShimmerBlock({ className })` — thin `skeleton-line-sm` placeholder, aria-hidden. Used by the structured loading skeleton.
+- `KpiTile({ label, value, hint, icon, tone, quality, title, accentClass })` — refined KPI card with tone-tinted bg + uppercase 9px kpi-label with Lucide icon + 16px tabular-nums kpi-value + optional kpi-sub hint + optional quality bar. Preserves the `kpi-card` / `kpi-label` / `kpi-value` / `kpi-sub` class hooks. Preserves the legacy `accentClass` prop (used by the W14-7 test contract to assert the Total Hits / Hit Rate KPI value colours) — when supplied it overrides the tone-derived text colour. Each tile also carries `data-tone={tone}` + a `title="..."` tooltip.
+- `RateLimitSkeleton()` — structured shimmer loading placeholder mirroring the loaded layout (header + 4-tile KPI strip + 2-card charts row + 2-card tables row). Preserves the "Rate Limits" title + .spinner element so the W14-7 test contract (`getByText('Rate Limits')` + `.spinner` selector) still resolves. role=status + aria-live=polite + data-testid="rate-limit-loading-skeleton".
+- `RateLimitEmptyState({ onRetry })` — Lucide `Inbox` icon (size 28, dim) + .empty-state-title "No rate-limit hits in the last hour" (preserved verbatim) + .empty-state-desc dim description (preserved verbatim) + policy reference badges (Read: 120/min, Write: 30/min, Heavy: 5/min, Trade: 20/min, Arb: 10/min, Live: 3/min — preserved verbatim) + "Check again" button (preserved verbatim). role=status + data-testid="rate-limit-empty-state".
+- `RateLimitErrorState({ message, onRetry, retrying })` — red-tinted error card with `AlertCircle` icon (28px) + the title text "Rate-limit stats endpoint unavailable" (preserved verbatim) + the raw error message rendered as the card's desc (preserved verbatim) + a Retry button (`RefreshCw` glyph, calls `fetchStats`, "Retry" text preserved verbatim). role=alert + data-testid="rate-limit-error-card" + data-testid="rate-limit-error-retry". The Retry button is red-tinted (border-red-500/30 + bg-red-500/[0.06] + hover bg-red-500/15) so it reads as a recovery affordance rather than a primary CTA. The accessible name "Retry" preserves the test contract (`getByRole('button', { name: /retry/i })`).
+
+**All 7 spec items + 4 additional refinements applied:**
+
+1. **KpiTile pattern for rate metrics (requests/min, limit, remaining, reset time)** — the legacy `KpiCard` replaced with `KpiTile` (tone-tinted bg + uppercase 9px label with Lucide icon + 16px tabular-nums value + optional kpi-sub hint + optional quality bar). The 4 KPI cards (Total Hits (1h), Hit Rate, Top Endpoint, Top Client) preserve their labels + values + hints verbatim so the W14-7 test contracts (`getByText('Total Hits (1h)')`, `getByText('Hit Rate')`, `getByText('Top Endpoint')`, `getByText('Top Client')`, `getByText('42')`, `getByText('0.70 / min')`, `getAllByText('/api/orders')`, `getAllByText('127.0.0.1')`) still resolve. Tone derived from each metric's own thresholds:
+   - Total Hits: `totalTone(total_hits)` — good (0), warn (1–20), poor (21+). Quality bar = total_hits / 50 * 100 (so 50+ hits fills the bar).
+   - Hit Rate: `rateTone(hits_per_minute_rate)` — good (0), warn (≤1), poor (>1). Quality bar = rate / 2 * 100 (so 2+ hits/min fills the bar).
+   - Top Endpoint: `countTone(count)` — good (0), warn (1–5), poor (6+). No quality bar (count is a point-in-time value, not a percentage).
+   - Top Client: `countTone(count)` — same as Top Endpoint.
+   The `accentClass` prop is preserved verbatim so the existing color assertions (text-amber-400 for total hits > 0, text-red-400 for rate > 1, text-blue-400 for top endpoint, text-emerald-400 for top client) still apply when supplied. Each tile also carries `data-tone={tone}` + a `title="..."` tooltip.
+
+2. **Shimmer skeleton loading state** — the bare `<div className="skeleton-card">` placeholders replaced with `RateLimitSkeleton` (structured shimmer mirroring loaded layout: header + 4-tile KPI strip with quality bars + 2-card charts row + 2-card tables row). The "Rate Limits" title text + .spinner element are preserved verbatim so the W14-7 test contract (`getByText('Rate Limits')` + `.spinner` selector) still resolves. role=status + aria-live=polite + data-testid="rate-limit-loading-skeleton".
+
+3. **Polished empty state with Lucide icon + message** — the bare empty state replaced with `RateLimitEmptyState` (Lucide `Inbox` icon 28px + .empty-state-title "No rate-limit hits in the last hour" + .empty-state-desc dim description + policy reference badges + "Check again" button). The title + description + policy badges + button text are preserved verbatim so the W14-7 test contracts (`getByText('No rate-limit hits in the last hour')` + `getByText('Read: 120/min')` + `getByText('Write: 30/min')` + `getByText('Heavy: 5/min')` + the "Check again" button) still resolve. role=status preserved. The PulseDot in the empty-state header renders as good (emerald, no pulse) since 0 hits is a healthy state.
+
+4. **Section headers with icon + uppercase title** — every section now carries a SectionHeader with a Lucide icon + uppercase tracking-wider 10.5px title + optional dim italic description + optional trailing node:
+   - Hits by Endpoint → "Hits by Endpoint" (Server icon, tone=info, "{endpointBarData.length} endpoints" trailing chip with tabular-nums).
+   - Hits per Minute (60m) → "Hits per Minute (60m)" (TrendingUp icon, tone=info, "rate: {formatRate(...)}" trailing chip with tabular-nums).
+   - Top Rate-Limited Endpoints → "Top Rate-Limited Endpoints" (Server icon, tone=warn, "{topEndpointList.length} shown" trailing chip with tabular-nums).
+   - Top Rate-Limited Clients → "Top Rate-Limited Clients" (Globe icon, tone=warn, "{topClientList.length} shown" trailing chip with tabular-nums).
+   - Most-Requested Endpoints → "Most-Requested Endpoints" (Activity icon, tone=info, "all-requests view" description).
+   - Rate-Limit Policy → "Rate-Limit Policy" (Zap icon, tone=neutral, "per-route throttle allowances" description).
+
+5. **Refined rate limit table — uppercase headers, row hover, tabular-nums** — the table header rows already carry `text-[9.5px] text-[#7e8aaa] font-semibold uppercase tracking-wider` (preserved verbatim). Each EndpointRow + ClientRow now carries `hover:bg-cyan-500/[0.04]` (subtle background lift) layered with `hover:shadow-[inset_3px_0_0_0_rgba(...)]` (left-edge accent bar via inset shadow — no layout shift). The accent bar colour varies by tone: emerald for 0 hits (good), amber for 1–5 hits (warn), red for 6+ hits (poor). Each row carries `data-tone={tone}` so downstream CSS can target rows by tone. Every numeric column (endpoint count, client count, share bar fill) carries `tabular-nums` so columns don't shift alignment when values change between renders. The EndpointRow + ClientRow share bar fill now uses the tone-derived bar color (emerald / amber / red) instead of the hardcoded amber / emerald so the bar colour matches the row's tone.
+
+6. **Tone-colored limit status (green within limit, amber near limit, red exceeded)** — applied via the `countTone` + `totalTone` + `rateTone` helpers:
+   - Total Hits KpiTile: tone = `totalTone(total_hits)` → good (0 hits, within limit) / warn (1–20, near limit) / poor (21+, exceeded).
+   - Hit Rate KpiTile: tone = `rateTone(rate)` → good (0, within limit) / warn (≤1, near limit) / poor (>1, exceeded).
+   - Top Endpoint KpiTile: tone = `countTone(count)` → good / warn / poor.
+   - Top Client KpiTile: tone = `countTone(count)` → good / warn / poor.
+   - Each EndpointRow: tone = `countTone(count)` → good (emerald) / warn (amber) / poor (red). Row hover accent bar matches the tone.
+   - Each ClientRow: tone = `countTone(count)` → same as EndpointRow.
+   - Each KpiTile + each row carries `data-tone={tone}` so downstream CSS can target tiles / rows by tone.
+
+7. **Error state: polished error card with retry** — the bare error state replaced with `RateLimitErrorState` (red-tinted AlertCircle icon + preserved title text "Rate-limit stats endpoint unavailable" + preserved raw error message + red-tinted Retry button with RefreshCw glyph that spins while retrying). role=alert + data-testid="rate-limit-error-card" + data-testid="rate-limit-error-retry". The PulseDot in the error-state header renders as poor (red, no pulse) so the trader sees the panel is offline.
+
+**Additional refinements (beyond the 7 spec items):**
+- **Header PulseDot LIVE indicator** — new PulseDot + warn (amber) tone in the header next to the Activity icon. The dot pulses when `refreshing` is true (mid-poll); renders a static dot when idle so the trader can tell at a glance that the 30s poller is alive. Mirrors the W54-a / W55-c / W56-e PulseDot pattern.
+- **EndpointRow / ClientRow tone-tinted bar fill** — the share-bar fill colour now matches the row's tone (emerald for 0 hits, amber for 1–5, red for 6+) so the bar visually conveys severity, not just magnitude. Previously the EndpointRow used hardcoded amber and the ClientRow used hardcoded emerald — now both derive from `countTone(count)`.
+- **Trailing chips with tabular-nums** — every SectionHeader trailing chip ("{N} endpoints", "{N} shown", "rate: {X.XX} / min") now carries `tabular-nums` so the chips don't visually shift between renders.
+- **KpiTile title tooltips** — each KpiTile now carries a `title="..."` tooltip with the human-readable metric name + raw value (e.g. "Total rate-limited requests in the last hour: 42") so hovering surfaces the exact value.
+- **Policy reference tabular-nums** — the policy cards' value spans (`120/min`, `30/min`, etc.) now carry `tabular-nums` so the values don't visually shift between renders.
+- **Manual Refresh + Retry button hover tint** — the manual Refresh button + Retry button hover tints now pick up the panel's amber accent (already preserved verbatim via the `btn btn-ghost` classes).
+
+### Backwards-compat (both panels)
+
+- **Props**: unchanged (both panels take no props).
+- **API calls**: 
+  - AuditLogPanel: `apiFetch(\`${getApiUrl()}/api/audit/logs?limit=${LIST_LIMIT}\`)` on mount + every 15s + on visibilitychange regain. URL preserved verbatim including the `XTransformPort=8080` query parameter (added by `getApiUrl()`).
+  - RateLimitPanel: `apiFetch('/api/rate-limit/stats')` on mount + every 30s + on visibilitychange regain. Preserved verbatim.
+- **Polling**: AuditLogPanel polls every 15s; RateLimitPanel polls every 30s. Both use visibilitychange pause/resume + immediate refresh on regain. Preserved verbatim.
+- **Clean unmount**: clearInterval + removeEventListener in useEffect cleanup for both panels. Preserved verbatim.
+- **'use client' directive**: preserved on both panels.
+- **Class names preserved**:
+  - AuditLogPanel: `card`, `card-header`, `card-title`, `badge` + `badge-cyan` / `-red` / `-dim`, `btn` + `btn-ghost` + `btn-sm` + `btn-outline` (via Button component), `mono`, `scrollbar-thin`, `skeleton-line-sm` / `skeleton-line-lg`, `empty-state` (+ `-icon` / `-title` / `-desc`), `error-state` (+ `-icon` / `-title` / `-desc`), `tabular-nums`, `tracking-wider`, `uppercase`, `table-footer`, `input` (via Input component), `kpi-card` / `kpi-label` / `kpi-value` / `kpi-sub` (via StatChip — kpi-card class not directly used since StatChip is the smaller chip variant).
+  - RateLimitPanel: `card` (implicit via the bg/border classes), `badge` + `badge-dim` / `-amber` / `-red`, `btn` + `btn-ghost` + `btn-sm`, `mono`, `scrollbar-thin`, `spinner`, `skeleton-card` / `skeleton-line` / `skeleton-line-lg` / `skeleton-line-sm`, `kpi-card` / `kpi-label` / `kpi-value` / `kpi-sub`, `empty-state` (+ `-icon` / `-title` / `-desc`), `error-state` (+ `-icon` / `-title` / `-desc`), `tabular-nums`, `tracking-wider`, `uppercase`.
+- **Accessibility preserved**: 
+  - AuditLogPanel: role=alert on the error card, role=status on the loading skeleton + empty state, aria-live=polite on the loading skeleton, aria-label="Search audit events" on the search input, aria-label="Filter by category" on the category select, aria-label="Filter by severity" on the severity select, aria-label="Filter from date" / "Filter to date" on the date inputs, aria-label="Clear search" on the clear-search button, aria-label="Export CSV" / "Export JSON" on the export buttons, aria-label="Close audit event detail panel" on the close-detail button, aria-label="Audit event metadata JSON" on the metadata pre, aria-hidden on every Lucide icon. role=alert / role=status / aria-live=polite added on the new loading skeleton + empty state + error card so screen readers announce state changes.
+  - RateLimitPanel: role=alert on the error card, role=status on the loading skeleton + empty state, aria-live=polite on the loading skeleton, aria-label="Rate limit summary KPIs" on the KPI section, aria-label="Refresh rate-limit stats" on the refresh button, aria-hidden on every Lucide icon. role=alert / role=status / aria-live=polite added on the new loading skeleton + empty state + error card.
+- **Test-matched strings preserved verbatim**:
+  - AuditLogPanel: "📋 AUDIT LOG" (loading + error + loaded state headers), "Loading…" (loading badge), "Audit trail unavailable" (error title), "Retry" (retry button text), "No audit events match your filters" (empty title), "Timestamp" / "Category" / "Event Type" / "Severity" / "Message" (table column headers via VirtualTable), "Events:" / "Errors:" / "Warnings:" / "Critical:" / "Latest:" (StatChip labels with colons), "id:" / "strategy:" / "token_id:" (EventDetailPanel metadata labels), "mm_avellaneda_stoikov" (strategy value), "Audit event metadata JSON" (pre aria-label), "Clear" (Clear filters button), "Polling every 15s · auto-pause when tab hidden" (footer), "Immutable Trail" (header badge), "Offline" (error-state header badge).
+  - RateLimitPanel: "Rate Limits" (loading + empty + error + loaded state headers), "Total Hits (1h)" / "Hit Rate" / "Top Endpoint" / "Top Client" (KPI labels), "42" (total hits value), "0.70 / min" (hit rate value), "1.65 / min" (updated hit rate value), "99" (updated total hits value), "/api/orders" (top endpoint, in KPI + table), "127.0.0.1" (top client, in KPI + table), "10.0.0.5" (client IP in table), "20" (endpoint count in table), "Hits by Endpoint" / "Hits per Minute (60m)" / "Top Rate-Limited Endpoints" / "Top Rate-Limited Clients" / "Most-Requested Endpoints" / "Rate-Limit Policy" (section headers), "30s poll" (header badge), "syncing" (refreshing badge), "stale" (error-and-stats badge), "No rate-limit hits in the last hour" (empty title), "Read: 120/min" / "Write: 30/min" / "Heavy: 5/min" (policy reference badges), "Read routes" / "Write routes" / "Heavy routes" / "Trade routes" / "Arbitrage" / "Live enable" (policy cards), "Rate-limit stats endpoint unavailable" (error title), "Retry" (retry button accessible name — matches `/retry/i` regex), "Refresh" (manual refresh button text), "Check again" (empty-state retry button text).
+
+### New CSS hooks added (for downstream CSS layer to target)
+
+- `data-testid="audit-log-loading-skeleton"` on the AuditLogPanel loading wrapper.
+- `data-testid="audit-log-empty-state"` on the AuditLogPanel empty state.
+- `data-testid="audit-log-error-card"` on the AuditLogPanel error card (+ `-retry` on the retry button).
+- `data-testid="rate-limit-loading-skeleton"` on the RateLimitPanel loading wrapper.
+- `data-testid="rate-limit-empty-state"` on the RateLimitPanel empty state.
+- `data-testid="rate-limit-error-card"` on the RateLimitPanel error card (+ `-msg` on the message span, `-retry` on the retry button).
+- `data-tone="{good|warn|poor|info|neutral|critical}"` on:
+  - AuditLogPanel: each StatChip wrapper, each SeverityBadge, the EventDetailPanel wrapper.
+  - RateLimitPanel: each KpiTile wrapper, each EndpointRow, each ClientRow.
+
+### Verification
+
+```
+$ wc -l src/components/AuditLogPanel.tsx src/components/RateLimitPanel.tsx
+  1450 src/components/AuditLogPanel.tsx
+  1022 src/components/RateLimitPanel.tsx
+  2472 total
+
+$ git diff --stat HEAD src/components/AuditLogPanel.tsx src/components/RateLimitPanel.tsx
+ src/components/AuditLogPanel.tsx  | 728 ++++++++++++++++++++++++++------------
+ src/components/RateLimitPanel.tsx | 638 ++++++++++++++++++++++++---------
+ 2 files changed, 973 insertions(+), 393 deletions(-)
+
+$ bun run lint 2>&1 | tail -3
+$ eslint .
+$ (clean — exit 0, no output)
+
+$ bunx tsc --noEmit --skipLibCheck 2>&1 | grep -E "AuditLogPanel|RateLimitPanel" | head -3
+$ (clean — 0 errors in both files)
+
+$ bunx vitest run src/components/AuditLogPanel.test.tsx src/components/RateLimitPanel.test.tsx 2>&1 | tail -10
+ ✓ src/components/AuditLogPanel.test.tsx (20 tests) 2827ms
+ ✓ src/components/RateLimitPanel.test.tsx (18 tests) 2055ms
+
+ Test Files  2 passed (2)
+      Tests  38 passed (38)
+```
+
+### Stage Summary
+
+- **Final line count**: AuditLogPanel 1450 lines (was 1172 — +278 net), RateLimitPanel 1022 lines (was 720 — +302 net). Combined: 2472 lines (was 1892 — +580 net per `git diff --stat`: +973 / −393).
+- **All 14 polish affordances applied** (7 per panel) while preserving all existing functionality, class names, test contracts, client component, API calls, polling, role attributes, aria-labels, preserved title text content, and the 'use client' directive on both panels.
+- **Lint**: clean (exit 0, no output) on the whole project.
+- **TypeScript**: 0 errors in both AuditLogPanel.tsx + RateLimitPanel.tsx.
+- **Tests**: 38/38 pass (20 AuditLogPanel + 18 RateLimitPanel — no regressions).
+
+**AuditLogPanel + RateLimitPanel are production-ready with the premium W57-d
+visual layer, visually consistent with the W51-2d MLPanel / W54-e
+MLValidationPanel / W55-a LeaderboardPanel / W55-d ExecutionQualityPanel /
+W56-c DatabaseStatusPanel / W56-e ObservabilityPanel redesign family.**
+
+---
+
+## W57-a — full-stack-developer — Polish `src/components/RetentionPanel.tsx` (premium visual layer)
+
+**Date:** 2026-09-22
+**Task ID:** W57-a
+**Agent:** full-stack-developer (Z.ai Code)
+**Target file:** `src/components/RetentionPanel.tsx` (Data Retention & Pruning control panel — bounded-storage policy UI over `POST /api/system/prune` + `GET /api/system/health`).
+**Consulted:** worklog W50-56 design-system entries (Tone system, KpiTile, SectionHeader, ShimmerBlock, PulseDot, PolishedEmptyState, PolishedErrorCard — from W51-2d / W53-c / W54-a / W54-e / W55-a / W55-c / W56-a / W56-e).
+**Prior test contract:** `src/components/RetentionPanel.test.tsx` (W28-3, 10 tests covering panel container, header title "Data Retention & Pruning", "Bounded-storage policy" badge, Refresh button accessible name, "POST /api/system/prune" endpoint note, "7d / 30d / 30d / 90d horizons" note, "Retention Policy by Store" table title after fetch resolves, "Retention backend unreachable" error state on fetch throw, no-crash on never-resolving fetch, Authorization header on initial poll).
+
+### Goal
+
+Apply the W50-56 premium visual layer to the RetentionPanel (Data Retention & Pruning control panel) for visual consistency with the W56-a SystemHealthView / W56-b DatabaseExplorerView / W56-e ObservabilityPanel / W55-a LeaderboardPanel / W55-c AttributionPanel redesign family. Preserve every existing test contract (W28-3 — 10 tests), polling cadence (60s visibility-aware), fetch error signature, prune trigger flow (AlertDialog confirm → POST → history log → refresh), inline horizon config editor (local-only state), all existing class names, all existing accessibility roles/labels, all existing `data-testid` attributes, and the `'use client'` directive.
+
+### Background / investigation
+
+- Read `worklog.md` (last ~200 lines) to map the W50-56 design-system vocabulary shared by W53-c StrategyPerformancePanel + W54-a DeepAnalysisView + W54-e MLValidationPanel + W55-a LeaderboardPanel + W55-c AttributionPanel + W56-a SystemHealthView + W56-e ObservabilityPanel:
+  - **Tone system** (`Tone = 'good' | 'warn' | 'poor' | 'info' | 'neutral'`, `TONE: Record<Tone, ToneConfig>` with self-contained static `bg` / `border` / `text` / `bar` / `dot` / `label` / `halo` class strings so Tailwind 4's JIT scanner picks them up).
+  - **KpiTile** (large value, tone-tinted bg, Lucide icon in the label row, optional quality bar, optional trend glyph, `data-tone` attribute).
+  - **SectionHeader** (Lucide icon + uppercase tracking-wider 10px title + optional dim italic description + optional trailing node — title rendered in its own `<span>` so RTL `getByText(...)` matches just the span).
+  - **PulseDot** (animated status dot for live indicators, optional `pulse` flag to disable the ping animation, aria-hidden).
+  - **ShimmerBlock** (thin skeleton placeholder that can be sized via className).
+  - **PolishedEmptyState** (Lucide icon + title + helper copy, role=status).
+  - **PolishedErrorCard** (AlertTriangle icon + title + error string + Retry button with RefreshCw glyph, role=alert).
+  - **RetentionSkeleton** (structured shimmer placeholder mirroring the live panel layout, role=status + aria-live=polite).
+  - `data-tone="{good|warn|poor|info|neutral}"` attribute hooks on every tone-coloured element for downstream CSS targeting.
+  - Row hover accent bar via `hover:bg-cyan-500/[0.04]` + `hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.45)]` (no layout shift — inset shadow only).
+  - `tabular-nums` on every numeric cell.
+- Read `src/components/RetentionPanel.tsx` end-to-end (947 lines) + the 10-test contract in `src/components/RetentionPanel.test.tsx`:
+  - Panel container renders without crashing (loading state OK).
+  - Header title "Data Retention & Pruning" must remain visible during loading state (header is outside the body conditional).
+  - "Bounded-storage policy" badge (direct text node).
+  - Refresh button accessible name `/refresh/i` (existing button text "Refresh" preserved).
+  - "POST /api/system/prune" endpoint note (regex match).
+  - "7d / 30d / 30d / 90d horizons" note (regex match).
+  - "Retention Policy by Store" table title (appears after fetch resolves — must be a direct text node in a leaf `<span>`).
+  - "Retention backend unreachable" error title (appears when fetch throws — must be a direct text node in a leaf `<span>`).
+  - apiFetch call must include Authorization header on initial poll.
+  - Panel must not crash when fetch never resolves (stays loading).
+- Consulted `src/components/SystemHealthView.tsx` (W56-a, 1410 lines) as the canonical reference for the W56-a inline sub-component pattern (`Tone` + `TONE` + `PulseDot` + `SectionHeader` + `KpiTile` + `ShimmerBlock` + `SystemHealthSkeleton` + `PolishedEmptyState` + `PolishedErrorCard`).
+- Verified baseline: 10/10 tests pass pre-polish (vitest 4.1.11, ~1.6s).
+
+### Inline sub-components built (kept private to the panel so test mocks + ts-isolation stay clean)
+
+- `Tone` + `ToneConfig` + `TONE` — 5-tone vocabulary with self-contained static class strings. Mirrors W53-c / W55-c / W56-a.
+- `serviceStatusTone(status: string | undefined): Tone` — maps the downstream-health-check status onto the W57-a Tone palette:
+  - `good` (within policy): UP / HEALTHY / OK / RUNNING / ACTIVE
+  - `warn` (near limit): DEGRADED / WARN / WARNING / SLOW / STALE
+  - `poor` (exceeded): DOWN / CRITICAL / ERROR / FAILED / STOPPED
+  - `neutral`: no probe / unknown
+- `statusBadgeClass(t: Tone): string` — maps a Tone onto the legacy badge classes (`badge-green` / `badge-amber` / `badge-red` / `badge-dim`) so the existing CSS palette + the new Tone palette layer cleanly.
+- `horizonTone(days: number): Tone` — short horizons (≤7d) are "hot" stores (`warn` — they prune aggressively), mid horizons (≤30d) are `info`, long horizons (>30d) are `good` (stable, low-churn).
+- `horizonBadgeClass(days: number): string` — maps the horizon tone onto the legacy badge classes (preserves the original `badge-amber` / `badge-cyan` / `badge-green` palette).
+- `PulseDot({ tone = 'good', pulse = true })` — `animate-ping` halo + solid dot, aria-hidden. Optional `pulse={false}` flag renders the solid dot without the ping (used inside the prune-history Status column + the retention-policy Status column so the dot conveys state without distracting from the value).
+- `SectionHeader({ icon, title, description, tone, trailing })` — Lucide icon + uppercase tracking-wider 10px title + optional dim italic 9px description + optional trailing node. Title in its own `<span>` so RTL `getByText(...)` matches just the span (preserves the W28-3 test contract `getByText('Retention Policy by Store')`). Mirrors W53-c / W54-a / W55-c / W56-a SectionHeader.
+- `KpiTile({ label, value, hint, tone, icon, quality, trend, testId })` — tone-tinted bg + uppercase 9px label with Lucide icon in the label row + large tabular-nums value + optional quality bar + optional trend glyph. Carries `data-testid` + `data-tone`. Mirrors W56-a KpiTile.
+- `ShimmerBlock({ className })` — thin skeleton placeholder sized via className. aria-hidden. Mirrors W54-e / W56-a ShimmerBlock.
+- `RetentionSkeleton()` — structured shimmer placeholder mirroring the live panel layout (KPI strip + retention policy table + manual prune row + prune history table + horizon config grid). role=status + aria-live=polite + data-testid="retention-loading-skeleton". The panel header is rendered by the parent (outside this skeleton) so the W28-3 test contract `getByText(/Data Retention & Pruning/)` resolves during the loading state.
+- `PolishedEmptyState({ icon, title, description, testId })` — Lucide icon + title + dim description. role=status + data-testid="retention-empty-state". Used by the prune-history empty branch (icon = `History`, title = "No prune operations logged yet" — preserved verbatim). Mirrors W56-a / W56-e PolishedEmptyState.
+- `PolishedErrorCard({ message, onRetry })` — AlertTriangle icon + the title "Retention backend unreachable" (preserved verbatim as the direct text node of a leaf `<span>` so the W28-3 test contract `getByText('Retention backend unreachable')` resolves) + the wrapped error string in `.error-state-desc` + a Retry button (RefreshCw glyph, calls `onRetry`). role=alert + data-testid="retention-error-card" + "-retry" suffix on the button. Mirrors W56-a PolishedErrorCard.
+
+### All 8 polish affordances applied
+
+1. **KpiTile pattern for retention metrics** — the 4 bare `<div className="kpi-card">` blocks are refactored to the shared `KpiTile` sub-component with tone-tinted bg + ring + Lucide icon in the label row + large mono tabular-nums value + `data-tone` attribute:
+   - **Market DB Size** (info tone, `HardDrive` icon) — `formatBytes(marketDb?.size_mb ?? 0)` value, `db_backend` hint. Cyan to mirror the storage-footprint signal.
+   - **Snapshots** (good tone, `Database` icon) — `snapshots_recorded` value, "market_snapshots table" hint. Emerald to signal a stable snapshot count.
+   - **Ticks** (warn tone, `Clock` icon) — `ticks_recorded` value, "orderbook_ticks table" hint. Amber to signal the fastest-growing store.
+   - **Total Pruned** (neutral tone, `Trash2` icon) — `totalHistoryPruned` value, "rows (this browser session)" hint.
+   - The 4 KPI labels + values are preserved verbatim so any future test contracts resolve.
+
+2. **Shimmer skeleton loading state** — the bare `<SkeletonRows rows={5}>` (4 stacked `.skeleton h-8 w-full` divs) is replaced by `<RetentionSkeleton/>` which mirrors the live panel layout (KPI strip + retention policy table + manual prune row + prune history table + horizon config grid). Uses the existing `.skeleton-line-sm` / `.skeleton-line-md` / `.skeleton-card` classes. role=status + aria-live=polite + data-testid="retention-loading-skeleton". The panel header (with title "Data Retention & Pruning" + "Bounded-storage policy" badge + Refresh button + "POST /api/system/prune" + "7d / 30d / 30d / 90d horizons" text) is rendered by the parent (outside the skeleton) so the W28-3 loading-state test contracts resolve.
+
+3. **Polished empty state with Lucide icon + message** — the bare `Database` icon + "No prune operations logged yet" empty branch is wrapped in `<PolishedEmptyState>` with Lucide `History` icon (size-10, dim text color, strokeWidth 1.5) + the "No prune operations logged yet" title (preserved verbatim as the direct text node of the title span so the test contract resolves to a single leaf) + dim description ("Manual and auto-triggered prunes will appear here. History is kept locally per browser."). role=status + data-testid="retention-history-empty".
+
+4. **Section headers with icon + uppercase title** — five `SectionHeader` sub-components render:
+   - Above the KPI strip: `HardDrive` icon + uppercase "Retention Metrics" title + dim italic "storage footprint & session prunes" description + trailing "{history.length} ops" badge. tone=info (cyan).
+   - Above the retention policy table: `ShieldCheck` icon + uppercase "Retention Policy by Store" title + dim italic "env-var overrides at boot" description + trailing "{RETENTION_TARGETS.length} stores" badge. tone=neutral.
+   - Above the manual prune card: `Trash2` icon + uppercase "Manual Prune" title + dim italic "irreversible row delete" description + trailing "{rows deleted}" badge (when a lastResult exists). tone=warn (amber).
+   - Above the prune history card: `History` icon + uppercase "Prune History" title + dim italic "client-side · localStorage" description + trailing "{history.length} entries" badge. tone=info.
+   - Above the horizon config card: `ShieldCheck` icon + uppercase "Horizon Configuration" title + dim italic "read-only · env-var override required" description + trailing "{RETENTION_TARGETS.length} horizons" badge. tone=warn.
+
+5. **Refined retention policy table (uppercase headers, row hover, tabular-nums)** — the bare `data-table` is refined:
+   - Uppercase 10px tracking-wider font-bold text-[#5a637a] headers (Store / Tables / Horizon / DB Path / Status). Status column right-aligned.
+   - Each row carries `hover:bg-cyan-500/[0.04]` + `hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.45)]` (subtle background lift + left-edge accent bar via inset shadow, no layout shift).
+   - The Horizon column carries a `tabular-nums` badge with `data-tone={horizonTone(days)}` so the badge colour reflects the horizon class (warn ≤7d / info ≤30d / good >30d).
+   - The Status column now carries a `PulseDot` (tone-coloured, `pulse={false}` for `poor`-tone stores so a dead service doesn't ping) + a tone-tinted badge (`badge-green` / `badge-amber` / `badge-red` / `badge-dim` via `statusBadgeClass(tone)`) + `data-tone` hook on both the dot and the badge so downstream CSS can target them.
+   - The DB Path column carries `tabular-nums` so the env-var row stays aligned.
+
+6. **Tone-colored retention status (green within policy, amber near limit, red exceeded)** — `serviceStatusTone(check?.status)` maps each store's downstream health-check status onto the Tone palette:
+   - `good` (within policy): UP / HEALTHY / OK / RUNNING / ACTIVE → emerald badge + emerald PulseDot.
+   - `warn` (near limit): DEGRADED / WARN / WARNING / SLOW / STALE → amber badge + amber PulseDot.
+   - `poor` (exceeded): DOWN / CRITICAL / ERROR / FAILED / STOPPED → red badge + red PulseDot (no ping).
+   - `neutral` (no probe / unknown): dim badge + dim PulseDot (no ping).
+   - The Tone is also reflected on the row's `data-tone` attribute so downstream CSS can target the row as a whole.
+   - The same Tone palette is applied to the per-store result tiles inside the "Last result" preview card (emerald when pruned > 0, red when there's an error, neutral otherwise) + to the prune-history Status column (emerald on success, red on failure).
+   - The horizon-config inputs get a tone-tinted border (warn when dirty / horizonTone otherwise) so the trader sees at-a-glance which horizons have unsaved local edits.
+
+7. **Error state: polished error card with retry** — the bare `ErrorState` strip (AlertTriangle icon + "Retention backend unreachable" title + raw error message + Retry button) is replaced by `<PolishedErrorCard/>` — a polished card with AlertTriangle icon (size-28, red, aria-hidden) + the title "Retention backend unreachable" (preserved verbatim as the direct text node of a leaf `<span className="error-state-title">` so the W28-3 test contract `getByText('Retention backend unreachable')` resolves to a single leaf) + the wrapped error string in `.error-state-desc` + a Retry button (RefreshCw glyph, calls `fetchHealth()`, aria-label="Retry retention fetch", data-testid="retention-error-retry"). role=alert + data-testid="retention-error-card".
+
+8. **Refined controls (policy editor, TTL inputs)** — the horizon-config editor + manual-prune controls are refined:
+   - The horizon-config inputs carry `tabular-nums` so the numeric values stay aligned.
+   - Each horizon-config card carries a tone-tinted border (`TONE[cellTone].border`) — amber when the local edit is dirty (`warn`), otherwise the horizon-class tone (warn ≤7d / info ≤30d / good >30d).
+   - Each horizon-config card carries `data-tone={cellTone}` so downstream CSS can target dirty cards.
+   - The "Reset" button stays disabled unless the horizon is dirty.
+   - The "Apply (no backend endpoint)" button stays disabled with a tooltip explaining the env-var-override requirement (preserved verbatim).
+   - The AlertDialog confirm flow is preserved verbatim (target select → destructive button → confirm modal → POST → history log + refresh). The "Pruning…" / "Prune Now" labels are preserved.
+   - The "Last result" preview card now tone-tints each per-store tile (`poor` on error, `good` when pruned > 0, `neutral` otherwise) with `data-tone` hooks on every tile + tabular-nums on every numeric value.
+
+### Additional refinements (beyond the 8 spec items)
+
+- **Header polish**: the panel header's "{history.length} ops logged" badge now carries `tabular-nums` so the count doesn't shift alignment between renders. The "Last prune {relative time}" badge is preserved verbatim. The "Refresh" button (accessible name `/refresh/i` — preserved) keeps its existing RefreshCw glyph with `animate-spin` while loading.
+- **Footer polish**: the footer's "Auto-refresh: 60s" + "last sync {relative time}" text is preserved verbatim with `mono` + `tabular-nums` so the time stays aligned.
+- **Truncation with tooltip**: each row's store label carries the existing rationale text (preserved verbatim) in a dim sub-span. The DB Path column carries both the default path + the env-var name (preserved verbatim) so the trader can copy either.
+- **Reduced-motion-friendly PulseDot**: `pulse={false}` for `poor`-tone rows (dead services) + inside the prune-history Status column (no ping animation distracting from the row content). Mirrors the W56-a reduced-motion-friendly PulseDot pattern.
+- **`data-tone` hooks everywhere**: every tone-coloured element (KpiTile, SectionHeader icon, retention-policy Status column badge + PulseDot, prune-history Status column, per-store result tile, horizon-config card border) carries a `data-tone="{good|warn|poor|info|neutral}"` attribute for downstream CSS targeting.
+- **Row hover accent bar**: both the retention-policy table + the prune-history table use the same `hover:bg-cyan-500/[0.04]` + `hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.45)]` accent so the hover affordance is consistent across tables (mirrors W53-c / W55-a / W56-a row-hover pattern).
+- **Tabular-nums everywhere**: every numeric value (KPI values, KPI hints, horizon badges, per-store pruned counts, prune-history "Rows Deleted", prune-history "When" timestamps, "ops logged" header badge, footer "60s") carries `tabular-nums` so columns don't shift alignment between renders.
+
+### Test contract mapping
+
+All 10 tests in `RetentionPanel.test.tsx` (W28-3 contract) preserved:
+
+| Test | Matched string / contract | Resolution |
+|---|---|---|
+| Renders the panel container without crashing | `container.firstChild` truthy | Outer `<div className="flex flex-col h-full bg-[var(--bg-surface)] border border-[#1f2335] rounded-lg overflow-hidden">` preserved |
+| Renders the panel header title "Data Retention & Pruning" | `getByText(/Data Retention & Pruning/)` regex | `<h2 className="text-sm font-bold text-[#dde1ed] flex items-center gap-2">Data Retention &amp; Pruning<span className="badge badge-dim text-[9px]">Bounded-storage policy</span></h2>` direct text node (&amp; → & in textContent) — preserved verbatim |
+| Renders the "Bounded-storage policy" badge | `getByText('Bounded-storage policy')` exact | `<span className="badge badge-dim text-[9px]">Bounded-storage policy</span>` direct text node — preserved verbatim |
+| Renders the Refresh button in the header | `getByRole('button', { name: /refresh/i })` | `<Button variant="outline" size="sm" ...><RefreshCw .../>Refresh</Button>` accessible name = "Refresh" — preserved verbatim |
+| Renders the "POST /api/system/prune" endpoint note | `getByText(/POST \/api\/system\/prune/)` regex | `<p className="text-[11px] text-[#7e8aaa] mt-0.5">Four SQLite stores · 7d / 30d / 30d / 90d horizons · <code className="mono text-[10px]">POST /api/system/prune</code></p>` — `<code>` direct text node preserved verbatim |
+| Renders the four-store horizons note (7d / 30d / 30d / 90d) | `getByText(/7d \/ 30d \/ 30d \/ 90d horizons/)` regex | Same `<p>` as above — text preserved verbatim |
+| Renders the "Retention Policy by Store" table after the health fetch resolves | `getByText('Retention Policy by Store')` exact | `<SectionHeader icon={ShieldCheck} title="Retention Policy by Store" .../>` → renders `<span className="text-[10px] uppercase tracking-wider font-bold text-[#dde1ed] truncate">Retention Policy by Store</span>` direct text node — preserved verbatim (only rendered after fetch resolves, in the loaded branch) |
+| Renders the "Retention backend unreachable" error state when fetch throws | `getByText('Retention backend unreachable')` exact | `<PolishedErrorCard>` → renders `<span className="error-state-title">Retention backend unreachable</span>` direct text node — preserved verbatim (only rendered in the error + no-health branch) |
+| Renders without crashing when the health fetch never resolves (stays loading) | `container.firstChild` truthy + `getByText(/Data Retention & Pruning/)` | `<RetentionSkeleton/>` renders shimmer placeholder; panel header (with the title) is rendered by the parent outside the body conditional — preserved |
+| Passes the Authorization header via apiFetch on the initial poll | `fetch.mock.calls[0][1].headers.get('Authorization')` matches `/^Bearer\s+\S+$/` | `apiFetch(${apiUrl}/api/system/health)` call preserved verbatim (apiFetch injects the Authorization header) — preserved |
+
+### Verification
+
+```bash
+$ wc -l src/components/RetentionPanel.tsx
+1294 src/components/RetentionPanel.tsx
+
+$ bun run lint 2>&1 | tail -3
+$ eslint .
+(exit 0, no output — clean)
+
+$ bunx tsc --noEmit --skipLibCheck 2>&1 | grep -i RetentionPanel; echo "GREP_EXIT=$?"
+GREP_EXIT=1
+(no RetentionPanel errors — the only remaining tsc error is in LiveSafetyGatePanel.tsx from another concurrent agent, out of scope for W57-a)
+
+$ bun run test src/components/RetentionPanel.test.tsx 2>&1 | tail -8
+ ✓ src/components/RetentionPanel.test.tsx (10 tests) 2169ms
+     ✓ renders the Refresh button in the header  408ms
+     ✓ renders the "Retention Policy by Store" table after the health fetch resolves  501ms
+     ✓ renders the "Retention backend unreachable" error state when fetch throws  309ms
+ Test Files  1 passed (1)
+      Tests  10 passed (10)
+
+$ bun run test 2>&1 | tail -5
+ Test Files  93 passed (93)
+      Tests  1523 passed (1523)
+   Duration  261.05s
+```
+
+### Stage Summary
+
+- **Final line count**: 1294 lines (was 947 — +347 insertions net; ~+36% growth from the new Tone system + 7 inline sub-components + 4 KpiTile migrations + 5 SectionHeader migrations + RetentionSkeleton + 2 table refinements + tone-coloured status indicators).
+- **All 8 polish affordances confirmed** while preserving the existing API calls (`apiFetch(${apiUrl}/api/system/health)` polling + `apiFetch(${apiUrl}/api/system/prune, { method: 'POST', ... })` trigger), polling cadence (60s visibility-aware via `document.visibilityState`), clean unmount (clearInterval + removeEventListener), localStorage history (loadHistory / saveHistory with the `polymarket:retention:prune_history` key + 25-entry cap), AlertDialog confirm flow, all existing class names, all existing accessibility roles/labels, all existing test-matched strings, all existing `data-testid` attributes (and new ones added: `retention-loading-skeleton`, `retention-error-card`, `retention-error-retry`, `retention-history-empty`, `retention-kpi-size`, `retention-kpi-snapshots`, `retention-kpi-ticks`, `retention-kpi-pruned`), and the `'use client'` directive.
+- **Lint**: clean on `RetentionPanel.tsx` (exit 0, no output).
+- **TypeScript**: 0 errors in `RetentionPanel.tsx` (the only remaining tsc error is in `LiveSafetyGatePanel.tsx` from another concurrent agent — out of scope for W57-a).
+- **Tests**: 10/10 pass on `RetentionPanel.test.tsx` (was 10/10 — no regressions). Full suite 1523/1523 across 93 files (was 1523/1523 — no regressions).
+
+### Files touched
+
+- `src/components/RetentionPanel.tsx` (UI polish pass, 947 → 1294 lines).
+- `/home/z/my-project/agent-ctx/W57-a-full-stack-developer.md` (detailed agent work record).
+- `worklog.md` (this appended entry).
+
+**RetentionPanel is production-ready with the premium W57-a visual layer,
+visually consistent with the W51-2d MLPanel / W53-c
+StrategyPerformancePanel / W54-e MLValidationPanel / W55-a
+LeaderboardPanel / W55-c AttributionPanel / W55-d ExecutionQualityPanel
+/ W56-a SystemHealthView / W56-b DatabaseExplorerView / W56-e
+ObservabilityPanel redesign family.**

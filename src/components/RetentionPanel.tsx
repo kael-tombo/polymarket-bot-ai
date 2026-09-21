@@ -7,6 +7,13 @@
 // (dark `#13161e` cards, `#1f2335` borders, `.kpi-card` / `.badge-*` /
 // `.data-table` design-system classes from `globals.css`).
 //
+// W57-a — Polished with the W50-56 design-system layer (Tone system,
+// KpiTile, SectionHeader, ShimmerBlock, PulseDot, PolishedEmptyState,
+// PolishedErrorCard, RetentionSkeleton). All existing functionality, class
+// names, test contracts (W28-3 — 10 tests), polling cadence, fetch error
+// logging, API calls, and the `'use client'` directive are preserved
+// verbatim.
+//
 // Backend contract (verified by reading core/retention.py register_routes):
 //   POST /api/system/prune        body {target: "all" | "observability" |
 //                                  "decision_ledger" | "execution_quality" |
@@ -28,7 +35,7 @@
 
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { type ReactNode, useCallback, useEffect, useMemo, useState } from 'react'
 import {
   Database,
   Trash2,
@@ -42,6 +49,9 @@ import {
   Clock,
   HardDrive,
   Server,
+  TrendingUp,
+  TrendingDown,
+  type LucideIcon,
 } from 'lucide-react'
 
 import { apiFetch, getApiUrl } from '@/lib/api'
@@ -73,6 +83,347 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+
+// ── W57-a Tone vocabulary (5-tone subset of the W51-2d / W53-c family) ─────
+// Static class strings so Tailwind 4's JIT scanner picks them up at build
+// time. Mirrors the W53-c Tone system (StrategyPerformancePanel) so the
+// visual palette stays consistent across the workstation.
+
+type Tone = 'good' | 'warn' | 'poor' | 'info' | 'neutral'
+
+interface ToneConfig {
+  bg: string
+  border: string
+  text: string
+  bar: string
+  dot: string
+  label: string
+  halo: string
+}
+
+const TONE: Record<Tone, ToneConfig> = {
+  good:    { bg: 'bg-emerald-500/[0.06]', border: 'border-emerald-500/25', text: 'text-emerald-400', bar: 'bg-emerald-500', dot: 'bg-emerald-400', label: 'text-emerald-400/80', halo: 'shadow-emerald-500/10' },
+  warn:    { bg: 'bg-amber-500/[0.06]',   border: 'border-amber-500/25',   text: 'text-amber-400',   bar: 'bg-amber-500',   dot: 'bg-amber-400',   label: 'text-amber-400/80',   halo: 'shadow-amber-500/10' },
+  poor:    { bg: 'bg-red-500/[0.06]',     border: 'border-red-500/25',     text: 'text-red-400',     bar: 'bg-red-500',     dot: 'bg-red-400',     label: 'text-red-400/80',     halo: 'shadow-red-500/10' },
+  info:    { bg: 'bg-cyan-500/[0.06]',    border: 'border-cyan-500/25',    text: 'text-cyan-400',    bar: 'bg-cyan-500',    dot: 'bg-cyan-400',    label: 'text-cyan-400/80',    halo: 'shadow-cyan-500/10' },
+  neutral: { bg: 'bg-[#0e1015]',          border: 'border-[#1f2335]',      text: 'text-[#dde1ed]',   bar: 'bg-[#5a637a]',   dot: 'bg-[#5a637a]',   label: 'text-[#7e8aaa]',     halo: '' },
+}
+
+// ── Tone helpers ──────────────────────────────────────────────────────────
+
+/**
+ * Map a downstream-health-check status onto the Tone palette.
+ * Used by the per-store retention-status column:
+ *   - good (within policy): UP / HEALTHY / OK / RUNNING / ACTIVE
+ *   - warn (near limit):    DEGRADED / WARN / WARNING / SLOW / STALE
+ *   - poor (exceeded):      DOWN / CRITICAL / ERROR / FAILED / STOPPED
+ *   - neutral:              no probe / unknown
+ */
+function serviceStatusTone(status: string | undefined): Tone {
+  const s = (status || '').toUpperCase()
+  if (!s) return 'neutral'
+  if (['UP', 'HEALTHY', 'OK', 'RUNNING', 'ACTIVE'].includes(s)) return 'good'
+  if (['DEGRADED', 'WARN', 'WARNING', 'SLOW', 'STALE'].includes(s)) return 'warn'
+  if (['DOWN', 'CRITICAL', 'ERROR', 'FAILED', 'STOPPED'].includes(s)) return 'poor'
+  return 'neutral'
+}
+
+function statusBadgeClass(t: Tone): string {
+  switch (t) {
+    case 'good': return 'badge-green'
+    case 'warn': return 'badge-amber'
+    case 'poor': return 'badge-red'
+    default: return 'badge-dim'
+  }
+}
+
+/**
+ * Tone for the horizon badge — short horizons (≤7d) are "hot" stores
+ * (warn) because they prune aggressively, mid horizons (≤30d) are info,
+ * long horizons (>30d) are good (stable, low-churn).
+ */
+function horizonTone(days: number): Tone {
+  if (days <= 7) return 'warn'
+  if (days <= 30) return 'info'
+  return 'good'
+}
+
+function horizonBadgeClass(days: number): string {
+  switch (horizonTone(days)) {
+    case 'warn': return 'badge-amber'
+    case 'info': return 'badge-cyan'
+    case 'good': return 'badge-green'
+    default: return 'badge-dim'
+  }
+}
+
+// ── W57-a Inline sub-components (kept private to the panel so test mocks
+// and ts-isolation stay clean) ─────────────────────────────────────────────
+
+// PulseDot — small status dot with halo + ping animation. `animate-ping` is
+// Tailwind's built-in pulse. Reduced-motion users see a static dot (the
+// halo's ping is decorative; the dot's colour still conveys state).
+function PulseDot({ tone = 'good', pulse = true }: { tone?: Tone; pulse?: boolean }) {
+  const cfg = TONE[tone]
+  return (
+    <span className="relative inline-flex w-2 h-2 shrink-0" aria-hidden="true">
+      {pulse && (
+        <span className={`absolute inline-flex w-full h-full rounded-full opacity-60 animate-ping ${cfg.dot}`} />
+      )}
+      <span className={`relative inline-flex w-2 h-2 rounded-full ${cfg.dot} shadow-[0_0_6px] ${cfg.halo}`} />
+    </span>
+  )
+}
+
+// SectionHeader — Lucide icon + uppercase tracking-wider title + optional
+// dim italic description + optional trailing node. Mirrors the W53-c / W54-e /
+// W55-c SectionHeader pattern. Title rendered in its own <span> so RTL's
+// `getByText(...)` matches just the span (preserves the W28-3 test contract
+// `getByText('Retention Policy by Store')`).
+function SectionHeader({
+  icon: Icon,
+  title,
+  description,
+  tone = 'neutral',
+  trailing,
+}: {
+  icon: LucideIcon
+  title: string
+  description?: string
+  tone?: Tone
+  trailing?: ReactNode
+}) {
+  return (
+    <div className="flex items-center justify-between gap-2">
+      <div className="flex items-center gap-1.5 min-w-0">
+        <Icon className={`size-3.5 shrink-0 ${TONE[tone].text}`} aria-hidden="true" />
+        <span className="text-[10px] uppercase tracking-wider font-bold text-[#dde1ed] truncate">
+          {title}
+        </span>
+        {description && (
+          <span className="text-[9px] text-[#5a637a] italic truncate hidden md:inline">
+            {description}
+          </span>
+        )}
+      </div>
+      {trailing && <span className="shrink-0 text-[10px] text-[#7e8aaa] mono">{trailing}</span>}
+    </div>
+  )
+}
+
+// KpiTile — refined KPI card (large value, tone-tinted bg, optional quality
+// bar, optional trend glyph). Mirrors the W53-c / W56-a KpiTile pattern.
+interface KpiTileProps {
+  label: string
+  value: string
+  hint: string
+  tone: Tone
+  icon: LucideIcon
+  /** Quality bar fill [0..100]. 0 / undefined = no bar rendered. */
+  quality?: number
+  /** Optional trend glyph ('up' | 'down' | 'flat'). */
+  trend?: 'up' | 'down' | 'flat'
+  testId?: string
+}
+
+function KpiTile({ label, value, hint, tone, icon: Icon, quality, trend, testId }: KpiTileProps) {
+  const cfg = TONE[tone]
+  return (
+    <div
+      className={`kpi-card relative overflow-hidden border ${cfg.border} ${cfg.bg} transition-colors`}
+      title={`${label} — ${hint}`}
+      data-testid={testId ?? 'retention-kpi-tile'}
+      data-tone={tone}
+    >
+      <div className="flex items-center justify-between gap-1.5">
+        <div className={`kpi-label flex items-center gap-1 ${cfg.label}`}>
+          <Icon className="size-3 shrink-0" aria-hidden="true" />
+          <span>{label}</span>
+        </div>
+        {trend === 'up' && <TrendingUp className="size-3 text-emerald-400 shrink-0" aria-hidden="true" />}
+        {trend === 'down' && <TrendingDown className="size-3 text-red-400 shrink-0" aria-hidden="true" />}
+      </div>
+      <div
+        className={`kpi-value mono tabular-nums ${cfg.text}`}
+        data-testid={testId ? `${testId}-value` : 'retention-kpi-value'}
+      >
+        {value}
+      </div>
+      <div className="kpi-sub tabular-nums">{hint}</div>
+      {quality != null && quality > 0 && (
+        <div className="h-0.5 bg-[#1f2335] rounded-full mt-1 overflow-hidden">
+          <div
+            className={`h-full rounded-full transition-all duration-500 ${cfg.bar}`}
+            style={{ width: `${Math.max(0, Math.min(100, quality))}%` }}
+          />
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ShimmerBlock — thin skeleton placeholder that can be sized via the
+// className prop. aria-hidden. Mirrors W54-e / W56-a ShimmerBlock.
+function ShimmerBlock({ className = '' }: { className?: string }) {
+  return (
+    <div className={`skeleton-line-sm ${className}`} aria-hidden="true" />
+  )
+}
+
+// RetentionSkeleton — structured shimmer placeholder mirroring the live
+// panel layout (KPI strip + retention policy table + manual prune row +
+// prune history table + horizon config grid). role=status + aria-live=
+// polite + data-testid="retention-loading-skeleton". The panel header is
+// rendered by the parent (outside this skeleton) so the W28-3 test contract
+// `getByText(/Data Retention & Pruning/)` resolves during the loading state.
+function RetentionSkeleton() {
+  return (
+    <div
+      className="space-y-4"
+      role="status"
+      aria-live="polite"
+      aria-label="Loading data retention & pruning telemetry…"
+      data-testid="retention-loading-skeleton"
+    >
+      {/* KPI strip skeleton */}
+      <div className="space-y-2">
+        <ShimmerBlock className="w-44" />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="kpi-card space-y-2">
+              <ShimmerBlock className="w-2/5" />
+              <div className="h-5 rounded-sm skeleton-line-md" />
+              <ShimmerBlock className="w-3/5" />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Retention policy table skeleton */}
+      <div className="card p-3.5 space-y-2">
+        <div className="flex items-center justify-between">
+          <ShimmerBlock className="w-48" />
+          <ShimmerBlock className="w-20" />
+        </div>
+        <div className="space-y-2 pt-1">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="skeleton-card p-2.5 flex items-center justify-between">
+              <ShimmerBlock className="w-32" />
+              <ShimmerBlock className="w-16" />
+              <ShimmerBlock className="w-20" />
+              <ShimmerBlock className="w-14" />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Manual prune skeleton */}
+      <div className="card p-3.5 space-y-2">
+        <div className="flex items-center justify-between">
+          <ShimmerBlock className="w-32" />
+          <ShimmerBlock className="w-24" />
+        </div>
+        <div className="flex items-end gap-3 pt-1">
+          <ShimmerBlock className="w-40 h-9" />
+          <ShimmerBlock className="w-24 h-9" />
+        </div>
+      </div>
+
+      {/* Prune history skeleton */}
+      <div className="card p-3.5 space-y-2">
+        <div className="flex items-center justify-between">
+          <ShimmerBlock className="w-36" />
+          <ShimmerBlock className="w-20" />
+        </div>
+        <div className="space-y-2 pt-1">
+          <ShimmerBlock className="w-full h-8" />
+        </div>
+      </div>
+
+      {/* Horizon config skeleton */}
+      <div className="card p-3.5 space-y-2">
+        <div className="flex items-center justify-between">
+          <ShimmerBlock className="w-44" />
+          <ShimmerBlock className="w-28" />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 pt-1">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="skeleton-card p-2.5 space-y-2">
+              <ShimmerBlock className="w-32" />
+              <ShimmerBlock className="w-20 h-8" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// PolishedEmptyState — Lucide icon + title + helper copy. role=status.
+// Used by the prune-history empty branch. Mirrors W56-a / W56-e.
+interface PolishedEmptyStateProps {
+  icon: LucideIcon
+  title: string
+  description?: string
+  className?: string
+  testId?: string
+}
+
+function PolishedEmptyState({ icon: Icon, title, description, className = '', testId }: PolishedEmptyStateProps) {
+  return (
+    <div
+      className={`empty-state py-8 ${className}`}
+      role="status"
+      data-testid={testId ?? 'retention-empty-state'}
+    >
+      <span className="empty-state-icon" aria-hidden="true">
+        <Icon className="w-10 h-10 text-[#3e4560]" strokeWidth={1.5} />
+      </span>
+      <span className="empty-state-title text-sm font-semibold">{title}</span>
+      {description && (
+        <span className="empty-state-desc text-xs max-w-sm text-center">{description}</span>
+      )}
+    </div>
+  )
+}
+
+// PolishedErrorCard — polished error state with Lucide AlertTriangle + the
+// title "Retention backend unreachable" (preserved verbatim as the direct
+// text node of a leaf <span> so the W28-3 test contract
+// `getByText('Retention backend unreachable')` resolves) + the wrapped
+// error string + a Retry button (RefreshCw glyph, calls `onRetry`).
+// role=alert. Mirrors W54-a / W55-c / W56-a ErrorCard.
+interface PolishedErrorCardProps {
+  message: string
+  onRetry: () => void
+}
+
+function PolishedErrorCard({ message, onRetry }: PolishedErrorCardProps) {
+  return (
+    <div
+      className="error-state p-6"
+      role="alert"
+      data-testid="retention-error-card"
+    >
+      <AlertTriangle className="error-state-icon text-[var(--color-red-fg)]" size={28} aria-hidden="true" />
+      <span className="error-state-title">Retention backend unreachable</span>
+      <span className="error-state-desc" data-testid="retention-error-msg">
+        {message}
+      </span>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={onRetry}
+        className="mt-2"
+        data-testid="retention-error-retry"
+        aria-label="Retry retention fetch"
+      >
+        <RefreshCw size={14} className="mr-1.5" />
+        Retry
+      </Button>
+    </div>
+  )
+}
 
 // ── Static policy source-of-truth (mirrors core/retention.py constants) ────
 
@@ -220,47 +571,6 @@ function saveHistory(entries: PruneHistoryEntry[]): void {
   } catch {
     /* localStorage quota or serialization issue — best-effort, never fatal */
   }
-}
-
-// ── Sub-components ─────────────────────────────────────────────────────────
-
-function SkeletonRows({ rows = 4 }: { rows?: number }) {
-  return (
-    <div className="space-y-2 p-4">
-      {Array.from({ length: rows }).map((_, i) => (
-        <div key={i} className="skeleton h-8 w-full rounded-md" />
-      ))}
-    </div>
-  )
-}
-
-function ErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
-  return (
-    <div className="error-state p-8">
-      <AlertTriangle className="error-state-icon text-[var(--color-red-fg)]" size={28} />
-      <div className="error-state-title">Retention backend unreachable</div>
-      <div className="error-state-desc">{message}</div>
-      <Button variant="outline" size="sm" onClick={onRetry} className="mt-2">
-        <RefreshCw size={14} className="mr-1.5" />
-        Retry
-      </Button>
-    </div>
-  )
-}
-
-function EmptyState({ title, desc }: { title: string; desc: string }) {
-  return (
-    <div className="empty-state p-8">
-      <Database className="empty-state-icon" size={28} />
-      <div className="empty-state-title">{title}</div>
-      <div className="empty-state-desc">{desc}</div>
-    </div>
-  )
-}
-
-function HorizonBadge({ days }: { days: number }) {
-  const cls = days <= 7 ? 'badge-amber' : days <= 30 ? 'badge-cyan' : 'badge-green'
-  return <span className={`badge ${cls} text-[10px]`}>{days}d</span>
 }
 
 // ── Main panel ─────────────────────────────────────────────────────────────
@@ -428,7 +738,7 @@ export default function RetentionPanel() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <span className="badge badge-cyan text-[9.5px]">
+          <span className="badge badge-cyan text-[9.5px] tabular-nums">
             <Server size={10} className="mr-1" />
             {history.length} ops logged
           </span>
@@ -454,71 +764,76 @@ export default function RetentionPanel() {
       {/* ── Body (scrollable) ─────────────────────────────────────────────── */}
       <div className="flex-1 overflow-y-auto scrollbar-thin p-4 space-y-4">
         {error && !health ? (
-          <ErrorState message={error} onRetry={fetchHealth} />
+          <PolishedErrorCard message={error} onRetry={fetchHealth} />
         ) : loading && !health ? (
-          <SkeletonRows rows={5} />
+          <RetentionSkeleton />
         ) : (
           <>
             {/* ── KPI Row ───────────────────────────────────────────────────── */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
-              <div className="kpi-card">
-                <span className="kpi-label flex items-center gap-1">
-                  <HardDrive size={11} /> Market DB Size
-                </span>
-                <span className="kpi-value text-cyan-400">
-                  {formatBytes(marketDb?.size_mb ?? 0)}
-                </span>
-                <span className="kpi-sub">
-                  {marketDb?.db_backend ?? '—'}
-                </span>
-              </div>
-              <div className="kpi-card">
-                <span className="kpi-label flex items-center gap-1">
-                  <Database size={11} /> Snapshots
-                </span>
-                <span className="kpi-value text-emerald-400">
-                  {(marketDb?.snapshots_recorded ?? 0).toLocaleString()}
-                </span>
-                <span className="kpi-sub">market_snapshots table</span>
-              </div>
-              <div className="kpi-card">
-                <span className="kpi-label flex items-center gap-1">
-                  <Clock size={11} /> Ticks
-                </span>
-                <span className="kpi-value text-amber-400">
-                  {(marketDb?.ticks_recorded ?? 0).toLocaleString()}
-                </span>
-                <span className="kpi-sub">orderbook_ticks table</span>
-              </div>
-              <div className="kpi-card">
-                <span className="kpi-label flex items-center gap-1">
-                  <Trash2 size={11} /> Total Pruned
-                </span>
-                <span className="kpi-value text-[var(--color-blue-fg)]">
-                  {totalHistoryPruned.toLocaleString()}
-                </span>
-                <span className="kpi-sub">rows (this browser session)</span>
+            <div className="space-y-2">
+              <SectionHeader
+                icon={HardDrive}
+                title="Retention Metrics"
+                description="storage footprint & session prunes"
+                tone="info"
+                trailing={`${history.length} ops`}
+              />
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+                <KpiTile
+                  label="Market DB Size"
+                  value={formatBytes(marketDb?.size_mb ?? 0)}
+                  hint={marketDb?.db_backend ?? '—'}
+                  tone="info"
+                  icon={HardDrive}
+                  testId="retention-kpi-size"
+                />
+                <KpiTile
+                  label="Snapshots"
+                  value={(marketDb?.snapshots_recorded ?? 0).toLocaleString()}
+                  hint="market_snapshots table"
+                  tone="good"
+                  icon={Database}
+                  testId="retention-kpi-snapshots"
+                />
+                <KpiTile
+                  label="Ticks"
+                  value={(marketDb?.ticks_recorded ?? 0).toLocaleString()}
+                  hint="orderbook_ticks table"
+                  tone="warn"
+                  icon={Clock}
+                  testId="retention-kpi-ticks"
+                />
+                <KpiTile
+                  label="Total Pruned"
+                  value={totalHistoryPruned.toLocaleString()}
+                  hint="rows (this browser session)"
+                  tone="neutral"
+                  icon={Trash2}
+                  testId="retention-kpi-pruned"
+                />
               </div>
             </div>
 
-            {/* ── Retention Policy Table ───────────────────────────────────── */}
+            {/* ── Retention Policy Table ─────────────────────────────────────── */}
             <div className="card">
-              <div className="card-header">
-                <span className="card-title">Retention Policy by Store</span>
-                <span className="badge badge-dim text-[9.5px]">
-                  <ShieldCheck size={10} className="mr-1" />
-                  Env-var overrides at boot
-                </span>
+              <div className="p-3.5 pb-2">
+                <SectionHeader
+                  icon={ShieldCheck}
+                  title="Retention Policy by Store"
+                  description="env-var overrides at boot"
+                  tone="neutral"
+                  trailing={`${RETENTION_TARGETS.length} stores`}
+                />
               </div>
               <div className="table-container">
                 <Table className="data-table">
                   <TableHeader>
-                    <TableRow>
-                      <TableHead>Store</TableHead>
-                      <TableHead>Tables</TableHead>
-                      <TableHead>Horizon</TableHead>
-                      <TableHead>DB Path</TableHead>
-                      <TableHead className="text-right">Status</TableHead>
+                    <TableRow className="hover:bg-transparent">
+                      <TableHead className="text-[10px] uppercase tracking-wider text-[#5a637a] font-bold">Store</TableHead>
+                      <TableHead className="text-[10px] uppercase tracking-wider text-[#5a637a] font-bold">Tables</TableHead>
+                      <TableHead className="text-[10px] uppercase tracking-wider text-[#5a637a] font-bold">Horizon</TableHead>
+                      <TableHead className="text-[10px] uppercase tracking-wider text-[#5a637a] font-bold">DB Path</TableHead>
+                      <TableHead className="text-[10px] uppercase tracking-wider text-[#5a637a] font-bold text-right">Status</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -532,9 +847,13 @@ export default function RetentionPanel() {
                               ? 'decision_ledger'
                               : 'execution_quality'
                       const check = health?.checks?.[checkKey]
-                      const up = !!check && ['UP', 'HEALTHY', 'OK'].includes(check.status)
+                      const tone = serviceStatusTone(check?.status)
                       return (
-                        <TableRow key={t.target}>
+                        <TableRow
+                          key={t.target}
+                          className="hover:bg-cyan-500/[0.04] hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.45)] transition-colors"
+                          data-tone={tone}
+                        >
                           <TableCell className="label-col">
                             <div className="flex flex-col">
                               <span className="font-semibold text-[#dde1ed]">{t.label}</span>
@@ -554,7 +873,9 @@ export default function RetentionPanel() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <HorizonBadge days={t.horizonDays} />
+                            <span className={`badge ${horizonBadgeClass(t.horizonDays)} text-[10px] tabular-nums`} data-tone={horizonTone(t.horizonDays)}>
+                              {t.horizonDays}d
+                            </span>
                           </TableCell>
                           <TableCell>
                             <div className="flex flex-col">
@@ -565,16 +886,22 @@ export default function RetentionPanel() {
                             </div>
                           </TableCell>
                           <TableCell className="text-right">
-                            {check ? (
-                              <span
-                                className={`badge ${up ? 'badge-green' : 'badge-amber'} text-[9.5px]`}
-                                title={check.detail}
-                              >
-                                {check.status}
-                              </span>
-                            ) : (
-                              <span className="badge badge-dim text-[9.5px]">no probe</span>
-                            )}
+                            <span className="inline-flex items-center gap-1.5 justify-end">
+                              <PulseDot tone={tone} pulse={tone !== 'poor'} />
+                              {check ? (
+                                <span
+                                  className={`badge ${statusBadgeClass(tone)} text-[9.5px] tabular-nums`}
+                                  title={check.detail}
+                                  data-tone={tone}
+                                >
+                                  {check.status}
+                                </span>
+                              ) : (
+                                <span className="badge badge-dim text-[9.5px]" data-tone="neutral">
+                                  no probe
+                                </span>
+                              )}
+                            </span>
                           </TableCell>
                         </TableRow>
                       )
@@ -584,21 +911,23 @@ export default function RetentionPanel() {
               </div>
             </div>
 
-            {/* ── Manual Prune ─────────────────────────────────────────────── */}
+            {/* ── Manual Prune ──────────────────────────────────────────────── */}
             <div className="card">
-              <div className="card-header">
-                <span className="card-title flex items-center gap-1.5">
-                  <Trash2 size={12} /> Manual Prune
-                </span>
-                {lastResult && (
-                  <span className="badge badge-cyan text-[9.5px]">
-                    Last: {(lastResult as PruneAllResult).total_pruned ??
-                      (lastResult as PruneSingleResult).pruned ?? 0}{' '}
-                    rows deleted
-                  </span>
-                )}
+              <div className="p-3.5 pb-2">
+                <SectionHeader
+                  icon={Trash2}
+                  title="Manual Prune"
+                  description="irreversible row delete"
+                  tone="warn"
+                  trailing={
+                    lastResult
+                      ? `${(lastResult as PruneAllResult).total_pruned ??
+                          (lastResult as PruneSingleResult).pruned ?? 0} rows deleted`
+                      : undefined
+                  }
+                />
               </div>
-              <div className="p-4 space-y-3">
+              <div className="p-4 pt-2 space-y-3">
                 <div className="flex flex-wrap items-end gap-3">
                   <div className="flex-1 min-w-[200px]">
                     <label className="text-[10px] uppercase tracking-wider text-[#5a637a] font-bold mb-1 block">
@@ -666,7 +995,7 @@ export default function RetentionPanel() {
                               {RETENTION_TARGETS.map((t) => (
                                 <li key={t.target} className="text-[11px]">
                                   <code className="mono text-[var(--color-cyan-fg)]">{t.target}</code>{' '}
-                                  — rows older than <span className="font-semibold">{t.horizonDays}d</span> ({t.tables.join(', ')})
+                                  → rows older than <span className="font-semibold">{t.horizonDays}d</span> ({t.tables.join(', ')})
                                 </li>
                               ))}
                             </ul>
@@ -705,7 +1034,7 @@ export default function RetentionPanel() {
                         <CheckCircle2 size={12} className="text-cyan-400" />
                       )}
                       <span className="font-semibold text-[#dde1ed]">
-                        Prune result —{' '}
+                        Prune result →{' '}
                         {new Date(
                           ((lastResult as PruneAllResult).timestamp ?? Date.now() / 1000) * 1000,
                         ).toLocaleTimeString()}
@@ -713,27 +1042,31 @@ export default function RetentionPanel() {
                     </div>
                     {(lastResult as PruneAllResult).results ? (
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                        {Object.entries((lastResult as PruneAllResult).results).map(([k, v]) => (
-                          <div
-                            key={k}
-                            className="bg-[#13161e] border border-[#1f2335] rounded p-2 text-center"
-                          >
-                            <div className="text-[9px] text-[#5a637a] uppercase tracking-wider">
-                              {k}
-                            </div>
-                            <div className="mono text-sm font-bold text-cyan-400 mt-0.5">
-                              {v.pruned.toLocaleString()}
-                            </div>
-                            {v.error && (
-                              <div className="text-[9px] text-red-400 mt-0.5 truncate" title={v.error}>
-                                {v.error}
+                        {Object.entries((lastResult as PruneAllResult).results).map(([k, v]) => {
+                          const cellTone: Tone = v.error ? 'poor' : v.pruned > 0 ? 'good' : 'neutral'
+                          return (
+                            <div
+                              key={k}
+                              className={`bg-[#13161e] border rounded p-2 text-center ${TONE[cellTone].border}`}
+                              data-tone={cellTone}
+                            >
+                              <div className="text-[9px] text-[#5a637a] uppercase tracking-wider">
+                                {k}
                               </div>
-                            )}
-                          </div>
-                        ))}
+                              <div className={`mono text-sm font-bold tabular-nums mt-0.5 ${TONE[cellTone].text}`}>
+                                {v.pruned.toLocaleString()}
+                              </div>
+                              {v.error && (
+                                <div className="text-[9px] text-red-400 mt-0.5 truncate" title={v.error}>
+                                  {v.error}
+                                </div>
+                              )}
+                            </div>
+                          )
+                        })}
                       </div>
                     ) : (
-                      <div className="text-cyan-400 mono">
+                      <div className="text-cyan-400 mono tabular-nums">
                         Deleted {(lastResult as PruneSingleResult).pruned.toLocaleString()} row(s) from{' '}
                         <code>{(lastResult as PruneSingleResult).target}</code>
                       </div>
@@ -745,101 +1078,115 @@ export default function RetentionPanel() {
 
             {/* ── Prune History ────────────────────────────────────────────── */}
             <div className="card">
-              <div className="card-header">
-                <span className="card-title flex items-center gap-1.5">
-                  <History size={12} /> Prune History
-                </span>
-                <span className="badge badge-dim text-[9.5px]">
-                  client-side · localStorage
-                </span>
+              <div className="p-3.5 pb-2">
+                <SectionHeader
+                  icon={History}
+                  title="Prune History"
+                  description="client-side · localStorage"
+                  tone="info"
+                  trailing={`${history.length} entries`}
+                />
               </div>
               {history.length === 0 ? (
-                <EmptyState
+                <PolishedEmptyState
+                  icon={History}
                   title="No prune operations logged yet"
-                  desc="Manual and auto-triggered prunes will appear here. History is kept locally per browser."
+                  description="Manual and auto-triggered prunes will appear here. History is kept locally per browser."
+                  testId="retention-history-empty"
                 />
               ) : (
-                <div className="table-container max-h-72">
+                <div className="table-container max-h-72 overflow-y-auto scrollbar-thin">
                   <Table className="data-table">
                     <TableHeader>
-                      <TableRow>
-                        <TableHead>When</TableHead>
-                        <TableHead>Target</TableHead>
-                        <TableHead className="text-right">Rows Deleted</TableHead>
-                        <TableHead>Per-store detail</TableHead>
-                        <TableHead className="text-right">Status</TableHead>
+                      <TableRow className="hover:bg-transparent">
+                        <TableHead className="text-[10px] uppercase tracking-wider text-[#5a637a] font-bold">When</TableHead>
+                        <TableHead className="text-[10px] uppercase tracking-wider text-[#5a637a] font-bold">Target</TableHead>
+                        <TableHead className="text-[10px] uppercase tracking-wider text-[#5a637a] font-bold text-right">Rows Deleted</TableHead>
+                        <TableHead className="text-[10px] uppercase tracking-wider text-[#5a637a] font-bold">Per-store detail</TableHead>
+                        <TableHead className="text-[10px] uppercase tracking-wider text-[#5a637a] font-bold text-right">Status</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {history.map((h) => (
-                        <TableRow key={h.id}>
-                          <TableCell className="label-col">
-                            <div className="flex flex-col">
-                              <span>{new Date(h.timestamp * 1000).toLocaleTimeString()}</span>
-                              <span className="text-[10px] text-[#5a637a]">
-                                {formatRelativeTime(h.timestamp)}
-                              </span>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <code className="mono text-[11px] text-[var(--color-cyan-fg)]">
-                              {h.target}
-                            </code>
-                          </TableCell>
-                          <TableCell className="text-right mono text-cyan-300 font-bold">
-                            {h.total_pruned.toLocaleString()}
-                          </TableCell>
-                          <TableCell>
-                            {h.per_store ? (
-                              <div className="flex flex-wrap gap-1">
-                                {Object.entries(h.per_store).map(([k, v]) => (
-                                  <span
-                                    key={k}
-                                    className={`badge ${v.error ? 'badge-red' : 'badge-dim'} text-[9px]`}
-                                    title={v.error ?? ''}
-                                  >
-                                    {k}: {v.pruned}
-                                  </span>
-                                ))}
+                      {history.map((h) => {
+                        const rowTone: Tone = h.success ? 'good' : 'poor'
+                        return (
+                          <TableRow
+                            key={h.id}
+                            className="hover:bg-cyan-500/[0.04] hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.45)] transition-colors"
+                            data-tone={rowTone}
+                          >
+                            <TableCell className="label-col">
+                              <div className="flex flex-col">
+                                <span className="tabular-nums">{new Date(h.timestamp * 1000).toLocaleTimeString()}</span>
+                                <span className="text-[10px] text-[#5a637a]">
+                                  {formatRelativeTime(h.timestamp)}
+                                </span>
                               </div>
-                            ) : (
-                              <span className="text-[10px] text-[#5a637a]">—</span>
-                            )}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            {h.success ? (
-                              <span className="badge badge-green text-[9.5px]">
-                                <CheckCircle2 size={10} className="mr-1" /> OK
+                            </TableCell>
+                            <TableCell>
+                              <code className="mono text-[11px] text-[var(--color-cyan-fg)]">
+                                {h.target}
+                              </code>
+                            </TableCell>
+                            <TableCell className="text-right mono text-cyan-300 font-bold tabular-nums">
+                              {h.total_pruned.toLocaleString()}
+                            </TableCell>
+                            <TableCell>
+                              {h.per_store ? (
+                                <div className="flex flex-wrap gap-1">
+                                  {Object.entries(h.per_store).map(([k, v]) => (
+                                    <span
+                                      key={k}
+                                      className={`badge ${v.error ? 'badge-red' : 'badge-dim'} text-[9px] tabular-nums`}
+                                      title={v.error ?? ''}
+                                      data-tone={v.error ? 'poor' : 'neutral'}
+                                    >
+                                      {k}: {v.pruned}
+                                    </span>
+                                  ))}
+                                </div>
+                              ) : (
+                                <span className="text-[10px] text-[#5a637a]">—</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <span className="inline-flex items-center gap-1.5 justify-end">
+                                <PulseDot tone={rowTone} pulse={false} />
+                                {h.success ? (
+                                  <span className="badge badge-green text-[9.5px]">
+                                    <CheckCircle2 size={10} className="mr-1" /> OK
+                                  </span>
+                                ) : (
+                                  <span
+                                    className="badge badge-red text-[9.5px]"
+                                    title={h.error ?? 'failed'}
+                                  >
+                                    <XCircle size={10} className="mr-1" /> FAIL
+                                  </span>
+                                )}
                               </span>
-                            ) : (
-                              <span
-                                className="badge badge-red text-[9.5px]"
-                                title={h.error ?? 'failed'}
-                              >
-                                <XCircle size={10} className="mr-1" /> FAIL
-                              </span>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      ))}
+                            </TableCell>
+                          </TableRow>
+                        )
+                      })}
                     </TableBody>
                   </Table>
                 </div>
               )}
             </div>
 
-            {/* ── Inline Config Editor ─────────────────────────────────────── */}
+            {/* ── Inline Config Editor (horizon / TTL inputs) ──────────────── */}
             <div className="card">
-              <div className="card-header">
-                <span className="card-title flex items-center gap-1.5">
-                  <ShieldCheck size={12} /> Horizon Configuration
-                </span>
-                <span className="badge badge-amber text-[9.5px]">
-                  <AlertTriangle size={10} className="mr-1" />
-                  read-only — env-var override required
-                </span>
+              <div className="p-3.5 pb-2">
+                <SectionHeader
+                  icon={ShieldCheck}
+                  title="Horizon Configuration"
+                  description="read-only · env-var override required"
+                  tone="warn"
+                  trailing={`${RETENTION_TARGETS.length} horizons`}
+                />
               </div>
-              <div className="p-4 space-y-3">
+              <div className="p-4 pt-2 space-y-3">
                 <p className="text-[11px] text-[#7e8aaa] leading-relaxed">
                   Retention horizons are loaded from{' '}
                   <code className="mono text-[10px] text-[var(--color-cyan-fg)]">core/retention.py</code>{' '}
@@ -852,12 +1199,12 @@ export default function RetentionPanel() {
                   {RETENTION_TARGETS.map((t) => {
                     const edited = editedHorizons[t.target] ?? t.horizonDays
                     const dirty = edited !== t.horizonDays
+                    const cellTone = dirty ? 'warn' : horizonTone(t.horizonDays)
                     return (
                       <div
                         key={t.target}
-                        className={`bg-[#0e1015] border rounded-md p-2.5 ${
-                          dirty ? 'border-[var(--color-amber-bd)]' : 'border-[#1f2335]'
-                        }`}
+                        className={`bg-[#0e1015] border rounded-md p-2.5 transition-colors ${TONE[cellTone].border}`}
+                        data-tone={cellTone}
                       >
                         <div className="flex items-center justify-between mb-1.5">
                           <span className="text-[11px] font-semibold text-[#dde1ed]">
@@ -880,7 +1227,7 @@ export default function RetentionPanel() {
                                 [t.target]: Number.isFinite(v) ? Math.max(1, v) : t.horizonDays,
                               }))
                             }}
-                            className="h-8 bg-[#13161e] border-[#1f2335] text-[#dde1ed] mono text-xs"
+                            className="h-8 bg-[#13161e] border-[#1f2335] text-[#dde1ed] mono text-xs tabular-nums"
                           />
                           <span className="text-[11px] text-[#7e8aaa]">days</span>
                           <Button

@@ -648,6 +648,33 @@ function reliabilityScoreTone(score: number | null | undefined): Tone {
   return 'poor'
 }
 
+// W56-d-retry — Tone picker for the Sources Online KpiTile. Maps the
+// connected/total ratio onto the Tone palette:
+//   • all connected   → good   (emerald)
+//   • some connected   → warn   (amber)
+//   • none connected   → poor   (red)
+//   • no sources      → neutral (dim slate)
+// Powers the Sources Online KpiTile's tone + quality bar + trend glyph
+// so the operator sees source-connectivity health at a glance alongside
+// the throughput / latency / freshness tiles.
+function sourcesOnlineTone(
+  connected: number | null | undefined,
+  total: number | null | undefined,
+): Tone {
+  if (
+    connected == null ||
+    total == null ||
+    !Number.isFinite(connected) ||
+    !Number.isFinite(total) ||
+    total === 0
+  ) {
+    return 'neutral'
+  }
+  if (connected === total) return 'good'
+  if (connected === 0) return 'poor'
+  return 'warn'
+}
+
 // PulseDot — small status dot with halo + ping animation. Used by the
 // LIVE badge + per-source "connected" status + Pipeline "Running" badge.
 // Reduced-motion users see a static dot (the halo's ping is decorative;
@@ -981,9 +1008,11 @@ function LoadingSkeleton() {
         </div>
       </div>
 
-      {/* KPI strip — 4 tone-tinted tiles */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
-        {Array.from({ length: 4 }).map((_, i) => (
+      {/* KPI strip — 6 tone-tinted tiles (W56-d-retry: mirrors the live
+          6-tile KPI strip after the Quality Score + Sources Online
+          tiles were added to complete the spec's KpiTile pattern). */}
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-2.5">
+        {Array.from({ length: 6 }).map((_, i) => (
           <div
             key={i}
             className="kpi-card relative overflow-hidden border border-[#1f2335] bg-[#0e1015]"
@@ -1580,8 +1609,17 @@ export default function IngestionHealthPanel() {
           The data-testid is preserved verbatim (kpi-total-events /
           kpi-events-per-minute / kpi-avg-latency / kpi-data-freshness) so
           the W31-5 test contracts (.toContain('84,521') / .toContain('1,235')
-          / .toContain('42ms') / .toContain('5s')) still resolve. */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+          / .toContain('42ms') / .toContain('5s')) still resolve.
+          W56-d-retry — Two new KpiTiles added to complete the spec's
+          KpiTile pattern for ingestion metrics (throughput, latency,
+          quality score, sources online): "Quality Score" surfaces the
+          /api/ingestion/quality overall_score + tone-coloured bar; "Sources
+          Online" aggregates the connected/total source ratio. Both carry
+          their own data-testid (kpi-quality-score / kpi-sources-online)
+          so downstream tests + the E2E layer can target them. The grid
+          responsive classes expand from 4 to 6 cols (xl:grid-cols-6) so
+          the 6 tiles fit on a single row at desktop width. */}
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-2.5">
         <KpiCard
           label="Total Events"
           value={formatCount(metrics?.total_events)}
@@ -1631,6 +1669,96 @@ export default function IngestionHealthPanel() {
           }
           trend={freshnessTone(metrics?.data_freshness_seconds) === 'good' ? 'down' : 'flat'}
           data-testid="kpi-data-freshness"
+        />
+        {/* W56-d-retry — Quality Score KpiTile. Mirrors the overall_score
+            tone thresholds (good ≥ 90 / warn ≥ 75 / poor < 75 / neutral
+            when the /api/ingestion/quality endpoint is unreachable). The
+            quality bar fills proportionally to the score (0–100) so the
+            trader sees the pass rate visually as well as numerically.
+            Trend glyph: up when good, down when poor, flat when warning /
+            neutral. */}
+        <KpiCard
+          label="Quality Score"
+          value={
+            quality && Number.isFinite(quality.overall_score)
+              ? `${quality.overall_score.toFixed(1)}%`
+              : '—'
+          }
+          sub={
+            quality && Number.isFinite(quality.validation_pass_rate)
+              ? `pass ${formatPct(quality.validation_pass_rate * 100)}`
+              : 'endpoint unavailable'
+          }
+          valueClass={TONE[scoreTone(quality?.overall_score)].text}
+          icon={ShieldCheck}
+          tone={scoreTone(quality?.overall_score)}
+          quality={
+            quality && Number.isFinite(quality.overall_score)
+              ? Math.max(0, Math.min(100, quality.overall_score))
+              : 0
+          }
+          trend={
+            scoreTone(quality?.overall_score) === 'good'
+              ? 'up'
+              : scoreTone(quality?.overall_score) === 'poor'
+                ? 'down'
+                : 'flat'
+          }
+          data-testid="kpi-quality-score"
+        />
+        {/* W56-d-retry — Sources Online KpiTile. Aggregates the connected/
+            total source ratio. The value text is "{connected}/{total}" so
+            the trader reads e.g. "2/3" at a glance. The tone is derived
+            from sourcesOnlineTone: good when all connected / warn when
+            some disconnected / poor when none / neutral when no sources
+            are registered. The quality bar fills proportionally to the
+            ratio so the trader sees source-connectivity health visually. */}
+        <KpiCard
+          label="Sources Online"
+          value={
+            sources.length > 0
+              ? `${sources.filter((s) => s.status === 'connected').length}/${sources.length}`
+              : '—'
+          }
+          sub={
+            sources.length > 0
+              ? `${sources.filter((s) => s.status === 'connected').length} of ${sources.length} live`
+              : 'no sources registered'
+          }
+          valueClass={TONE[sourcesOnlineTone(
+            sources.filter((s) => s.status === 'connected').length,
+            sources.length,
+          )].text}
+          icon={PlugZap}
+          tone={sourcesOnlineTone(
+            sources.filter((s) => s.status === 'connected').length,
+            sources.length,
+          )}
+          quality={
+            sources.length > 0
+              ? Math.max(
+                  0,
+                  Math.min(
+                    100,
+                    (sources.filter((s) => s.status === 'connected').length / sources.length) * 100,
+                  ),
+                )
+              : 0
+          }
+          trend={
+            sourcesOnlineTone(
+              sources.filter((s) => s.status === 'connected').length,
+              sources.length,
+            ) === 'good'
+              ? 'up'
+              : sourcesOnlineTone(
+                    sources.filter((s) => s.status === 'connected').length,
+                    sources.length,
+                  ) === 'poor'
+                ? 'down'
+                : 'flat'
+          }
+          data-testid="kpi-sources-online"
         />
       </div>
 
