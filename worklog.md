@@ -44802,3 +44802,28 @@ distinction between accent (green) and semantic info (cyan) in chart
 legends, tone badges, and categorical palettes.
 
 Full work record: /home/z/my-project/agent-ctx/W65-b-fullstack-developer.md.
+
+---
+Task ID: W65-FINAL
+Agent: orchestrator (main)
+Task: Wave 65 — Final green light theme cleanup (zero remaining dark hex)
+
+Work Log:
+- Audited codebase: found 45 remaining dark hex colors across 20 files
+- Launched 4 parallel subagents:
+  • W65-a: Fixed 31 text color hex (#c8cfe0→text-mono, #9aa3bc→text-secondary, #7e8aaa→text-secondary)
+  • W65-b: Fixed 19 cyan accent #22d3ee→var(--accent), kept 4 semantic info-tone
+  • W65-c: Fixed 35 dark bg/border hex (#3e4560, #181c28, #0b0e14, #2a2f47, etc.)
+  • W65-d: Audited blue/cyan Tailwind utilities — 0 accent uses remaining
+- Fixed last dark hex #111420 in MarketChartModal.tsx → var(--bg-surface)
+- Total Wave 65: 86 hex colors migrated to CSS variables
+- Grand total: 3,575 (W63-64) + 86 (W65) = 3,661 hex colors migrated
+
+Final verification:
+- 0 remaining dark hex colors (#0e1015, #13161e, #1f2335, #3b82f6, #60a5fa, #111420, etc.)
+- 0 remaining blue accent Tailwind utilities (bg-blue-*, text-blue-*, border-blue-*)
+- 11 semantic chart colors remain (#10b981 green, #22d3ee cyan info, #ef4444 red, #22c55e green)
+- ESLint: clean (0 errors)
+- TypeScript: 0 errors
+- VLM: 9/10 — "consistent and professional, modern bullish trading aesthetic"
+- Git: pushed to origin/main (0b5aaec)
