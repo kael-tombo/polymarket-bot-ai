@@ -1,4 +1,3 @@
-// @ts-nocheck
 // components/EquityCurve.test.tsx — Equity Curve panel tests.
 //
 // W22-1 — covers the contract surfaces for the previously-untested

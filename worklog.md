@@ -44827,3 +44827,116 @@ Final verification:
 - TypeScript: 0 errors
 - VLM: 9/10 — "consistent and professional, modern bullish trading aesthetic"
 - Git: pushed to origin/main (0b5aaec)
+
+---
+
+## Task W66-a — full-stack-developer — Un-skip + verify EquityCurve.test.tsx
+
+**Date:** 2026-09-22
+**Task ID:** W66-a
+**Agent:** full-stack-developer (Z.ai Code)
+**Scope:** Un-skip the previously-skipped `src/components/EquityCurve.test.tsx.skip` test file, run it against the W58-a-polished `src/components/EquityCurve.tsx` component, and fix any failures so the suite passes cleanly under lint + tsc + vitest.
+
+### Background / investigation
+
+- Read `worklog.md` tail (~last 100 lines) and the W58-a entry (lines 40795–40923) to map the W58-a polish affordances applied to `src/components/EquityCurve.tsx` (Tone system, shimmer skeleton `EquitySkeleton`, polished empty state `PolishedEmptyState` with Lucide `TrendingUp` icon, `SectionHeader` sub-component with title `"Equity Curve"` + description `"paper execution timeline"` + trailing `{points} pts` badge, `PolishedErrorCard` with `AlertTriangle` + wrapped error string + Dismiss button, `data-tone` hooks on header equity/PnL/drawdown badges, `mono tabular-nums` on every numeric value).
+- Listed the EquityCurve files and found **both** `src/components/EquityCurve.test.tsx` (committed, Sep 18, with `// @ts-nocheck` on line 1) and `src/components/EquityCurve.test.tsx.skip` (Sep 22, identical content but **without** `// @ts-nocheck`). The `.skip` is the up-to-date, type-clean version.
+- Confirmed the W58-a component preserves every test-matched string verbatim per the W58-a backwards-compat contract (lines 40842–40850):
+  - `"📈 Equity Curve"` / `"📈 Portfolio Equity"` card-title (leaf text of `<span className="card-title">`)
+  - `"Loading equity timeline…"` (skeleton caption — leaf text node)
+  - `"Accumulating paper execution points…"` (empty-state title — leaf text node)
+  - `"Failed to load equity timeline (HTTP 500)"` (error message — single leaf text node)
+  - `"Dismiss"` button with `aria-label="Dismiss equity error"`
+  - `"● Live"` / `"⟳ Polling"` (badge text — preserved verbatim)
+  - `"Base: $100.00"` (footer summary — direct text of leaf `<span>`)
+  - `"Equity Curve"` (section header title via the `SectionHeader` sub-component)
+
+### Steps taken
+
+1. **Read** worklog tail + W58-a entry to map the component's polished affordances and preserved-verbatim test contracts.
+2. **Renamed** the skip file: `mv src/components/EquityCurve.test.tsx.skip src/components/EquityCurve.test.tsx` — overwrites the committed `@ts-nocheck` version with the type-clean version (the only diff is the removal of the `// @ts-nocheck` pragma on line 1; the remaining 433 lines are byte-identical).
+3. **Inspected** the test contract end-to-end (18 tests across the Rendering / W22-1 Error-handling / Polling / W22-5 Realtime-migration sections) and confirmed every assertion still maps to the W58-a component's rendered output:
+   - `getByText(/Equity Curve/i)` → matches the `SectionHeader` title "Equity Curve" AND the `card-title` "📈 Equity Curve" (regex tolerant of both).
+   - `getByText(/Loading equity timeline/i)` → matches the `EquitySkeleton` caption "Loading equity timeline…" (leaf text node).
+   - `getByText(/Base: \$100\.00/i)` → matches the footer summary leaf `<span>Base: $100.00</span>`.
+   - `getByText(/Accumulating paper execution points/i)` → matches the `PolishedEmptyState` title (leaf text node).
+   - `getByText(/Failed to load equity timeline \(HTTP 500\)/i)` → matches the `PolishedErrorCard` wrapped error string (single leaf text node, not split across the icon + value).
+   - `getByRole('button', { name: /Dismiss equity error/i })` → matches the `PolishedErrorCard` Dismiss button's `aria-label="Dismiss equity error"`.
+   - `getByText('⟳ Polling')` / `getByText('● Live')` → match the W22-5 badge text (preserved verbatim from W22-5).
+   - `findByTestId('equity-curve-chart-mock')` → matches the mocked `EquityCurveChart` (test mocks `@/components/charts` so Recharts isn't pulled into the unit-test bundle).
+4. **Ran** `TMPDIR=/dev/shm/vitest-tmp NODE_OPTIONS="--max-old-space-size=512" timeout 120 bunx vitest run src/components/EquityCurve.test.tsx 2>&1 | tail -10` — **all 18 tests pass on the first run** (no test or component edits required):
+   ```
+    RUN  v4.1.11 /home/z/my-project
+    ✓ src/components/EquityCurve.test.tsx (18 tests) 911ms
+     Test Files  1 passed (1)
+          Tests  18 passed (18)
+   ```
+
+### Why no test fixes were needed
+
+The W58-a polish pass was careful to preserve every test-matched string as a **leaf text node** (not split across icon + value, not nested inside an icon-only `<svg>`), so the W22-1 / W22-5 contracts continued to resolve:
+- The `SectionHeader` renders its `title` prop as the direct text content of a `<span>` — `getByText(/Equity Curve/i)` resolves to that span.
+- The `EquitySkeleton` renders the "Loading equity timeline…" caption as a leaf text node of a `<span>` — `getByText(/Loading equity timeline/i)` resolves.
+- The `PolishedEmptyState` renders "Accumulating paper execution points…" as a leaf `<div>` text node — `getByText(/Accumulating paper execution points/i)` resolves.
+- The `PolishedErrorCard` renders the wrapped error string (`Failed to load equity timeline (HTTP 500)`) as a single leaf `<div>` text node — `getByText(/Failed to load equity timeline \(HTTP 500\)/i)` resolves.
+- The Dismiss button carries `aria-label="Dismiss equity error"` (the Lucide `X` icon is `aria-hidden="true"`) — `getByRole('button', { name: /Dismiss equity error/i })` resolves.
+- The footer summary `<span>Base: $100.00</span>` is a direct leaf text node — `getByText(/Base: \$100\.00/i)` resolves.
+
+The previously-committed `EquityCurve.test.tsx` carried `// @ts-nocheck` because some prior TypeScript narrowing in the test file (likely the `vi.mocked(fetch).mock.calls as Array<[string, RequestInit?]>` cast in the `fetches /api/history/equity on mount` test, or the `MockWebSocket as unknown as typeof WebSocket` cast in `beforeEach`) was tripping the strict-mode checker. The `.skip` version of the file is byte-identical except for the absence of that `@ts-nocheck` line — and `bunx tsc --noEmit --skipLibCheck` now passes cleanly across the whole project, so the skip was no longer needed.
+
+### Verification
+
+- **ESLint**: `cd /home/z/my-project && bun run lint 2>&1 | tail -5` →
+  ```
+  $ eslint .
+  ```
+  (clean — exit 0, no output).
+- **TypeScript**: `cd /home/z/my-project && bunx tsc --noEmit --skipLibCheck 2>&1 | tail -3` →
+  empty output (exit 0, 0 errors project-wide, including the un-skipped test file).
+- **Vitest**: `cd /home/z/my-project && TMPDIR=/dev/shm/vitest-tmp NODE_OPTIONS="--max-old-space-size=512" timeout 120 bunx vitest run src/components/EquityCurve.test.tsx 2>&1 | tail -10` →
+  ```
+   RUN  v4.1.11 /home/z/my-project
+   ✓ src/components/EquityCurve.test.tsx (18 tests) 897ms
+    Test Files  1 passed (1)
+         Tests  18 passed (18)
+  ```
+- **Remaining `.skip` files**: `find . -name "*.skip" -not -path "*/node_modules/*" -not -path "*/.git/*"` → only `./mini-services/polymarket-bot/tests/test_w30_4_coverage_gaps.py.skip` (the Python one mentioned in the task spec, out of scope).
+
+### Files touched
+
+- `src/components/EquityCurve.test.tsx` — un-skipped (renamed from `.skip`, overwrote the prior `// @ts-nocheck`-prefixed version). Net diff: −1 line (`// @ts-nocheck` removed), 0 lines added.
+
+### Summary
+
+The W58-a component polish pass preserved every test-matched string verbatim as a leaf text node, so the W22-1 / W22-5 EquityCurve test contract (18 tests covering title text, loading-state skeleton, `/api/history/equity` fetch on mount, chart rendering, "Accumulating paper execution points" empty state, "Failed to load equity timeline (HTTP 500)" error banner with Dismiss button, polling cadence (5 s), WS `"● Live"` / `"⟳ Polling"` badges, metrics-channel WS payload acceptance / rejection, and unmount cleanup) continues to resolve cleanly. **Zero test failures encountered on the first run after un-skipping.** The prior `@ts-nocheck` pragma on the committed `.tsx` version is no longer needed (the project's TypeScript checker now passes cleanly without it), so the renamed `.skip` file (which never had `@ts-nocheck`) is the canonical version going forward. The `.skip` suffix is removed; only the out-of-scope Python `test_w30_4_coverage_gaps.py.skip` remains in the repo.
+
+
+---
+Task ID: W66-b
+Agent: fullstack-developer (test runner)
+Task: Run the full frontend test suite and fix any failures (Polymarket Pro)
+
+Work Log:
+- Read worklog.md (W65-FINAL context: green-light theme migration, 3,661 hex → CSS var)
+- Killed any running `next`/`vitest` processes; cleared /dev/shm/vitest-tmp
+- Ran the full Vitest suite:
+  `TMPDIR=/dev/shm/vitest-tmp NODE_OPTIONS="--max-old-space-size=512" timeout 540 bunx vitest run`
+- **Result: 93 test files, 1523 tests — ALL PASSED, 0 failures**
+  Duration: 135.03s (transform 2.95s, setup 7.61s, import 13.15s,
+  tests 48.92s, environment 53.49s)
+- No test files needed modification. The W63-65 green-light theme
+  migration (accent cyan `#22d3ee` → `var(--accent)` green, dark
+  text hexes → `text-mono`/`text-secondary`, dark bg/border hexes →
+  CSS vars) did not break any test assertions because tests assert on
+  text content, ARIA roles, and behaviors — not on raw color class
+  names or hex values. The single color assertion in the codebase
+  (`Charts.test.tsx:78 → chartTheme.colors.info === '#06b6d4'`) is for
+  the chart theme's semantic `info` color, which was intentionally
+  preserved per the W65-b spec's EXCEPTIONS clause.
+
+Verification:
+- `bun run lint` → clean (`$ eslint .`, exit 0, no warnings/errors)
+- `bunx tsc --noEmit --skipLibCheck` → 0 errors (empty output, exit 0)
+- `bunx vitest run` → **93 files / 1523 tests / 0 failures**
+
+Final test count: 1523 passed (93 files), 0 failures, 0 skipped.
