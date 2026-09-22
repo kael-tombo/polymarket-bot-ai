@@ -321,7 +321,10 @@ export default function TopStatusBar({
       {/* ── Main 44px row ─────────────────────────────────────────────── */}
       <div className="h-11 px-3 flex items-center justify-between gap-3">
         {/* ─── LEFT: mobile nav · logo · breadcrumb · halt/obs badges ─── */}
-        <div className="flex items-center gap-2.5 shrink-0 min-w-0">
+        {/* W68-a — removed `shrink-0` so the LEFT cluster can compress
+            (and the panelName breadcrumb can truncate) on 375px mobile
+            viewports instead of pushing the RIGHT cluster off-screen. */}
+        <div className="flex items-center gap-2.5 min-w-0">
           <button
             onClick={onMobileNav}
             className="btn btn-ghost btn-sm h-8 w-8 p-0 inline-flex items-center justify-center md:hidden"
@@ -335,8 +338,12 @@ export default function TopStatusBar({
           </button>
 
           {/* W49-6 — App logo + name. Compact (24px) logo + "Polymarket Pro"
-              wordmark. Hidden on the narrowest phones (xs:hidden) so the
-              KPI cluster gets priority real estate; shows on ≥480px. */}
+              wordmark. Hidden on the narrowest phones so the
+              KPI cluster gets priority real estate; shows on ≥640px (sm).
+              W68-a — fixed `xs:` (un-registered custom variant) → `sm:` so
+              the wordmark actually renders on small tablets and up. The
+              prior `xs:` prefix was a no-op (no `@custom-variant xs`),
+              which meant the wordmark was permanently hidden. */}
           <div className="flex items-center gap-2 min-w-0">
             <svg
               width="22"
@@ -352,7 +359,7 @@ export default function TopStatusBar({
               <line x1="2" y1="12" x2="22" y2="12" stroke="var(--accent-fg)" strokeWidth="1" strokeOpacity="0.35" />
             </svg>
             <span
-              className="hidden xs:inline-block text-[13px] font-bold tracking-tight whitespace-nowrap"
+              className="hidden sm:inline-block text-[13px] font-bold tracking-tight whitespace-nowrap"
               style={{ color: 'var(--text-primary)' }}
             >
               Polymarket<span style={{ color: 'var(--accent-fg)' }}>Pro</span>
@@ -360,19 +367,24 @@ export default function TopStatusBar({
 
             {/* W49-6 — Active panel breadcrumb. Renders as
                 "Markets / Live Books" so the trader always knows which
-                sidebar section is mounted. Hidden below lg (tablet +
-                mobile) per the responsive spec.
+                sidebar section is mounted.
                 W50-2c — refined chevron separators replace the bare "/"
-                glyphs for a more modern, professional look. */}
+                glyphs for a more modern, professional look.
+                W68-a — visible on mobile too (truncated via max-w +
+                min-w-0 ladder) so the trader can always see which panel
+                is mounted even on a 375px phone. The LEFT cluster's
+                `shrink-0` was removed in favour of `min-w-0` so the
+                breadcrumb can actually ellipsis-truncate instead of
+                pushing the RIGHT cluster off-screen. */}
             {panelName && (
               <span
-                className="hidden lg:flex items-center gap-1.5 text-[11.5px] whitespace-nowrap min-w-0 ml-1"
+                className="flex items-center gap-1.5 text-[11.5px] whitespace-nowrap min-w-0 ml-1 max-w-[42vw] lg:max-w-none"
                 aria-current="page"
               >
                 {panelGroup && (
                   <>
-                    <span className="text-[var(--text-secondary)] font-medium truncate">{panelGroup}</span>
-                    <svg aria-hidden="true" width="8" height="10" viewBox="0 0 8 10" fill="none" className="text-[var(--text-muted)] shrink-0">
+                    <span className="text-[var(--text-secondary)] font-medium truncate hidden sm:inline">{panelGroup}</span>
+                    <svg aria-hidden="true" width="8" height="10" viewBox="0 0 8 10" fill="none" className="text-[var(--text-muted)] shrink-0 hidden sm:inline-block">
                       <path d="M2 1L7 5L2 9" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   </>
@@ -607,15 +619,29 @@ export default function TopStatusBar({
             </div>
           )}
 
-          {/* WebSocket transport pill. */}
-          <ConnectionStatusPill />
+          {/* WebSocket transport pill.
+              W68-a — hidden on mobile (<sm=640px) because the text label
+              "WS Live" / "Polling" plus the dot is ~80px wide and pushes
+              the kill switch + theme toggle off the right edge on a 375px
+              viewport. The trader can still see connection state via the
+              connection pill above (Live/Degraded/Offline) on sm+. On
+              mobile, the bot's overall health is summarised by the
+              CommandCenterHealthBar at the top of the dashboard. */}
+          <div className="hidden sm:block">
+            <ConnectionStatusPill />
+          </div>
 
           {/* ── Icon cluster (preferences + alerts + actions) ── */}
           {/* Settings (🛠) — opens the full preferences modal.
-              W50-2c — compact 32px square button. */}
+              W50-2c — compact 32px square button.
+              W68-a — hidden on mobile (<sm=640px) to free up top-bar real
+              estate for the kill switch + theme toggle. The settings modal
+              is still reachable via the keyboard shortcut (⌘,) on devices
+              with a physical keyboard; on touch-only phones the trader can
+              rotate to landscape or use the desktop layout. */}
           <button
             onClick={() => setSettingsOpen(true)}
-            className="btn btn-ghost btn-sm h-8 w-8 p-0 inline-flex items-center justify-center text-xs text-[var(--text-secondary)] hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+            className="btn btn-ghost btn-sm h-8 w-8 p-0 inline-flex items-center justify-center text-xs text-[var(--text-secondary)] hover:text-white hidden sm:inline-flex focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
             title="User preferences (theme, polling, sound, privacy)"
             aria-label="Open user preferences"
             aria-haspopup="dialog"

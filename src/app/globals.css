@@ -816,6 +816,21 @@ button, a, input, select, textarea, .btn, .card, .badge, .filter-chip,
   width: var(--sidebar-collapsed-width);
 }
 
+/* W68-b — When the sidebar is collapsed (≤1024px via matchMedia in
+ *   Sidebar.tsx, OR via the manual collapse toggle), center the icon
+ *   inside each sidebar-item so the rail reads as a clean icon column
+ *   instead of left-aligned icons with trailing whitespace. The default
+ *   `.sidebar-item` rule uses `padding: var(--space-2) var(--space-3)`
+ *   + `gap: var(--space-3)`, which left-aligns the icon when the label
+ *   is hidden. With `justify-content: center` + zeroed horizontal
+ *   padding, the icon snaps to the rail's horizontal middle. */
+.sidebar.collapsed .sidebar-item {
+  justify-content: center;
+  padding-left: 0;
+  padding-right: 0;
+  gap: 0;
+}
+
 .sidebar-header {
   height: var(--header-height);
   display: flex;
@@ -2151,16 +2166,23 @@ button, a, input, select, textarea, .btn, .card, .badge, .filter-chip,
      *   system / topbar / pnl       → full width (stacked header band)
      *   pos / orders                → row 4 (two activity columns)
      *   trades                      → row 5 (full width — recent trades list)
-     *   sysleft / sysright          → row 6 (system status columns) */
+     *   sysleft / sysright          → row 6 + row 7 (stacked vertically —
+     *                                W68-b: was side-by-side on tablet
+     *                                which crammed both system-status
+     *                                columns into half-width; now each
+     *                                gets a full-width row so the
+     *                                Strategies / AI / Ingestion /
+     *                                Alerts cards breathe). */
     grid-template-columns: 1fr 1fr;
-    grid-template-rows: auto auto auto auto auto auto;
+    grid-template-rows: auto auto auto auto auto auto auto;
     grid-template-areas:
       "system  system"
       "topbar  topbar"
       "pnl     pnl"
       "pos     orders"
       "trades  trades"
-      "sysleft sysright";
+      "sysleft sysleft"
+      "sysright sysright";
     height: auto;
     overflow-y: auto;
   }
@@ -3250,17 +3272,123 @@ summary:focus-visible,
   .main-content { overflow: visible; }
 }
 
-/* ── 3. KPI card grid responsive — hero 3→2→1, P&L 5→3→2 ────────────────── */
+/* ── 3. KPI card grid responsive — hero 3→2→1, P&L 5→3→2→1 ────────────────
+   W68-b — tablet (641–1024px) now stays at 2 cols for the hero row and
+   3 cols for the P&L row; only desktop (≥1024px) expands to 3 hero / 5
+   P&L. Previously the hero row jumped to 3 cols at 768px, which cramped
+   the three large KPI cards on a 768px tablet. */
 .dashboard-hero-row { display: grid; grid-template-columns: 1fr; gap: var(--space-3); }
 @media (min-width: 480px) { .dashboard-hero-row { grid-template-columns: 1fr 1fr; } }
-@media (min-width: 768px) { .dashboard-hero-row { grid-template-columns: 1fr 1fr 1fr; } }
-.dashboard-pnl-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2); }
+@media (min-width: 1024px) { .dashboard-hero-row { grid-template-columns: 1fr 1fr 1fr; } }
+/* W68-a — P&L row defaults to a single column on the narrowest phones
+ *   (≤479px) so 5 medium KPIs don't squeeze into 2 cramped columns at
+ *   375px. Ladder: 1 → 2 → 3 → 5. */
+.dashboard-pnl-row { display: grid; grid-template-columns: 1fr; gap: var(--space-2); }
+@media (min-width: 480px)  { .dashboard-pnl-row { grid-template-columns: 1fr 1fr; } }
 @media (min-width: 640px)  { .dashboard-pnl-row { grid-template-columns: 1fr 1fr 1fr; } }
 @media (min-width: 1024px) { .dashboard-pnl-row { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+
+/* ── W68-b — Tablet (641–1024px) responsive ladder ───────────────────────────
+   Explicit tablet media block. The hero/pnl rules above already produce
+   the correct column counts on tablet (their ≥1024px breakpoint only
+   fires at desktop), but this block documents the intent + adds the
+   page-area padding reduction that previously only applied at ≤768px
+   (mobile) and 1025–1280px (small desktop), leaving the 641–1024px gap
+   without reduced padding. */
+@media (max-width: 1024px) and (min-width: 641px) {
+  .dashboard-hero-row { grid-template-columns: 1fr 1fr; }      /* 2 cols (not 3) */
+  .dashboard-pnl-row  { grid-template-columns: 1fr 1fr 1fr; } /* 3 cols (not 5) */
+  .page-area { padding: var(--space-2); }
+}
 @media (max-width: 640px) {
   .kpi-card { padding: var(--space-2); }
   .kpi-card .kpi-value { font-size: var(--text-lg); }
   .kpi-card .kpi-label { font-size: var(--text-xs); }
+  /* W68-a — explicit full-width KPI cards on mobile so they never
+   *   share a row with another card and trigger horizontal overflow. */
+  .kpi-card { width: 100%; max-width: 100%; }
+}
+
+/* ── W68-a — Mobile (≤640px) horizontal-overflow & padding guards ───────────
+ *   Layered additive rules that collapse multi-column dashboard grids to
+ *   a single column, shrink page-area padding, and clip / scroll any
+ *   top-bar content that would otherwise bleed past the right edge of a
+ *   375px viewport. No existing rule is renamed; later cascade wins. */
+@media (max-width: 640px) {
+  /* KPI hero + P&L rows: hard 1-col on mobile (defensive — the
+   * min-width ladder above is the primary ladder, but inline Tailwind
+   * classes on the React component can also express grid-cols-2; this
+   * rule guarantees a single column regardless of the inline class). */
+  .dashboard-hero-row,
+  .dashboard-pnl-row {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Page-area: drop to space-2 (8px) padding so KPI cards + system bar
+   *   have maximum horizontal room on 375px screens. */
+  .page-area { padding: var(--space-2); }
+
+  /* Topbar: allow horizontal scroll for the inner flex row instead of
+   *   letting wide content (connection pill, KPI chips, action buttons)
+   *   push the page width past the viewport. `-webkit-overflow-scrolling:
+   *   touch' gives iOS momentum scrolling. */
+  .topbar {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .topbar::-webkit-scrollbar { display: none; }
+
+  /* Workstation split layout (used by strategies-registry, copilot,
+   *   analytics-performance): hard-stack vertically on mobile. The
+   *   1200px / 768px rules above already collapse it to flex-column,
+   *   but this rule is a defensive belt-and-suspenders for the
+   *   narrowest phones in case the parent grid context changes. */
+  .workstation-split-layout {
+    display: flex;
+    flex-direction: column;
+    grid-template-columns: 1fr !important;
+    height: auto;
+    overflow-y: auto;
+  }
+
+  /* Command-center-layout: belt-and-suspenders — the 768px rule above
+   *   already flips the dashboard to flex-column on mobile, but ensure
+   *   gap doesn't blow up the height on a 375px viewport. */
+  .command-center-layout { gap: var(--space-2); }
+
+  /* Health-bar / system status bar on the dashboard: allow horizontal
+   *   scroll so 5 indicator pills don't wrap to multiple lines and
+   *   expand the header height (which would push KPIs below the fold). */
+  .command-center-health-bar,
+  [data-testid="command-center-health-bar"] {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    flex-wrap: nowrap !important;
+  }
+  .command-center-health-bar::-webkit-scrollbar,
+  [data-testid="command-center-health-bar"]::-webkit-scrollbar { display: none; }
+
+  /* W68-a — shrink the health-bar indicator pills (label + value) on
+   *   mobile so more of them fit per visible scroll row. Targets the
+   *   inline arbitrary font-size classes used by CommandCenterHealthBar's
+   *   <Indicator> sub-component (text-[9.5px] / text-[11.5px]). */
+  [data-testid="command-center-health-bar"] [role="status"] {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+  }
+  [data-testid="command-center-health-bar"] [role="status"] > div > span:first-child {
+    font-size: 8.5px;
+    letter-spacing: 0.04em;
+  }
+  [data-testid="command-center-health-bar"] [role="status"] > div > span:last-child {
+    font-size: 10.5px;
+  }
 }
 
 /* ── 4. Table responsive — sticky first column + styled thin scrollbar ─── */

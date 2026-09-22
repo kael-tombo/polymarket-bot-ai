@@ -44962,3 +44962,132 @@ Final state:
 - Green light theme: 100% consistent across entire app
 - VLM: 9/10
 - Git: pushed to origin/main (c326d8c)
+
+---
+Task ID: W68-a
+Agent: fullstack-developer (mobile responsive fix)
+Task: Fix mobile (375px) horizontal overflow + cramped top status bar + KPI row collapse in the Polymarket Pro trading workstation
+
+Work Log:
+- Read worklog.md tail (W66-FINAL context: green-light theme migration complete, 1523/1523 tests passing).
+- Read source: TopStatusBar.tsx, CommandCenterDashboard.tsx, CommandCenterHealthBar.tsx, page.tsx, globals.css.
+- Read tests: TopStatusBar.test.tsx (17 tests), CommandCenterHealthBar.test.tsx (7 tests), CommandCenterDashboard.test.tsx (10 tests) — confirmed they assert on text content + roles + callbacks, NOT on responsive class names or grid columns.
+
+### Files touched
+
+1. **`src/app/globals.css`** (lines ~3253–3353) — additive W68-a mobile (≤640px) block + P&L-row ladder fix:
+   - Updated `.dashboard-pnl-row` default from `1fr 1fr` (2 cols) to `1fr` (1 col); added `@media (min-width: 480px) { 1fr 1fr }` step so the ladder is now 1 → 2 → 3 → 5 (was 2 → 3 → 5).
+   - Added explicit `.kpi-card { width: 100%; max-width: 100%; }` to the existing `@media (max-width: 640px)` block so cards never share a row on mobile.
+   - Added new `@media (max-width: 640px)` block:
+     - `.dashboard-hero-row, .dashboard-pnl-row { grid-template-columns: 1fr !important; }` — defensive belt-and-suspenders against inline Tailwind `grid-cols-2`.
+     - `.page-area { padding: var(--space-2); }` — explicit mobile padding (8px) instead of inheriting the 768px rule.
+     - `.topbar { overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; scrollbar-width: none; }` + `::-webkit-scrollbar { display: none; }` — allow the inner flex row to scroll horizontally instead of pushing the page width past the viewport.
+     - `.workstation-split-layout { display: flex; flex-direction: column; grid-template-columns: 1fr !important; height: auto; overflow-y: auto; }` — defensive vertical stack on top of the existing 1200px / 768px rules.
+     - `.command-center-layout { gap: var(--space-2); }` — tighten the dashboard gap on mobile.
+     - `.command-center-health-bar, [data-testid="command-center-health-bar"] { overflow-x: auto; flex-wrap: nowrap !important; ... }` — make the 6-pill system health bar scroll horizontally on mobile.
+     - Added a child-selector block reducing indicator pill padding (`px-2 py-1`) + label font (8.5px) + value font (10.5px) inside the health bar on mobile.
+
+2. **`src/components/TopStatusBar.tsx`** (4 edits):
+   - Removed `shrink-0` from the LEFT cluster `<div>` so the panelName breadcrumb can truncate on mobile instead of pushing the RIGHT cluster off-screen.
+   - Fixed the "Polymarket Pro" wordmark from `hidden xs:inline-block` to `hidden sm:inline-block` — the `xs:` prefix was a no-op (no `@custom-variant xs` registered), so the wordmark was permanently hidden. Now visible on small tablets (≥640px) and up.
+   - Made the panelName breadcrumb visible on mobile (changed `hidden lg:flex` to `flex` always) with `max-w-[42vw] lg:max-w-none` so it truncates on phones. The `panelGroup` label + chevron are hidden on mobile (`hidden sm:inline` / `hidden sm:inline-block`) so only the panelName shows.
+   - Wrapped `<ConnectionStatusPill />` in `<div className="hidden sm:block">` so the "WS Live" / "Polling" text doesn't push the kill switch off the right edge on 375px.
+   - Added `hidden sm:inline-flex` to the Settings (🛠) button className to free up mobile real estate for the kill switch + theme toggle.
+
+3. **`src/components/CommandCenterDashboard.tsx`** (1 edit):
+   - P&L row Tailwind class: `grid-cols-2 sm:grid-cols-3 lg:grid-cols-5` → `grid-cols-1 sm:grid-cols-3 lg:grid-cols-5` so the inline class matches the new CSS ladder (1 → 3 → 5).
+   - Activity grid + System status row already stack vertically at ≤768px via the `.command-center-layout` flex-column rule in globals.css — no component change needed.
+
+4. **`src/components/CommandCenterHealthBar.tsx`** (3 edits):
+   - Container: added `command-center-health-bar` class (CSS hook) + Tailwind responsive ladder `gap-1.5 sm:gap-2 flex-nowrap sm:flex-wrap overflow-x-auto sm:overflow-visible px-2 py-1.5 sm:px-2.5 sm:py-2 scrollbar-thin` so the 6 indicator pills scroll horizontally on mobile and wrap normally on sm+.
+   - Indicator sub-component: added `shrink-0` so pills don't compress inside the scroll container; reduced padding (`px-2 py-1 sm:px-2.5 sm:py-1.5`) + gap (`gap-1.5 sm:gap-2`) + label/value font sizes (`text-[8.5px] sm:text-[9.5px]` and `text-[10.5px] sm:text-[11.5px]`) on mobile.
+   - "Updated" segment (right edge): added `shrink-0` + responsive font sizes matching the Indicator ladder.
+
+5. **`src/app/page.tsx`** — no code change required. The page-area mobile padding is handled by the new `.page-area { padding: var(--space-2); }` rule in globals.css. Verified the existing structure (`<div className="page-area">` with `.page-area { min-width: 0; }` + `flex: 1; overflow: hidden`) is sound for 375px viewports.
+
+### Approach
+- Used Tailwind responsive classes (`sm:`, `md:`, `lg:`) wherever possible (TopStatusBar, CommandCenterHealthBar, CommandCenterDashboard inline className).
+- For CSS that can't be done with Tailwind (media query overrides of existing custom classes like `.dashboard-pnl-row`, `.topbar`, `.page-area`, `.workstation-split-layout`, `.command-center-health-bar`), added `@media (max-width: 640px)` blocks in globals.css.
+- No `@custom-variant` was added — the `xs:` prefix remains a documented-but-unregistered no-op (the W38-7 comment in globals.css claims it was registered, but the actual `@custom-variant xs (min-width: 480px);` directive was never written). The fix uses `sm:` (640px) instead, which is a registered default Tailwind breakpoint.
+
+### Constraints honoured
+- **Tests preserved**: All TopStatusBar tests (17), CommandCenterHealthBar tests (7), and CommandCenterDashboard tests (10) pass unchanged. Tests assert on text content (`PAPER TRADING`, `Backend`, `WebSocket`, `Portfolio Value`, etc.) + roles (`button`, `banner`, `status`) + callbacks (onKillSwitch, onResumeSwitch, onCancelAll, onOpenShortcuts, onOpenConfig, onToggleMute) — none of these are affected by adding `hidden sm:` responsive classes (at the default jsdom desktop viewport, `sm:` / `md:` / `lg:` queries match and the elements remain visible/clickable).
+- **Functionality preserved**: No existing class names renamed or removed. All new rules are either `@media` overrides (later cascade wins per-property, with `!important` only on the 1-col grid override where inline Tailwind `grid-cols-2` could otherwise win) or additive Tailwind responsive classes layered on top of existing classNames.
+- **No test code written**: No new test files; no modifications to existing test files.
+
+### Verification
+- `cd /home/z/my-project && bun run lint 2>&1 | tail -5` → clean (exit 0, no output beyond `$ eslint .`).
+- `cd /home/z/my-project && bunx tsc --noEmit --skipLibCheck 2>&1 | tail -3` → 0 errors (empty output, exit 0).
+- `bunx vitest run src/components/TopStatusBar.test.tsx src/components/CommandCenterHealthBar.test.tsx src/components/CommandCenterDashboard.test.tsx` → **34/34 tests passed** (3 files, 3.62s).
+
+### Responsive behavior summary at 375px width
+- **TopStatusBar**: shows hamburger + logo + panelName (truncated at 42vw) + alert bell + theme toggle + kill/resume switch. Hides: wordmark, panelGroup label, ConnectionStatusPill, Settings (🛠), LocaleSwitcher, mute, shortcuts, config, Cancel All, connection pill, freshness chip, latency, system health pill, UTC clock, ML pill, uptime, KPI cluster. Topbar container itself allows horizontal scroll as a safety net.
+- **CommandCenterHealthBar**: 6 indicator pills + "Updated" segment scroll horizontally inside the bar (no wrap to multiple lines), with reduced font sizes (8.5px label / 10.5px value) and tighter padding (px-2 py-1).
+- **CommandCenterDashboard**: hero KPI row (3 cards) → 1 col; P&L KPI row (5 cards) → 1 col; activity grid (positions/orders/trades) → stacked vertically via parent grid flex-column; system status row (sysleft/sysright) → stacked vertically via parent grid flex-column.
+- **page-area**: padding reduced to `var(--space-2)` (8px).
+- **workstation-split-layout** (strategies-registry, copilot, analytics-performance): stacks vertically (flex-column).
+
+
+---
+Task ID: W68-b
+Agent: fullstack-developer
+Task: Tablet (768px) responsive layout fixes for Polymarket Pro trading workstation
+
+Work Log:
+- Read worklog.md (last ~50 lines — W66-FINAL context: 1523/1523 tests green, green-light theme migration complete).
+- Inspected 4 target files: `src/app/globals.css`, `src/components/Sidebar.tsx`, `src/components/CommandCenterDashboard.tsx`, `src/components/MarketsPanel.tsx`.
+- Verified existing responsive scaffolding:
+  • Sidebar.tsx already auto-collapses via `window.matchMedia('(max-width: 1024px)')` in a useEffect (lines 263–269).
+  • `.table-container` already has `overflow-x: auto` in CSS (line 1402–1407) + on the MarketsPanel JSX (`overflow-auto scrollbar-thin`).
+  • `.data-table` has `min-width: 720px` (line 1333), so horizontal scroll triggers on tablet.
+  • `.dashboard-pnl-row` Tailwind `sm:grid-cols-3 lg:grid-cols-5` already produces 3 cols on tablet (641–1023px).
+  • Activity grid already 2 cols on tablet via `@media (max-width: 1200px) .command-center-layout` grid-template-areas.
+- Identified 4 actual gaps on tablet:
+  1. `.dashboard-hero-row` jumped to 3 cols at 768px (cramping the 3 large hero KPIs).
+  2. `.page-area` had no reduced-padding rule in the 641–1024px range (only ≤768px and 1025–1280px were covered).
+  3. `.sidebar.collapsed .sidebar-item` had no icon-centering rule — icons were left-aligned with trailing whitespace when the rail collapsed.
+  4. `.command-center-layout` sysleft/sysright were side-by-side at ≤1200px (crammed the Strategies / AI / Ingestion / Alerts cards).
+  5. MarketsPanel filter chip row was single-line horizontal scroll on tablet (no `flex-wrap`).
+  6. MarketsPanel table container missing `min-w-0` (flex-1 default `min-width: auto` could prevent shrinking on tablet).
+
+### Edits
+
+**`src/app/globals.css`** (4 edits):
+1. `.dashboard-hero-row` breakpoint: `@media (min-width: 768px) { 3 cols }` → `@media (min-width: 1024px) { 3 cols }`. Tablet now stays at 2 cols.
+2. New explicit W68-b tablet block:
+   ```css
+   @media (max-width: 1024px) and (min-width: 641px) {
+     .dashboard-hero-row { grid-template-columns: 1fr 1fr; }      /* 2 cols (not 3) */
+     .dashboard-pnl-row  { grid-template-columns: 1fr 1fr 1fr; } /* 3 cols (not 5) */
+     .page-area { padding: var(--space-2); }
+   }
+   ```
+3. New `.sidebar.collapsed .sidebar-item { justify-content: center; padding-left: 0; padding-right: 0; gap: 0; }` rule — centers icons in the collapsed rail.
+4. `@media (max-width: 1200px) .command-center-layout` grid-template-areas: sysleft/sysright now stack vertically (1 col) instead of side-by-side (2 cols). `grid-template-rows` bumped from 6 to 7 rows. Activity grid (pos/orders + trades) unchanged — still 2 cols on tablet.
+
+**`src/components/CommandCenterDashboard.tsx`** (1 edit):
+- Hero row Tailwind class: `grid-cols-1 sm:grid-cols-3 gap-3 dashboard-hero-row` → `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 dashboard-hero-row`. (Makes the JSX self-documenting; CSS rule wins in cascade.)
+- P&L row Tailwind class (`grid-cols-2 sm:grid-cols-3 lg:grid-cols-5`) unchanged — already correct.
+
+**`src/components/MarketsPanel.tsx`** (2 edits):
+1. Filter chip row: `flex items-center gap-1.5 ... overflow-x-auto scrollbar-thin` → `flex flex-wrap items-center gap-1.5 ... overflow-x-auto scrollbar-thin`. Chips now wrap to a second row on tablet instead of forcing horizontal scroll. `overflow-x-auto` kept as fallback for narrowest phones.
+2. Table container: `flex-1 table-container` → `flex-1 min-w-0 table-container`. `min-w-0` lets the flex-1 child shrink below its content's intrinsic width on tablet, so `.table-container { overflow-x: auto }` + `.data-table { min-width: 720px }` correctly trigger horizontal scroll.
+
+**`src/components/Sidebar.tsx`** (0 edits):
+- Verified the existing `useEffect` matchMedia auto-collapse at `(max-width: 1024px)` (lines 263–269) works correctly. No JSX changes needed — the new CSS rule (`.sidebar.collapsed .sidebar-item`) handles icon centering.
+
+### Verification
+
+- `bun run lint` → clean (`$ eslint .`, exit 0, no output).
+- `bunx tsc --noEmit --skipLibCheck` → 0 errors (empty output, exit 0).
+- `bunx vitest run src/components/Sidebar.test.tsx src/components/MarketsPanel.test.tsx src/components/CommandCenterDashboard.test.tsx` → **35 passed (3 files)**:
+  • Sidebar.test.tsx: 18 tests passed (832ms)
+  • MarketsPanel.test.tsx: 7 tests passed (725ms)
+  • CommandCenterDashboard.test.tsx: 10 tests passed (723ms)
+- Dev server (`tail dev.log`): no compile errors; `GET / 200` continues to render cleanly.
+
+### Constraints honoured
+
+- **Don't break any tests** — verified: 35/35 affected-component tests pass. Full suite (1523 tests per W66-b) untouched.
+- **Keep all existing functionality** — only responsive CSS + 2 cosmetic Tailwind class string changes; no behavioural / state / API changes.
+- **Prefer Tailwind responsive classes** — used `sm:` / `lg:` on the hero row JSX; pure-CSS `@media` blocks reserved for cases that can't be expressed via Tailwind (the `.dashboard-hero-row` / `.dashboard-pnl-row` class-level rules, the `.page-area` padding, the `.sidebar.collapsed .sidebar-item` icon centering, and the `.command-center-layout` grid-template-areas rewrite).

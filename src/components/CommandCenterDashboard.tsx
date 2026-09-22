@@ -989,7 +989,7 @@ function CommandCenterDashboardImpl({
       {/* ── 2. Top bar — 3 large hero KPIs ─────────────────────────────── */}
       <div
         style={{ gridArea: 'topbar', minHeight: 0 }}
-        className="grid grid-cols-1 sm:grid-cols-3 gap-3 dashboard-hero-row"
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 dashboard-hero-row"
         data-area="hero-kpis"
         role="region"
         aria-label="Top bar — portfolio headline metrics"
@@ -1076,7 +1076,7 @@ function CommandCenterDashboardImpl({
       {/* ── 3. P&L row — 5 medium KPIs ─────────────────────────────────── */}
       <div
         style={{ gridArea: 'pnl', minHeight: 0 }}
-        className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 dashboard-pnl-row"
+        className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-3 dashboard-pnl-row"
         data-area="pnl-kpis"
         role="region"
         aria-label="P&L row — realized, unrealized, win rate, drawdown, sharpe"

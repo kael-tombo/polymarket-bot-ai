@@ -568,7 +568,14 @@ function MarketsPanel({ books, onSelectMarket, priceFlashes, showPriceFlashes = 
           important because there are now two parallel chip groups
           (category + spread) and a trader needs to instantly tell which
           is active in each group. Inactive chips unchanged. */}
-      <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--bg-page)] border-b border-[var(--border)] overflow-x-auto scrollbar-thin">
+      {/* W68-b — filter chip row: added `flex-wrap` so the category + spread
+          chips wrap to a second row on tablet (768px) instead of forcing
+          a single-line horizontal scroll. On wider viewports the chips
+          still fit on one row (wrap is a no-op when they fit). The
+          `overflow-x-auto scrollbar-thin` is kept as a fallback for the
+          narrowest phones where even a single chip group exceeds the
+          viewport width. */}
+      <div className="flex flex-wrap items-center gap-1.5 px-3 py-1.5 bg-[var(--bg-page)] border-b border-[var(--border)] overflow-x-auto scrollbar-thin">
         {CATEGORIES.map((cat) => {
           const isActive = selectedCat === cat
           return (
@@ -691,7 +698,16 @@ function MarketsPanel({ books, onSelectMarket, priceFlashes, showPriceFlashes = 
       )}
 
       {/* 3. Table */}
-      <div className="overflow-auto scrollbar-thin flex-1 table-container">
+      {/* W68-b — added `min-w-0` so the flex-1 table container can shrink
+          below its content's intrinsic width on tablet (768px). Combined
+          with the existing `.table-container { overflow-x: auto }` rule
+          + `.data-table { min-width: 720px }`, this guarantees horizontal
+          scroll kicks in when the viewport is narrower than the 720px
+          table minimum (i.e. on tablet portrait + mobile). Without
+          `min-w-0`, a flex child's `min-width: auto` default would
+          prevent the container from shrinking, pushing the table off the
+          right edge of the panel and breaking the page layout. */}
+      <div className="overflow-auto scrollbar-thin flex-1 min-w-0 table-container">
         {books.length === 0 ? (
           // W51-2a — Premium skeleton loader replaces the bare
           // "Synchronizing" text + spinner. Renders 4 shimmer rows

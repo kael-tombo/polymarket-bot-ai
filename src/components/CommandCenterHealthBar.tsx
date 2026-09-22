@@ -74,7 +74,11 @@ const TONE_CLASS: Record<IndicatorProps['tone'], string> = {
 function Indicator({ label, value, tone, sub, pulse, title }: IndicatorProps) {
   return (
     <div
-      className="flex items-center gap-2 bg-[var(--bg-page)] border border-[var(--border)] rounded-md px-2.5 py-1.5 min-w-0"
+      // W68-a — `shrink-0` so the indicator pills don't compress (which
+      // would clip the value text) inside the horizontally-scrolling
+      // mobile health bar. Reduced padding + gap on mobile via the
+      // `px-2 py-1 sm:px-2.5 sm:py-1.5` responsive ladder.
+      className="flex items-center gap-1.5 sm:gap-2 bg-[var(--bg-page)] border border-[var(--border)] rounded-md px-2 py-1 sm:px-2.5 sm:py-1.5 min-w-0 shrink-0"
       title={title}
       role="status"
       aria-label={`${label}: ${value}${sub ? ` (${sub})` : ''}`}
@@ -84,13 +88,17 @@ function Indicator({ label, value, tone, sub, pulse, title }: IndicatorProps) {
         aria-hidden="true"
       />
       <div className="flex flex-col min-w-0">
-        <span className="text-[9.5px] uppercase tracking-wider text-[var(--text-secondary)] font-semibold leading-tight">
+        {/* W68-a — slightly smaller label + value on mobile (text-[8.5px] /
+            text-[10.5px]) so more pills fit per visible scroll row.
+            Restored to text-[9.5px] / text-[11.5px] on sm+ for desktop
+            parity. */}
+        <span className="text-[8.5px] sm:text-[9.5px] uppercase tracking-wider text-[var(--text-secondary)] font-semibold leading-tight">
           {label}
         </span>
-        <span className="text-[11.5px] mono font-bold text-[var(--text-primary)] leading-tight truncate">
+        <span className="text-[10.5px] sm:text-[11.5px] mono font-bold text-[var(--text-primary)] leading-tight truncate">
           {value}
           {sub && (
-            <span className="ml-1 text-[9.5px] font-normal text-[var(--text-secondary)]">
+            <span className="ml-1 text-[8.5px] sm:text-[9.5px] font-normal text-[var(--text-secondary)]">
               {sub}
             </span>
           )}
@@ -213,12 +221,18 @@ export default function CommandCenterHealthBar({
 
   return (
     <div
-      className="flex items-center gap-2 flex-wrap bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg px-2.5 py-2 shadow-sm"
+      // W68-a — mobile: horizontal scroll for the 6 indicator pills
+      // (flex-nowrap + overflow-x-auto) so they don't wrap to multiple
+      // lines and push the dashboard hero KPIs below the fold. On sm+,
+      // restore flex-wrap so the bar uses available width and wraps
+      // gracefully on tablet / desktop. Added `command-center-health-bar`
+      // class as a CSS hook for the globals.css mobile overrides.
+      className="command-center-health-bar flex items-center gap-1.5 sm:gap-2 flex-nowrap sm:flex-wrap overflow-x-auto sm:overflow-visible bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg px-2 py-1.5 sm:px-2.5 sm:py-2 shadow-sm scrollbar-thin"
       role="region"
       aria-label="Command Center system health summary"
       data-testid="command-center-health-bar"
     >
-      <div className="flex items-center gap-1.5 pr-2 border-r border-[var(--border)] mr-1 hidden md:flex">
+      <div className="flex items-center gap-1.5 pr-2 border-r border-[var(--border)] mr-1 hidden md:flex shrink-0">
         <span className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] font-bold">
           System
         </span>
@@ -270,13 +284,18 @@ export default function CommandCenterHealthBar({
       />
 
       <div
-        className="flex items-center gap-1.5 ml-auto pl-2 border-l border-[var(--border)] min-w-0"
+        // W68-a — `shrink-0` so the "Updated" segment doesn't compress
+        // inside the horizontally-scrolling mobile health bar. Responsive
+        // font sizes (8.5px / 10.5px on mobile, restored on sm+) match
+        // the <Indicator> pill ladder above so the bar reads as a single
+        // visual rhythm at every breakpoint.
+        className="flex items-center gap-1.5 ml-auto pl-2 border-l border-[var(--border)] min-w-0 shrink-0"
         title={`Last snapshot received at ${lastUpdateValue}`}
       >
-        <span className="text-[9.5px] uppercase tracking-wider text-[var(--text-secondary)] font-semibold leading-tight">
+        <span className="text-[8.5px] sm:text-[9.5px] uppercase tracking-wider text-[var(--text-secondary)] font-semibold leading-tight">
           Updated
         </span>
-        <span className="text-[11px] mono font-bold text-[var(--text-primary)] leading-tight truncate">
+        <span className="text-[10.5px] sm:text-[11px] mono font-bold text-[var(--text-primary)] leading-tight truncate">
           {lastUpdateValue}
         </span>
       </div>
