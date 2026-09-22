@@ -451,7 +451,7 @@ const RESOLUTION_FILTERS: { key: ResolutionFilter; label: string; maxDays: numbe
 //   <25 → slate (skip)
 function scoreBadgeClass(score: number): string {
   if (score >= 75) return 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40'
-  if (score >= 50) return 'bg-cyan-500/15 text-cyan-300 border-cyan-500/40'
+  if (score >= 50) return 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40'
   if (score >= 25) return 'bg-amber-500/15 text-amber-300 border-amber-500/40'
   return 'bg-slate-500/15 text-slate-300 border-slate-500/40'
 }
@@ -700,7 +700,7 @@ export default function MarketScreener({ onSelectMarket, onQuickTrade }: Props) 
   // (category + AI conf + edge + resolution). Layered on top of the
   // existing `.filter-chip.active` solid accent fill — consistent
   // with the MarketsPanel W51-2a active chip pattern.
-  const ACTIVE_CHIP_GLOW = 'shadow-[0_0_8px_rgba(34,211,238,0.35)] ring-1 ring-cyan-400/30'
+  const ACTIVE_CHIP_GLOW = 'shadow-[0_0_8px_rgba(16,185,129,0.35)] ring-1 ring-emerald-400/30'
 
   return (
     <div className="card flex flex-col h-full bg-[var(--bg-surface)] border border-[var(--border)] overflow-hidden shadow-xl">
@@ -753,7 +753,7 @@ export default function MarketScreener({ onSelectMarket, onQuickTrade }: Props) 
               placeholder="Search Polymarket events…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="input input-sm w-56 text-xs bg-[var(--bg-page)] border border-[var(--border)] pl-7 focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 outline-none transition-all"
+              className="input input-sm w-56 text-xs bg-[var(--bg-page)] border border-[var(--border)] pl-7 focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/20 outline-none transition-all"
               aria-label="Search prediction market events"
               data-testid="screener-search-input"
             />
@@ -776,7 +776,7 @@ export default function MarketScreener({ onSelectMarket, onQuickTrade }: Props) 
 
       {/* W49-4 — Category chips via `.filter-chip` class.
           W52-a — active chips carry the cyan accent border glow
-          (`shadow-[0_0_8px_rgba(34,211,238,0.35)] ring-1 ring-cyan-400/30`)
+          (`shadow-[0_0_8px_rgba(16,185,129,0.35)] ring-1 ring-emerald-400/30`)
           layered on top of `.filter-chip.active`. Inactive chips
           unchanged. Consistent with the MarketsPanel W51-2a pattern. */}
       <div className="flex items-center gap-1.5 px-4 py-2 bg-[var(--bg-page)] border-b border-[var(--border)] overflow-x-auto scrollbar-thin">
@@ -962,7 +962,7 @@ export default function MarketScreener({ onSelectMarket, onQuickTrade }: Props) 
             <button
               type="button"
               onClick={() => { setSearch(''); fetchMarkets('') }}
-              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded border border-blue-500/30 bg-blue-500/10 text-cyan-300 hover:bg-blue-500/20 transition-colors"
+              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded border border-emerald-500/30 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 transition-colors"
               title="Remove search filter"
               aria-label="Remove query filter"
               data-testid="active-filter-search"
@@ -976,7 +976,7 @@ export default function MarketScreener({ onSelectMarket, onQuickTrade }: Props) 
             <button
               type="button"
               onClick={() => setSelectedCategory('ALL')}
-              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded border border-blue-500/30 bg-blue-500/10 text-cyan-300 hover:bg-blue-500/20 transition-colors"
+              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded border border-emerald-500/30 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 transition-colors"
               title="Remove category filter"
               aria-label={`Remove category filter: ${selectedCategory}`}
               data-testid="active-filter-category"
@@ -1250,7 +1250,7 @@ export default function MarketScreener({ onSelectMarket, onQuickTrade }: Props) 
                     // (`hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.65)]`).
                     // No layout shift (inset shadow vs border-left).
                     // Consistent with the MarketsPanel W51-2a row-hover.
-                    className="hover:bg-cyan-500/5 hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.65)] transition-colors cursor-pointer group"
+                    className="hover:bg-emerald-500/5 hover:shadow-[inset_3px_0_0_0_rgba(16,185,129,0.65)] transition-colors cursor-pointer group"
                   >
                     {/* W39-4 — market-name cell. `title` attribute on the
                         `<td>` provides a native hover tooltip showing the
@@ -1263,7 +1263,7 @@ export default function MarketScreener({ onSelectMarket, onQuickTrade }: Props) 
                       title={`${s.title} — ${s.market.slug}`}
                     >
                       <span
-                        className="text-[var(--text-primary)] group-hover:text-cyan-300 font-medium block truncate transition-colors min-w-0"
+                        className="text-[var(--text-primary)] group-hover:text-emerald-300 font-medium block truncate transition-colors min-w-0"
                         title={s.title}
                       >
                         {s.title}
@@ -1288,7 +1288,7 @@ export default function MarketScreener({ onSelectMarket, onQuickTrade }: Props) 
                         via `fmtUsd` so a trader can hover to read the
                         exact dollar amount. */}
                     <td
-                      className="mono text-cyan-400 font-medium text-right tabular-nums align-middle"
+                      className="mono text-emerald-400 font-medium text-right tabular-nums align-middle"
                       title={`${fmtUsd(s.volume, 0)} (full precision)`}
                     >
                       {fmtCompact(s.volume)}

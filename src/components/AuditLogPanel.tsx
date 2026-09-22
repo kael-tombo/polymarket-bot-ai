@@ -120,7 +120,7 @@ const TONE: Record<Tone, ToneConfig> = {
 /** Map an inferred Severity to a Tone so the badge / row / hover accent
  *  reads with the correct colour family: INFO=info (cyan), WARNING=warn
  *  (amber), ERROR=poor (red), CRITICAL=critical (fuchsia). The
- *  SEVERITY_STYLE map below preserves the original blue-300/amber-300/
+ *  SEVERITY_STYLE map below preserves the original emerald-300/amber-300/
  *  red-300/fuchsia-300 badge palette verbatim so the test contracts
  *  (`getAllByText('INFO'|'WARN'|'ERROR'|'CRIT')`) and the existing
  *  visual identity are unchanged. */
@@ -143,10 +143,10 @@ const SEVERITY_STYLE: Record<
   { dot: string; text: string; bg: string; border: string; label: string }
 > = {
   INFO: {
-    dot: 'bg-blue-400',
-    text: 'text-blue-300',
-    bg: 'bg-blue-500/10',
-    border: 'border-blue-500/30',
+    dot: 'bg-emerald-400',
+    text: 'text-emerald-300',
+    bg: 'bg-emerald-500/10',
+    border: 'border-emerald-500/30',
     label: 'INFO',
   },
   WARNING: {
@@ -555,12 +555,12 @@ function EventDetailPanel({ log, severity, onClose }: EventDetailPanelProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-3">
         <div className="text-[10.5px] mono tabular-nums">
           <span className="text-[var(--text-secondary)]">id:</span>{' '}
-          <span className="text-[#c8cfe0]">{log.id}</span>
+          <span className="text-[var(--text-mono)]">{log.id}</span>
         </div>
         {log.token_id && (
           <div className="text-[10.5px] mono truncate">
             <span className="text-[var(--text-secondary)]">token_id:</span>{' '}
-            <span className="text-[#c8cfe0]" title={log.token_id}>
+            <span className="text-[var(--text-mono)]" title={log.token_id}>
               {log.token_id}
             </span>
           </div>
@@ -568,13 +568,13 @@ function EventDetailPanel({ log, severity, onClose }: EventDetailPanelProps) {
         {log.slug && (
           <div className="text-[10.5px] mono truncate">
             <span className="text-[var(--text-secondary)]">slug:</span>{' '}
-            <span className="text-[#c8cfe0]">{log.slug}</span>
+            <span className="text-[var(--text-mono)]">{log.slug}</span>
           </div>
         )}
         {log.strategy && (
           <div className="text-[10.5px] mono">
             <span className="text-[var(--text-secondary)]">strategy:</span>{' '}
-            <span className="text-[#c8cfe0]">{log.strategy}</span>
+            <span className="text-[var(--text-mono)]">{log.strategy}</span>
           </div>
         )}
         {log.pnl != null && log.pnl !== 0 && (
@@ -593,19 +593,19 @@ function EventDetailPanel({ log, severity, onClose }: EventDetailPanelProps) {
         {log.idempotency_key && (
           <div className="text-[10.5px] mono truncate">
             <span className="text-[var(--text-secondary)]">idempotency_key:</span>{' '}
-            <span className="text-[#c8cfe0]" title={log.idempotency_key}>
+            <span className="text-[var(--text-mono)]" title={log.idempotency_key}>
               {log.idempotency_key}
             </span>
           </div>
         )}
         <div className="text-[10.5px] mono tabular-nums">
           <span className="text-[var(--text-secondary)]">timestamp:</span>{' '}
-          <span className="text-[#c8cfe0]">{ts.toFixed(3)}</span>
+          <span className="text-[var(--text-mono)]">{ts.toFixed(3)}</span>
         </div>
       </div>
       {parsedDetails && Object.keys(parsedDetails).length > 0 ? (
         <pre
-          className="text-[10.5px] mono text-[#c8cfe0] bg-[var(--bg-base)] border border-[var(--border)] rounded p-2.5 overflow-auto max-h-64 scrollbar-thin"
+          className="text-[10.5px] mono text-[var(--text-mono)] bg-[var(--bg-base)] border border-[var(--border)] rounded p-2.5 overflow-auto max-h-64 scrollbar-thin"
           aria-label="Audit event metadata JSON"
         >
           {JSON.stringify(parsedDetails, null, 2)}
@@ -1080,7 +1080,7 @@ export default function AuditLogPanel() {
       width: 180,
       align: 'left',
       render: (log: AuditLog) => (
-        <span style={{ fontSize: '11px', fontFamily: 'JetBrains Mono, monospace', color: '#c8cfe0' }}>
+        <span style={{ fontSize: '11px', fontFamily: 'JetBrains Mono, monospace', color: 'var(--text-mono)' }}>
           {log.event_type || '—'}
         </span>
       ),
@@ -1264,7 +1264,7 @@ export default function AuditLogPanel() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search message, details, token, slug…"
-              className="h-7 pl-7 pr-7 text-xs bg-[var(--bg-page)] border-[var(--border)] text-[var(--text-primary)] placeholder-[var(--text-dim)] focus-visible:border-blue-500/50 focus-visible:ring-1 focus-visible:ring-cyan-400/40"
+              className="h-7 pl-7 pr-7 text-xs bg-[var(--bg-page)] border-[var(--border)] text-[var(--text-primary)] placeholder-[var(--text-dim)] focus-visible:border-emerald-500/50 focus-visible:ring-1 focus-visible:ring-emerald-400/40"
               aria-label="Search audit events"
             />
             {searchQuery && (
@@ -1282,7 +1282,7 @@ export default function AuditLogPanel() {
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value as CategoryFilter)}
-            className="bg-[var(--bg-page)] border border-[var(--border)] text-[var(--text-secondary)] rounded text-[10px] font-semibold px-2 py-1 outline-none cursor-pointer hover:border-[var(--border-strong)] h-7 focus-visible:border-cyan-500/50 focus-visible:ring-1 focus-visible:ring-cyan-400/40"
+            className="bg-[var(--bg-page)] border border-[var(--border)] text-[var(--text-secondary)] rounded text-[10px] font-semibold px-2 py-1 outline-none cursor-pointer hover:border-[var(--border-strong)] h-7 focus-visible:border-emerald-500/50 focus-visible:ring-1 focus-visible:ring-emerald-400/40"
             aria-label="Filter by category"
           >
             {CATEGORY_OPTIONS.map((o) => (
@@ -1297,7 +1297,7 @@ export default function AuditLogPanel() {
             onChange={(e) =>
               setSeverityFilter(e.target.value as SeverityFilter)
             }
-            className="bg-[var(--bg-page)] border border-[var(--border)] text-[var(--text-secondary)] rounded text-[10px] font-semibold px-2 py-1 outline-none cursor-pointer hover:border-[var(--border-strong)] h-7 focus-visible:border-cyan-500/50 focus-visible:ring-1 focus-visible:ring-cyan-400/40"
+            className="bg-[var(--bg-page)] border border-[var(--border)] text-[var(--text-secondary)] rounded text-[10px] font-semibold px-2 py-1 outline-none cursor-pointer hover:border-[var(--border-strong)] h-7 focus-visible:border-emerald-500/50 focus-visible:ring-1 focus-visible:ring-emerald-400/40"
             aria-label="Filter by severity"
           >
             {SEVERITY_OPTIONS.map((o) => (
@@ -1312,7 +1312,7 @@ export default function AuditLogPanel() {
               type="date"
               value={dateFrom}
               onChange={(e) => setDateFrom(e.target.value)}
-              className="bg-[var(--bg-page)] border border-[var(--border)] text-[var(--text-secondary)] rounded text-[10px] px-2 py-1 outline-none cursor-pointer hover:border-[var(--border-strong)] h-7 tabular-nums focus-visible:border-cyan-500/50 focus-visible:ring-1 focus-visible:ring-cyan-400/40"
+              className="bg-[var(--bg-page)] border border-[var(--border)] text-[var(--text-secondary)] rounded text-[10px] px-2 py-1 outline-none cursor-pointer hover:border-[var(--border-strong)] h-7 tabular-nums focus-visible:border-emerald-500/50 focus-visible:ring-1 focus-visible:ring-emerald-400/40"
               aria-label="Filter from date"
             />
             <span className="text-[10px] text-[var(--text-secondary)]">→</span>
@@ -1320,7 +1320,7 @@ export default function AuditLogPanel() {
               type="date"
               value={dateTo}
               onChange={(e) => setDateTo(e.target.value)}
-              className="bg-[var(--bg-page)] border border-[var(--border)] text-[var(--text-secondary)] rounded text-[10px] px-2 py-1 outline-none cursor-pointer hover:border-[var(--border-strong)] h-7 tabular-nums focus-visible:border-cyan-500/50 focus-visible:ring-1 focus-visible:ring-cyan-400/40"
+              className="bg-[var(--bg-page)] border border-[var(--border)] text-[var(--text-secondary)] rounded text-[10px] px-2 py-1 outline-none cursor-pointer hover:border-[var(--border-strong)] h-7 tabular-nums focus-visible:border-emerald-500/50 focus-visible:ring-1 focus-visible:ring-emerald-400/40"
               aria-label="Filter to date"
             />
           </div>
@@ -1333,7 +1333,7 @@ export default function AuditLogPanel() {
             <Button
               variant="ghost"
               size="sm"
-              className="h-7 text-[10px] px-2 text-[var(--text-secondary)] hover:text-white hover:border-cyan-500/30 hover:bg-cyan-500/[0.04]"
+              className="h-7 text-[10px] px-2 text-[var(--text-secondary)] hover:text-white hover:border-emerald-500/30 hover:bg-emerald-500/[0.04]"
               onClick={() => {
                 setCategoryFilter('all')
                 setSeverityFilter('all')
@@ -1351,7 +1351,7 @@ export default function AuditLogPanel() {
             variant="outline"
             size="sm"
             onClick={fetchLogs}
-            className="h-7 text-[10px] px-2 gap-1 border-[var(--border)] text-[var(--text-secondary)] hover:text-white hover:border-cyan-500/30 hover:bg-cyan-500/[0.04]"
+            className="h-7 text-[10px] px-2 gap-1 border-[var(--border)] text-[var(--text-secondary)] hover:text-white hover:border-emerald-500/30 hover:bg-emerald-500/[0.04]"
             title="Refresh now"
           >
             <RefreshCw size={11} /> Refresh
@@ -1362,7 +1362,7 @@ export default function AuditLogPanel() {
             size="sm"
             onClick={exportCSV}
             disabled={exporting || filteredLogs.length === 0}
-            className="h-7 text-[10px] px-2 gap-1 border-[var(--border)] text-[var(--text-secondary)] hover:text-white hover:border-cyan-500/30 hover:bg-cyan-500/[0.04]"
+            className="h-7 text-[10px] px-2 gap-1 border-[var(--border)] text-[var(--text-secondary)] hover:text-white hover:border-emerald-500/30 hover:bg-emerald-500/[0.04]"
             title="Export filtered logs as CSV"
             aria-label="Export CSV"
           >
@@ -1373,7 +1373,7 @@ export default function AuditLogPanel() {
             size="sm"
             onClick={exportJSON}
             disabled={exporting || filteredLogs.length === 0}
-            className="h-7 text-[10px] px-2 gap-1 border-[var(--border)] text-[var(--text-secondary)] hover:text-white hover:border-cyan-500/30 hover:bg-cyan-500/[0.04]"
+            className="h-7 text-[10px] px-2 gap-1 border-[var(--border)] text-[var(--text-secondary)] hover:text-white hover:border-emerald-500/30 hover:bg-emerald-500/[0.04]"
             title="Export filtered logs as JSON"
             aria-label="Export JSON"
           >

@@ -155,7 +155,7 @@ function StrategyBadge({ strategy }: { strategy: string }) {
       className={`inline-flex items-center justify-center h-[16px] min-w-[44px] px-1.5 rounded text-[9px] font-bold uppercase tracking-wide border whitespace-nowrap flex-shrink-0 ${
         isManual
           ? 'bg-purple-500/15 text-purple-300 border-purple-500/30'
-          : 'bg-blue-500/15 text-blue-300 border-blue-500/30'
+          : 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
       }`}
       title={`Strategy: ${strategy}`}
     >
@@ -190,7 +190,7 @@ function PnlArrow({ isProfit }: { isProfit: boolean }) {
 function SortIndicator({ active, direction }: { active: boolean; direction: 'asc' | 'desc' }) {
   if (!active) return null
   return (
-    <span aria-hidden="true" className="ml-1 text-[9px] leading-none text-cyan-400">
+    <span aria-hidden="true" className="ml-1 text-[9px] leading-none text-emerald-400">
       {direction === 'desc' ? '▼' : '▲'}
     </span>
   )
@@ -422,7 +422,7 @@ function PositionsPanel({
       {/* Header — title + Live/Polling + KPI strip */}
       <div className="card-header pb-2 mb-2 border-b border-[var(--border)] flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+          <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
           <span className="card-title text-xs font-bold text-[var(--text-primary)] tracking-wide">
             💼 ACTIVE POSITIONS ({positions.length})
           </span>
@@ -456,7 +456,7 @@ function PositionsPanel({
             title="Total Invested / $25 Exposure Cap"
           >
             <span className="text-[10px] text-[var(--text-secondary)] uppercase font-semibold tracking-wide">Exposure:</span>
-            <span className="mono font-bold text-cyan-400 text-xs tabular-nums">{fmtUsd(totalInvested)}</span>
+            <span className="mono font-bold text-emerald-400 text-xs tabular-nums">{fmtUsd(totalInvested)}</span>
             <span className="text-[9.5px] text-[var(--text-secondary)] tabular-nums">({portfolioExposurePct.toFixed(0)}%)</span>
           </div>
 
@@ -540,7 +540,7 @@ function PositionsPanel({
             value={filterQuery}
             onChange={(e) => setFilterQuery(e.target.value)}
             aria-label="Search positions by market name or contract token ID"
-            className="w-full bg-[var(--bg-surface)] border border-[var(--border)] focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 rounded text-xs px-2.5 py-1.5 text-[var(--text-primary)] placeholder-[var(--text-dim)] outline-none transition-all"
+            className="w-full bg-[var(--bg-surface)] border border-[var(--border)] focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/20 rounded text-xs px-2.5 py-1.5 text-[var(--text-primary)] placeholder-[var(--text-dim)] outline-none transition-all"
           />
           {filterQuery && (
             <button
@@ -565,7 +565,7 @@ function PositionsPanel({
               aria-pressed={outcomeFilter === side}
               className={`px-2 py-0.5 rounded font-bold transition-all ${
                 outcomeFilter === side
-                  ? 'bg-blue-500/20 text-cyan-300 shadow-sm'
+                  ? 'bg-emerald-500/20 text-emerald-300 shadow-sm'
                   : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
               }`}
             >
@@ -582,7 +582,7 @@ function PositionsPanel({
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value as 'size' | 'pnl' | 'market')}
           aria-label="Sort positions by"
-          className="bg-[var(--bg-surface)] border border-[var(--border)] text-[var(--text-secondary)] rounded text-[10px] font-semibold px-2 py-1 outline-none cursor-pointer focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 transition-all"
+          className="bg-[var(--bg-surface)] border border-[var(--border)] text-[var(--text-secondary)] rounded text-[10px] font-semibold px-2 py-1 outline-none cursor-pointer focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/20 transition-all"
         >
           <option value="size">Sort: Size ($)</option>
           <option value="pnl">Sort: Realized P&amp;L</option>
@@ -716,7 +716,7 @@ function PositionsPanel({
                 return (
                   <tr
                     key={p.token_id}
-                    className="hover:bg-blue-500/10 transition-colors group"
+                    className="hover:bg-emerald-500/10 transition-colors group"
                   >
                     {/* Token — clickable to open depth chart + trade modal.
                         The strategy badge no longer lives inline here
@@ -732,12 +732,12 @@ function PositionsPanel({
                       >
                         <div className="flex flex-col gap-0.5">
                           <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className="text-[9px] text-cyan-400 font-bold uppercase tracking-wider truncate">
+                            <span className="text-[9px] text-emerald-400 font-bold uppercase tracking-wider truncate">
                               {info.category.icon} {info.eventTitle}
                             </span>
                           </div>
                           <span
-                            className="text-[var(--text-primary)] group-hover:text-cyan-300 font-medium leading-snug text-xs block whitespace-normal transition-colors"
+                            className="text-[var(--text-primary)] group-hover:text-emerald-300 font-medium leading-snug text-xs block whitespace-normal transition-colors"
                             title={info.fullLabel}
                           >
                             {info.question}
@@ -795,7 +795,7 @@ function PositionsPanel({
 
                     {/* W51-2b — Cost Basis. tabular-nums for decimal
                         alignment with Size / Entry / Current. */}
-                    <td className="mono text-right font-semibold text-cyan-300 tabular-nums">
+                    <td className="mono text-right font-semibold text-emerald-300 tabular-nums">
                       {fmtUsd(p.total_invested)}
                     </td>
 
@@ -805,7 +805,7 @@ function PositionsPanel({
                         <div className="w-full bg-[var(--bg-page)] border border-[var(--border)] h-1.5 rounded-full overflow-hidden">
                           <div
                             className={`h-full rounded-full transition-all ${
-                              isNearCap ? 'bg-amber-400' : 'bg-cyan-400'
+                              isNearCap ? 'bg-amber-400' : 'bg-emerald-400'
                             }`}
                             style={{ width: `${utilizationPct}%` }}
                           />
@@ -917,7 +917,7 @@ function PositionsPanel({
                       <div className="flex items-center justify-center gap-1">
                         <button
                           onClick={() => onSelectMarket?.({ tokenId: p.token_id, slug: p.slug })}
-                          className="btn btn-ghost btn-sm text-[10px] px-2 py-0.5 border border-[var(--border)] text-cyan-400 hover:text-white hover:border-cyan-500/50"
+                          className="btn btn-ghost btn-sm text-[10px] px-2 py-0.5 border border-[var(--border)] text-emerald-400 hover:text-white hover:border-emerald-500/50"
                           title="Open Depth & Trade Modal"
                         >
                           Trade

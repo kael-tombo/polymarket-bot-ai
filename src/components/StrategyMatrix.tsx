@@ -234,8 +234,8 @@ const SORT_OPTIONS: { value: SortField; label: string; ascending: boolean }[] = 
 function SortIndicator({ active, ascending }: { active: boolean; ascending: boolean }) {
   if (active) {
     return ascending
-      ? <ArrowUp className="w-3 h-3 text-cyan-300" aria-hidden="true" />
-      : <ArrowDown className="w-3 h-3 text-cyan-300" aria-hidden="true" />
+      ? <ArrowUp className="w-3 h-3 text-emerald-300" aria-hidden="true" />
+      : <ArrowDown className="w-3 h-3 text-emerald-300" aria-hidden="true" />
   }
   return <ArrowUpDown className="w-3 h-3 text-[var(--text-secondary)]" aria-hidden="true" />
 }
@@ -596,7 +596,7 @@ export default function StrategyMatrix() {
       {/* Header */}
       <div className="card-header flex flex-wrap justify-between items-center px-4 py-3 border-b border-[var(--border)] gap-3">
         <div className="flex items-center gap-3">
-          <Zap className="w-4 h-4 text-cyan-300 flex-shrink-0" aria-hidden="true" />
+          <Zap className="w-4 h-4 text-emerald-300 flex-shrink-0" aria-hidden="true" />
           <span className="card-title text-sm font-bold text-[var(--text-primary)]">
             Quantitative Strategy Matrix
           </span>
@@ -620,7 +620,7 @@ export default function StrategyMatrix() {
               placeholder="Filter strategies…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="input input-sm w-48 text-xs pl-7 pr-2 py-1 border border-[var(--border)] bg-[var(--bg-base)] rounded-md text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 outline-none transition-all"
+              className="input input-sm w-48 text-xs pl-7 pr-2 py-1 border border-[var(--border)] bg-[var(--bg-base)] rounded-md text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/20 outline-none transition-all"
               aria-label="Filter strategies"
             />
           </div>
@@ -636,7 +636,7 @@ export default function StrategyMatrix() {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as SortField)}
-              className="input input-sm text-xs pl-7 pr-7 py-1 border border-[var(--border)] bg-[var(--bg-base)] rounded-md text-[var(--text-primary)] focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 outline-none transition-all appearance-none cursor-pointer"
+              className="input input-sm text-xs pl-7 pr-7 py-1 border border-[var(--border)] bg-[var(--bg-base)] rounded-md text-[var(--text-primary)] focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/20 outline-none transition-all appearance-none cursor-pointer"
               aria-label="Sort strategies"
             >
               {SORT_OPTIONS.map((o) => (
@@ -661,7 +661,7 @@ export default function StrategyMatrix() {
             onClick={() => setActiveTab(c.id)}
             className={`tab-item text-xs py-1 px-2.5 transition-colors ${
               activeTab === c.id
-                ? 'active text-cyan-300 ring-1 ring-cyan-400/30 shadow-[0_0_8px_rgba(34,211,238,0.18)]'
+                ? 'active text-emerald-300 ring-1 ring-emerald-400/30 shadow-[0_0_8px_rgba(16,185,129,0.18)]'
                 : 'hover:text-[var(--text-primary)]'
             }`}
           >
@@ -745,9 +745,9 @@ export default function StrategyMatrix() {
                 key={s.strategy_id}
                 className={`group relative p-3 rounded-lg border transition-all flex flex-col justify-between overflow-hidden ${
                   isRunning
-                    ? 'bg-[var(--bg-surface)] border-cyan-500/40 shadow-sm shadow-cyan-500/10 hover:bg-cyan-500/5 hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.55)]'
+                    ? 'bg-[var(--bg-surface)] border-emerald-500/40 shadow-sm shadow-emerald-500/10 hover:bg-emerald-500/5 hover:shadow-[inset_3px_0_0_0_rgba(16,185,129,0.55)]'
                     : isImplemented
-                    ? 'bg-[var(--bg-base)] border-[var(--border)] hover:border-cyan-500/30 hover:bg-cyan-500/5 hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.55)]'
+                    ? 'bg-[var(--bg-base)] border-[var(--border)] hover:border-emerald-500/30 hover:bg-emerald-500/5 hover:shadow-[inset_3px_0_0_0_rgba(16,185,129,0.55)]'
                     : 'bg-[var(--bg-base)]/60 border-[var(--border)]/60 opacity-65 hover:bg-[var(--bg-base)] hover:opacity-80 hover:shadow-[inset_3px_0_0_0_rgba(126,138,170,0.35)]'
                 }`}
               >

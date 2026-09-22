@@ -481,11 +481,11 @@ export default function KeyboardCheatSheet({
         <div className="modal-header">
           <div className="flex items-center gap-2">
             {/* W58-c — premium icon badge. Lucide `Keyboard` glyph in
-                a cyan-tinted chip with bg-cyan-500/[0.08] +
-                border-cyan-500/25 + cyan glow shadow. Replaces the
+                a cyan-tinted chip with bg-emerald-500/[0.08] +
+                border-emerald-500/25 + cyan glow shadow. Replaces the
                 bare `⌨️` emoji. */}
             <span
-              className="inline-flex items-center justify-center size-7 rounded-md bg-cyan-500/[0.08] border border-cyan-500/25 text-cyan-400 shadow-[0_0_12px_rgba(34,211,238,0.10)]"
+              className="inline-flex items-center justify-center size-7 rounded-md bg-emerald-500/[0.08] border border-emerald-500/25 text-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.10)]"
               aria-hidden="true"
             >
               <Keyboard className="size-4" />
@@ -531,7 +531,7 @@ export default function KeyboardCheatSheet({
                 `getByLabelText`). */}
             <div className="relative flex-1">
               <Search
-                className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-[var(--text-secondary)] pointer-events-none transition-colors duration-150 focus-within:text-cyan-400"
+                className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-[var(--text-secondary)] pointer-events-none transition-colors duration-150 focus-within:text-emerald-400"
                 aria-hidden="true"
               />
               <Input
@@ -541,7 +541,7 @@ export default function KeyboardCheatSheet({
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search shortcuts…"
                 aria-label="Filter shortcuts"
-                className="flex-1 pl-8 bg-[var(--bg-surface)] border-[#2a2f47] focus-visible:border-cyan-500/40 focus-visible:ring-cyan-500/25 transition-colors duration-150"
+                className="flex-1 pl-8 bg-[var(--bg-surface)] border-[var(--border-strong)] focus-visible:border-emerald-500/40 focus-visible:ring-emerald-500/25 transition-colors duration-150"
                 data-testid="cheat-sheet-search"
               />
             </div>
@@ -605,7 +605,7 @@ export default function KeyboardCheatSheet({
             <div
               role="status"
               aria-live="polite"
-              className="mt-2 text-xs text-cyan-400 bg-[var(--bg-page)] border border-[var(--border)] px-3 py-1.5 rounded"
+              className="mt-2 text-xs text-emerald-400 bg-[var(--bg-page)] border border-[var(--border)] px-3 py-1.5 rounded"
               data-testid="cheat-sheet-feedback"
             >
               {feedback}
@@ -655,7 +655,7 @@ export default function KeyboardCheatSheet({
                     data-testid="cheat-sheet-empty"
                   >
                     <span
-                      className="inline-flex items-center justify-center size-9 rounded-full bg-cyan-500/[0.04] border border-cyan-500/15 text-cyan-400/60 shadow-[0_0_18px_rgba(34,211,238,0.08)]"
+                      className="inline-flex items-center justify-center size-9 rounded-full bg-emerald-500/[0.04] border border-emerald-500/15 text-emerald-400/60 shadow-[0_0_18px_rgba(16,185,129,0.08)]"
                       aria-hidden="true"
                     >
                       <SearchX className="size-4" strokeWidth={1.5} />
@@ -687,12 +687,12 @@ export default function KeyboardCheatSheet({
                             is preserved verbatim. */}
                         <h3
                           id={`cat-${category}`}
-                          className="text-[11px] font-extrabold uppercase tracking-wider text-cyan-400 mb-2 flex items-center gap-1.5 border-b border-[var(--border)] pb-1.5"
+                          className="text-[11px] font-extrabold uppercase tracking-wider text-emerald-400 mb-2 flex items-center gap-1.5 border-b border-[var(--border)] pb-1.5"
                         >
                           <CatGlyph className="size-3.5" aria-hidden="true" />
                           <span>{SHORTCUT_CATEGORIES[category].label}</span>
                           <span
-                            className="ml-auto inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 text-[9.5px] font-bold tabular-nums"
+                            className="ml-auto inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-[9.5px] font-bold tabular-nums"
                             aria-hidden="true"
                           >
                             {items.length}
@@ -707,9 +707,9 @@ export default function KeyboardCheatSheet({
                           {items.map((s) => (
                             <li
                               key={`${s.category}-${s.key}-${s.modifiers.join('+')}`}
-                              className="flex justify-between items-center bg-[var(--bg-page)] px-3 py-2 rounded text-xs border border-[var(--border)] hover:border-cyan-500/25 hover:bg-cyan-500/[0.02] transition-colors duration-150"
+                              className="flex justify-between items-center bg-[var(--bg-page)] px-3 py-2 rounded text-xs border border-[var(--border)] hover:border-emerald-500/25 hover:bg-emerald-500/[0.02] transition-colors duration-150"
                             >
-                              <span className="text-[var(--text-primary)] pr-2 group-hover:text-cyan-50 transition-colors duration-150">
+                              <span className="text-[var(--text-primary)] pr-2 group-hover:text-emerald-50 transition-colors duration-150">
                                 {s.description}
                               </span>
                               {/* W58-c — physical keycap chord. The
@@ -791,7 +791,7 @@ function KeycapChord({
             </span>
           )}
           <kbd
-            className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded bg-gradient-to-b from-[var(--bg-elevated)] to-[var(--bg-page)] text-cyan-400 border border-[#2a2f47] mono font-bold text-[10px] tabular-nums shadow-[inset_0_-1px_0_0_rgba(0,0,0,0.45),inset_0_1px_0_0_rgba(255,255,255,0.04)]"
+            className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded bg-gradient-to-b from-[var(--bg-elevated)] to-[var(--bg-page)] text-emerald-400 border border-[var(--border-strong)] mono font-bold text-[10px] tabular-nums shadow-[inset_0_-1px_0_0_rgba(0,0,0,0.45),inset_0_1px_0_0_rgba(255,255,255,0.04)]"
             aria-hidden="true"
           >
             {tok}
@@ -810,10 +810,10 @@ function PracticePanel({ practice }: { practice: PracticeState }) {
   if (practice.kind === 'prompting') {
     return (
       <div
-        className="mt-3 px-3 py-3 rounded border border-cyan-500/30 bg-cyan-500/5 text-center"
+        className="mt-3 px-3 py-3 rounded border border-emerald-500/30 bg-emerald-500/5 text-center"
         data-testid="cheat-sheet-practice"
       >
-        <div className="text-[11px] uppercase tracking-wider text-cyan-400 font-bold mb-1 flex items-center justify-center gap-1.5">
+        <div className="text-[11px] uppercase tracking-wider text-emerald-400 font-bold mb-1 flex items-center justify-center gap-1.5">
           <Target className="size-3" aria-hidden="true" />
           <span>Practice Mode</span>
         </div>

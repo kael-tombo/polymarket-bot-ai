@@ -518,9 +518,9 @@ function SortIndicator({
     return <ArrowUpDown className="size-3 text-[var(--text-dim)] inline-block ml-0.5" aria-hidden="true" />
   }
   return direction === 'asc' ? (
-    <ArrowUp className="size-3 text-cyan-400 inline-block ml-0.5" aria-hidden="true" />
+    <ArrowUp className="size-3 text-emerald-400 inline-block ml-0.5" aria-hidden="true" />
   ) : (
-    <ArrowDown className="size-3 text-cyan-400 inline-block ml-0.5" aria-hidden="true" />
+    <ArrowDown className="size-3 text-emerald-400 inline-block ml-0.5" aria-hidden="true" />
   )
 }
 
@@ -1074,7 +1074,7 @@ export default function ShadowInferencePanel() {
       >
         <div className="card-header p-3 border-b border-[var(--border)] flex items-center justify-between">
           <span className="card-title text-xs font-bold text-[var(--text-primary)] flex items-center gap-2">
-            <Ghost className="size-3.5 text-cyan-400" />
+            <Ghost className="size-3.5 text-emerald-400" />
             Shadow Inference
           </span>
           <span className="badge badge-dim text-[9px]">Loading…</span>
@@ -1131,7 +1131,7 @@ export default function ShadowInferencePanel() {
       {/* ── Header ── */}
       <div className="card-header p-3 border-b border-[var(--border)] flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0">
-          <Ghost className="size-3.5 text-cyan-400 shrink-0" />
+          <Ghost className="size-3.5 text-emerald-400 shrink-0" />
           <span className="card-title text-xs font-bold text-[var(--text-primary)]">
             Shadow Inference + Counterfactual Journal
           </span>
@@ -1319,7 +1319,7 @@ export default function ShadowInferencePanel() {
               Champion (active)
             </span>
             <span className="flex items-center gap-1">
-              <span className="inline-block size-2 rounded-full bg-blue-400" />
+              <span className="inline-block size-2 rounded-full bg-emerald-400" />
               Shadow (validated, not promoted)
             </span>
             <span className="flex items-center gap-1">
@@ -1390,7 +1390,7 @@ export default function ShadowInferencePanel() {
                 </Button>
                 <Button
                   size="sm"
-                  className="h-7 text-[10.5px] bg-cyan-600 hover:bg-cyan-500 text-white gap-1.5"
+                  className="h-7 text-[10.5px] bg-emerald-600 hover:bg-emerald-500 text-white gap-1.5"
                   onClick={submitRegister}
                   disabled={registering}
                 >
@@ -1458,7 +1458,7 @@ export default function ShadowInferencePanel() {
                     ? 'border-l-2 border-l-emerald-500'
                     : isDemoted
                       ? 'border-l-2 border-l-gray-600'
-                      : 'border-l-2 border-l-blue-500'
+                      : 'border-l-2 border-l-emerald-500'
                   const statusBadge = isChamp ? (
                     <Badge
                       variant="outline"
@@ -1496,7 +1496,7 @@ export default function ShadowInferencePanel() {
                       <TableCell className="py-1.5 px-2 text-[10.5px] text-[var(--text-primary)] mono tabular-nums">
                         {String(c.version.parameters?.model_name ?? c.version.version.split('.')[0] ?? '—')}
                       </TableCell>
-                      <TableCell className="py-1.5 px-2 text-[10.5px] mono text-cyan-300 tabular-nums">
+                      <TableCell className="py-1.5 px-2 text-[10.5px] mono text-emerald-300 tabular-nums">
                         {c.version.version}
                       </TableCell>
                       <TableCell className="py-1.5 px-2">{statusBadge}</TableCell>
@@ -1799,12 +1799,12 @@ export default function ShadowInferencePanel() {
                   onChange={(e) => setTradeFilter(e.target.value)}
                   placeholder="Filter token / strategy / side"
                   aria-label="Filter shadow trades"
-                  className="h-7 w-56 pl-7 text-[10.5px] bg-[var(--bg-base)] border-[var(--border)] text-[var(--text-primary)] placeholder:text-[var(--text-dim)] focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 transition-colors"
+                  className="h-7 w-56 pl-7 text-[10.5px] bg-[var(--bg-base)] border-[var(--border)] text-[var(--text-primary)] placeholder:text-[var(--text-dim)] focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/20 transition-colors"
                 />
               </div>
             }
           />
-          <div className="rounded-md border border-dashed border-cyan-900/60 overflow-hidden bg-[var(--bg-base)]">
+          <div className="rounded-md border border-dashed border-emerald-900/60 overflow-hidden bg-[var(--bg-base)]">
             <Table>
               <TableHeader>
                 <TableRow className="bg-[var(--bg-base)] hover:bg-[var(--bg-base)] border-[var(--border)]">
@@ -1833,15 +1833,15 @@ export default function ShadowInferencePanel() {
                       as a small caption above the two headers) so the trader
                       can immediately tell this is the shadow-model side of
                       the prediction-vs-outcome comparison. */}
-                  <TableHead className="h-7 text-[9.5px] uppercase tracking-wider text-blue-300 font-bold py-1.5 px-2 text-right tabular-nums border-l border-blue-900/40">
+                  <TableHead className="h-7 text-[9.5px] uppercase tracking-wider text-emerald-300 font-bold py-1.5 px-2 text-right tabular-nums border-l border-emerald-900/40">
                     <span className="inline-flex items-center gap-1" title="Shadow model prediction — NOT A GUARANTEE">
-                      <Sparkles size={10} className="text-blue-400" aria-hidden="true" />
+                      <Sparkles size={10} className="text-emerald-400" aria-hidden="true" />
                       AI Pred. Edge
                     </span>
                   </TableHead>
-                  <TableHead className="h-7 text-[9.5px] uppercase tracking-wider text-blue-300 font-bold py-1.5 px-2 text-right tabular-nums">
+                  <TableHead className="h-7 text-[9.5px] uppercase tracking-wider text-emerald-300 font-bold py-1.5 px-2 text-right tabular-nums">
                     <span className="inline-flex items-center gap-1" title="Shadow model confidence">
-                      <Sparkles size={10} className="text-blue-400" aria-hidden="true" />
+                      <Sparkles size={10} className="text-emerald-400" aria-hidden="true" />
                       AI Conf.
                     </span>
                   </TableHead>
@@ -1933,7 +1933,7 @@ export default function ShadowInferencePanel() {
                   return (
                     <TableRow
                       key={t.id}
-                      className="border-[var(--border)] hover:bg-[var(--bg-base)] border-l-2 border-l-transparent hover:border-l-cyan-400/60 transition-colors"
+                      className="border-[var(--border)] hover:bg-[var(--bg-base)] border-l-2 border-l-transparent hover:border-l-emerald-400/60 transition-colors"
                     >
                       <TableCell
                         className="py-1.5 px-2 text-[10px] text-[var(--text-secondary)] mono whitespace-nowrap tabular-nums"
@@ -1945,7 +1945,7 @@ export default function ShadowInferencePanel() {
                         {truncateToken(t.token_id)}
                       </TableCell>
                       <TableCell className="py-1.5 px-2">{sideBadge}</TableCell>
-                      <TableCell className="py-1.5 px-2 text-right mono text-[10.5px] text-[var(--text-primary)] tabular-nums border-l border-blue-900/20">
+                      <TableCell className="py-1.5 px-2 text-right mono text-[10.5px] text-[var(--text-primary)] tabular-nums border-l border-emerald-900/20">
                         {fmtNum(t.price, 4)}
                       </TableCell>
                       <TableCell className="py-1.5 px-2 text-right mono text-[10.5px] text-[var(--text-primary)] tabular-nums">
@@ -1959,7 +1959,7 @@ export default function ShadowInferencePanel() {
                       <TableCell
                         className={`py-1.5 px-2 text-right mono text-[10.5px] tabular-nums ${
                           (t.predicted_edge || 0) > 0
-                            ? 'text-blue-300'
+                            ? 'text-emerald-300'
                             : (t.predicted_edge || 0) < 0
                               ? 'text-purple-300'
                               : 'text-[var(--text-primary)]'
@@ -1967,7 +1967,7 @@ export default function ShadowInferencePanel() {
                         title="AI Prediction: model-generated predicted edge (NOT A GUARANTEE)"
                       >
                         <span className="inline-flex items-center gap-1 justify-end">
-                          <Sparkles size={9} className="text-blue-400/70 shrink-0" aria-hidden="true" />
+                          <Sparkles size={9} className="text-emerald-400/70 shrink-0" aria-hidden="true" />
                           <span>
                             {(t.predicted_edge || 0) >= 0 ? '+' : ''}
                             {fmtNum(t.predicted_edge, 4)}
@@ -2026,12 +2026,12 @@ export default function ShadowInferencePanel() {
                 </TableHeader>
                 <TableBody>
                   {comparison.strategies.map((s) => (
-                    <TableRow key={s.strategy} className="border-[var(--border)] hover:bg-[var(--bg-base)] border-l-2 border-l-transparent hover:border-l-cyan-400/60 transition-colors">
+                    <TableRow key={s.strategy} className="border-[var(--border)] hover:bg-[var(--bg-base)] border-l-2 border-l-transparent hover:border-l-emerald-400/60 transition-colors">
                       <TableCell className="py-1.5 px-2 text-[10.5px] mono text-[var(--text-primary)] tabular-nums">
                         {s.strategy}
                       </TableCell>
                       <TableCell className="py-1.5 px-2 text-right text-[10.5px] tabular-nums">
-                        <span className="mono text-cyan-300">{s.shadow_count}</span>
+                        <span className="mono text-emerald-300">{s.shadow_count}</span>
                         <span className="text-[var(--text-dim)] mx-1">/</span>
                         <span className="mono text-[var(--text-primary)]">{s.live_count}</span>
                       </TableCell>
@@ -2055,7 +2055,7 @@ export default function ShadowInferencePanel() {
                         {fmtUsd(s.live_avg_pnl)}
                       </TableCell>
                       <TableCell className="py-1.5 px-2 text-right text-[10.5px] tabular-nums">
-                        <span className="mono text-cyan-300">
+                        <span className="mono text-emerald-300">
                           {s.shadow_total_size.toFixed(0)}
                         </span>
                         <span className="text-[var(--text-dim)] mx-1">/</span>
@@ -2104,11 +2104,11 @@ export default function ShadowInferencePanel() {
               {promoteTarget && (
                 <>
                   This will roll the active model version from{' '}
-                  <code className="mono text-cyan-300">
+                  <code className="mono text-emerald-300">
                     {activeVersionId || '(unset)'}
                   </code>{' '}
                   to{' '}
-                  <code className="mono text-cyan-300">
+                  <code className="mono text-emerald-300">
                     {promoteTarget.version}
                   </code>
                   . The next predict() cycle will use the promoted model. The
@@ -2225,12 +2225,12 @@ function ComparisonRow({
       </div>
       {/* Shadow prediction column (cyan tint) */}
       <div
-        className="text-right px-2 py-1.5 bg-cyan-950/20 border-l border-cyan-900/30"
+        className="text-right px-2 py-1.5 bg-emerald-950/20 border-l border-emerald-900/30"
         data-tone={toneAttr(shadowTone)}
         data-side="shadow"
       >
-        <div className="flex items-center justify-end gap-1 text-[8px] uppercase text-cyan-400 tracking-wider font-bold">
-          <Sparkles size={8} className="text-cyan-400/80" aria-hidden="true" />
+        <div className="flex items-center justify-end gap-1 text-[8px] uppercase text-emerald-400 tracking-wider font-bold">
+          <Sparkles size={8} className="text-emerald-400/80" aria-hidden="true" />
           <span>Shadow</span>
         </div>
         <div className={`mono text-[12px] font-bold tabular-nums ${toneText(shadowTone)}`}>

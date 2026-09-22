@@ -566,7 +566,7 @@ export default function DeepAnalysisView({ onOpenChart, onSelectMarket }: DeepAn
   const suggestedActionTone: Record<NonNullable<MarketAnalysis['suggested_action']>, string> = {
     TRADE_LONG_YES: 'badge-green bg-green-500/20 text-green-400 border-green-500/40',
     TRADE_SHORT_NO: 'badge-purple bg-purple-500/20 text-purple-400 border-purple-500/40',
-    MONITOR: 'badge-blue bg-blue-500/20 text-blue-400 border-blue-500/40',
+    MONITOR: 'badge-blue bg-emerald-500/20 text-emerald-400 border-emerald-500/40',
     REJECT_RISK: 'badge-red bg-red-500/20 text-red-400 border-red-500/40',
   }
 
@@ -584,7 +584,7 @@ export default function DeepAnalysisView({ onOpenChart, onSelectMarket }: DeepAn
       <div className="flex flex-wrap justify-between items-center pb-3 border-b border-[var(--border)] gap-3">
         <div className="min-w-0">
           <div className="flex items-center gap-2.5">
-            <Microscope className="size-4 text-cyan-300 shrink-0" aria-hidden="true" />
+            <Microscope className="size-4 text-emerald-300 shrink-0" aria-hidden="true" />
             <h2 className="text-sm font-bold text-[var(--text-primary)] tracking-wide">
               Deep Market Intelligence &amp; Multi-Factor Alpha Forecaster
             </h2>
@@ -609,7 +609,7 @@ export default function DeepAnalysisView({ onOpenChart, onSelectMarket }: DeepAn
           {analysis && onOpenChart && (
             <button
               onClick={() => onOpenChart({ tokenId: analysis.token_id, slug: analysis.slug })}
-              className="btn btn-ghost btn-sm text-xs font-semibold text-cyan-400 border border-cyan-500/30 hover:bg-cyan-500/10 hover:border-cyan-500/50 focus:outline-none focus:ring-2 focus:ring-cyan-500/30 px-2.5 py-1 rounded inline-flex items-center gap-1.5 transition-colors"
+              className="btn btn-ghost btn-sm text-xs font-semibold text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/10 hover:border-emerald-500/50 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 px-2.5 py-1 rounded inline-flex items-center gap-1.5 transition-colors"
               aria-label="Price History"
             >
               <LineChartIcon className="size-3.5" aria-hidden="true" />
@@ -784,8 +784,8 @@ export default function DeepAnalysisView({ onOpenChart, onSelectMarket }: DeepAn
                   <tr
                     key={opp.token_id}
                     onClick={() => fetchSingleMarket(opp.token_id)}
-                    className={`cursor-pointer transition-colors border-l-2 border-l-transparent hover:border-l-cyan-400/60 hover:bg-cyan-500/5 ${
-                      isSelected ? 'bg-cyan-500/10 border-l-cyan-400/80' : ''
+                    className={`cursor-pointer transition-colors border-l-2 border-l-transparent hover:border-l-emerald-400/60 hover:bg-emerald-500/5 ${
+                      isSelected ? 'bg-emerald-500/10 border-l-emerald-400/80' : ''
                     }`}
                   >
                     <td className="max-w-[200px] truncate font-semibold text-[var(--text-primary)] text-[11px] py-2" title={rowTitle}>
@@ -828,7 +828,7 @@ export default function DeepAnalysisView({ onOpenChart, onSelectMarket }: DeepAn
                             ? 'bg-green-500/15 text-green-400 border border-green-500/30'
                             : opp.suggested_action === 'TRADE_SHORT_NO'
                             ? 'bg-purple-500/15 text-purple-400 border border-purple-500/30'
-                            : 'bg-blue-500/15 text-blue-400 border border-blue-500/30'
+                            : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
                         }`}
                       >
                         {opp.suggested_action?.replace('TRADE_', '') || 'MONITOR'}
@@ -848,7 +848,7 @@ export default function DeepAnalysisView({ onOpenChart, onSelectMarket }: DeepAn
                         disabled={!onSelectMarket}
                         aria-label={`Open depth chart and trade ticket for ${rowTitle}`}
                         title={onSelectMarket ? `Open depth chart and trade ticket for ${rowTitle}` : 'Trade not available'}
-                        className="btn btn-primary btn-xs font-bold shadow-md hover:shadow-cyan-500/20 px-2.5 py-0.5 rounded text-[10px] inline-flex items-center gap-1 focus:outline-none focus:ring-2 focus:ring-cyan-500/30 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none transition-colors"
+                        className="btn btn-primary btn-xs font-bold shadow-md hover:shadow-emerald-500/20 px-2.5 py-0.5 rounded text-[10px] inline-flex items-center gap-1 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none transition-colors"
                       >
                         <Zap className="size-3" aria-hidden="true" />
                         Trade
@@ -979,7 +979,7 @@ export default function DeepAnalysisView({ onOpenChart, onSelectMarket }: DeepAn
 
                 <div className="flex justify-between items-center bg-[var(--bg-surface)] p-2 rounded border border-[var(--border)]">
                   <span className="text-[var(--text-secondary)]">Book Liquidity Depth:</span>
-                  <span className="mono font-bold tabular-nums text-cyan-400">
+                  <span className="mono font-bold tabular-nums text-emerald-400">
                     {analysis.total_liquidity_usdc != null ? `${fmtUsd(analysis.total_liquidity_usdc, 0)}` : '—'}
                   </span>
                 </div>
@@ -1018,7 +1018,7 @@ export default function DeepAnalysisView({ onOpenChart, onSelectMarket }: DeepAn
                     <ul className="text-xs text-[var(--text-primary)] space-y-1">
                       {analysis.action_reasons.map((r, i) => (
                         <li key={i} className="flex items-start gap-1.5">
-                          <span className="text-cyan-400 font-bold mt-0.5">•</span>
+                          <span className="text-emerald-400 font-bold mt-0.5">•</span>
                           <span>{r}</span>
                         </li>
                       ))}
@@ -1057,7 +1057,7 @@ export default function DeepAnalysisView({ onOpenChart, onSelectMarket }: DeepAn
               <button
                 onClick={() => fetchSingleMarket(analysis.token_id)}
                 disabled={analyzingSingle}
-                className="btn btn-primary btn-xs px-3 py-1 font-bold inline-flex items-center gap-1.5 focus:outline-none focus:ring-2 focus:ring-cyan-500/30 transition-colors"
+                className="btn btn-primary btn-xs px-3 py-1 font-bold inline-flex items-center gap-1.5 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition-colors"
                 aria-label="Refresh Analysis"
               >
                 <RefreshCw className={`size-3 ${analyzingSingle ? 'animate-spin' : ''}`} aria-hidden="true" />

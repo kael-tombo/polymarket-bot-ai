@@ -407,7 +407,7 @@ function ExecutionSkeleton() {
     >
       <div className="flex items-center justify-between pb-2 border-b border-[var(--border)]">
         <div className="flex items-center gap-2">
-          <Gauge className="size-3.5 text-cyan-400 animate-pulse" aria-hidden="true" />
+          <Gauge className="size-3.5 text-emerald-400 animate-pulse" aria-hidden="true" />
           <ShimmerBlock className="!w-40 !h-3" />
           <ShimmerBlock className="!w-20 !h-4" />
         </div>
@@ -479,7 +479,7 @@ function PolishedErrorState({
       <span className="text-sm font-bold text-red-400">Execution Quality Ledger Unreachable</span>
       <p className="text-xs text-[var(--text-secondary)] max-w-md text-center">
         Could not load per-fill execution quality metrics from{' '}
-        <code className="text-[#c8cfe0]">/api/execution-quality</code>.
+        <code className="text-[var(--text-mono)]">/api/execution-quality</code>.
       </p>
       {detail && (
         <p className="text-[10px] text-[var(--text-secondary)] mono max-w-md text-center break-all">{detail}</p>
@@ -635,7 +635,7 @@ export default function ExecutionQualityPanel() {
       {/* ── Header ──────────────────────────────────────────────────────────── */}
       <div className="card-header pb-2 mb-3 border-b border-[var(--border)] flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <Gauge className="size-3.5 text-cyan-400" aria-hidden="true" />
+          <Gauge className="size-3.5 text-emerald-400" aria-hidden="true" />
           <span className="card-title text-xs font-bold text-[var(--text-primary)]">
             ⚡ Execution Quality
           </span>
@@ -651,7 +651,7 @@ export default function ExecutionQualityPanel() {
           {/* Auto-refresh indicator */}
           <span
             className={`flex items-center gap-1 text-[9.5px] mono ${
-              isRefreshing ? 'text-cyan-400' : 'text-[var(--text-secondary)]'
+              isRefreshing ? 'text-emerald-400' : 'text-[var(--text-secondary)]'
             }`}
             title={`Auto-refresh every ${POLL_INTERVAL_MS / 1000}s${typeof document !== 'undefined' && document.hidden ? ' — paused (tab hidden)' : ''}`}
             aria-label="Auto-refresh status"
@@ -666,7 +666,7 @@ export default function ExecutionQualityPanel() {
               setIsRefreshing(true)
               fetchData()
             }}
-            className="btn btn-ghost btn-sm text-[10px] px-2 py-0.5 border border-[var(--border)] text-[var(--text-secondary)] hover:text-white hover:border-cyan-500/30 hover:bg-cyan-500/[0.04] flex items-center gap-1 transition-colors"
+            className="btn btn-ghost btn-sm text-[10px] px-2 py-0.5 border border-[var(--border)] text-[var(--text-secondary)] hover:text-white hover:border-emerald-500/30 hover:bg-emerald-500/[0.04] flex items-center gap-1 transition-colors"
             title="Refresh now"
             aria-label="Refresh execution quality data"
           >
@@ -680,7 +680,7 @@ export default function ExecutionQualityPanel() {
           >
             <SelectTrigger
               size="sm"
-              className="h-7 w-[110px] text-[10.5px] bg-[var(--bg-page)] border-[var(--border)] text-[var(--text-primary)] hover:border-cyan-500/30 focus:ring-cyan-500/20"
+              className="h-7 w-[110px] text-[10.5px] bg-[var(--bg-page)] border-[var(--border)] text-[var(--text-primary)] hover:border-emerald-500/30 focus:ring-emerald-500/20"
               aria-label="Time range filter"
             >
               <SelectValue placeholder="Range" />
@@ -690,7 +690,7 @@ export default function ExecutionQualityPanel() {
                 <SelectItem
                   key={r.value}
                   value={r.value}
-                  className="text-[10.5px] focus:bg-cyan-500/[0.10] focus:text-cyan-300"
+                  className="text-[10.5px] focus:bg-emerald-500/[0.10] focus:text-emerald-300"
                 >
                   {r.label}
                 </SelectItem>
@@ -942,7 +942,7 @@ export default function ExecutionQualityPanel() {
                   >
                     <td className="py-1.5 max-w-[200px]">
                       <div className="flex flex-col">
-                        <span className="text-[#c8cfe0] font-medium text-[10.5px] truncate" title={f.token_id ?? ''}>
+                        <span className="text-[var(--text-mono)] font-medium text-[10.5px] truncate" title={f.token_id ?? ''}>
                           {(f.token_id || '—').slice(0, 18)}…
                         </span>
                         <span className="text-[9px] text-[var(--text-secondary)] mono">
@@ -962,7 +962,7 @@ export default function ExecutionQualityPanel() {
                       </span>
                     </td>
                     <td className="mono text-right text-[var(--text-secondary)] tabular-nums">{fmtPrice(f.expected_fill)}</td>
-                    <td className="mono text-right text-[#c8cfe0] font-bold tabular-nums">{fmtPrice(f.actual_fill)}</td>
+                    <td className="mono text-right text-[var(--text-mono)] font-bold tabular-nums">{fmtPrice(f.actual_fill)}</td>
                     <td className={`mono text-right font-bold tabular-nums ${slippageColorClass(f.slippage_bps)}`}>
                       {fmtBps(f.slippage_bps)}
                     </td>
@@ -1021,13 +1021,13 @@ export default function ExecutionQualityPanel() {
                 {fills.map((f) => (
                   <tr
                     key={f.id}
-                    className="hover:bg-cyan-500/[0.06] transition-colors hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.45)]"
+                    className="hover:bg-emerald-500/[0.06] transition-colors hover:shadow-[inset_3px_0_0_0_rgba(16,185,129,0.45)]"
                     data-tone={slippageTone(f.slippage_bps ?? 0)}
                   >
                     <td className="py-1.5 max-w-[220px]">
                       <div className="flex flex-col gap-0.5">
                         <span
-                          className="text-[10px] text-cyan-400 font-bold truncate"
+                          className="text-[10px] text-emerald-400 font-bold truncate"
                           title={f.token_id ?? ''}
                         >
                           {(f.token_id || '—').slice(0, 22)}
@@ -1051,7 +1051,7 @@ export default function ExecutionQualityPanel() {
                       </span>
                     </td>
                     <td className="mono text-right text-[var(--text-secondary)] tabular-nums">{fmtPrice(f.expected_fill)}</td>
-                    <td className="mono text-right text-[#c8cfe0] font-bold tabular-nums">{fmtPrice(f.actual_fill)}</td>
+                    <td className="mono text-right text-[var(--text-mono)] font-bold tabular-nums">{fmtPrice(f.actual_fill)}</td>
                     <td className="text-right">
                       <span className={slippageBadgeClass(f.slippage_bps)}>
                         {fmtBps(f.slippage_bps)}

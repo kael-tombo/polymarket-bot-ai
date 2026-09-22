@@ -515,7 +515,7 @@ function Sparkline({
       ? 'rgba(251, 191, 36, 0.12)'
       : tone === 'fail'
         ? 'rgba(248, 113, 113, 0.12)'
-        : 'rgba(34, 211, 238, 0.12)'
+        : 'rgba(16,185,129, 0.12)'
 
   const linePath =
     values.length === 1
@@ -960,16 +960,16 @@ export default function MLValidationPanel() {
                     <TableRow className="hover:bg-transparent">
                       <TableHead className="text-[10px] uppercase tracking-wider font-bold text-[var(--text-secondary)]">Fold</TableHead>
                       <TableHead className="text-[10px] uppercase tracking-wider font-bold text-[var(--text-secondary)]">Snapshot</TableHead>
-                      <TableHead className={`text-[10px] uppercase tracking-wider font-bold text-right tabular-nums ${focusMetric === 'psi' ? 'text-cyan-300 bg-cyan-500/[0.06]' : 'text-[var(--text-secondary)]'}`}>
+                      <TableHead className={`text-[10px] uppercase tracking-wider font-bold text-right tabular-nums ${focusMetric === 'psi' ? 'text-emerald-300 bg-emerald-500/[0.06]' : 'text-[var(--text-secondary)]'}`}>
                         PSI
                       </TableHead>
-                      <TableHead className={`text-[10px] uppercase tracking-wider font-bold text-right tabular-nums ${focusMetric === 'ks' ? 'text-cyan-300 bg-cyan-500/[0.06]' : 'text-[var(--text-secondary)]'}`}>
+                      <TableHead className={`text-[10px] uppercase tracking-wider font-bold text-right tabular-nums ${focusMetric === 'ks' ? 'text-emerald-300 bg-emerald-500/[0.06]' : 'text-[var(--text-secondary)]'}`}>
                         KS
                       </TableHead>
-                      <TableHead className={`text-[10px] uppercase tracking-wider font-bold text-right tabular-nums ${focusMetric === 'rolling_brier' ? 'text-cyan-300 bg-cyan-500/[0.06]' : 'text-[var(--text-secondary)]'}`}>
+                      <TableHead className={`text-[10px] uppercase tracking-wider font-bold text-right tabular-nums ${focusMetric === 'rolling_brier' ? 'text-emerald-300 bg-emerald-500/[0.06]' : 'text-[var(--text-secondary)]'}`}>
                         Rolling Brier
                       </TableHead>
-                      <TableHead className={`text-[10px] uppercase tracking-wider font-bold text-right tabular-nums ${focusMetric === 'ewma_brier' ? 'text-cyan-300 bg-cyan-500/[0.06]' : 'text-[var(--text-secondary)]'}`}>
+                      <TableHead className={`text-[10px] uppercase tracking-wider font-bold text-right tabular-nums ${focusMetric === 'ewma_brier' ? 'text-emerald-300 bg-emerald-500/[0.06]' : 'text-[var(--text-secondary)]'}`}>
                         EWMA Brier
                       </TableHead>
                       <TableHead className="text-[10px] uppercase tracking-wider font-bold text-right text-[var(--text-secondary)]">Status</TableHead>
@@ -994,7 +994,7 @@ export default function MLValidationPanel() {
                           return (
                             <TableRow
                               key={idx}
-                              className={`transition-colors hover:bg-cyan-500/[0.04] hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.45)]`}
+                              className={`transition-colors hover:bg-emerald-500/[0.04] hover:shadow-[inset_3px_0_0_0_rgba(16,185,129,0.45)]`}
                             >
                               <TableCell className="label-col">
                                 <span className="mono text-[11px] text-[var(--text-secondary)] tabular-nums">#{idx + 1}</span>
@@ -1007,16 +1007,16 @@ export default function MLValidationPanel() {
                                   <span className="text-[10px] text-[var(--text-secondary)]">{fmtRel(h.timestamp)}</span>
                                 </div>
                               </TableCell>
-                              <TableCell className={`text-right mono tabular-nums ${focusMetric === 'psi' ? 'bg-cyan-500/[0.05] font-semibold' : ''} ${classifyMetric(h.psi, { good: 0.10, warn: 0.25, higherIsBetter: false })}`}>
+                              <TableCell className={`text-right mono tabular-nums ${focusMetric === 'psi' ? 'bg-emerald-500/[0.05] font-semibold' : ''} ${classifyMetric(h.psi, { good: 0.10, warn: 0.25, higherIsBetter: false })}`}>
                                 {fmt(h.psi, 4)}
                               </TableCell>
-                              <TableCell className={`text-right mono tabular-nums ${focusMetric === 'ks' ? 'bg-cyan-500/[0.05] font-semibold' : ''} ${classifyMetric(h.ks_stat, { good: 0.15, warn: 0.25, higherIsBetter: false })}`}>
+                              <TableCell className={`text-right mono tabular-nums ${focusMetric === 'ks' ? 'bg-emerald-500/[0.05] font-semibold' : ''} ${classifyMetric(h.ks_stat, { good: 0.15, warn: 0.25, higherIsBetter: false })}`}>
                                 {fmt(h.ks_stat, 4)}
                               </TableCell>
-                              <TableCell className={`text-right mono tabular-nums ${focusMetric === 'rolling_brier' ? 'bg-cyan-500/[0.05] font-semibold' : ''} ${h.rolling_brier !== null ? classifyMetric(h.rolling_brier, { good: 0.15, warn: 0.22, higherIsBetter: false }) : ''}`}>
+                              <TableCell className={`text-right mono tabular-nums ${focusMetric === 'rolling_brier' ? 'bg-emerald-500/[0.05] font-semibold' : ''} ${h.rolling_brier !== null ? classifyMetric(h.rolling_brier, { good: 0.15, warn: 0.22, higherIsBetter: false }) : ''}`}>
                                 {h.rolling_brier !== null ? fmt(h.rolling_brier) : '—'}
                               </TableCell>
-                              <TableCell className={`text-right mono tabular-nums ${focusMetric === 'ewma_brier' ? 'bg-cyan-500/[0.05] font-semibold' : ''} ${h.ewma_brier !== null ? classifyMetric(h.ewma_brier, { good: 0.15, warn: 0.22, higherIsBetter: false }) : ''}`}>
+                              <TableCell className={`text-right mono tabular-nums ${focusMetric === 'ewma_brier' ? 'bg-emerald-500/[0.05] font-semibold' : ''} ${h.ewma_brier !== null ? classifyMetric(h.ewma_brier, { good: 0.15, warn: 0.22, higherIsBetter: false }) : ''}`}>
                                 {h.ewma_brier !== null ? fmt(h.ewma_brier) : '—'}
                               </TableCell>
                               <TableCell className="text-right" data-tone={rowTone}>
@@ -1037,16 +1037,16 @@ export default function MLValidationPanel() {
                           <TableCell className="text-[10px] text-[var(--text-secondary)] tabular-nums">
                             n={driftHistory.length} · mean ± std
                           </TableCell>
-                          <TableCell className={`text-right mono text-cyan-300 font-bold tabular-nums ${focusMetric === 'psi' ? 'bg-cyan-500/[0.05]' : ''}`}>
+                          <TableCell className={`text-right mono text-emerald-300 font-bold tabular-nums ${focusMetric === 'psi' ? 'bg-emerald-500/[0.05]' : ''}`}>
                             {fmt(psiMean)} ± {fmt(psiStd)}
                           </TableCell>
-                          <TableCell className={`text-right mono text-[var(--text-secondary)] tabular-nums ${focusMetric === 'ks' ? 'bg-cyan-500/[0.05]' : ''}`}>
+                          <TableCell className={`text-right mono text-[var(--text-secondary)] tabular-nums ${focusMetric === 'ks' ? 'bg-emerald-500/[0.05]' : ''}`}>
                             {fmt(mean(driftHistory.map((h) => h.ks_stat)))} ± {fmt(std(driftHistory.map((h) => h.ks_stat)))}
                           </TableCell>
-                          <TableCell className={`text-right mono text-cyan-300 font-bold tabular-nums ${focusMetric === 'rolling_brier' ? 'bg-cyan-500/[0.05]' : ''}`}>
+                          <TableCell className={`text-right mono text-emerald-300 font-bold tabular-nums ${focusMetric === 'rolling_brier' ? 'bg-emerald-500/[0.05]' : ''}`}>
                             {brierValues.length ? `${fmt(brierMean)} ± ${fmt(brierStd)}` : '—'}
                           </TableCell>
-                          <TableCell className={`text-right mono text-[var(--text-secondary)] tabular-nums ${focusMetric === 'ewma_brier' ? 'bg-cyan-500/[0.05]' : ''}`}>
+                          <TableCell className={`text-right mono text-[var(--text-secondary)] tabular-nums ${focusMetric === 'ewma_brier' ? 'bg-emerald-500/[0.05]' : ''}`}>
                             {ewmaValues.length ? `${fmt(mean(ewmaValues))} ± ${fmt(std(ewmaValues))}` : '—'}
                           </TableCell>
                           <TableCell className="text-right">
@@ -1154,7 +1154,7 @@ export default function MLValidationPanel() {
                     {featureEntries.map(([name, imp], idx) => (
                       <div
                         key={name}
-                        className="flex items-center gap-2 rounded-sm px-1 py-0.5 transition-colors hover:bg-cyan-500/[0.04]"
+                        className="flex items-center gap-2 rounded-sm px-1 py-0.5 transition-colors hover:bg-emerald-500/[0.04]"
                       >
                         <span className="text-[10px] text-[var(--text-secondary)] w-5 text-right mono tabular-nums">{idx + 1}</span>
                         <span
@@ -1165,11 +1165,11 @@ export default function MLValidationPanel() {
                         </span>
                         <div className="flex-1 h-1.5 bg-[var(--bg-base)] rounded-full overflow-hidden border border-[var(--border)]">
                           <div
-                            className="h-full rounded-full bg-gradient-to-r from-cyan-500 to-cyan-300 transition-all duration-500"
+                            className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-emerald-300 transition-all duration-500"
                             style={{ width: `${(imp / maxFeatureImp) * 100}%` }}
                           />
                         </div>
-                        <span className="mono text-[10px] text-cyan-300 font-semibold w-12 text-right shrink-0 tabular-nums">
+                        <span className="mono text-[10px] text-emerald-300 font-semibold w-12 text-right shrink-0 tabular-nums">
                           {(imp * 100).toFixed(1)}%
                         </span>
                       </div>
@@ -1227,19 +1227,19 @@ export default function MLValidationPanel() {
                         <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-[11px]">
                           <div className="flex justify-between">
                             <span className="text-[var(--text-secondary)]">Brier</span>
-                            <span className="mono text-cyan-300 tabular-nums">{fmt(activeVersion.brier_score)}</span>
+                            <span className="mono text-emerald-300 tabular-nums">{fmt(activeVersion.brier_score)}</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-[var(--text-secondary)]">AUC</span>
-                            <span className="mono text-cyan-300 tabular-nums">{fmt(activeVersion.roc_auc, 3)}</span>
+                            <span className="mono text-emerald-300 tabular-nums">{fmt(activeVersion.roc_auc, 3)}</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-[var(--text-secondary)]">ECE</span>
-                            <span className="mono text-cyan-300 tabular-nums">{fmt(activeVersion.ece)}</span>
+                            <span className="mono text-emerald-300 tabular-nums">{fmt(activeVersion.ece)}</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-[var(--text-secondary)]">Sharpe</span>
-                            <span className="mono text-cyan-300 tabular-nums">{fmt(activeVersion.sharpe_ratio, 2)}</span>
+                            <span className="mono text-emerald-300 tabular-nums">{fmt(activeVersion.sharpe_ratio, 2)}</span>
                           </div>
                           <div className="flex justify-between col-span-2">
                             <span className="text-[var(--text-secondary)]">Trained at</span>
@@ -1249,13 +1249,13 @@ export default function MLValidationPanel() {
                           </div>
                           <div className="flex justify-between col-span-2">
                             <span className="text-[var(--text-secondary)]">Training samples</span>
-                            <span className="mono text-cyan-300 tabular-nums">
+                            <span className="mono text-emerald-300 tabular-nums">
                               {(activeVersion.n_samples ?? 0).toLocaleString()}
                             </span>
                           </div>
                           <div className="flex justify-between col-span-2">
                             <span className="text-[var(--text-secondary)]">Feature count</span>
-                            <span className="mono text-cyan-300 tabular-nums">
+                            <span className="mono text-emerald-300 tabular-nums">
                               {featureEntries.length > 0 ? (
                                 <>
                                   {Object.keys(metrics?.feature_importances ?? {}).length}{' '}
@@ -1440,7 +1440,7 @@ function CalibrationPlot({ curve }: { curve: ReliabilityBin[] }) {
               return (
                 <TableRow
                   key={i}
-                  className={`transition-colors hover:bg-cyan-500/[0.04] hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.45)]`}
+                  className={`transition-colors hover:bg-emerald-500/[0.04] hover:shadow-[inset_3px_0_0_0_rgba(16,185,129,0.45)]`}
                 >
                   <TableCell className="label-col text-[11px] tabular-nums">#{i + 1}</TableCell>
                   <TableCell className={`text-right mono tabular-nums ${classifyMetric(b.bin_center, { good: b.bin_center, warn: b.bin_center + 0.03, higherIsBetter: true })}`}>

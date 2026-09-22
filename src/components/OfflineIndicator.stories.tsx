@@ -83,12 +83,12 @@ function OfflineStory() {
     }
   }, [])
   return (
-    <div style={{ minHeight: '100vh', background: '#0b0e14' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg-base)' }}>
       <OfflineIndicator />
       <div
         style={{
           padding: '2rem',
-          color: '#7e8aaa',
+          color: 'var(--text-secondary)',
           fontFamily: 'system-ui, sans-serif',
           fontSize: '0.875rem',
         }}

@@ -106,7 +106,7 @@ interface Props {
 // red (terminal, rejected by match-engine).
 const STATUS_BADGE: Record<DisplayStatus, { label: string; cls: string }> = {
   PENDING:   { label: 'PENDING',   cls: 'bg-amber-500/15 text-amber-300 border-amber-500/30' },
-  OPEN:      { label: 'OPEN',      cls: 'bg-blue-500/15 text-blue-300 border-blue-500/30' },
+  OPEN:      { label: 'OPEN',      cls: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30' },
   PARTIAL:   { label: 'PARTIAL',   cls: 'bg-amber-500/15 text-amber-300 border-amber-500/30' },
   FILLED:    { label: 'FILLED',    cls: 'bg-green-500/15 text-green-400 border-green-500/30' },
   CANCELLED: { label: 'CANCELLED', cls: 'bg-red-500/10 text-red-300/80 border-red-500/25' },
@@ -354,13 +354,13 @@ function OrdersPanel({
           <div className="flex items-center gap-2 text-xs">
             <div className="bg-[var(--bg-page)] border border-[var(--border)] px-2.5 py-1 rounded-md flex items-center gap-1.5" title="Non-terminal working orders (PENDING + OPEN + PARTIAL)">
               <span className="text-[10px] text-[var(--text-secondary)] uppercase font-semibold">Open:</span>
-              <span className="mono font-bold text-blue-300 text-xs tabular-nums">{openCount}</span>
+              <span className="mono font-bold text-emerald-300 text-xs tabular-nums">{openCount}</span>
               <span className="text-[9.5px] text-[var(--text-secondary)] tabular-nums">/ {orders.length}</span>
             </div>
 
             <div className="bg-[var(--bg-page)] border border-[var(--border)] px-2.5 py-1 rounded-md flex items-center gap-1.5" title="Total capital exposed across all working orders">
               <span className="text-[10px] text-[var(--text-secondary)] uppercase font-semibold">Capital:</span>
-              <span className="mono font-bold text-cyan-400 text-xs tabular-nums">{fmtUsd(totalOpenExposure)}</span>
+              <span className="mono font-bold text-emerald-400 text-xs tabular-nums">{fmtUsd(totalOpenExposure)}</span>
             </div>
           </div>
         )}
@@ -399,7 +399,7 @@ function OrdersPanel({
               value={filterQuery}
               onChange={(e) => setFilterQuery(e.target.value)}
               aria-label="Search working orders"
-              className="w-full text-xs bg-[var(--bg-page)] border border-[var(--border)] focus:border-cyan-500/50 rounded pl-7 pr-7 py-1 text-[var(--text-primary)] placeholder-[var(--text-dim)] outline-none transition-all"
+              className="w-full text-xs bg-[var(--bg-page)] border border-[var(--border)] focus:border-emerald-500/50 rounded pl-7 pr-7 py-1 text-[var(--text-primary)] placeholder-[var(--text-dim)] outline-none transition-all"
             />
             {filterQuery && (
               <button
@@ -418,7 +418,7 @@ function OrdersPanel({
               would just duplicate the header's "(N)" badge). */}
           {filterQuery && (
             <span className="text-[10px] mono text-[var(--text-secondary)] inline-flex items-center gap-1 px-1.5 py-0.5 rounded border border-[var(--border)] bg-[var(--bg-surface)] shrink-0">
-              Showing <strong className="text-cyan-300 font-semibold tabular-nums">{filteredOrders.length}</strong>
+              Showing <strong className="text-emerald-300 font-semibold tabular-nums">{filteredOrders.length}</strong>
               <span className="opacity-50">of</span>
               <strong className="text-[var(--text-primary)] font-semibold tabular-nums">{orders.length}</strong>
             </span>
@@ -522,13 +522,13 @@ function OrdersPanel({
                   const showFillBar = !isTerminal && matched > 0
 
                   return (
-                    <tr key={o.order_id} className="hover:bg-blue-500/10 transition-colors group">
+                    <tr key={o.order_id} className="hover:bg-emerald-500/10 transition-colors group">
                       <td className="py-2.5 max-w-[220px]">
                         <div className="flex flex-col gap-0.5">
-                          <span className="text-[9.5px] text-cyan-400 font-bold uppercase tracking-wider truncate">
+                          <span className="text-[9.5px] text-emerald-400 font-bold uppercase tracking-wider truncate">
                             {info.category.icon} {info.eventTitle}
                           </span>
-                          <span className="text-[var(--text-primary)] group-hover:text-cyan-300 font-medium leading-tight text-xs block whitespace-normal transition-colors" title={info.fullLabel}>
+                          <span className="text-[var(--text-primary)] group-hover:text-emerald-300 font-medium leading-tight text-xs block whitespace-normal transition-colors" title={info.fullLabel}>
                             {info.question}
                           </span>
                         </div>
@@ -557,7 +557,7 @@ function OrdersPanel({
                       </td>
 
                       {/* Price */}
-                      <td className="mono text-right font-bold text-cyan-400 tabular-nums">
+                      <td className="mono text-right font-bold text-emerald-400 tabular-nums">
                         {fmtPrice(o.price)}
                       </td>
 

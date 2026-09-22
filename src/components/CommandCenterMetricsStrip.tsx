@@ -136,7 +136,7 @@ interface Cluster {
 // ── Sub-components ──────────────────────────────────────────────────────────
 
 const TONE_TEXT: Record<Tone, string> = {
-  neutral: 'text-[#dde1ed]',
+  neutral: 'text-[var(--text-primary)]',
   positive: 'text-green-400',
   negative: 'text-red-400',
   warning: 'text-amber-300',
@@ -145,12 +145,12 @@ const TONE_TEXT: Record<Tone, string> = {
 function KpiCard({ kpi }: { kpi: Kpi }) {
   return (
     <div
-      className="bg-[#0e1015] border border-[#1f2335] rounded-md p-2 flex flex-col gap-0.5 min-w-0 relative"
+      className="bg-[var(--bg-page)] border border-[var(--border)] rounded-md p-2 flex flex-col gap-0.5 min-w-0 relative"
       title={kpi.title}
       data-testid={`kpi-${kpi.id}`}
     >
       <div className="flex items-center justify-between gap-1">
-        <span className="text-[9px] uppercase tracking-wider text-[#7e8aaa] font-semibold truncate">
+        <span className="text-[9px] uppercase tracking-wider text-[var(--text-secondary)] font-semibold truncate">
           {kpi.label}
         </span>
         {kpi.stale && !kpi.loading && !kpi.error && (
@@ -184,7 +184,7 @@ function KpiCard({ kpi }: { kpi: Kpi }) {
         </span>
       )}
       {kpi.sub && !kpi.loading && !kpi.error && (
-        <span className="text-[9px] text-[#7e8aaa] truncate leading-tight">
+        <span className="text-[9px] text-[var(--text-secondary)] truncate leading-tight">
           {kpi.sub}
         </span>
       )}
@@ -197,26 +197,26 @@ function ClusterBlock({ cluster }: { cluster: Cluster }) {
   const hasDetail = !!cluster.detail
   return (
     <div
-      className="bg-[#13161e] border border-[#1f2335] rounded-lg p-2 flex flex-col gap-1.5 min-w-0"
+      className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg p-2 flex flex-col gap-1.5 min-w-0"
       data-testid={`cluster-${cluster.id}`}
     >
       <button
         type="button"
         onClick={() => hasDetail && setExpanded((e) => !e)}
         className={`flex items-center justify-between gap-2 px-1 ${
-          hasDetail ? 'cursor-pointer hover:bg-[#1a1f2e] rounded -mx-1 px-1' : 'cursor-default'
+          hasDetail ? 'cursor-pointer hover:bg-[var(--bg-elevated)] rounded -mx-1 px-1' : 'cursor-default'
         }`}
         aria-expanded={expanded}
         aria-controls={`cluster-${cluster.id}-detail`}
         disabled={!hasDetail}
       >
-        <span className="text-[10.5px] uppercase tracking-wider font-bold text-[#dde1ed] flex items-center gap-1.5">
+        <span className="text-[10.5px] uppercase tracking-wider font-bold text-[var(--text-primary)] flex items-center gap-1.5">
           <span aria-hidden="true">{cluster.icon}</span>
           {cluster.label}
         </span>
         {hasDetail && (
           <span
-            className="text-[#7e8aaa] text-[10px] transition-transform"
+            className="text-[var(--text-secondary)] text-[10px] transition-transform"
             style={{ transform: expanded ? 'rotate(90deg)' : 'rotate(0deg)' }}
             aria-hidden="true"
           >
@@ -232,7 +232,7 @@ function ClusterBlock({ cluster }: { cluster: Cluster }) {
       {hasDetail && expanded && (
         <div
           id={`cluster-${cluster.id}-detail`}
-          className="mt-1 pt-1.5 border-t border-[#1f2335] text-[10.5px] text-[#7e8aaa] max-h-40 overflow-y-auto scrollbar-thin"
+          className="mt-1 pt-1.5 border-t border-[var(--border)] text-[10.5px] text-[var(--text-secondary)] max-h-40 overflow-y-auto scrollbar-thin"
         >
           {cluster.detail}
         </div>
@@ -535,7 +535,7 @@ function CommandCenterMetricsStripImpl({
             {strategies.map((s) => (
               <li key={s} className="flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-green-400 inline-block" />
-                <span className="mono text-[10px] text-[#dde1ed]">{s}</span>
+                <span className="mono text-[10px] text-[var(--text-primary)]">{s}</span>
               </li>
             ))}
           </ul>
@@ -588,11 +588,11 @@ function CommandCenterMetricsStripImpl({
           <div className="space-y-0.5">
             <div className="flex justify-between">
               <span>Total exposure</span>
-              <span className="mono text-[#dde1ed]">{fmtUsd(totalExposure)}</span>
+              <span className="mono text-[var(--text-primary)]">{fmtUsd(totalExposure)}</span>
             </div>
             <div className="flex justify-between">
               <span>Exposure cap</span>
-              <span className="mono text-[#dde1ed]">{fmtUsd(maxExposure)}</span>
+              <span className="mono text-[var(--text-primary)]">{fmtUsd(maxExposure)}</span>
             </div>
             <div className="flex justify-between">
               <span>Observation mode</span>
@@ -673,18 +673,18 @@ function CommandCenterMetricsStripImpl({
             {brierScore != null && (
               <div className="flex justify-between">
                 <span>Brier score</span>
-                <span className="mono text-[#dde1ed]">{brierScore.toFixed(4)}</span>
+                <span className="mono text-[var(--text-primary)]">{brierScore.toFixed(4)}</span>
               </div>
             )}
             {rocAuc != null && (
               <div className="flex justify-between">
                 <span>ROC-AUC</span>
-                <span className="mono text-[#dde1ed]">{rocAuc.toFixed(3)}</span>
+                <span className="mono text-[var(--text-primary)]">{rocAuc.toFixed(3)}</span>
               </div>
             )}
             <div className="flex justify-between">
               <span>Drift status</span>
-              <span className="mono text-[#dde1ed]">{driftStatus}</span>
+              <span className="mono text-[var(--text-primary)]">{driftStatus}</span>
             </div>
           </div>
         ),
@@ -737,7 +737,7 @@ function CommandCenterMetricsStripImpl({
         detail: alerts.length > 0 ? (
           <ul className="space-y-1">
             {alerts.slice(0, 5).map((a) => (
-              <li key={a.alert_id} className="flex flex-col gap-0.5 border-b border-[#1f2335] pb-1 last:border-0 last:pb-0">
+              <li key={a.alert_id} className="flex flex-col gap-0.5 border-b border-[var(--border)] pb-1 last:border-0 last:pb-0">
                 <span className="flex items-center gap-1.5">
                   <span
                     className={`w-1.5 h-1.5 rounded-full inline-block ${
@@ -745,13 +745,13 @@ function CommandCenterMetricsStripImpl({
                         ? 'bg-red-400'
                         : a.severity === 'warning'
                         ? 'bg-amber-400'
-                        : 'bg-[#5a637a]'
+                        : 'bg-[var(--text-dim)]'
                     }`}
                     aria-hidden="true"
                   />
-                  <span className="text-[10px] text-[#dde1ed] font-semibold truncate">{a.name}</span>
+                  <span className="text-[10px] text-[var(--text-primary)] font-semibold truncate">{a.name}</span>
                 </span>
-                <span className="text-[9.5px] text-[#7e8aaa] truncate pl-3">{a.message}</span>
+                <span className="text-[9.5px] text-[var(--text-secondary)] truncate pl-3">{a.message}</span>
               </li>
             ))}
           </ul>

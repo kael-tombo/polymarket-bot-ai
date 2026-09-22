@@ -527,7 +527,7 @@ function AnalyticsPanel() {
       <div className="card flex flex-col bg-[var(--bg-surface)] border border-[var(--border)] shadow-md">
         <div className="card-header p-3 border-b border-[var(--border)] flex justify-between items-center">
           <div className="flex items-center gap-1.5">
-            <BarChart3 className="size-3.5 text-cyan-400 shrink-0" aria-hidden="true" />
+            <BarChart3 className="size-3.5 text-emerald-400 shrink-0" aria-hidden="true" />
             <span className="card-title text-xs font-bold text-[var(--text-primary)]">📊 Performance Analytics</span>
             <span className="badge badge-amber text-[9.5px]">PAPER</span>
           </div>
@@ -549,7 +549,7 @@ function AnalyticsPanel() {
         <div className="card flex flex-col bg-[var(--bg-surface)] border border-[var(--border)] shadow-md">
           <div className="card-header p-3 border-b border-[var(--border)] flex justify-between items-center">
             <div className="flex items-center gap-1.5">
-              <BarChart3 className="size-3.5 text-cyan-400 shrink-0" aria-hidden="true" />
+              <BarChart3 className="size-3.5 text-emerald-400 shrink-0" aria-hidden="true" />
               <span className="card-title text-xs font-bold text-[var(--text-primary)]">📊 Performance Analytics</span>
               <span className="badge badge-amber text-[9.5px]">PAPER</span>
             </div>
@@ -573,7 +573,7 @@ function AnalyticsPanel() {
       <div className="card flex flex-col bg-[var(--bg-surface)] border border-[var(--border)] shadow-md">
         <div className="card-header p-3 border-b border-[var(--border)] flex justify-between items-center">
           <div className="flex items-center gap-1.5">
-            <BarChart3 className="size-3.5 text-cyan-400 shrink-0" aria-hidden="true" />
+            <BarChart3 className="size-3.5 text-emerald-400 shrink-0" aria-hidden="true" />
             <span className="card-title text-xs font-bold text-[var(--text-primary)]">📊 Performance Analytics</span>
             <span className="badge badge-amber text-[9.5px]">PAPER</span>
           </div>
@@ -591,7 +591,7 @@ function AnalyticsPanel() {
     <div className="card flex flex-col bg-[var(--bg-surface)] border border-[var(--border)] shadow-md">
       <div className="card-header p-3 border-b border-[var(--border)] flex justify-between items-center">
         <div className="flex items-center gap-2">
-          <BarChart3 className="size-3.5 text-cyan-400 shrink-0" aria-hidden="true" />
+          <BarChart3 className="size-3.5 text-emerald-400 shrink-0" aria-hidden="true" />
           <span className="card-title text-xs font-bold text-[var(--text-primary)]">📊 Performance Analytics</span>
           <span className="badge badge-amber text-[9.5px]">
             {data.mode?.toUpperCase() || 'PAPER'}
@@ -682,7 +682,7 @@ function AnalyticsPanel() {
         <div className="kpi-card col-span-2" data-testid="win-rate-kpi">
           <div className="flex items-center justify-between mb-1.5">
             <div className="flex items-center gap-1.5">
-              <Percent className="size-3 text-cyan-300" aria-hidden="true" />
+              <Percent className="size-3 text-emerald-300" aria-hidden="true" />
               <span className="kpi-label">Win Rate (95% CI)</span>
             </div>
             <StatisticalSignificanceBadge
@@ -729,7 +729,7 @@ function AnalyticsPanel() {
           valueClassName="text-[var(--text-primary)]"
           value={`${data.total_trades} trades`}
           sub={
-            <span className="text-[#22d3ee]">{fmtUsd(data.total_volume_usdc)} vol</span>
+            <span className="text-[var(--accent)]">{fmtUsd(data.total_volume_usdc)} vol</span>
           }
         />
 

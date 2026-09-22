@@ -131,7 +131,7 @@ const TONE: Record<Tone, ToneConfig> = {
   warn:    { bg: 'bg-amber-500/[0.06]',   border: 'border-amber-500/25',   text: 'text-amber-400',   bar: 'bg-amber-500',   dot: 'bg-amber-400',   label: 'text-amber-400/80',   halo: 'shadow-amber-500/10' },
   poor:    { bg: 'bg-red-500/[0.06]',     border: 'border-red-500/25',     text: 'text-red-400',     bar: 'bg-red-500',     dot: 'bg-red-400',     label: 'text-red-400/80',     halo: 'shadow-red-500/10' },
   info:    { bg: 'bg-purple-500/[0.06]',  border: 'border-purple-500/25',  text: 'text-purple-400', bar: 'bg-purple-500',  dot: 'bg-purple-400',  label: 'text-purple-400/80',  halo: 'shadow-purple-500/10' },
-  neutral: { bg: 'bg-[#0e1015]',          border: 'border-[#1f2335]',      text: 'text-[#dde1ed]',   bar: 'bg-[#5a637a]',   dot: 'bg-[#5a637a]',   label: 'text-[#7e8aaa]',      halo: '' },
+  neutral: { bg: 'bg-[var(--bg-page)]',          border: 'border-[var(--border)]',      text: 'text-[var(--text-primary)]',   bar: 'bg-[var(--text-dim)]',   dot: 'bg-[var(--text-dim)]',   label: 'text-[var(--text-secondary)]',      halo: '' },
 }
 
 // ── W58-f PulseDot — small status dot with halo + ping animation ────────────
@@ -165,11 +165,11 @@ function SectionHeader({
   return (
     <div className="flex items-center gap-1.5 mb-1.5">
       <Icon className={cn('size-3 shrink-0', cfg.text)} aria-hidden="true" />
-      <span className="text-[10px] font-bold text-[#dde1ed] uppercase tracking-wider">
+      <span className="text-[10px] font-bold text-[var(--text-primary)] uppercase tracking-wider">
         {title}
       </span>
       {description && (
-        <span className="text-[9.5px] text-[#7e8aaa] italic truncate">
+        <span className="text-[9.5px] text-[var(--text-secondary)] italic truncate">
           {description}
         </span>
       )}
@@ -221,14 +221,14 @@ function KpiTile({
         {value}
       </div>
       {/* Quality bar — fills from 0% to 100% in the matching tone. */}
-      <div className="relative h-1 bg-[#0e1015] rounded-full overflow-hidden mt-0.5">
+      <div className="relative h-1 bg-[var(--bg-page)] rounded-full overflow-hidden mt-0.5">
         <div
           className={cn('absolute inset-y-0 left-0 rounded-full transition-all duration-300', cfg.bar)}
           style={{ width: `${pct}%` }}
         />
       </div>
       {hint && (
-        <div className="text-[9px] text-[#7e8aaa] italic leading-tight mt-0.5 truncate" title={hint}>
+        <div className="text-[9px] text-[var(--text-secondary)] italic leading-tight mt-0.5 truncate" title={hint}>
           {hint}
         </div>
       )}
@@ -257,12 +257,12 @@ function ShapBar({
   const widthPct = mag * 50 // half-width since bar starts from center
   return (
     <div
-      className="relative h-1.5 bg-[#0e1015] rounded-full overflow-hidden border border-[#1f2335]"
+      className="relative h-1.5 bg-[var(--bg-page)] rounded-full overflow-hidden border border-[var(--border)]"
       role="img"
       aria-label={`SHAP contribution: ${contribution >= 0 ? '+' : ''}${contribution.toFixed(4)} (${positive ? 'pushes YES' : 'pushes NO'})`}
     >
       {/* Center zero line */}
-      <div className="absolute top-0 bottom-0 left-1/2 w-px bg-[#3e4560]" aria-hidden="true" />
+      <div className="absolute top-0 bottom-0 left-1/2 w-px bg-[var(--border-strong)]" aria-hidden="true" />
       {positive ? (
         <div
           className="absolute top-0 bottom-0 left-1/2 bg-emerald-500/70 rounded-r-full transition-all duration-300"
@@ -309,17 +309,17 @@ export function AIPredictionLabel({
         // `items-center gap-1` keep the Sparkles icon vertically aligned
         // with the text baseline.
         'inline-flex items-center gap-1 uppercase tracking-wider font-bold',
-        'text-blue-300 px-1.5 py-0.5 rounded',
-        'bg-blue-500/[0.06] border border-blue-500/20',
+        'text-emerald-300 px-1.5 py-0.5 rounded',
+        'bg-emerald-500/[0.06] border border-emerald-500/20',
         textSize,
         className,
       )}
       data-testid="ai-prediction-label"
     >
-      <Sparkles className={cn(iconSize, 'text-blue-400 shrink-0')} aria-hidden="true" />
+      <Sparkles className={cn(iconSize, 'text-emerald-400 shrink-0')} aria-hidden="true" />
       <span>{label}</span>
       {hint && (
-        <span className="text-[#5a637a] italic normal-case font-normal tracking-normal ml-0.5">
+        <span className="text-[var(--text-dim)] italic normal-case font-normal tracking-normal ml-0.5">
           {hint}
         </span>
       )}
@@ -391,10 +391,10 @@ export function ConfidenceBadge({
       ring: 'shadow-[0_0_8px]',
     },
     unknown: {
-      bg: 'bg-[#1f2335]',
-      border: 'border-[#3e4560]',
-      text: 'text-[#7e8aaa]',
-      dot: 'bg-[#5a637a]',
+      bg: 'bg-[var(--border)]',
+      border: 'border-[var(--border-strong)]',
+      text: 'text-[var(--text-secondary)]',
+      dot: 'bg-[var(--text-dim)]',
       label: 'Confidence',
       halo: '',
       ring: '',
@@ -598,8 +598,8 @@ export function ModelStatusStrip({
         // per-cell separation. The strip reads as a "model readiness
         // bar" rather than a flat row of text.
         'flex flex-wrap items-center gap-x-3 gap-y-1.5',
-        'bg-gradient-to-r from-[#0e1015] to-[#13161e]',
-        'border border-[#1f2335] rounded-md px-2.5 py-1.5',
+        'bg-gradient-to-r from-[var(--bg-page)] to-[var(--bg-surface)]',
+        'border border-[var(--border)] rounded-md px-2.5 py-1.5',
         'text-[10px] tabular-nums',
         className,
       )}
@@ -610,31 +610,31 @@ export function ModelStatusStrip({
         title="Active model version"
       >
         <IconChip icon={Sparkles} tone="info" />
-        <span className="text-[#5a637a] uppercase tracking-wider font-bold">Version</span>
-        <span className="mono text-blue-300 font-bold" data-testid="status-version">
+        <span className="text-[var(--text-dim)] uppercase tracking-wider font-bold">Version</span>
+        <span className="mono text-emerald-300 font-bold" data-testid="status-version">
           {versionStr}
         </span>
       </span>
-      <span className="inline-flex items-center text-[#3e4560]" aria-hidden="true">|</span>
+      <span className="inline-flex items-center text-[var(--border-strong)]" aria-hidden="true">|</span>
       {/* Trained cell */}
       <span
         className="inline-flex items-center gap-1"
         title="Last training cycle"
       >
         <IconChip icon={Clock} tone="info" />
-        <span className="text-[#5a637a] uppercase tracking-wider font-bold">Trained</span>
-        <span className="mono text-cyan-300" data-testid="status-trained">
+        <span className="text-[var(--text-dim)] uppercase tracking-wider font-bold">Trained</span>
+        <span className="mono text-emerald-300" data-testid="status-trained">
           {trainedStr}
         </span>
       </span>
-      <span className="inline-flex items-center text-[#3e4560]" aria-hidden="true">|</span>
+      <span className="inline-flex items-center text-[var(--border-strong)]" aria-hidden="true">|</span>
       {/* Drift cell */}
       <span
         className="inline-flex items-center gap-1"
         title="Concept drift level"
       >
         <PulseDot tone={driftCfg.tone} pulse={drift !== 'unknown'} />
-        <span className="text-[#5a637a] uppercase tracking-wider font-bold">Drift</span>
+        <span className="text-[var(--text-dim)] uppercase tracking-wider font-bold">Drift</span>
         <span
           className={cn('font-bold inline-flex items-center gap-1', TONE[driftCfg.tone].text)}
           data-testid="status-drift"
@@ -643,14 +643,14 @@ export function ModelStatusStrip({
           {driftCfg.label}
         </span>
       </span>
-      <span className="inline-flex items-center text-[#3e4560]" aria-hidden="true">|</span>
+      <span className="inline-flex items-center text-[var(--border-strong)]" aria-hidden="true">|</span>
       {/* Calibration cell */}
       <span
         className="inline-flex items-center gap-1"
         title="Isotonic calibration status"
       >
         <IconChip icon={Gauge} tone={calibratedTone} />
-        <span className="text-[#5a637a] uppercase tracking-wider font-bold">Calibration</span>
+        <span className="text-[var(--text-dim)] uppercase tracking-wider font-bold">Calibration</span>
         <span
           className={cn('font-bold', TONE[calibratedTone].text)}
           data-testid="status-calibration"
@@ -658,14 +658,14 @@ export function ModelStatusStrip({
           {calibrated ? 'Calibrated' : 'Needs recalibration'}
         </span>
       </span>
-      <span className="inline-flex items-center text-[#3e4560]" aria-hidden="true">|</span>
+      <span className="inline-flex items-center text-[var(--border-strong)]" aria-hidden="true">|</span>
       {/* Feature freshness cell */}
       <span
         className="inline-flex items-center gap-1"
         title="Feature vector freshness"
       >
         <IconChip icon={RefreshCw} tone="good" />
-        <span className="text-[#5a637a] uppercase tracking-wider font-bold">Features</span>
+        <span className="text-[var(--text-dim)] uppercase tracking-wider font-bold">Features</span>
         <span className="mono text-emerald-300" data-testid="status-features">
           {featureStr}
         </span>
@@ -741,7 +741,7 @@ export function WhyExplanation({
         // W58-f — refined card with subtle backdrop tint + better
         // header treatment. The card reads as a structured "Why?"
         // sub-panel rather than a flat stack of rows.
-        'border border-blue-500/20 bg-blue-500/[0.03] rounded-md overflow-hidden',
+        'border border-emerald-500/20 bg-emerald-500/[0.03] rounded-md overflow-hidden',
         'backdrop-blur-sm',
         className,
       )}
@@ -754,16 +754,16 @@ export function WhyExplanation({
           // W58-f — refined header with hover tint, smooth transition,
           // and a leading Sparkles icon chip.
           'w-full flex items-center justify-between px-2.5 py-1.5',
-          'text-[10.5px] font-bold text-blue-300',
-          'hover:bg-blue-500/10 transition-colors',
-          'focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500/40',
+          'text-[10.5px] font-bold text-emerald-300',
+          'hover:bg-emerald-500/10 transition-colors',
+          'focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-emerald-500/40',
         )}
         data-testid="why-toggle"
       >
         <span className="inline-flex items-center gap-1.5">
-          <Sparkles className="size-3 text-blue-400 shrink-0" aria-hidden="true" />
+          <Sparkles className="size-3 text-emerald-400 shrink-0" aria-hidden="true" />
           <span>{headerLabel}</span>
-          <span className="text-[#5a637a] font-normal normal-case tracking-normal italic ml-1">
+          <span className="text-[var(--text-dim)] font-normal normal-case tracking-normal italic ml-1">
             (top 3 contributing features)
           </span>
         </span>
@@ -784,7 +784,7 @@ export function WhyExplanation({
               tone="info"
             />
             {top.length === 0 ? (
-              <div className="text-[10px] text-[#7e8aaa] italic px-1 py-1">
+              <div className="text-[10px] text-[var(--text-secondary)] italic px-1 py-1">
                 No feature attributions available for this prediction.
               </div>
             ) : (
@@ -794,18 +794,18 @@ export function WhyExplanation({
                   return (
                     <div
                       key={`${f.name}-${i}`}
-                      className="space-y-1 px-1 py-1 rounded hover:bg-[#13161e] transition-colors"
+                      className="space-y-1 px-1 py-1 rounded hover:bg-[var(--bg-surface)] transition-colors"
                       data-testid="why-feature-row"
                     >
                       <div className="grid grid-cols-[1fr_auto_auto] items-center gap-2 text-[10.5px]">
                         <span
-                          className="mono text-[#dde1ed] truncate"
+                          className="mono text-[var(--text-primary)] truncate"
                           title={f.name}
                         >
                           {f.name}
                         </span>
                         <span
-                          className="mono text-[#7e8aaa] text-right tabular-nums"
+                          className="mono text-[var(--text-secondary)] text-right tabular-nums"
                           title="Feature value at prediction time"
                         >
                           val={f.value == null ? '—' : String(f.value)}
@@ -846,7 +846,7 @@ export function WhyExplanation({
               "Agreement: 92%" line with a premium metric card that
               includes a quality bar showing agreement strength. */}
           <div>
-            <div className="border-t border-[#1f2335] pt-2">
+            <div className="border-t border-[var(--border)] pt-2">
               <SectionHeader
                 icon={Gauge}
                 title="Champion vs Challenger"
@@ -855,7 +855,7 @@ export function WhyExplanation({
               />
               {agreementPct == null ? (
                 <span
-                  className="mono text-[#7e8aaa] italic text-[10px]"
+                  className="mono text-[var(--text-secondary)] italic text-[10px]"
                   data-testid="why-agreement"
                 >
                   no challenger registered

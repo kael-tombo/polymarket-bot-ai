@@ -851,7 +851,7 @@ export default function RetentionPanel() {
                       return (
                         <TableRow
                           key={t.target}
-                          className="hover:bg-cyan-500/[0.04] hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.45)] transition-colors"
+                          className="hover:bg-emerald-500/[0.04] hover:shadow-[inset_3px_0_0_0_rgba(16,185,129,0.45)] transition-colors"
                           data-tone={tone}
                         >
                           <TableCell className="label-col">
@@ -1031,7 +1031,7 @@ export default function RetentionPanel() {
                       (lastResult as PruneAllResult).success === false ? (
                         <CheckCircle2 size={12} className="text-emerald-400" />
                       ) : (
-                        <CheckCircle2 size={12} className="text-cyan-400" />
+                        <CheckCircle2 size={12} className="text-emerald-400" />
                       )}
                       <span className="font-semibold text-[var(--text-primary)]">
                         Prune result →{' '}
@@ -1066,7 +1066,7 @@ export default function RetentionPanel() {
                         })}
                       </div>
                     ) : (
-                      <div className="text-cyan-400 mono tabular-nums">
+                      <div className="text-emerald-400 mono tabular-nums">
                         Deleted {(lastResult as PruneSingleResult).pruned.toLocaleString()} row(s) from{' '}
                         <code>{(lastResult as PruneSingleResult).target}</code>
                       </div>
@@ -1112,7 +1112,7 @@ export default function RetentionPanel() {
                         return (
                           <TableRow
                             key={h.id}
-                            className="hover:bg-cyan-500/[0.04] hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.45)] transition-colors"
+                            className="hover:bg-emerald-500/[0.04] hover:shadow-[inset_3px_0_0_0_rgba(16,185,129,0.45)] transition-colors"
                             data-tone={rowTone}
                           >
                             <TableCell className="label-col">
@@ -1128,7 +1128,7 @@ export default function RetentionPanel() {
                                 {h.target}
                               </code>
                             </TableCell>
-                            <TableCell className="text-right mono text-cyan-300 font-bold tabular-nums">
+                            <TableCell className="text-right mono text-emerald-300 font-bold tabular-nums">
                               {h.total_pruned.toLocaleString()}
                             </TableCell>
                             <TableCell>

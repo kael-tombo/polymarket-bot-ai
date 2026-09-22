@@ -349,7 +349,7 @@ const SEVERITY_TONE: Record<Severity, string> = {
   critical: 'border-red-500/30 text-red-300 data-[state=checked]:border-red-500/50 data-[state=checked]:bg-red-500/10',
   error:    'border-amber-500/30 text-amber-300 data-[state=checked]:border-amber-500/50 data-[state=checked]:bg-amber-500/10',
   warning:  'border-yellow-500/30 text-yellow-300 data-[state=checked]:border-yellow-500/50 data-[state=checked]:bg-yellow-500/10',
-  info:     'border-cyan-500/30 text-cyan-300 data-[state=checked]:border-cyan-500/50 data-[state=checked]:bg-cyan-500/10',
+  info:     'border-emerald-500/30 text-emerald-300 data-[state=checked]:border-emerald-500/50 data-[state=checked]:bg-emerald-500/10',
 }
 
 export default function SettingsModal({ isOpen, onClose }: Props) {
@@ -531,7 +531,7 @@ export default function SettingsModal({ isOpen, onClose }: Props) {
         <div className="modal-header">
           <div className="flex items-center gap-2.5">
             <span
-              className="inline-flex items-center justify-center size-7 rounded-md bg-cyan-500/[0.08] border border-cyan-500/25 text-cyan-400 shadow-[0_0_12px_rgba(34,211,238,0.10)]"
+              className="inline-flex items-center justify-center size-7 rounded-md bg-emerald-500/[0.08] border border-emerald-500/25 text-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.10)]"
               aria-hidden="true"
             >
               <Settings className="size-4" />
@@ -560,7 +560,7 @@ export default function SettingsModal({ isOpen, onClose }: Props) {
             const Icon = SECTION_ICONS[section]
             return (
               <section key={section} aria-label={section}>
-                <h3 className="flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-wider text-cyan-400 mb-3 border-b border-[var(--border)] pb-2">
+                <h3 className="flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-wider text-emerald-400 mb-3 border-b border-[var(--border)] pb-2">
                   <Icon className="size-3.5" aria-hidden="true" />
                   {/* The section name is wrapped in its own `<span>` so the
                       W38-8 test contract `getByText(section)` resolves to a
@@ -670,9 +670,9 @@ function SettingRow({
   const { label, description, control } = descriptor
 
   return (
-    <div className="group flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-4 bg-[var(--bg-page)] border border-[var(--border)] rounded-md px-3 py-2.5 transition-colors duration-150 hover:border-cyan-500/25 hover:bg-cyan-500/[0.02]">
+    <div className="group flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-4 bg-[var(--bg-page)] border border-[var(--border)] rounded-md px-3 py-2.5 transition-colors duration-150 hover:border-emerald-500/25 hover:bg-emerald-500/[0.02]">
       <div className="flex-1 min-w-0">
-        <div className="text-xs font-semibold text-[var(--text-primary)] group-hover:text-cyan-50 transition-colors duration-150">{label}</div>
+        <div className="text-xs font-semibold text-[var(--text-primary)] group-hover:text-emerald-50 transition-colors duration-150">{label}</div>
         <div className="text-[11px] text-[var(--text-secondary)] mt-0.5 leading-snug">{description}</div>
       </div>
       <div className="flex-shrink-0 self-start sm:self-center min-w-[140px] sm:justify-end flex">
@@ -681,14 +681,14 @@ function SettingRow({
             checked={value as boolean}
             onCheckedChange={onToggle}
             aria-label={label}
-            className="focus-visible:ring-cyan-500/25 focus-visible:border-cyan-500/40"
+            className="focus-visible:ring-emerald-500/25 focus-visible:border-emerald-500/40"
           />
         )}
         {control.type === 'select' && (
           <Select value={String(value)} onValueChange={onSelect}>
             <SelectTrigger
               size="sm"
-              className="w-[160px] bg-[var(--bg-surface)] border-[#2a2f47] hover:border-cyan-500/30 focus-visible:ring-cyan-500/25 focus-visible:border-cyan-500/40 transition-colors duration-150"
+              className="w-[160px] bg-[var(--bg-surface)] border-[var(--border-strong)] hover:border-emerald-500/30 focus-visible:ring-emerald-500/25 focus-visible:border-emerald-500/40 transition-colors duration-150"
               aria-label={label}
             >
               <SelectValue />
@@ -711,7 +711,7 @@ function SettingRow({
               step={control.step}
               onValueChange={(v) => onSlider(v[0])}
               aria-label={label}
-              className="flex-1 [&_[data-slot=slider-thumb]]:focus-visible:ring-cyan-500/25"
+              className="flex-1 [&_[data-slot=slider-thumb]]:focus-visible:ring-emerald-500/25"
             />
             <span className="mono text-[11px] text-[var(--text-secondary)] w-12 text-right tabular-nums">
               {control.format ? control.format(value as number) : String(value)}
@@ -729,13 +729,13 @@ function SettingRow({
               return (
                 <label
                   key={opt.value}
-                  className={`flex items-center gap-1.5 text-[11px] text-[var(--text-primary)] cursor-pointer select-none bg-[var(--bg-surface)] border px-2 py-1 rounded transition-colors duration-150 hover:bg-[var(--bg-elevated)] hover:border-cyan-500/30 ${SEVERITY_TONE[opt.value]}`}
+                  className={`flex items-center gap-1.5 text-[11px] text-[var(--text-primary)] cursor-pointer select-none bg-[var(--bg-surface)] border px-2 py-1 rounded transition-colors duration-150 hover:bg-[var(--bg-elevated)] hover:border-emerald-500/30 ${SEVERITY_TONE[opt.value]}`}
                 >
                   <Checkbox
                     checked={checked}
                     onCheckedChange={() => onToggleSeverity(opt.value)}
                     aria-label={`${label}: ${opt.label}`}
-                    className="focus-visible:ring-cyan-500/25"
+                    className="focus-visible:ring-emerald-500/25"
                   />
                   <span>{opt.label}</span>
                 </label>

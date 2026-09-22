@@ -314,7 +314,7 @@ export default function DatabaseExplorerView() {
       <div className="flex justify-between items-start gap-3 p-3 border-b border-[var(--border)]">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <Database className="size-3.5 text-cyan-400 shrink-0" aria-hidden="true" />
+            <Database className="size-3.5 text-emerald-400 shrink-0" aria-hidden="true" />
             <span className="text-sm font-bold text-[var(--text-primary)]">
               Database &amp; Time-Series Explorer
             </span>
@@ -351,14 +351,14 @@ export default function DatabaseExplorerView() {
                   onClick={() => setSelectedTable(t.id)}
                   className={`w-full text-left flex items-center gap-2 px-2 py-1.5 rounded border transition-colors ${
                     active
-                      ? 'bg-cyan-500/[0.08] border-cyan-500/40 text-[var(--text-primary)] shadow-[inset_2px_0_0_0_rgba(34,211,238,0.55)]'
-                      : 'bg-transparent border-transparent text-[var(--text-secondary)] hover:bg-cyan-500/[0.04] hover:text-[var(--text-primary)] hover:border-cyan-500/20'
+                      ? 'bg-emerald-500/[0.08] border-emerald-500/40 text-[var(--text-primary)] shadow-[inset_2px_0_0_0_rgba(16,185,129,0.55)]'
+                      : 'bg-transparent border-transparent text-[var(--text-secondary)] hover:bg-emerald-500/[0.04] hover:text-[var(--text-primary)] hover:border-emerald-500/20'
                   }`}
                   aria-current={active ? 'page' : undefined}
                   aria-pressed={active}
                 >
                   <Icon
-                    className={`size-3.5 shrink-0 ${active ? 'text-cyan-300' : 'text-[var(--text-secondary)]'}`}
+                    className={`size-3.5 shrink-0 ${active ? 'text-emerald-300' : 'text-[var(--text-secondary)]'}`}
                     aria-hidden="true"
                   />
                   <span className="text-[11px] font-medium truncate">{t.label}</span>
@@ -375,13 +375,13 @@ export default function DatabaseExplorerView() {
               estimate + polling-interval badge + CSV export. */}
           <div className="px-3 pt-2.5 pb-2 border-b border-[var(--border)] flex flex-wrap items-center gap-2">
             <div className="flex items-center gap-2 min-w-0 flex-1">
-              <TableIcon className="size-3.5 text-cyan-400 shrink-0" aria-hidden="true" />
+              <TableIcon className="size-3.5 text-emerald-400 shrink-0" aria-hidden="true" />
               <div className="min-w-0">
                 <div className="flex items-center gap-1.5 flex-wrap">
                   <span className="text-[9.5px] uppercase tracking-wider font-bold text-[var(--text-secondary)]">
                     Table
                   </span>
-                  <span className="mono text-cyan-400 text-xs font-medium">
+                  <span className="mono text-emerald-400 text-xs font-medium">
                     {selectedTable}
                   </span>
                   <span
@@ -438,7 +438,7 @@ export default function DatabaseExplorerView() {
                   document.body.removeChild(link)
                 }}
                 disabled={records.length === 0}
-                className="btn btn-ghost btn-sm text-[10px] px-2 py-0.5 border border-[var(--border)] text-[var(--text-secondary)] hover:text-white hover:border-cyan-500/30 flex items-center gap-1 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="btn btn-ghost btn-sm text-[10px] px-2 py-0.5 border border-[var(--border)] text-[var(--text-secondary)] hover:text-white hover:border-emerald-500/30 flex items-center gap-1 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 title={`Export ${selectedTable} CSV`}
               >
                 <Download className="w-3 h-3" aria-hidden="true" />
@@ -491,7 +491,7 @@ export default function DatabaseExplorerView() {
                   {records.map((r, i) => (
                     <tr
                       key={i}
-                      className="hover:bg-cyan-500/[0.04] transition-colors"
+                      className="hover:bg-emerald-500/[0.04] transition-colors"
                     >
                       {Object.entries(r).map(([k, val]: [string, any], j) => (
                         <td

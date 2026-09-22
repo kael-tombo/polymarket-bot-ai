@@ -69,7 +69,7 @@ function CandlestickSkeleton() {
     { h: 50, g: false }, { h: 65, g: true }, { h: 75, g: false }, { h: 60, g: true },
   ]
   return (
-    <div className="w-full h-52 relative bg-[#0e1015] p-3 rounded-lg border border-[#1f2335] shadow-[0_2px_10px_rgba(0,0,0,0.20)] overflow-hidden">
+    <div className="w-full h-52 relative bg-[var(--bg-page)] p-3 rounded-lg border border-[var(--border)] shadow-[0_2px_10px_rgba(0,0,0,0.20)] overflow-hidden">
       {/* Shimmer candlesticks (decorative — aria-hidden) */}
       <div className="absolute inset-3 flex items-end gap-[3px]" aria-hidden="true">
         {candles.map((c, i) => (
@@ -91,13 +91,13 @@ function CandlestickSkeleton() {
         {[0.25, 0.5, 0.75].map((pct) => (
           <div
             key={pct}
-            className="absolute left-0 right-0 border-t border-dashed border-[#1f2335]/60"
+            className="absolute left-0 right-0 border-t border-dashed border-[var(--border)]/60"
             style={{ top: `${pct * 100}%` }}
           />
         ))}
       </div>
       {/* Centered caption — preserves the W38-8 test contract */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center text-xs text-[#7e8aaa] bg-[#0e1015]/55 backdrop-blur-[1px]">
+      <div className="absolute inset-0 flex flex-col items-center justify-center text-xs text-[var(--text-secondary)] bg-[var(--bg-page)]/55 backdrop-blur-[1px]">
         <span className="spinner mb-2" aria-hidden="true" />
         Rendering price timeline…
       </div>
@@ -229,10 +229,10 @@ export default function MarketChartModal({ tokenId, slug, onClose, onOrderPlaced
           <div className="flex items-center gap-3">
             <span className="text-xl" aria-hidden="true">{cat.icon}</span>
             <div>
-              <h3 id="chart-modal-title" className="text-sm font-bold text-[#dde1ed] truncate max-w-md tracking-tight">{title}</h3>
+              <h3 id="chart-modal-title" className="text-sm font-bold text-[var(--text-primary)] truncate max-w-md tracking-tight">{title}</h3>
               <div className="flex items-center gap-2 mt-0.5">
                 <span className={`text-[9px] px-1.5 py-0.2 rounded border ${cat.color}`}>{cat.label}</span>
-                <span className="text-[10px] text-[#7e8aaa] mono tabular-nums">{tokenId.slice(0, 18)}…</span>
+                <span className="text-[10px] text-[var(--text-secondary)] mono tabular-nums">{tokenId.slice(0, 18)}…</span>
                 <span className="badge badge-amber text-[9px]">Paper Mode</span>
               </div>
             </div>
@@ -240,13 +240,13 @@ export default function MarketChartModal({ tokenId, slug, onClose, onOrderPlaced
 
           <div className="flex items-center gap-2">
             {/* Timeframe selector */}
-            <div className="flex bg-[#0e1015] p-0.5 rounded-md border border-[#1f2335] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.02)]">
+            <div className="flex bg-[var(--bg-page)] p-0.5 rounded-md border border-[var(--border)] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.02)]">
               {(['1m', '5m', '1h'] as Array<'1m' | '5m' | '1h'>).map((r) => (
                 <button
                   key={r}
                   onClick={() => setResolution(r)}
                   className={`px-2.5 py-0.5 rounded text-[11px] font-bold uppercase transition-all ${
-                    resolution === r ? 'bg-blue-500 text-black shadow-[0_1px_2px_rgba(0,0,0,0.3)]' : 'text-[#7e8aaa] hover:text-white'
+                    resolution === r ? 'bg-emerald-500 text-black shadow-[0_1px_2px_rgba(0,0,0,0.3)]' : 'text-[var(--text-secondary)] hover:text-white'
                   }`}
                   aria-label={`Timeframe ${r}`}
                 >
@@ -258,7 +258,7 @@ export default function MarketChartModal({ tokenId, slug, onClose, onOrderPlaced
             <button
               onClick={() => setShowEma(!showEma)}
               className={`px-2 py-0.5 rounded text-[10px] mono border transition-all ${
-                showEma ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/40 shadow-[0_0_8px_rgba(34,211,238,0.18)]' : 'bg-[#0e1015] text-[#7e8aaa] border-[#1f2335]'
+                showEma ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40 shadow-[0_0_8px_rgba(16,185,129,0.18)]' : 'bg-[var(--bg-page)] text-[var(--text-secondary)] border-[var(--border)]'
               }`}
               aria-label="Toggle EMA 21 indicator"
             >
@@ -288,7 +288,7 @@ export default function MarketChartModal({ tokenId, slug, onClose, onOrderPlaced
           {loading || bars.length === 0 ? (
             <CandlestickSkeleton />
           ) : (
-            <div className="w-full h-52 relative bg-[#0e1015] p-3 rounded-lg border border-[#1f2335] shadow-[0_2px_10px_rgba(0,0,0,0.20)] overflow-hidden">
+            <div className="w-full h-52 relative bg-[var(--bg-page)] p-3 rounded-lg border border-[var(--border)] shadow-[0_2px_10px_rgba(0,0,0,0.20)] overflow-hidden">
               {/* W52-c — top-edge highlight (mirrors .card::before pattern) */}
               <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/5 to-transparent pointer-events-none" aria-hidden="true" />
               <svg viewBox="0 0 440 180" className="w-full h-full" role="img" aria-label={`Price candlestick chart for ${title}`}>
@@ -300,7 +300,7 @@ export default function MarketChartModal({ tokenId, slug, onClose, onOrderPlaced
                     y1={10 + pct * 160}
                     x2="425"
                     y2={10 + pct * 160}
-                    stroke="#1f2335"
+                    stroke="var(--border)"
                     strokeDasharray="2 3"
                     strokeOpacity={0.6}
                   />
@@ -317,7 +317,7 @@ export default function MarketChartModal({ tokenId, slug, onClose, onOrderPlaced
                       x="432"
                       y={y + 3}
                       textAnchor="start"
-                      fill="#7e8aaa"
+                      fill="var(--text-secondary)"
                       fontSize="8.5"
                       fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace"
                     >
@@ -327,8 +327,8 @@ export default function MarketChartModal({ tokenId, slug, onClose, onOrderPlaced
                 })}
 
                 {/* Axis frame (left + bottom) */}
-                <line x1="10" y1="10" x2="10" y2="170" stroke="#1f2335" strokeWidth="0.5" strokeOpacity={0.7} />
-                <line x1="10" y1="170" x2="425" y2="170" stroke="#1f2335" strokeWidth="0.5" strokeOpacity={0.7} />
+                <line x1="10" y1="10" x2="10" y2="170" stroke="var(--border)" strokeWidth="0.5" strokeOpacity={0.7} />
+                <line x1="10" y1="170" x2="425" y2="170" stroke="var(--border)" strokeWidth="0.5" strokeOpacity={0.7} />
 
                 {/* Candlestick Bars */}
                 {bars.map((b, i) => {
@@ -367,7 +367,7 @@ export default function MarketChartModal({ tokenId, slug, onClose, onOrderPlaced
                     <path
                       d={emaPath}
                       fill="none"
-                      stroke="#38bdf8"
+                      stroke="#10b981"
                       strokeWidth="3.5"
                       strokeOpacity="0.18"
                       strokeLinecap="round"
@@ -376,7 +376,7 @@ export default function MarketChartModal({ tokenId, slug, onClose, onOrderPlaced
                     <path
                       d={emaPath}
                       fill="none"
-                      stroke="#38bdf8"
+                      stroke="#10b981"
                       strokeWidth="1.6"
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -389,7 +389,7 @@ export default function MarketChartModal({ tokenId, slug, onClose, onOrderPlaced
         </div>
 
         {/* Quick Trade Footer Pad */}
-        <div className="modal-footer bg-[#111420] flex-wrap justify-between gap-3">
+        <div className="modal-footer bg-[var(--bg-surface)] flex-wrap justify-between gap-3">
           <div className="flex flex-wrap items-center gap-3">
             <div>
               <label className="form-label mb-0.5 text-[10px]">Price ($)</label>
@@ -425,8 +425,8 @@ export default function MarketChartModal({ tokenId, slug, onClose, onOrderPlaced
                       onClick={() => setSizeUsdc(preset)}
                       className={`px-1.5 py-0.5 rounded text-[10px] mono font-bold border transition-all ${
                         sizeUsdc === preset
-                          ? 'bg-blue-500/20 text-cyan-300 border-blue-500/50'
-                          : 'bg-[#0e1015] text-[#7e8aaa] border-[#1f2335] hover:text-white'
+                          ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50'
+                          : 'bg-[var(--bg-page)] text-[var(--text-secondary)] border-[var(--border)] hover:text-white'
                       }`}
                     >
                       ${preset}
@@ -446,10 +446,10 @@ export default function MarketChartModal({ tokenId, slug, onClose, onOrderPlaced
               const returnPct = s > 0 ? (estProfit / s) * 100 : 0
 
               return (
-                <div className="flex items-center gap-2 bg-[#0e1015] border border-[#1f2335] px-2.5 py-1 rounded text-[10.5px]">
-                  <span className="text-[#7e8aaa]">Est. Shares: <strong className="text-[#dde1ed] mono tabular-nums">{estShares.toFixed(1)}</strong></span>
-                  <span className="text-[#3e4560]">|</span>
-                  <span className="text-[#7e8aaa]">Payout: <strong className="text-green-400 mono tabular-nums">${estPayout.toFixed(2)}</strong> ({returnPct >= 0 ? `+${returnPct.toFixed(0)}%` : `${returnPct.toFixed(0)}%`})</span>
+                <div className="flex items-center gap-2 bg-[var(--bg-page)] border border-[var(--border)] px-2.5 py-1 rounded text-[10.5px]">
+                  <span className="text-[var(--text-secondary)]">Est. Shares: <strong className="text-[var(--text-primary)] mono tabular-nums">{estShares.toFixed(1)}</strong></span>
+                  <span className="text-[var(--text-dim)]">|</span>
+                  <span className="text-[var(--text-secondary)]">Payout: <strong className="text-green-400 mono tabular-nums">${estPayout.toFixed(2)}</strong> ({returnPct >= 0 ? `+${returnPct.toFixed(0)}%` : `${returnPct.toFixed(0)}%`})</span>
                 </div>
               )
             })()}

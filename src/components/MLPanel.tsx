@@ -576,7 +576,7 @@ export default function MLPanel({ snapshotMl }: MLPanelProps) {
         {/* Row 3 — secondary badges: meta-learner warmth + calibration */}
         <div className="flex items-center gap-1.5 mt-1.5">
           <span className="inline-flex items-center gap-1 text-[9px] text-[var(--text-secondary)] uppercase tracking-wider font-bold">
-            <ShieldCheck className="size-2.5 text-cyan-400" aria-hidden="true" />
+            <ShieldCheck className="size-2.5 text-emerald-400" aria-hidden="true" />
             Calibration
           </span>
           {/* This is the "Calibrated"/"Syncing" badge the test matches. */}
@@ -790,13 +790,13 @@ export default function MLPanel({ snapshotMl }: MLPanelProps) {
                 {Object.entries(adaptiveWeights).map(([name, w]) => (
                   <div key={name} className="bg-[var(--bg-base)] rounded p-1 border border-[var(--border)] text-center">
                     <div className="text-[9px] text-[var(--text-secondary)] uppercase">{name}</div>
-                    <div className="mono text-[10.5px] font-bold text-cyan-400 mt-0.5">
+                    <div className="mono text-[10.5px] font-bold text-emerald-400 mt-0.5">
                       {(w * 100).toFixed(0)}%
                     </div>
                     {/* mini bar */}
                     <div className="mt-1 h-0.5 bg-[var(--border)] rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-cyan-500 rounded-full transition-all duration-500"
+                        className="h-full bg-emerald-500 rounded-full transition-all duration-500"
                         style={{ width: `${w * 100}%` }}
                       />
                     </div>
@@ -821,7 +821,7 @@ export default function MLPanel({ snapshotMl }: MLPanelProps) {
               {!metaWarm && (
                 <div className="h-1 bg-[var(--border)] rounded-full overflow-hidden mt-1">
                   <div
-                    className="h-full bg-gradient-to-r from-purple-600 to-blue-500 rounded-full transition-all duration-700"
+                    className="h-full bg-gradient-to-r from-purple-600 to-emerald-500 rounded-full transition-all duration-700"
                     style={{ width: `${Math.min(100, (ml.meta_learner.buffer_size / ml.meta_learner.min_samples_required) * 100)}%` }}
                   />
                 </div>
@@ -837,7 +837,7 @@ export default function MLPanel({ snapshotMl }: MLPanelProps) {
           <div className="flex flex-col gap-1 text-xs bg-[var(--bg-base)] p-2 rounded border border-[var(--border)]">
             <div className="flex justify-between">
               <span className="text-[var(--text-secondary)]">Online Updates</span>
-              <span className="mono text-cyan-400 font-bold">{nUpdates}</span>
+              <span className="mono text-emerald-400 font-bold">{nUpdates}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-[var(--text-secondary)]">Training Source</span>
@@ -883,7 +883,7 @@ export default function MLPanel({ snapshotMl }: MLPanelProps) {
                     <span className="text-[10px] text-[var(--text-primary)] w-28 truncate shrink-0 mono">{name}</span>
                     <div className="flex-1 h-1.5 bg-[var(--bg-base)] rounded-full overflow-hidden border border-[var(--border)]">
                       <div
-                        className="h-full rounded-full bg-gradient-to-r from-purple-600 via-purple-500 to-blue-400 transition-all duration-500"
+                        className="h-full rounded-full bg-gradient-to-r from-purple-600 via-purple-500 to-emerald-400 transition-all duration-500"
                         style={{ width: `${(imp / maxImp) * 100}%` }}
                       />
                     </div>

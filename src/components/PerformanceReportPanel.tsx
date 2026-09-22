@@ -960,7 +960,7 @@ export function PerformanceReportPanel({
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center gap-2">
           <PulseDot tone="info" />
-          <Activity className="w-3.5 h-3.5 text-cyan-400 shrink-0" aria-hidden="true" />
+          <Activity className="w-3.5 h-3.5 text-emerald-400 shrink-0" aria-hidden="true" />
           <span className="text-sm font-bold text-[var(--text-primary)]">
             📈 Honest Performance Report
           </span>

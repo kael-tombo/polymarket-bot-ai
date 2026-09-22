@@ -886,18 +886,18 @@ function SourceCard({ source }: SourceCardProps) {
   const failedColor = TONE[failedTone].text
   return (
     <Card
-      className="bg-[var(--bg-page)] border-[var(--border)] py-0 gap-0 transition-colors hover:border-cyan-500/30 hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.55)]"
+      className="bg-[var(--bg-page)] border-[var(--border)] py-0 gap-0 transition-colors hover:border-emerald-500/30 hover:shadow-[inset_3px_0_0_0_rgba(16,185,129,0.55)]"
       data-testid={`source-card-${source.id}`}
     >
       <CardHeader className="px-3 py-2.5 border-b border-[var(--border)]">
         <CardTitle className="text-xs font-bold text-[var(--text-primary)] flex items-center justify-between gap-2">
           <span className="flex items-center gap-2">
             {source.id === 'websocket' ? (
-              <Radio size={12} className="text-cyan-400" aria-hidden="true" />
+              <Radio size={12} className="text-emerald-400" aria-hidden="true" />
             ) : source.id === 'gamma' ? (
-              <TrendingUp size={12} className="text-cyan-400" aria-hidden="true" />
+              <TrendingUp size={12} className="text-emerald-400" aria-hidden="true" />
             ) : (
-              <Server size={12} className="text-cyan-400" aria-hidden="true" />
+              <Server size={12} className="text-emerald-400" aria-hidden="true" />
             )}
             {source.name}
           </span>
@@ -921,7 +921,7 @@ function SourceCard({ source }: SourceCardProps) {
             Events / sec
           </div>
           <div
-            className="mono text-cyan-400 tabular-nums"
+            className="mono text-emerald-400 tabular-nums"
             data-testid={`source-eps-${source.id}`}
             data-tone="info"
           >
@@ -1022,7 +1022,7 @@ function LoadingSkeleton() {
             <div className="skeleton-line-lg mt-1.5" />
             <ShimmerBlock className="!w-24 !h-2 mt-1" />
             <div className="h-0.5 bg-[var(--border)] rounded-full mt-2 overflow-hidden">
-              <div className="h-full w-1/2 bg-[#2a2f45] rounded-full" />
+              <div className="h-full w-1/2 bg-[var(--border-strong)] rounded-full" />
             </div>
           </div>
         ))}
@@ -1083,7 +1083,7 @@ function SectionCard({
 }: SectionCardProps) {
   return (
     <Card
-      className="bg-[var(--bg-page)] border-[var(--border)] py-0 gap-0 transition-colors hover:border-[#2a2f45]"
+      className="bg-[var(--bg-page)] border-[var(--border)] py-0 gap-0 transition-colors hover:border-[var(--border-strong)]"
       data-testid={rest['data-testid']}
     >
       <CardHeader className="px-3 py-2.5 border-b border-[var(--border)]">
@@ -1522,7 +1522,7 @@ export default function IngestionHealthPanel() {
       <div className="flex flex-wrap justify-between items-center pb-2 border-b border-[var(--border)] gap-2">
         <div>
           <div className="flex items-center gap-2">
-            <PlugZap size={18} className="text-cyan-400" aria-hidden="true" />
+            <PlugZap size={18} className="text-emerald-400" aria-hidden="true" />
             <span className="text-sm font-bold text-[var(--text-primary)]">
               Data Ingestion Health
             </span>
@@ -1570,7 +1570,7 @@ export default function IngestionHealthPanel() {
             variant="outline"
             size="sm"
             onClick={handleManualRefresh}
-            className="h-7 px-2 text-xs border-[var(--border)] text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-strong)] focus-visible:ring-1 focus-visible:ring-cyan-400/40"
+            className="h-7 px-2 text-xs border-[var(--border)] text-[var(--text-secondary)] hover:text-white hover:border-[var(--border-strong)] focus-visible:ring-1 focus-visible:ring-emerald-400/40"
             aria-label="Refresh ingestion health"
             disabled={retrying}
           >
@@ -1624,7 +1624,7 @@ export default function IngestionHealthPanel() {
           label="Total Events"
           value={formatCount(metrics?.total_events)}
           sub="since startup"
-          valueClass="text-cyan-400"
+          valueClass="text-emerald-400"
           icon={Activity}
           tone="info"
           trend="up"
@@ -1766,7 +1766,7 @@ export default function IngestionHealthPanel() {
       {metrics && metrics.throughput_trend && metrics.throughput_trend.length > 0 && (
         <SectionCard
           icon={Activity}
-          iconClass="text-cyan-400"
+          iconClass="text-emerald-400"
           title="Throughput Trend"
           badge={
             <span className="text-[10px] text-[var(--text-secondary)] font-normal mono tabular-nums">
@@ -1928,7 +1928,7 @@ export default function IngestionHealthPanel() {
       {/* ── Source health grid ──────────────────────────────────────────── */}
       <SectionCard
         icon={Server}
-        iconClass="text-cyan-400"
+        iconClass="text-emerald-400"
         title="Source Health"
         badge={
           <span className="text-[10px] text-[var(--text-secondary)] font-normal mono tabular-nums">
@@ -2277,7 +2277,7 @@ export default function IngestionHealthPanel() {
       {/* ── Coverage ───────────────────────────────────────────────────── */}
       <SectionCard
         icon={Layers}
-        iconClass={coverage ? TONE[coverageTone(coverage.coverage_pct)].text : 'text-cyan-400'}
+        iconClass={coverage ? TONE[coverageTone(coverage.coverage_pct)].text : 'text-emerald-400'}
         title="Market Coverage"
         badge={
           coverage ? (
@@ -2314,7 +2314,7 @@ export default function IngestionHealthPanel() {
                   Markets Tracked
                 </div>
                 <div
-                  className="font-bold mono text-cyan-400 tabular-nums"
+                  className="font-bold mono text-emerald-400 tabular-nums"
                   data-testid="coverage-tracked"
                   data-tone="info"
                 >
@@ -2460,7 +2460,7 @@ export default function IngestionHealthPanel() {
                 <div className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] mb-0.5">
                   WS Reconnects
                 </div>
-                <div className="font-bold mono text-cyan-400 tabular-nums" data-tone="info">
+                <div className="font-bold mono text-emerald-400 tabular-nums" data-tone="info">
                   {formatCount(pipelineStatus.ws_reconnect_count)}
                 </div>
               </div>
@@ -2468,7 +2468,7 @@ export default function IngestionHealthPanel() {
                 <div className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] mb-0.5">
                   Tracked Tokens
                 </div>
-                <div className="font-bold mono text-cyan-400 tabular-nums" data-tone="info">
+                <div className="font-bold mono text-emerald-400 tabular-nums" data-tone="info">
                   {formatCount(pipelineStatus.rest_tracked_tokens)}
                 </div>
               </div>
@@ -2517,7 +2517,7 @@ export default function IngestionHealthPanel() {
         iconClass={
           reliability && reliability.count > 0
             ? TONE[reliabilityScoreTone(reliability.avg_score)].text
-            : 'text-cyan-400'
+            : 'text-emerald-400'
         }
         title="Source Reliability"
         badge={
@@ -2556,7 +2556,7 @@ export default function IngestionHealthPanel() {
                 return (
                   <div
                     key={s.source}
-                    className="bg-[var(--bg-surface)] p-2.5 rounded border border-[var(--border)] text-xs transition-colors hover:border-cyan-500/30 hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.55)]"
+                    className="bg-[var(--bg-surface)] p-2.5 rounded border border-[var(--border)] text-xs transition-colors hover:border-emerald-500/30 hover:shadow-[inset_3px_0_0_0_rgba(16,185,129,0.55)]"
                     data-testid={`reliability-row-${s.source}`}
                     data-tone={sTone}
                   >
@@ -2605,7 +2605,7 @@ export default function IngestionHealthPanel() {
           no runs have been recorded yet. */}
       <SectionCard
         icon={Database}
-        iconClass="text-cyan-400"
+        iconClass="text-emerald-400"
         title="Backfill Progress"
         badge={
           backfillStatus ? (
@@ -2640,7 +2640,7 @@ export default function IngestionHealthPanel() {
               {backfillStatus.runs.slice(0, 3).map((run) => (
                 <div
                   key={run.id}
-                  className="flex items-center justify-between gap-2 text-[10px] bg-[var(--bg-surface)] px-2 py-1.5 rounded border border-[var(--border)] transition-colors hover:border-cyan-500/30 hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.55)]"
+                  className="flex items-center justify-between gap-2 text-[10px] bg-[var(--bg-surface)] px-2 py-1.5 rounded border border-[var(--border)] transition-colors hover:border-emerald-500/30 hover:shadow-[inset_3px_0_0_0_rgba(16,185,129,0.55)]"
                   data-testid={`backfill-row-${run.id}`}
                   data-tone={run.total_errors === 0 ? 'good' : 'poor'}
                 >
@@ -2672,7 +2672,7 @@ export default function IngestionHealthPanel() {
                 variant="outline"
                 disabled={actionPending}
                 onClick={() => setConfirmDialog({ kind: 'launch-backfill' })}
-                className="h-7 px-3 text-xs border-[var(--border)] text-cyan-400 hover:bg-cyan-500/10 hover:text-cyan-300 hover:border-cyan-500/30 disabled:opacity-40 focus-visible:ring-1 focus-visible:ring-cyan-400/40"
+                className="h-7 px-3 text-xs border-[var(--border)] text-emerald-400 hover:bg-emerald-500/10 hover:text-emerald-300 hover:border-emerald-500/30 disabled:opacity-40 focus-visible:ring-1 focus-visible:ring-emerald-400/40"
                 data-testid="btn-launch-backfill"
               >
                 <Zap size={12} aria-hidden="true" />
@@ -2693,7 +2693,7 @@ export default function IngestionHealthPanel() {
           next 15s poll tick. */}
       <SectionCard
         icon={Settings}
-        iconClass="text-cyan-400"
+        iconClass="text-emerald-400"
         title="Operational Controls"
         data-testid="operational-controls-card"
       >
@@ -2728,7 +2728,7 @@ export default function IngestionHealthPanel() {
               variant="outline"
               disabled={actionPending}
               onClick={() => setConfirmDialog({ kind: 'replay-events' })}
-              className="h-7 px-3 text-xs border-[var(--border)] text-cyan-400 hover:bg-cyan-500/10 hover:text-cyan-300 hover:border-cyan-500/30 disabled:opacity-40 focus-visible:ring-1 focus-visible:ring-cyan-400/40"
+              className="h-7 px-3 text-xs border-[var(--border)] text-emerald-400 hover:bg-emerald-500/10 hover:text-emerald-300 hover:border-emerald-500/30 disabled:opacity-40 focus-visible:ring-1 focus-visible:ring-emerald-400/40"
               data-testid="btn-replay-events"
             >
               <RotateCw size={12} aria-hidden="true" />
@@ -2792,14 +2792,14 @@ export default function IngestionHealthPanel() {
       {/* ── Footer ─────────────────────────────────────────────────────── */}
       <div className="text-[10px] text-[var(--text-secondary)] mono text-center pt-1 tabular-nums">
         Generated at {formatRelativeTime(Math.floor((lastUpdated ?? 0) / 1000))} · endpoints:{' '}
-        <span className="text-cyan-400">{HEALTH_ENDPOINT}</span>,{' '}
-        <span className="text-cyan-400">{QUALITY_ENDPOINT}</span>,{' '}
-        <span className="text-cyan-400">{DEAD_LETTER_ENDPOINT}</span>,{' '}
-        <span className="text-cyan-400">{COVERAGE_ENDPOINT}</span>,{' '}
-        <span className="text-cyan-400">{GAPS_ENDPOINT}</span>,{' '}
-        <span className="text-cyan-400">{RELIABILITY_ENDPOINT}</span>,{' '}
-        <span className="text-cyan-400">{BACKFILL_STATUS_ENDPOINT}</span>,{' '}
-        <span className="text-cyan-400">{PIPELINE_STATUS_ENDPOINT}</span>
+        <span className="text-emerald-400">{HEALTH_ENDPOINT}</span>,{' '}
+        <span className="text-emerald-400">{QUALITY_ENDPOINT}</span>,{' '}
+        <span className="text-emerald-400">{DEAD_LETTER_ENDPOINT}</span>,{' '}
+        <span className="text-emerald-400">{COVERAGE_ENDPOINT}</span>,{' '}
+        <span className="text-emerald-400">{GAPS_ENDPOINT}</span>,{' '}
+        <span className="text-emerald-400">{RELIABILITY_ENDPOINT}</span>,{' '}
+        <span className="text-emerald-400">{BACKFILL_STATUS_ENDPOINT}</span>,{' '}
+        <span className="text-emerald-400">{PIPELINE_STATUS_ENDPOINT}</span>
       </div>
 
       {/* ── W38-6 — Confirmation dialog for the operational actions ── */}

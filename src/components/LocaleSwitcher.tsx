@@ -81,14 +81,14 @@ export default function LocaleSwitcher() {
           // default arrow is hidden (the Lucide ChevronDown glyph
           // replaces it). The left padding accommodates the flag emoji,
           // the right padding accommodates the chevron glyph.
-          'appearance-none bg-[#0e1015] border border-[#1f2335]',
-          'text-[#dde1ed] rounded-md',
+          'appearance-none bg-[var(--bg-page)] border border-[var(--border)]',
+          'text-[var(--text-primary)] rounded-md',
           'pl-6 pr-5 h-[26px] py-0.5',
           'text-[11px] mono uppercase tracking-wider font-semibold tabular-nums',
           'cursor-pointer outline-none',
-          'hover:border-[#2d3450] hover:bg-[#13161e]',
-          'focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/60',
-          'focus-visible:border-cyan-500/60',
+          'hover:border-[var(--border-strong)] hover:bg-[var(--bg-surface)]',
+          'focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60',
+          'focus-visible:border-emerald-500/60',
           'transition-colors',
         )}
       >
@@ -103,7 +103,7 @@ export default function LocaleSwitcher() {
         aria-hidden="true"
         className={cn(
           'absolute right-1 size-3 pointer-events-none z-10',
-          'text-[#7e8aaa] group-hover:text-[#dde1ed] transition-colors',
+          'text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors',
         )}
       />
     </div>

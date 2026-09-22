@@ -318,7 +318,7 @@ function RiskStatusSkeleton() {
       {/* Header skeleton */}
       <div className="card-header p-3 border-b border-[var(--border)] flex justify-between items-center gap-2">
         <div className="flex items-center gap-2">
-          <Shield className="w-3.5 h-3.5 text-[#22d3ee]" aria-hidden="true" />
+          <Shield className="w-3.5 h-3.5 text-[var(--accent)]" aria-hidden="true" />
           <span className="text-xs font-bold text-[var(--text-primary)]">
             Loading institutional risk telemetry…
           </span>
@@ -412,7 +412,7 @@ function CapitalAllocationBar({ invested, reserved, maxDeployable }: { invested:
     <div className="px-3 py-2 bg-[var(--bg-page)] border border-[var(--border)] rounded-lg mx-3 mb-2">
       <div className="flex justify-between items-center text-[10.5px] text-[var(--text-secondary)] mb-1.5">
         <span className="font-semibold text-[var(--text-primary)] flex items-center gap-1.5">
-          <BarChart3 className="w-3 h-3 text-cyan-400" aria-hidden="true" />
+          <BarChart3 className="w-3 h-3 text-emerald-400" aria-hidden="true" />
           <span>📊 Capital Allocation</span>
           <span className="text-[9.5px] font-normal text-[var(--text-secondary)] tabular-nums">
             (${invested.toFixed(2)} deployed / $60 ceiling)
@@ -425,7 +425,7 @@ function CapitalAllocationBar({ invested, reserved, maxDeployable }: { invested:
 
       <div className="w-full bg-[var(--bg-surface)] border border-[var(--border)] h-2 rounded-full overflow-hidden flex">
         <div
-          className="h-full bg-cyan-400 transition-all duration-300"
+          className="h-full bg-emerald-400 transition-all duration-300"
           style={{ width: `${Math.min(investedPct, 100)}%` }}
           title={`Invested: $${invested.toFixed(2)}`}
         />
@@ -438,7 +438,7 @@ function CapitalAllocationBar({ invested, reserved, maxDeployable }: { invested:
 
       <div className="flex justify-between text-[9px] text-[var(--text-secondary)] mt-1 mono tabular-nums">
         <span className="flex items-center gap-1">
-          <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 inline-block" /> Active: ${invested.toFixed(2)}
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" /> Active: ${invested.toFixed(2)}
         </span>
         <span className="flex items-center gap-1">
           <span className="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block" /> Pending: ${reserved.toFixed(2)}
@@ -491,7 +491,7 @@ export default function RiskStatusPanel() {
       <div className="card bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg overflow-hidden">
         <div className="card-header p-3 border-b border-[var(--border)] flex justify-between items-center gap-2">
           <div className="flex items-center gap-2">
-            <Shield className="w-3.5 h-3.5 text-[#22d3ee]" aria-hidden="true" />
+            <Shield className="w-3.5 h-3.5 text-[var(--accent)]" aria-hidden="true" />
             <span className="card-title text-xs font-bold text-[var(--text-primary)]">🛡 Risk &amp; Exposure</span>
           </div>
           <PulseDot tone="poor" pulse={false} />
@@ -523,7 +523,7 @@ export default function RiskStatusPanel() {
           badge (no ping for dead engine). */}
       <div className="card-header p-3 border-b border-[var(--border)] flex flex-wrap justify-between items-center gap-2">
         <div className="flex items-center gap-2">
-          <Shield className="w-3.5 h-3.5 text-[#22d3ee]" aria-hidden="true" />
+          <Shield className="w-3.5 h-3.5 text-[var(--accent)]" aria-hidden="true" />
           <span className="card-title text-xs font-bold text-[var(--text-primary)] tracking-wide">
             🛡 INSTITUTIONAL RISK &amp; RECONCILIATION
           </span>
@@ -674,7 +674,7 @@ export default function RiskStatusPanel() {
               return (
                 <div
                   key={name}
-                  className="flex justify-between items-center text-xs bg-[var(--bg-page)] px-2.5 py-1 rounded border border-[var(--border)] hover:bg-cyan-500/[0.04] hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.45)] transition-all"
+                  className="flex justify-between items-center text-xs bg-[var(--bg-page)] px-2.5 py-1 rounded border border-[var(--border)] hover:bg-emerald-500/[0.04] hover:shadow-[inset_3px_0_0_0_rgba(16,185,129,0.45)] transition-all"
                   data-tone={groupTone}
                 >
                   <span className="text-[var(--text-primary)] truncate max-w-[200px] text-[11px]">{name}</span>

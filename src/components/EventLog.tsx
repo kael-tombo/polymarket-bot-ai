@@ -274,7 +274,7 @@ export default function EventLog({ events, loading = false }: Props) {
               placeholder="Search events…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="input input-sm w-28 text-[10px] py-0.5 bg-[var(--bg-page)] border border-[var(--border)] pr-5 focus:border-blue-500/40"
+              className="input input-sm w-28 text-[10px] py-0.5 bg-[var(--bg-page)] border border-[var(--border)] pr-5 focus:border-emerald-500/40"
               aria-label="Filter events"
             />
             {search && (
@@ -293,7 +293,7 @@ export default function EventLog({ events, loading = false }: Props) {
                 key={f}
                 onClick={() => setFilter(f)}
                 className={`px-2 py-0.5 rounded text-[10px] uppercase font-semibold transition-all ${
-                  filter === f ? 'bg-blue-500/20 text-cyan-300 border border-blue-500/40' : 'text-[var(--text-secondary)] hover:text-white'
+                  filter === f ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'text-[var(--text-secondary)] hover:text-white'
                 }`}
               >
                 {f}

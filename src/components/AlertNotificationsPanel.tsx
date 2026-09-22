@@ -261,8 +261,8 @@ function PolishedEmptyState() {
       data-testid="empty-state"
       role="status"
     >
-      <span className="mb-2 inline-flex p-2 rounded-full bg-cyan-500/[0.06] border border-cyan-500/15" aria-hidden="true">
-        <Bell className="w-7 h-7 text-cyan-400/70" strokeWidth={1.5} />
+      <span className="mb-2 inline-flex p-2 rounded-full bg-emerald-500/[0.06] border border-emerald-500/15" aria-hidden="true">
+        <Bell className="w-7 h-7 text-emerald-400/70" strokeWidth={1.5} />
       </span>
       <p className="text-xs text-[var(--text-secondary)] max-w-[260px]">
         No active alerts. New alerts will appear here in real time.
@@ -478,7 +478,7 @@ export function AlertNotificationsPanel({ className }: AlertNotificationsPanelPr
                       <button
                         type="button"
                         onClick={() => acknowledge(alert.alert_id)}
-                        className="w-full text-left px-3 py-2 hover:bg-[#1a1e2c] focus:bg-[#1a1e2c] focus:outline-none transition-colors"
+                        className="w-full text-left px-3 py-2 hover:bg-[var(--bg-elevated)] focus:bg-[var(--bg-elevated)] focus:outline-none transition-colors"
                         aria-label={`Acknowledge alert: ${alert.name}`}
                         title="Click to acknowledge"
                       >

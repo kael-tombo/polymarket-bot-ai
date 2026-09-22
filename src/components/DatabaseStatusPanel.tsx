@@ -790,7 +790,7 @@ export default function DatabaseStatusPanel() {
       <div className="flex flex-wrap justify-between items-center pb-2 border-b border-[var(--border)] gap-2">
         <div>
           <div className="flex items-center gap-2">
-            <Database size={18} className="text-cyan-400" aria-hidden="true" />
+            <Database size={18} className="text-emerald-400" aria-hidden="true" />
             <span className="text-sm font-bold text-[var(--text-primary)]">
               Database Backend Status
             </span>
@@ -806,7 +806,7 @@ export default function DatabaseStatusPanel() {
             variant="outline"
             size="sm"
             onClick={handleManualRefresh}
-            className="h-7 px-2 text-xs border-[var(--border)] text-[var(--text-secondary)] hover:text-white hover:border-cyan-500/30 hover:bg-cyan-500/[0.04]"
+            className="h-7 px-2 text-xs border-[var(--border)] text-[var(--text-secondary)] hover:text-white hover:border-emerald-500/30 hover:bg-emerald-500/[0.04]"
             aria-label="Refresh database status"
             disabled={retrying}
           >
@@ -878,7 +878,7 @@ export default function DatabaseStatusPanel() {
           label="Total Rows"
           value={formatRowCount(totalRows)}
           sub={`${formatBytes(totalSizeMb)} across ${tables.length} tables`}
-          valueClass="text-cyan-400"
+          valueClass="text-emerald-400"
           icon={Layers}
           tone={rowsTone}
           quality={rowsQuality}
@@ -940,7 +940,7 @@ export default function DatabaseStatusPanel() {
                 <div className="text-[10px] uppercase tracking-wider text-[var(--text-secondary)] mb-0.5">
                   Avg Latency
                 </div>
-                <div className="font-bold mono tabular-nums text-cyan-400">
+                <div className="font-bold mono tabular-nums text-emerald-400">
                   {formatLatency(pgHealth.avg_latency_ms)}
                 </div>
               </div>
@@ -996,7 +996,7 @@ export default function DatabaseStatusPanel() {
               size="sm"
               onClick={handleRetryPg}
               disabled={retrying}
-              className="h-7 px-3 text-xs border-[var(--border)] text-[var(--text-primary)] hover:bg-cyan-500/[0.06] hover:border-cyan-500/30 hover:text-white"
+              className="h-7 px-3 text-xs border-[var(--border)] text-[var(--text-primary)] hover:bg-emerald-500/[0.06] hover:border-emerald-500/30 hover:text-white"
               aria-label="Retry PostgreSQL connection"
             >
               {retrying ? (
@@ -1029,7 +1029,7 @@ export default function DatabaseStatusPanel() {
       <Card className="bg-[var(--bg-page)] border-[var(--border)] py-0 gap-0">
         <CardHeader className="px-3 py-2.5 border-b border-[var(--border)]">
           <CardTitle className="text-xs font-bold text-[var(--text-primary)] flex items-center gap-2">
-            <Layers size={12} className="text-cyan-400" aria-hidden="true" />
+            <Layers size={12} className="text-emerald-400" aria-hidden="true" />
             Database Tables
             <span className="text-[10px] text-[var(--text-secondary)] font-normal mono tabular-nums">
               ({tables.length} tables · {formatRowCount(totalRows)} rows ·{' '}
@@ -1084,7 +1084,7 @@ export default function DatabaseStatusPanel() {
                     return (
                       <TableRow
                         key={`${t.name}-${i}`}
-                        className={`border-[var(--border)] hover:bg-cyan-500/[0.04] ${TONE[tTone].rowHover}`}
+                        className={`border-[var(--border)] hover:bg-emerald-500/[0.04] ${TONE[tTone].rowHover}`}
                         data-tone={tTone}
                       >
                         <TableCell
@@ -1102,7 +1102,7 @@ export default function DatabaseStatusPanel() {
                           </Badge>
                         </TableCell>
                         <TableCell
-                          className="mono text-xs text-cyan-400 px-2 py-1.5 text-right tabular-nums"
+                          className="mono text-xs text-emerald-400 px-2 py-1.5 text-right tabular-nums"
                           title={`${formatRowCount(t.row_count)} rows`}
                         >
                           {formatRowCount(t.row_count)}
@@ -1210,7 +1210,7 @@ export default function DatabaseStatusPanel() {
       {/* ── Footer ───────────────────────────────────────────────────── */}
       <div className="text-[10px] text-[var(--text-secondary)] mono tabular-nums text-center pt-1">
         Generated at {formatRelativeTime(status?.generated_at)} · endpoint:{' '}
-        <span className="text-cyan-400">{STATUS_ENDPOINT}</span>
+        <span className="text-emerald-400">{STATUS_ENDPOINT}</span>
       </div>
     </div>
   )

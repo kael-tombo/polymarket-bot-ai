@@ -185,9 +185,9 @@ const CATEGORY_META: CategoryMeta[] = [
     key: 'data_source',
     label: 'DATA',
     icon: Database,
-    textClass: 'text-blue-400',
+    textClass: 'text-emerald-400',
     badgeClass: 'badge-blue',
-    borderClass: 'border-l-blue-500/50',
+    borderClass: 'border-l-emerald-500/50',
     stroke: 'var(--accent-fg)',
   },
   {
@@ -232,10 +232,10 @@ const FALLBACK_META: CategoryMeta = {
   key: 'other',
   label: 'OTHER',
   icon: Activity,
-  textClass: 'text-cyan-400',
+  textClass: 'text-emerald-400',
   badgeClass: 'badge-cyan',
-  borderClass: 'border-l-cyan-500/50',
-  stroke: '#22d3ee',
+  borderClass: 'border-l-emerald-500/50',
+  stroke: 'var(--accent)',
 }
 
 function getCategoryMeta(key: string): CategoryMeta {
@@ -683,7 +683,7 @@ function ObservabilitySkeleton() {
       {/* Header skeleton */}
       <div className="flex items-center justify-between p-4 pb-2 border-b border-[var(--border)]">
         <div className="flex items-center gap-2">
-          <Activity className="w-4 h-4 text-blue-400" aria-hidden="true" />
+          <Activity className="w-4 h-4 text-emerald-400" aria-hidden="true" />
           <span className="text-sm font-bold text-[var(--text-primary)]">System Observability</span>
           <span className="badge badge-dim text-[9.5px]">30s poll</span>
         </div>
@@ -806,12 +806,12 @@ function AlertFeed({
                   key={`${a.category}:${a.name}`}
                   type="button"
                   onClick={() => onJump?.(a.name)}
-                  className={`w-full text-left grid grid-cols-[1fr_auto_auto] gap-3 items-center px-2 py-1.5 rounded-md bg-[var(--bg-page)] border border-[var(--border)] hover:bg-cyan-500/[0.04] hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.45)] hover:border-[var(--border-strong)] transition-all`}
+                  className={`w-full text-left grid grid-cols-[1fr_auto_auto] gap-3 items-center px-2 py-1.5 rounded-md bg-[var(--bg-page)] border border-[var(--border)] hover:bg-emerald-500/[0.04] hover:shadow-[inset_3px_0_0_0_rgba(16,185,129,0.45)] hover:border-[var(--border-strong)] transition-all`}
                   title={`${a.name} · ${severityContext(a.name)}`}
                 >
                   <div className="flex items-center gap-1.5 min-w-0">
                     <PulseDot tone={aTone} />
-                    <span className="text-[11px] font-semibold text-[#c8cfe0] truncate mono" title={a.name}>
+                    <span className="text-[11px] font-semibold text-[var(--text-mono)] truncate mono" title={a.name}>
                       {a.name}
                     </span>
                     <span className={`badge ${meta.badgeClass} text-[8px] px-1 py-0 hidden sm:inline-flex`}>
@@ -859,12 +859,12 @@ function MetricCard({ name, entry, sev, meta, history }: MetricCardProps) {
   const toneBorder = tone === 'neutral' ? 'border-[var(--border)]' : cfg.border
   return (
     <div
-      className={`bg-[var(--bg-page)] border ${toneBorder} rounded-md p-2.5 flex flex-col gap-1.5 hover:bg-cyan-500/[0.04] hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.45)] hover:border-[var(--border-strong)] transition-all`}
+      className={`bg-[var(--bg-page)] border ${toneBorder} rounded-md p-2.5 flex flex-col gap-1.5 hover:bg-emerald-500/[0.04] hover:shadow-[inset_3px_0_0_0_rgba(16,185,129,0.45)] hover:border-[var(--border-strong)] transition-all`}
       data-tone={tone}
     >
       <div className="flex items-center justify-between gap-2">
         <span
-          className="text-[10.5px] font-semibold text-[#c8cfe0] truncate mono"
+          className="text-[10.5px] font-semibold text-[var(--text-mono)] truncate mono"
           title={name}
         >
           {name}
@@ -1150,7 +1150,7 @@ export default function ObservabilityPanel() {
       <div className="flex flex-col h-full bg-[var(--bg-surface)] border border-[var(--border)] rounded-lg overflow-hidden">
         <div className="flex items-center justify-between p-4 pb-2 border-b border-[var(--border)]">
           <div className="flex items-center gap-2">
-            <Activity className="w-4 h-4 text-blue-400" aria-hidden="true" />
+            <Activity className="w-4 h-4 text-emerald-400" aria-hidden="true" />
             <span className="text-sm font-bold text-[var(--text-primary)]">System Observability</span>
             <span className="badge badge-dim text-[9.5px]">30s poll</span>
           </div>
@@ -1174,7 +1174,7 @@ export default function ObservabilityPanel() {
         <div className="flex items-center justify-between p-4 pb-2 border-b border-[var(--border)]">
           <div>
             <div className="flex items-center gap-2">
-              <Activity className="w-4 h-4 text-blue-400" aria-hidden="true" />
+              <Activity className="w-4 h-4 text-emerald-400" aria-hidden="true" />
               <span className="text-sm font-bold text-[var(--text-primary)]">System Observability</span>
               <span className="badge badge-dim text-[9.5px]">30s poll</span>
             </div>
@@ -1210,7 +1210,7 @@ export default function ObservabilityPanel() {
       <header className="flex flex-wrap justify-between items-center gap-2 p-4 pb-2 border-b border-[var(--border)]">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <Activity className="w-4 h-4 text-blue-400 flex-shrink-0" aria-hidden="true" />
+            <Activity className="w-4 h-4 text-emerald-400 flex-shrink-0" aria-hidden="true" />
             <h2 className="text-sm font-bold text-[var(--text-primary)]">System Observability</h2>
             <span className="badge badge-dim text-[9.5px]">30s poll</span>
             {/* W56-e — PulseDot LIVE indicator. Pings emerald when the
@@ -1242,7 +1242,7 @@ export default function ObservabilityPanel() {
             >
               <SelectTrigger
                 size="sm"
-                className="h-7 text-xs bg-[var(--bg-page)] border-[var(--border)] text-[var(--text-primary)] hover:border-[var(--border-strong)] data-[size=sm]:h-7 w-[100px] focus-visible:ring-1 focus-visible:ring-cyan-400/40"
+                className="h-7 text-xs bg-[var(--bg-page)] border-[var(--border)] text-[var(--text-primary)] hover:border-[var(--border-strong)] data-[size=sm]:h-7 w-[100px] focus-visible:ring-1 focus-visible:ring-emerald-400/40"
                 aria-label="Sparkline time range"
               >
                 <SelectValue />
@@ -1325,7 +1325,7 @@ export default function ObservabilityPanel() {
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search metrics by name…"
             aria-label="Filter metrics by name"
-            className="input input-sm pl-8 bg-[var(--bg-page)] border-[var(--border)] text-[var(--text-primary)] placeholder:text-[var(--text-dim)] focus-visible:ring-1 focus-visible:ring-cyan-400/40"
+            className="input input-sm pl-8 bg-[var(--bg-page)] border-[var(--border)] text-[var(--text-primary)] placeholder:text-[var(--text-dim)] focus-visible:ring-1 focus-visible:ring-emerald-400/40"
           />
         </div>
         <div className="flex items-center gap-1 flex-wrap" role="group" aria-label="Category filters">

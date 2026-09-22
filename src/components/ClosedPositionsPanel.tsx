@@ -313,8 +313,8 @@ function SortIndicator({ active, direction }: { active: boolean; direction: 'asc
   }
   return (
     <span className="inline-flex flex-col ml-1" aria-hidden="true">
-      <ChevronUp className={`size-2.5 -mb-1 ${direction === 'asc' ? 'text-cyan-400' : 'text-[var(--text-dim)]'}`} />
-      <ChevronDown className={`size-2.5 ${direction === 'desc' ? 'text-cyan-400' : 'text-[var(--text-dim)]'}`} />
+      <ChevronUp className={`size-2.5 -mb-1 ${direction === 'asc' ? 'text-emerald-400' : 'text-[var(--text-dim)]'}`} />
+      <ChevronDown className={`size-2.5 ${direction === 'desc' ? 'text-emerald-400' : 'text-[var(--text-dim)]'}`} />
     </span>
   )
 }
@@ -402,7 +402,7 @@ function ClosedPositionsSkeleton() {
           <span className="card-title text-xs font-bold text-[var(--text-primary)]">📕 Closed Positions Ledger</span>
           <span className="badge badge-cyan text-[9.5px] animate-pulse">Loading…</span>
         </div>
-        <span className="spinner inline-block w-3 h-3 border-2 border-cyan-400/40 border-t-cyan-400 rounded-full animate-spin" />
+        <span className="spinner inline-block w-3 h-3 border-2 border-emerald-400/40 border-t-emerald-400 rounded-full animate-spin" />
       </div>
       {/* KPI strip skeleton */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 mb-3" aria-hidden="true">
@@ -699,7 +699,7 @@ export default function ClosedPositionsPanel() {
       <div className="card-header pb-2 mb-2 border-b border-[var(--border)] flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <PulseDot tone="info" />
-          <Activity className="w-3.5 h-3.5 text-cyan-400 shrink-0" aria-hidden="true" />
+          <Activity className="w-3.5 h-3.5 text-emerald-400 shrink-0" aria-hidden="true" />
           <span className="card-title text-xs font-bold text-[var(--text-primary)] tracking-wide">
             📕 CLOSED POSITIONS LEDGER ({totalClosed})
           </span>
@@ -813,7 +813,7 @@ export default function ClosedPositionsPanel() {
               placeholder="Search by market, strategy, token id…"
               value={filterQuery}
               onChange={(e) => setFilterQuery(e.target.value)}
-              className="w-full bg-[var(--bg-page)] border border-[var(--border)] focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-400/40 rounded text-xs px-2.5 py-1.5 text-[var(--text-primary)] placeholder-[var(--text-dim)] outline-none transition-all"
+              className="w-full bg-[var(--bg-page)] border border-[var(--border)] focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-400/40 rounded text-xs px-2.5 py-1.5 text-[var(--text-primary)] placeholder-[var(--text-dim)] outline-none transition-all"
               aria-label="Search closed positions"
             />
             {filterQuery && (
@@ -835,7 +835,7 @@ export default function ClosedPositionsPanel() {
                 type="date"
                 value={dateFrom}
                 onChange={(e) => setDateFrom(e.target.value)}
-                className="bg-[var(--bg-page)] border border-[var(--border)] text-[var(--text-secondary)] rounded text-[10px] px-2 py-1 outline-none cursor-pointer hover:border-[var(--border-strong)] h-7 tabular-nums focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-400/40"
+                className="bg-[var(--bg-page)] border border-[var(--border)] text-[var(--text-secondary)] rounded text-[10px] px-2 py-1 outline-none cursor-pointer hover:border-[var(--border-strong)] h-7 tabular-nums focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-400/40"
                 aria-label="Filter from date"
               />
               <span className="text-[10px] text-[var(--text-secondary)]">→</span>
@@ -843,7 +843,7 @@ export default function ClosedPositionsPanel() {
                 type="date"
                 value={dateTo}
                 onChange={(e) => setDateTo(e.target.value)}
-                className="bg-[var(--bg-page)] border border-[var(--border)] text-[var(--text-secondary)] rounded text-[10px] px-2 py-1 outline-none cursor-pointer hover:border-[var(--border-strong)] h-7 tabular-nums focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-400/40"
+                className="bg-[var(--bg-page)] border border-[var(--border)] text-[var(--text-secondary)] rounded text-[10px] px-2 py-1 outline-none cursor-pointer hover:border-[var(--border-strong)] h-7 tabular-nums focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-400/40"
                 aria-label="Filter to date"
               />
             </div>
@@ -851,7 +851,7 @@ export default function ClosedPositionsPanel() {
             <select
               value={strategyFilter}
               onChange={(e) => setStrategyFilter(e.target.value)}
-              className="bg-[var(--bg-page)] border border-[var(--border)] text-[var(--text-secondary)] rounded text-[10px] font-semibold px-2 py-1 outline-none cursor-pointer hover:text-[var(--text-primary)] h-7 focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-400/40"
+              className="bg-[var(--bg-page)] border border-[var(--border)] text-[var(--text-secondary)] rounded text-[10px] font-semibold px-2 py-1 outline-none cursor-pointer hover:text-[var(--text-primary)] h-7 focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-400/40"
               aria-label="Filter by strategy"
             >
               <option value="ALL">All Strategies</option>
@@ -877,7 +877,7 @@ export default function ClosedPositionsPanel() {
             <select
               value={reasonFilter}
               onChange={(e) => setReasonFilter(e.target.value as ReasonFilter)}
-              className="bg-[var(--bg-page)] border border-[var(--border)] text-[var(--text-secondary)] rounded text-[10px] font-semibold px-2 py-1 outline-none cursor-pointer hover:text-[var(--text-primary)] h-7 focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-400/40"
+              className="bg-[var(--bg-page)] border border-[var(--border)] text-[var(--text-secondary)] rounded text-[10px] font-semibold px-2 py-1 outline-none cursor-pointer hover:text-[var(--text-primary)] h-7 focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-400/40"
               aria-label="Filter by exit reason"
             >
               <option value="ALL">All Reasons</option>
@@ -891,7 +891,7 @@ export default function ClosedPositionsPanel() {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as SortKey)}
-              className="bg-[var(--bg-page)] border border-[var(--border)] text-[var(--text-secondary)] rounded text-[10px] font-semibold px-2 py-1 outline-none cursor-pointer hover:text-[var(--text-primary)] h-7 focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-400/40"
+              className="bg-[var(--bg-page)] border border-[var(--border)] text-[var(--text-secondary)] rounded text-[10px] font-semibold px-2 py-1 outline-none cursor-pointer hover:text-[var(--text-primary)] h-7 focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-400/40"
               aria-label="Sort closed positions"
             >
               <option value="date">Sort: Date</option>
@@ -928,7 +928,7 @@ export default function ClosedPositionsPanel() {
                   <button
                     type="button"
                     onClick={() => setSortBy('size')}
-                    className="inline-flex items-center hover:text-cyan-300 transition-colors"
+                    className="inline-flex items-center hover:text-emerald-300 transition-colors"
                     aria-label="Sort by size"
                   >
                     Size
@@ -939,7 +939,7 @@ export default function ClosedPositionsPanel() {
                   <button
                     type="button"
                     onClick={() => setSortBy('pnl')}
-                    className="inline-flex items-center hover:text-cyan-300 transition-colors"
+                    className="inline-flex items-center hover:text-emerald-300 transition-colors"
                     aria-label="Sort by P&L"
                   >
                     P&amp;L
@@ -951,7 +951,7 @@ export default function ClosedPositionsPanel() {
                   <button
                     type="button"
                     onClick={() => setSortBy('hold')}
-                    className="inline-flex items-center hover:text-cyan-300 transition-colors"
+                    className="inline-flex items-center hover:text-emerald-300 transition-colors"
                     aria-label="Sort by hold time"
                   >
                     Hold
@@ -963,7 +963,7 @@ export default function ClosedPositionsPanel() {
                   <button
                     type="button"
                     onClick={() => setSortBy('date')}
-                    className="inline-flex items-center hover:text-cyan-300 transition-colors"
+                    className="inline-flex items-center hover:text-emerald-300 transition-colors"
                     aria-label="Sort by close date"
                   >
                     Closed At
@@ -982,7 +982,7 @@ export default function ClosedPositionsPanel() {
                 return (
                   <Fragment key={p.position_id}>
                     <tr
-                      className={`hover:bg-cyan-500/[0.04] transition-colors group cursor-pointer ${TONE[pnlTone(p.pnl)].rowHover}`}
+                      className={`hover:bg-emerald-500/[0.04] transition-colors group cursor-pointer ${TONE[pnlTone(p.pnl)].rowHover}`}
                       onClick={() => setExpandedId(isExpanded ? null : p.position_id)}
                     >
                       <td className="text-center text-[var(--text-secondary)]">
@@ -990,11 +990,11 @@ export default function ClosedPositionsPanel() {
                       </td>
                       <td className="py-2 max-w-[240px]">
                         <div className="flex flex-col gap-0.5">
-                          <span className="text-[9px] text-cyan-400 font-bold uppercase tracking-wider truncate">
+                          <span className="text-[9px] text-emerald-400 font-bold uppercase tracking-wider truncate">
                             {info.category.icon} {info.eventTitle}
                           </span>
                           <span
-                            className="text-[var(--text-primary)] group-hover:text-cyan-300 font-medium leading-snug text-xs block whitespace-normal transition-colors"
+                            className="text-[var(--text-primary)] group-hover:text-emerald-300 font-medium leading-snug text-xs block whitespace-normal transition-colors"
                             title={info.fullLabel}
                           >
                             {info.question}
@@ -1065,9 +1065,9 @@ export default function ClosedPositionsPanel() {
                             <DetailRow label="Position ID" value={<span className="mono text-[var(--text-primary)] break-all">{p.position_id}</span>} />
                             <DetailRow label="Token ID" value={<span className="mono text-[var(--text-primary)] break-all">{p.token_id}</span>} />
                             <DetailRow label="Strategy" value={<span className="text-[var(--text-primary)]">{p.strategy ?? '—'}</span>} />
-                            <DetailRow label="Model Version" value={<span className="mono text-cyan-300">{p.model_version || '—'}</span>} />
+                            <DetailRow label="Model Version" value={<span className="mono text-emerald-300">{p.model_version || '—'}</span>} />
                             <DetailRow label="Decision ID" value={
-                              <span className="mono text-cyan-300 break-all">
+                              <span className="mono text-emerald-300 break-all">
                                 {p.decision_id || '—'}
                               </span>
                             } />
@@ -1178,7 +1178,7 @@ function FilterPill<T extends string>({
           onClick={() => onChange(opt)}
           className={`px-2 py-0.5 rounded font-bold transition-all ${
             value === opt
-              ? 'bg-blue-500/20 text-cyan-300 shadow-sm'
+              ? 'bg-emerald-500/20 text-emerald-300 shadow-sm'
               : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
           }`}
           aria-pressed={value === opt}
@@ -1243,7 +1243,7 @@ function ExitReasonDonut({
           <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
             <circle cx="50" cy="50" r={R} fill="none" stroke="var(--border)" strokeWidth={R - r} />
             {segments.length === 0 && total === 0 && (
-              <circle cx="50" cy="50" r={R} fill="none" stroke="#181c28" strokeWidth={R - r} />
+              <circle cx="50" cy="50" r={R} fill="none" stroke="var(--border-dim)" strokeWidth={R - r} />
             )}
             {segments.map((s) => (
               <circle

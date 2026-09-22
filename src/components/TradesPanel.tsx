@@ -241,7 +241,7 @@ function TradesPanel({ trades: tradesOverride, isRealtime: isRealtimeOverride, o
         <div className="flex items-center gap-2 text-xs flex-wrap">
           <div className="bg-[var(--bg-page)] border border-[var(--border)] px-2 py-0.5 rounded flex items-center gap-1" title="Total volume traded (size × price) across the visible set">
             <span className="text-[9.5px] text-[var(--text-secondary)] uppercase font-semibold">Vol:</span>
-            <span className="mono font-bold text-cyan-400 text-xs tabular-nums">{fmtUsd(stats.totalVol)}</span>
+            <span className="mono font-bold text-emerald-400 text-xs tabular-nums">{fmtUsd(stats.totalVol)}</span>
           </div>
           <div className="bg-[var(--bg-page)] border border-[var(--border)] px-2 py-0.5 rounded flex items-center gap-1">
             <span className="text-[9.5px] text-[var(--text-secondary)] uppercase font-semibold">Net P&amp;L:</span>
@@ -293,7 +293,7 @@ function TradesPanel({ trades: tradesOverride, isRealtime: isRealtimeOverride, o
               onClick={() => setSideFilter(s)}
               className={`px-2 py-0.5 rounded font-bold transition-all ${
                 sideFilter === s
-                  ? 'bg-blue-500/20 text-cyan-300 shadow-sm'
+                  ? 'bg-emerald-500/20 text-emerald-300 shadow-sm'
                   : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
               }`}
             >
@@ -312,7 +312,7 @@ function TradesPanel({ trades: tradesOverride, isRealtime: isRealtimeOverride, o
             placeholder="Search fills by market, strategy, or trade ID…"
             value={filterQuery}
             onChange={(e) => setFilterQuery(e.target.value)}
-            className="w-full text-xs bg-[var(--bg-page)] border border-[var(--border)] focus:border-cyan-500/50 rounded pl-7 pr-7 py-1 text-[var(--text-primary)] placeholder-[var(--text-dim)] outline-none"
+            className="w-full text-xs bg-[var(--bg-page)] border border-[var(--border)] focus:border-emerald-500/50 rounded pl-7 pr-7 py-1 text-[var(--text-primary)] placeholder-[var(--text-dim)] outline-none"
             aria-label="Search trade fills"
           />
           {filterQuery && (
@@ -443,18 +443,18 @@ function TradesPanel({ trades: tradesOverride, isRealtime: isRealtimeOverride, o
                 const pnlPositive = (t.pnl || 0) > 0
                 const pnlNegative = (t.pnl || 0) < 0
                 return (
-                  <tr key={t.trade_id} className="hover:bg-blue-500/10 transition-colors group">
+                  <tr key={t.trade_id} className="hover:bg-emerald-500/10 transition-colors group">
                     <td className="py-2 max-w-[200px]">
                       <div className="flex flex-col gap-0.5">
-                        <span className="text-[9px] text-cyan-400 uppercase font-bold tracking-wider truncate">
+                        <span className="text-[9px] text-emerald-400 uppercase font-bold tracking-wider truncate">
                           {info.category.icon} {info.eventTitle}
                         </span>
-                        <span className="text-[var(--text-primary)] group-hover:text-cyan-300 font-medium leading-tight text-xs block whitespace-normal transition-colors" title={info.fullLabel}>
+                        <span className="text-[var(--text-primary)] group-hover:text-emerald-300 font-medium leading-tight text-xs block whitespace-normal transition-colors" title={info.fullLabel}>
                           {info.question}
                         </span>
                         <span
                           onClick={() => copyToClipboard(t.trade_id, t.trade_id)}
-                          className="text-[9px] text-[var(--text-secondary)] hover:text-cyan-300 mono cursor-pointer w-fit"
+                          className="text-[9px] text-[var(--text-secondary)] hover:text-emerald-300 mono cursor-pointer w-fit"
                           title="Click to copy Trade ID"
                         >
                           {copiedId === t.trade_id ? '✓ Copied ID' : `ID: ${t.trade_id.slice(0, 10)}…`}
@@ -478,7 +478,7 @@ function TradesPanel({ trades: tradesOverride, isRealtime: isRealtimeOverride, o
                         <span>{t.side}</span>
                       </span>
                     </td>
-                    <td className="mono text-right text-cyan-400 font-bold tabular-nums">
+                    <td className="mono text-right text-emerald-400 font-bold tabular-nums">
                       {fmtPrice(t.price)}
                     </td>
                     <td className="mono text-right font-medium text-[var(--text-primary)] tabular-nums">
@@ -552,7 +552,7 @@ function TradesPanel({ trades: tradesOverride, isRealtime: isRealtimeOverride, o
                         <button
                           type="button"
                           onClick={() => handleViewAudit(t)}
-                          className="inline-flex items-center justify-center w-5 h-5 rounded border border-[var(--border)] bg-[var(--bg-page)] text-[var(--text-secondary)] hover:text-cyan-300 hover:border-cyan-500/50 transition-colors mx-auto"
+                          className="inline-flex items-center justify-center w-5 h-5 rounded border border-[var(--border)] bg-[var(--bg-page)] text-[var(--text-secondary)] hover:text-emerald-300 hover:border-emerald-500/50 transition-colors mx-auto"
                           aria-label={`Open decision ledger audit trail for trade ${t.trade_id}`}
                           title={`Audit trail · Decision ID: ${t.decision_id ?? t.trade_id}`}
                         >

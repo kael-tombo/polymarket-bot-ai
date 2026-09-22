@@ -21,7 +21,7 @@
 //     in `ThemeToggle.test.tsx` still resolve since the emoji remains
 //     the button's sole text content.
 //   • Existing class names preserved — `btn btn-ghost btn-sm p-1.5
-//     text-xs text-[#7e8aaa] hover:text-white` (so the W13-4 contract
+//     text-xs text-[var(--text-secondary)] hover:text-white` (so the W13-4 contract
 //     that consumers may rely on for `btn-ghost` styling continues to
 //     apply). The W58 affordances are layered additively.
 //
@@ -77,7 +77,7 @@ export default function ThemeToggle() {
         // Preserved W13-4 base classes — `btn btn-ghost btn-sm` etc. are
         // referenced by the global CSS rules in `globals.css` so the
         // ghost-button hover state continues to apply.
-        'btn btn-ghost btn-sm p-1.5 text-xs text-[#7e8aaa] hover:text-white',
+        'btn btn-ghost btn-sm p-1.5 text-xs text-[var(--text-secondary)] hover:text-white',
         // W58-f premium affordances layered additively — relative
         // positioning for the focus ring offset, smooth transition on
         // hover, and a cyan focus ring that matches the rest of the
@@ -85,8 +85,8 @@ export default function ThemeToggle() {
         'relative rounded-md transition-all duration-200',
         'hover:shadow-md hover:shadow-black/20',
         'focus:outline-none',
-        'focus-visible:ring-2 focus-visible:ring-cyan-500/60',
-        'focus-visible:ring-offset-1 focus-visible:ring-offset-[#0b0e14]',
+        'focus-visible:ring-2 focus-visible:ring-emerald-500/60',
+        'focus-visible:ring-offset-1 focus-visible:ring-offset-[#f8fafc]',
       )}
       aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
       title={isDark ? 'Light mode' : 'Dark mode'}

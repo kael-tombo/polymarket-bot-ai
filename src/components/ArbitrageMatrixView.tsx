@@ -359,7 +359,7 @@ export default function ArbitrageMatrixView({ onSelectMarket }: Props = {}) {
             title="Number of arbitrage opportunities currently passing the min-edge filter"
           >
             <span className="text-[10px] text-[var(--text-secondary)] uppercase font-semibold">Active Arbs:</span>
-            <span className="mono font-bold text-cyan-400 text-xs tabular-nums">{opportunities.length}</span>
+            <span className="mono font-bold text-emerald-400 text-xs tabular-nums">{opportunities.length}</span>
           </div>
           <div
             className="bg-[var(--bg-base)] border border-[var(--border)] px-2.5 py-1 rounded-md flex items-center gap-1.5"
@@ -427,7 +427,7 @@ export default function ArbitrageMatrixView({ onSelectMarket }: Props = {}) {
             placeholder="Filter arbitrage by market name..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-[var(--bg-surface)] border border-[var(--border)] rounded text-xs pl-7 pr-2.5 py-1.5 text-[var(--text-primary)] placeholder-[var(--text-dim)] outline-none focus:ring-1 focus:ring-cyan-500/20 focus:border-cyan-500/30 transition-colors"
+            className="w-full bg-[var(--bg-surface)] border border-[var(--border)] rounded text-xs pl-7 pr-2.5 py-1.5 text-[var(--text-primary)] placeholder-[var(--text-dim)] outline-none focus:ring-1 focus:ring-emerald-500/20 focus:border-emerald-500/30 transition-colors"
             aria-label="Filter arbitrage by market name"
           />
         </div>
@@ -442,11 +442,11 @@ export default function ArbitrageMatrixView({ onSelectMarket }: Props = {}) {
               step={5}
               value={minBps}
               onChange={(e) => setMinBps(Number(e.target.value))}
-              className="w-24 accent-cyan-400 cursor-pointer"
+              className="w-24 accent-emerald-400 cursor-pointer"
               aria-label="Minimum profit threshold in basis points"
             />
             <span
-              className="mono text-cyan-400 font-bold w-12 tabular-nums"
+              className="mono text-emerald-400 font-bold w-12 tabular-nums"
               data-tone="positive"
               title="Minimum gross edge required for an opportunity to surface in the matrix"
             >
@@ -564,7 +564,7 @@ export default function ArbitrageMatrixView({ onSelectMarket }: Props = {}) {
             data-testid="arbitrage-matrix-loading"
           >
             <div className="flex items-center gap-2 px-3 py-2 text-[var(--text-secondary)] text-[11px]">
-              <Loader2 className="size-3 animate-spin text-cyan-400/70" aria-hidden="true" />
+              <Loader2 className="size-3 animate-spin text-emerald-400/70" aria-hidden="true" />
               <span className="animate-pulse">
                 Scanning synchronized binary order books for Dutch-book inefficiencies…
               </span>
@@ -596,24 +596,24 @@ export default function ArbitrageMatrixView({ onSelectMarket }: Props = {}) {
                   return (
                     <tr
                       key={opp.token_id_yes}
-                      className="hover:bg-blue-500/10 transition-colors group"
+                      className="hover:bg-emerald-500/10 transition-colors group"
                       data-tone={rowTone}
                       data-edge-tier={strongEdge ? 'strong' : 'standard'}
                     >
                       {/* Market Contract cell — clickable, with hover left-accent bar.
-                          The `border-l-2 border-transparent hover:border-cyan-500/60`
+                          The `border-l-2 border-transparent hover:border-emerald-500/60`
                           creates a subtle accent that lights up on hover, drawing
                           the trader's eye to the row they're inspecting. */}
                       <td
-                        className="py-2.5 max-w-[240px] cursor-pointer relative border-l-2 border-transparent hover:border-cyan-500/60 transition-colors"
+                        className="py-2.5 max-w-[240px] cursor-pointer relative border-l-2 border-transparent hover:border-emerald-500/60 transition-colors"
                         onClick={() => onSelectMarket?.({ tokenId: opp.token_id_yes, slug: opp.slug })}
                       >
                         <div className="flex flex-col gap-0.5">
-                          <span className="text-[9px] text-cyan-400 font-bold uppercase tracking-wider truncate">
+                          <span className="text-[9px] text-emerald-400 font-bold uppercase tracking-wider truncate">
                             {info.category.icon} {info.eventTitle}
                           </span>
                           <span
-                            className="text-[var(--text-primary)] group-hover:text-cyan-300 font-medium leading-snug text-xs block whitespace-normal transition-colors"
+                            className="text-[var(--text-primary)] group-hover:text-emerald-300 font-medium leading-snug text-xs block whitespace-normal transition-colors"
                             title={info.fullLabel}
                           >
                             {info.question}
@@ -629,7 +629,7 @@ export default function ArbitrageMatrixView({ onSelectMarket }: Props = {}) {
                       </td>
                       {/* NO Ask — cyan (neutral synthetic-leg cost) */}
                       <td
-                        className="mono text-right text-cyan-400 font-semibold tabular-nums"
+                        className="mono text-right text-emerald-400 font-semibold tabular-nums"
                         data-tone="neutral"
                       >
                         {fmtPrice(opp.no_ask)}
@@ -666,7 +666,7 @@ export default function ArbitrageMatrixView({ onSelectMarket }: Props = {}) {
                         <button
                           onClick={() => handleExecute(opp)}
                           disabled={executing === opp.token_id_yes}
-                          className="btn btn-primary btn-xs px-3 py-1 font-bold shadow-md hover:shadow-cyan-500/20 inline-flex items-center gap-1 transition-shadow"
+                          className="btn btn-primary btn-xs px-3 py-1 font-bold shadow-md hover:shadow-emerald-500/20 inline-flex items-center gap-1 transition-shadow"
                           aria-label={`Execute paper arbitrage on ${info.question}`}
                         >
                           {executing === opp.token_id_yes ? (

@@ -583,7 +583,7 @@ function AttributionSkeleton() {
       {/* Header skeleton */}
       <div className="card-header p-3 border-b border-[var(--border)] flex justify-between items-center">
         <div className="flex items-center gap-2">
-          <PieChart className="w-3.5 h-3.5 text-[#22d3ee]" aria-hidden="true" />
+          <PieChart className="w-3.5 h-3.5 text-[var(--accent)]" aria-hidden="true" />
           <span className="card-title text-xs font-bold text-[var(--text-primary)]">
             Attribution Analysis
           </span>
@@ -717,7 +717,7 @@ export default function AttributionPanel() {
       <div className="card flex flex-col bg-[var(--bg-surface)] border border-[var(--border)] shadow-md">
         <div className="card-header p-3 border-b border-[var(--border)] flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <PieChart className="w-3.5 h-3.5 text-[#22d3ee]" aria-hidden="true" />
+            <PieChart className="w-3.5 h-3.5 text-[var(--accent)]" aria-hidden="true" />
             <span className="card-title text-xs font-bold text-[var(--text-primary)]">
               Attribution Analysis
             </span>
@@ -808,7 +808,7 @@ export default function AttributionPanel() {
       {/* Header */}
       <div className="card-header p-3 border-b border-[var(--border)] flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <PieChart className="w-3.5 h-3.5 text-[#22d3ee]" aria-hidden="true" />
+          <PieChart className="w-3.5 h-3.5 text-[var(--accent)]" aria-hidden="true" />
           <span className="card-title text-xs font-bold text-[var(--text-primary)]">
             Performance Attribution
           </span>
@@ -826,7 +826,7 @@ export default function AttributionPanel() {
             onValueChange={(v) => setTimeRange(v as TimeRange)}
           >
             <SelectTrigger
-              className="h-7 w-[110px] text-[11px] bg-[var(--bg-page)] border-[var(--border)] text-[var(--text-primary)] focus-visible:ring-1 focus-visible:ring-cyan-400/40"
+              className="h-7 w-[110px] text-[11px] bg-[var(--bg-page)] border-[var(--border)] text-[var(--text-primary)] focus-visible:ring-1 focus-visible:ring-emerald-400/40"
               size="sm"
               aria-label="Attribution time range"
             >
@@ -854,7 +854,7 @@ export default function AttributionPanel() {
             onValueChange={(v) => setDimSort(v as DimSortKey)}
           >
             <SelectTrigger
-              className="h-7 w-[110px] text-[11px] bg-[var(--bg-page)] border-[var(--border)] text-[var(--text-primary)] focus-visible:ring-1 focus-visible:ring-cyan-400/40"
+              className="h-7 w-[110px] text-[11px] bg-[var(--bg-page)] border-[var(--border)] text-[var(--text-primary)] focus-visible:ring-1 focus-visible:ring-emerald-400/40"
               size="sm"
               aria-label="Attribution sort order"
             >
@@ -878,7 +878,7 @@ export default function AttributionPanel() {
             type="button"
             onClick={() => fetchAttribution()}
             disabled={isRefreshing}
-            className="btn btn-ghost btn-sm flex items-center gap-1 text-[10px] focus-visible:ring-1 focus-visible:ring-cyan-400/40"
+            className="btn btn-ghost btn-sm flex items-center gap-1 text-[10px] focus-visible:ring-1 focus-visible:ring-emerald-400/40"
             title={`Auto-refresh 30s • Last: ${freshnessLabel}`}
             aria-label="Refresh attribution"
           >
@@ -951,21 +951,21 @@ export default function AttributionPanel() {
           <TabsList className="bg-[var(--bg-page)] border border-[var(--border)] h-8 w-full">
             <TabsTrigger
               value="dimensions"
-              className="text-[11px] data-[state=active]:bg-[var(--bg-elevated)] data-[state=active]:text-[#22d3ee] flex items-center gap-1"
+              className="text-[11px] data-[state=active]:bg-[var(--bg-elevated)] data-[state=active]:text-[var(--accent)] flex items-center gap-1"
             >
               <BarChart3 className="w-3 h-3" aria-hidden="true" />
               Dimensions
             </TabsTrigger>
             <TabsTrigger
               value="waterfall"
-              className="text-[11px] data-[state=active]:bg-[var(--bg-elevated)] data-[state=active]:text-[#22d3ee] flex items-center gap-1"
+              className="text-[11px] data-[state=active]:bg-[var(--bg-elevated)] data-[state=active]:text-[var(--accent)] flex items-center gap-1"
             >
               <TrendingUp className="w-3 h-3" aria-hidden="true" />
               Waterfall
             </TabsTrigger>
             <TabsTrigger
               value="strategies"
-              className="text-[11px] data-[state=active]:bg-[var(--bg-elevated)] data-[state=active]:text-[#22d3ee] flex items-center gap-1"
+              className="text-[11px] data-[state=active]:bg-[var(--bg-elevated)] data-[state=active]:text-[var(--accent)] flex items-center gap-1"
             >
               <Database className="w-3 h-3" aria-hidden="true" />
               Strategies
@@ -998,7 +998,7 @@ export default function AttributionPanel() {
                 return (
                   <div
                     key={dim.key}
-                    className="kpi-card !p-0 overflow-hidden transition-colors hover:border-[#2a3050]"
+                    className="kpi-card !p-0 overflow-hidden transition-colors hover:border-[var(--border-strong)]"
                     role="region"
                     aria-label={`${dim.label} attribution`}
                     data-tone={dimTone}
@@ -1007,7 +1007,7 @@ export default function AttributionPanel() {
                     <button
                       type="button"
                       onClick={() => toggleExpand(dim.key)}
-                      className="w-full flex items-center gap-2.5 p-2.5 text-left hover:bg-[var(--bg-elevated)]/40 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-cyan-400/40"
+                      className="w-full flex items-center gap-2.5 p-2.5 text-left hover:bg-[var(--bg-elevated)]/40 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-emerald-400/40"
                       aria-expanded={isExpanded}
                       aria-controls={`dim-${dim.key}`}
                     >
@@ -1093,7 +1093,7 @@ export default function AttributionPanel() {
                               key={b.bucket}
                               className="flex items-center gap-2 py-1 px-1.5 rounded hover:bg-[var(--bg-elevated)]/40 transition-colors"
                             >
-                              <div className="w-[90px] text-[10.5px] text-[#c8cfe0] font-medium truncate">
+                              <div className="w-[90px] text-[10.5px] text-[var(--text-mono)] font-medium truncate">
                                 {humanizeBucket(b.bucket)}
                               </div>
                               <div className="flex-1 h-1.5 bg-[var(--bg-page)] rounded-sm overflow-hidden">
@@ -1118,7 +1118,7 @@ export default function AttributionPanel() {
                           )
                         })}
                         {positiveCount > 0 && (
-                          <div className="text-[9.5px] text-[var(--text-secondary)] pt-1 border-t border-[#181c28] mt-1 tabular-nums">
+                          <div className="text-[9.5px] text-[var(--text-secondary)] pt-1 border-t border-[var(--border-dim)] mt-1 tabular-nums">
                             <Activity className="w-2.5 h-2.5 inline mr-1" aria-hidden="true" />
                             {positiveCount}/{buckets.length} buckets profitable
                           </div>
@@ -1234,13 +1234,13 @@ export default function AttributionPanel() {
                             className={`w-3 h-3 ${accentText[it.dim.accent]}`}
                             aria-hidden="true"
                           />
-                          <span className="text-[10px] text-[#c8cfe0] truncate">
+                          <span className="text-[10px] text-[var(--text-mono)] truncate">
                             {it.dim.label}
                           </span>
                         </div>
 
                         {/* Stacked waterfall track — tone-coloured bar */}
-                        <div className="flex-1 h-6 bg-[var(--bg-page)] rounded-sm relative overflow-hidden border border-[#181c28]">
+                        <div className="flex-1 h-6 bg-[var(--bg-page)] rounded-sm relative overflow-hidden border border-[var(--border-dim)]">
                           {/* Baseline indicator */}
                           <div className="absolute left-0 top-0 bottom-0 w-px bg-[var(--border)]" />
                           {/* Bar segment */}
@@ -1352,7 +1352,7 @@ export default function AttributionPanel() {
                         return (
                           <tr
                             key={s.bucket}
-                            className="hover:bg-cyan-500/[0.04] hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.45)] transition-colors"
+                            className="hover:bg-emerald-500/[0.04] hover:shadow-[inset_3px_0_0_0_rgba(16,185,129,0.45)] transition-colors"
                             data-tone={sPnlTone}
                           >
                             <td className="label-col">
@@ -1366,7 +1366,7 @@ export default function AttributionPanel() {
                                 </span>
                               </div>
                             </td>
-                            <td className="text-right text-[#c8cfe0] tabular-nums">
+                            <td className="text-right text-[var(--text-mono)] tabular-nums">
                               {fmtInt(s.count)}
                             </td>
                             <td className={`text-right tabular-nums ${TONE[sWinTone].text}`} data-tone={sWinTone}>
@@ -1383,7 +1383,7 @@ export default function AttributionPanel() {
                                 ? s.profit_factor.toFixed(2)
                                 : '∞'}
                             </td>
-                            <td className="text-right text-[#c8cfe0] tabular-nums">
+                            <td className="text-right text-[var(--text-mono)] tabular-nums">
                               {fmtUsd(s.capital_deployed)}
                             </td>
                             <td className="text-right text-[var(--text-secondary)] tabular-nums">

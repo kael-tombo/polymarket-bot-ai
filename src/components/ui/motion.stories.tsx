@@ -204,7 +204,7 @@ function NumberTickerStory() {
             fontFamily: 'JetBrains Mono, monospace',
             fontSize: 32,
             fontWeight: 700,
-            color: '#22d3ee',
+            color: 'var(--accent)',
           }}
         >
           <NumberTicker value={value} format={n => `$${n.toFixed(2)}`} />

@@ -118,7 +118,7 @@ export default function ShortcutsModal({ isOpen, onClose }: Props) {
         <div className="modal-header">
           <div className="flex items-center gap-2">
             <span aria-hidden="true">⌨️</span>
-            <h2 id="shortcuts-title" className="text-sm font-bold text-[#dde1ed]">
+            <h2 id="shortcuts-title" className="text-sm font-bold text-[var(--text-primary)]">
               Workstation Keyboard Shortcuts
             </h2>
           </div>
@@ -136,11 +136,11 @@ export default function ShortcutsModal({ isOpen, onClose }: Props) {
           {SHORTCUTS.map((s) => (
             <div
               key={s.key}
-              className="flex justify-between items-center bg-[#0e1015] px-3 py-2 rounded text-xs border border-[#1f2335]"
+              className="flex justify-between items-center bg-[var(--bg-page)] px-3 py-2 rounded text-xs border border-[var(--border)]"
             >
-              <span className="text-[#dde1ed]">{s.action}</span>
+              <span className="text-[var(--text-primary)]">{s.action}</span>
               <kbd
-                className="bg-[#13161e] text-cyan-400 border border-[#1f2335] px-2 py-0.5 rounded mono font-bold text-[11px]"
+                className="bg-[var(--bg-surface)] text-emerald-400 border border-[var(--border)] px-2 py-0.5 rounded mono font-bold text-[11px]"
                 aria-label={`Shortcut key ${s.key}`}
               >
                 {s.key}

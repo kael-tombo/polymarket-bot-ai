@@ -173,7 +173,7 @@ function PolishedEmptyState() {
       role="presentation"
     >
       <span
-        className="inline-flex items-center justify-center size-9 rounded-full bg-cyan-500/[0.04] border border-cyan-500/15 text-cyan-400/60 shadow-[0_0_18px_rgba(34,211,238,0.08)]"
+        className="inline-flex items-center justify-center size-9 rounded-full bg-emerald-500/[0.04] border border-emerald-500/15 text-emerald-400/60 shadow-[0_0_18px_rgba(16,185,129,0.08)]"
         aria-hidden="true"
       >
         <SearchX className="size-4" strokeWidth={1.5} />
@@ -194,7 +194,7 @@ function PolishedEmptyState() {
 function KeyboardHintStrip() {
   return (
     <div
-      className="border-t border-[var(--border)] bg-[#0a0c12]/40 px-3 py-2 flex items-center gap-4 text-[10px] text-[var(--text-secondary)] select-none"
+      className="border-t border-[var(--border)] bg-[var(--bg-base)]/40 px-3 py-2 flex items-center gap-4 text-[10px] text-[var(--text-secondary)] select-none"
       aria-hidden="true"
     >
       <span className="flex items-center gap-1.5">
@@ -226,7 +226,7 @@ function KeyboardHintStrip() {
 function Kbd({ children }: { children: ReactNode }) {
   return (
     <kbd
-      className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded bg-[var(--bg-surface)] border border-[#2a2f47] font-mono text-[9.5px] tabular-nums text-[var(--text-secondary)] shadow-[inset_0_-1px_0_0_rgba(0,0,0,0.25)]"
+      className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded bg-[var(--bg-surface)] border border-[var(--border-strong)] font-mono text-[9.5px] tabular-nums text-[var(--text-secondary)] shadow-[inset_0_-1px_0_0_rgba(0,0,0,0.25)]"
     >
       {children}
     </kbd>
@@ -279,7 +279,7 @@ export default function CommandPalette({
       // the workstation accent. `cn()` (tailwind-merge) dedupes the
       // inherited `bg-background` / `border` classes from DialogContent
       // against the custom-class layer.
-      className="command-palette-dialog surface-tier-overlay [box-shadow:var(--shadow-modal-premium)] border-cyan-500/15 backdrop-blur-md"
+      className="command-palette-dialog surface-tier-overlay [box-shadow:var(--shadow-modal-premium)] border-emerald-500/15 backdrop-blur-md"
     >
       <CommandInput
         placeholder="Type a command or search…"
@@ -328,11 +328,11 @@ export default function CommandPalette({
                     // inset shadow (no layout shift — pure shadow).
                     // The `group` class lets descendant elements
                     // respond via `group-data-[selected=true]:`.
-                    className="group relative flex items-center gap-2 px-3 py-2.5 rounded-md transition-colors duration-100 outline-hidden cursor-default select-none data-[selected=true]:bg-cyan-500/[0.08] data-[selected=true]:text-cyan-50 data-[selected=true]:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.55)] data-[disabled=true]:opacity-50 data-[disabled=true]:pointer-events-none"
+                    className="group relative flex items-center gap-2 px-3 py-2.5 rounded-md transition-colors duration-100 outline-hidden cursor-default select-none data-[selected=true]:bg-emerald-500/[0.08] data-[selected=true]:text-emerald-50 data-[selected=true]:shadow-[inset_3px_0_0_0_rgba(16,185,129,0.55)] data-[disabled=true]:opacity-50 data-[disabled=true]:pointer-events-none"
                   >
                     {cmd.icon && (
                       <span
-                        className="cmd-icon transition-colors duration-100 text-[var(--text-secondary)] group-data-[selected=true]:text-cyan-300"
+                        className="cmd-icon transition-colors duration-100 text-[var(--text-secondary)] group-data-[selected=true]:text-emerald-300"
                         aria-hidden="true"
                       >
                         {cmd.icon}
@@ -349,7 +349,7 @@ export default function CommandPalette({
                         // row is active. Overrides cmdk's default
                         // `text-muted-foreground ml-auto text-xs
                         // tracking-widest` via tailwind-merge.
-                        className="ml-auto inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded bg-[var(--bg-surface)] border border-[#2a2f47] font-mono text-[10px] tabular-nums text-[var(--text-secondary)] shadow-[inset_0_-1px_0_0_rgba(0,0,0,0.25)] transition-colors duration-100 group-data-[selected=true]:bg-cyan-500/15 group-data-[selected=true]:border-cyan-500/35 group-data-[selected=true]:text-cyan-200"
+                        className="ml-auto inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded bg-[var(--bg-surface)] border border-[var(--border-strong)] font-mono text-[10px] tabular-nums text-[var(--text-secondary)] shadow-[inset_0_-1px_0_0_rgba(0,0,0,0.25)] transition-colors duration-100 group-data-[selected=true]:bg-emerald-500/15 group-data-[selected=true]:border-emerald-500/35 group-data-[selected=true]:text-emerald-200"
                       >
                         {cmd.kbd}
                       </CommandShortcut>

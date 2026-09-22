@@ -588,7 +588,7 @@ export default function AIMLCommandCenter() {
           <button
             onClick={handleRetrain}
             disabled={retraining}
-            className="btn btn-primary btn-sm px-3 py-1.5 font-bold shadow-md hover:shadow-cyan-500/20"
+            className="btn btn-primary btn-sm px-3 py-1.5 font-bold shadow-md hover:shadow-emerald-500/20"
           >
             {retraining ? (
               <>
@@ -722,13 +722,13 @@ export default function AIMLCommandCenter() {
         />
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
-          <div className="bg-[var(--bg-surface)] border border-blue-500/20 rounded p-2 flex flex-col justify-between">
+          <div className="bg-[var(--bg-surface)] border border-emerald-500/20 rounded p-2 flex flex-col justify-between">
             <div className="flex justify-between items-center text-xs">
-              <span className="font-semibold text-blue-400">Random Forest</span>
+              <span className="font-semibold text-emerald-400">Random Forest</span>
               <span className="mono font-bold text-white">{(weights.rf * 100).toFixed(1)}%</span>
             </div>
             <div className="w-full bg-[var(--bg-base)] h-1.5 rounded-full overflow-hidden mt-1.5">
-              <div className="h-full bg-blue-500 rounded-full transition-all duration-300" style={{ width: `${weights.rf * 100}%` }} />
+              <div className="h-full bg-emerald-500 rounded-full transition-all duration-300" style={{ width: `${weights.rf * 100}%` }} />
             </div>
             <span className="text-[9px] text-[var(--text-secondary)] mt-1">150 Trees · Isotonic Calibrated</span>
           </div>
@@ -860,7 +860,7 @@ export default function AIMLCommandCenter() {
               </span>
             </div>
             <div className="text-[9.5px] text-[var(--text-secondary)] leading-tight">
-              Status: <span className="font-semibold text-cyan-300">{drift?.status || 'HEALTHY'}</span>
+              Status: <span className="font-semibold text-emerald-300">{drift?.status || 'HEALTHY'}</span>
               {drift?.ewma_brier !== null && drift?.ewma_brier !== undefined && (
                 <span className="ml-1 text-[var(--text-secondary)]">· EWMA {drift.ewma_brier.toFixed(4)}</span>
               )}
@@ -923,7 +923,7 @@ export default function AIMLCommandCenter() {
                   onClick={() => setFeatureCategory(cat)}
                   className={`px-2 py-0.5 rounded font-bold transition-all ${
                     featureCategory === cat
-                      ? 'bg-blue-500/20 text-cyan-300'
+                      ? 'bg-emerald-500/20 text-emerald-300'
                       : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                   }`}
                 >
@@ -943,7 +943,7 @@ export default function AIMLCommandCenter() {
               // contract expects the `{imp * 100}%` percentage verbatim).
               const sign = featureSign(name)
               const barColor = sign > 0
-                ? 'from-blue-600 via-blue-500 to-cyan-400'
+                ? 'from-emerald-600 via-emerald-500 to-emerald-400'
                 : 'from-red-600 via-red-500 to-amber-400'
               const tooltip = [
                 `Feature: ${name}`,
@@ -979,7 +979,7 @@ export default function AIMLCommandCenter() {
             {sortedFeatures.length > 0 && (
               <div className="flex items-center gap-3 pt-2 mt-1 border-t border-[var(--border)] text-[9px] text-[var(--text-secondary)] uppercase tracking-wider font-bold">
                 <span className="inline-flex items-center gap-1">
-                  <span className="inline-block w-3 h-1 rounded-sm bg-gradient-to-r from-blue-600 to-cyan-400" aria-hidden="true" />
+                  <span className="inline-block w-3 h-1 rounded-sm bg-gradient-to-r from-emerald-600 to-emerald-400" aria-hidden="true" />
                   Bullish
                 </span>
                 <span className="inline-flex items-center gap-1">
@@ -1101,7 +1101,7 @@ export default function AIMLCommandCenter() {
                 title="🔍 Semantic Vector &amp; Market Intelligence Search"
                 description="cosine TF/IDF"
                 tone="info"
-                trailing={<span className="text-[10px] text-cyan-400 mono">Cosine TF/IDF</span>}
+                trailing={<span className="text-[10px] text-emerald-400 mono">Cosine TF/IDF</span>}
               />
             </div>
 
@@ -1122,7 +1122,7 @@ export default function AIMLCommandCenter() {
             <div className="space-y-1 max-h-24 overflow-y-auto scrollbar-thin">
               {searchResults.length > 0 ? (
                 searchResults.map((res, i) => (
-                  <div key={i} className="flex justify-between items-center bg-[var(--bg-surface)] px-2.5 py-1 rounded text-xs hover:bg-[var(--bg-elevated)] transition-colors border border-blue-500/10">
+                  <div key={i} className="flex justify-between items-center bg-[var(--bg-surface)] px-2.5 py-1 rounded text-xs hover:bg-[var(--bg-elevated)] transition-colors border border-emerald-500/10">
                     <span className="text-[var(--text-primary)] truncate max-w-[240px] font-medium">{res.market.title || res.market.slug}</span>
                     {/* W39-6 — AI-labeled match score with confidence color. */}
                     <span className="inline-flex items-center gap-1.5">
@@ -1178,10 +1178,10 @@ export default function AIMLCommandCenter() {
             </thead>
             <tbody className="divide-y divide-[var(--border)]/50">
               {registry.versions.map((v) => (
-                <tr key={v.version} className="hover:bg-blue-500/5 transition-colors">
+                <tr key={v.version} className="hover:bg-emerald-500/5 transition-colors">
                   <td className="mono font-bold text-[var(--text-primary)] py-2">{v.version}</td>
                   <td className="mono text-right text-green-400 font-semibold">{v.brier_score.toFixed(4)}</td>
-                  <td className="mono text-right text-cyan-400">{(v.roc_auc * 100).toFixed(1)}%</td>
+                  <td className="mono text-right text-emerald-400">{(v.roc_auc * 100).toFixed(1)}%</td>
                   <td className="mono text-right text-[var(--text-secondary)]">{v.ece.toFixed(4)}</td>
                   <td className="mono text-right text-amber-400 font-medium">{v.sharpe_ratio.toFixed(2)}</td>
                   <td className="text-center">

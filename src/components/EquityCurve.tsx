@@ -364,7 +364,7 @@ export default function EquityCurve() {
       <div className="card flex flex-col bg-[var(--bg-surface)] border border-[var(--border)] shadow-md min-h-[160px]">
         <div className="card-header p-3 border-b border-[var(--border)] flex justify-between items-center">
           <div className="flex items-center gap-1.5">
-            <Activity className="size-3.5 text-cyan-400 shrink-0" aria-hidden="true" />
+            <Activity className="size-3.5 text-emerald-400 shrink-0" aria-hidden="true" />
             <span className="card-title text-xs font-bold text-[var(--text-primary)]">📈 Equity Curve</span>
             {realtimeBadge}
           </div>
@@ -382,7 +382,7 @@ export default function EquityCurve() {
       <div className="card flex flex-col bg-[var(--bg-surface)] border border-[var(--border)] shadow-md min-h-[160px]">
         <div className="card-header p-3 border-b border-[var(--border)] flex justify-between items-center">
           <div className="flex items-center gap-1.5">
-            <Activity className="size-3.5 text-cyan-400 shrink-0" aria-hidden="true" />
+            <Activity className="size-3.5 text-emerald-400 shrink-0" aria-hidden="true" />
             <span className="card-title text-xs font-bold text-[var(--text-primary)]">📈 Equity Curve</span>
             {realtimeBadge}
           </div>
@@ -468,7 +468,7 @@ export default function EquityCurve() {
     <div className="card flex flex-col bg-[var(--bg-surface)] border border-[var(--border)] shadow-md min-h-[160px]">
       <div className="card-header p-3 border-b border-[var(--border)] flex justify-between items-center">
         <div className="flex items-center gap-1.5">
-          <Activity className="size-3.5 text-cyan-400 shrink-0" aria-hidden="true" />
+          <Activity className="size-3.5 text-emerald-400 shrink-0" aria-hidden="true" />
           <span className="card-title text-xs font-bold text-[var(--text-primary)]">📈 Portfolio Equity</span>
           <span className="badge badge-amber text-[9.5px]">Paper</span>
           {/* W22-5 — Live / Polling badge. */}

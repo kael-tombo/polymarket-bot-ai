@@ -125,7 +125,7 @@ function DepthChartSkeleton({ height }: { height: number }) {
       {/* Mid-price divider */}
       <div className="absolute top-2 bottom-2 left-1/2 w-px bg-amber-500/40" />
       {/* Caption */}
-      <div className="absolute top-2 left-2 text-[9px] mono text-[#3e4560] tracking-wider uppercase">
+      <div className="absolute top-2 left-2 text-[9px] mono text-[var(--text-dim)] tracking-wider uppercase">
         fetching depth…
       </div>
     </div>
@@ -278,12 +278,12 @@ export default function DepthChartModal({ tokenId, slug, onClose, onOrderPlaced 
         <div className="modal-header">
           <div>
             <div className="flex items-center gap-2">
-              <span id="depth-modal-title" className="text-sm font-bold text-[#dde1ed] tracking-tight">
-                📊 Order Book Depth: <span className="text-blue-400">{slug || tokenId.slice(0, 16)}</span>
+              <span id="depth-modal-title" className="text-sm font-bold text-[var(--text-primary)] tracking-tight">
+                📊 Order Book Depth: <span className="text-emerald-400">{slug || tokenId.slice(0, 16)}</span>
               </span>
               <span className="badge badge-amber text-[9.5px]">Paper</span>
             </div>
-            <span className="text-[11px] text-[#7e8aaa] mono mt-0.5 block tabular-nums">
+            <span className="text-[11px] text-[var(--text-secondary)] mono mt-0.5 block tabular-nums">
               Mid: {data?.mid ? `${(data.mid * 100).toFixed(1)}¢` : '—'} | Spread: {data?.spread ? `${(data.spread * 100).toFixed(1)}¢` : '—'}
             </span>
           </div>
@@ -306,10 +306,10 @@ export default function DepthChartModal({ tokenId, slug, onClose, onOrderPlaced 
               W52-c — wrapped in a refined surface (rounded-lg + inset
               ring + drop shadow) and gated behind DepthChartSkeleton
               while the first `/api/depth/` fetch is in-flight. */}
-          <div className="bg-[#0e1015] p-2.5 rounded-lg border border-[#1f2335] shadow-[0_2px_10px_rgba(0,0,0,0.20)]">
-            <div className="text-[10px] font-bold uppercase text-[#7e8aaa] mb-1.5 flex items-center justify-between tracking-wider">
+          <div className="bg-[var(--bg-page)] p-2.5 rounded-lg border border-[var(--border)] shadow-[0_2px_10px_rgba(0,0,0,0.20)]">
+            <div className="text-[10px] font-bold uppercase text-[var(--text-secondary)] mb-1.5 flex items-center justify-between tracking-wider">
               <span>📊 Cumulative Market Depth</span>
-              <span className="text-[9px] mono text-[#3e4560] tabular-nums">
+              <span className="text-[9px] mono text-[var(--text-dim)] tabular-nums">
                 bids {data?.bids?.length ?? 0} · asks {data?.asks?.length ?? 0}
               </span>
             </div>
@@ -331,7 +331,7 @@ export default function DepthChartModal({ tokenId, slug, onClose, onOrderPlaced 
           {/* Depth Chart Columns */}
           <div className="grid grid-cols-2 gap-3 text-[11px]">
             {/* Bids */}
-            <div className="bg-[#0e1015] p-2.5 rounded-lg border border-[#1f2335]">
+            <div className="bg-[var(--bg-page)] p-2.5 rounded-lg border border-[var(--border)]">
               <div className="text-[10px] font-bold uppercase text-green-400 mb-2 flex justify-between tracking-wider">
                 <span>Bids (Buy Orders)</span>
                 <span>Cumulative</span>
@@ -350,17 +350,17 @@ export default function DepthChartModal({ tokenId, slug, onClose, onOrderPlaced 
                         style={{ width: `${(b.total / maxTotal) * 100}%` }}
                       />
                       <span className="mono text-green-400 z-10 font-semibold tabular-nums">{fmtPrice(b.price)}</span>
-                      <span className="mono text-[#7e8aaa] z-10 tabular-nums">{b.size.toFixed(1)} ({b.total.toFixed(0)})</span>
+                      <span className="mono text-[var(--text-secondary)] z-10 tabular-nums">{b.size.toFixed(1)} ({b.total.toFixed(0)})</span>
                     </div>
                   ))
                 ) : (
-                  <div className="text-[#3e4560] text-center py-4">No active bids</div>
+                  <div className="text-[var(--text-dim)] text-center py-4">No active bids</div>
                 )}
               </div>
             </div>
 
             {/* Asks */}
-            <div className="bg-[#0e1015] p-2.5 rounded-lg border border-[#1f2335]">
+            <div className="bg-[var(--bg-page)] p-2.5 rounded-lg border border-[var(--border)]">
               <div className="text-[10px] font-bold uppercase text-red-400 mb-2 flex justify-between tracking-wider">
                 <span>Cumulative</span>
                 <span>Asks (Sell Orders)</span>
@@ -378,22 +378,22 @@ export default function DepthChartModal({ tokenId, slug, onClose, onOrderPlaced 
                         className="absolute right-0 top-0 bottom-0 bg-red-500/20 rounded-r transition-all duration-200"
                         style={{ width: `${(a.total / maxTotal) * 100}%` }}
                       />
-                      <span className="mono text-[#7e8aaa] z-10 tabular-nums">{a.size.toFixed(1)} ({a.total.toFixed(0)})</span>
+                      <span className="mono text-[var(--text-secondary)] z-10 tabular-nums">{a.size.toFixed(1)} ({a.total.toFixed(0)})</span>
                       <span className="mono text-red-400 z-10 font-semibold tabular-nums">{fmtPrice(a.price)}</span>
                     </div>
                   ))
                 ) : (
-                  <div className="text-[#3e4560] text-center py-4">No active asks</div>
+                  <div className="text-[var(--text-dim)] text-center py-4">No active asks</div>
                 )}
               </div>
             </div>
           </div>
 
           {/* S2: ML Edge Panel — model P(YES) vs market mid, polled @5s */}
-          <div className="bg-[#0e1015] p-3 rounded-lg border border-[#1f2335] space-y-2.5">
+          <div className="bg-[var(--bg-page)] p-3 rounded-lg border border-[var(--border)] space-y-2.5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="text-[11px] font-bold uppercase text-[#7e8aaa] tracking-wider">
+                <span className="text-[11px] font-bold uppercase text-[var(--text-secondary)] tracking-wider">
                   🧠 ML Edge
                 </span>
                 <span
@@ -409,7 +409,7 @@ export default function DepthChartModal({ tokenId, slug, onClose, onOrderPlaced 
                   {mlPred?.model_status?.model_ready ? 'Model Ready' : 'Booting'}
                 </span>
               </div>
-              <span className="text-[9.5px] text-[#7e8aaa] mono tabular-nums">
+              <span className="text-[9.5px] text-[var(--text-secondary)] mono tabular-nums">
                 {mlPred
                   ? `updated ${new Date((mlPred.timestamp ?? 0) * 1000).toLocaleTimeString()}`
                   : 'polling @5s'}
@@ -418,25 +418,25 @@ export default function DepthChartModal({ tokenId, slug, onClose, onOrderPlaced 
 
             <div className="grid grid-cols-4 gap-2 text-[11px]">
               {/* Model P(YES) */}
-              <div className="bg-[#13161e] border border-[#1f2335] rounded px-2 py-1.5">
-                <div className="text-[9px] uppercase text-[#7e8aaa]">Model P(YES)</div>
-                <div className="mono font-semibold text-[#dde1ed] leading-tight tabular-nums">
+              <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded px-2 py-1.5">
+                <div className="text-[9px] uppercase text-[var(--text-secondary)]">Model P(YES)</div>
+                <div className="mono font-semibold text-[var(--text-primary)] leading-tight tabular-nums">
                   {mlPred ? `${(mlPred.p_yes * 100).toFixed(1)}%` : '—'}
                 </div>
-                <div className="text-[9px] text-[#7e8aaa] mono tabular-nums">
+                <div className="text-[9px] text-[var(--text-secondary)] mono tabular-nums">
                   conf {mlPred ? `${(mlPred.confidence * 100).toFixed(0)}%` : '—'}
                 </div>
               </div>
 
               {/* Market Mid */}
-              <div className="bg-[#13161e] border border-[#1f2335] rounded px-2 py-1.5">
-                <div className="text-[9px] uppercase text-[#7e8aaa]">Market Mid</div>
-                <div className="mono font-semibold text-[#dde1ed] leading-tight tabular-nums">
+              <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded px-2 py-1.5">
+                <div className="text-[9px] uppercase text-[var(--text-secondary)]">Market Mid</div>
+                <div className="mono font-semibold text-[var(--text-primary)] leading-tight tabular-nums">
                   {mlPred?.market_mid != null
                     ? `${(mlPred.market_mid * 100).toFixed(1)}¢`
                     : '—'}
                 </div>
-                <div className="text-[9px] text-[#7e8aaa] mono tabular-nums">
+                <div className="text-[9px] text-[var(--text-secondary)] mono tabular-nums">
                   {mlPred?.market_mid != null
                     ? `$${mlPred.market_mid.toFixed(3)}`
                     : 'no book'}
@@ -444,24 +444,24 @@ export default function DepthChartModal({ tokenId, slug, onClose, onOrderPlaced 
               </div>
 
               {/* Edge (model P(YES) − market mid) */}
-              <div className="bg-[#13161e] border border-[#1f2335] rounded px-2 py-1.5">
-                <div className="text-[9px] uppercase text-[#7e8aaa]">Edge</div>
+              <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded px-2 py-1.5">
+                <div className="text-[9px] uppercase text-[var(--text-secondary)]">Edge</div>
                 <div
                   className={`mono font-semibold leading-tight tabular-nums ${
                     mlPred?.edge == null
-                      ? 'text-[#3e4560]'
+                      ? 'text-[var(--text-dim)]'
                       : mlPred.edge > 0
                         ? 'text-green-400'
                         : mlPred.edge < 0
                           ? 'text-red-400'
-                          : 'text-[#dde1ed]'
+                          : 'text-[var(--text-primary)]'
                   }`}
                 >
                   {mlPred?.edge == null
                     ? '—'
                     : `${mlPred.edge >= 0 ? '+' : ''}${(mlPred.edge * 100).toFixed(2)}%`}
                 </div>
-                <div className="text-[9px] text-[#7e8aaa] mono tabular-nums">
+                <div className="text-[9px] text-[var(--text-secondary)] mono tabular-nums">
                   {mlPred?.edge_bps != null
                     ? `${mlPred.edge_bps >= 0 ? '+' : ''}${mlPred.edge_bps.toFixed(0)} bps`
                     : '— bps'}
@@ -469,8 +469,8 @@ export default function DepthChartModal({ tokenId, slug, onClose, onOrderPlaced 
               </div>
 
               {/* Recommended Action badge */}
-              <div className="bg-[#13161e] border border-[#1f2335] rounded px-2 py-1.5">
-                <div className="text-[9px] uppercase text-[#7e8aaa]">Action</div>
+              <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded px-2 py-1.5">
+                <div className="text-[9px] uppercase text-[var(--text-secondary)]">Action</div>
                 {(() => {
                   const action = mlPred?.recommended_action
                   const badgeCls =
@@ -489,20 +489,20 @@ export default function DepthChartModal({ tokenId, slug, onClose, onOrderPlaced 
                     </span>
                   )
                 })()}
-                <div className="text-[9px] text-[#7e8aaa] mono mt-0.5">±2ct gate</div>
+                <div className="text-[9px] text-[var(--text-secondary)] mono mt-0.5">±2ct gate</div>
               </div>
             </div>
 
             {mlPred?.action_reason && (
-              <div className="text-[10px] text-[#7e8aaa] mono leading-snug border-t border-[#1f2335] pt-1.5">
-                <span className="text-[#3e4560]">reason:</span> {mlPred.action_reason}
+              <div className="text-[10px] text-[var(--text-secondary)] mono leading-snug border-t border-[var(--border)] pt-1.5">
+                <span className="text-[var(--text-dim)]">reason:</span> {mlPred.action_reason}
               </div>
             )}
           </div>
 
           {/* Quick Trade Form */}
-          <div className="bg-[#0e1015] p-3 rounded-lg border border-[#1f2335] space-y-3">
-            <div className="text-[11px] font-semibold uppercase text-[#7e8aaa] flex justify-between items-center tracking-wider">
+          <div className="bg-[var(--bg-page)] p-3 rounded-lg border border-[var(--border)] space-y-3">
+            <div className="text-[11px] font-semibold uppercase text-[var(--text-secondary)] flex justify-between items-center tracking-wider">
               <span>Manual Paper Trade Execution</span>
               <div className="flex gap-1" role="group" aria-label="Trade direction">
                 <button
@@ -559,8 +559,8 @@ export default function DepthChartModal({ tokenId, slug, onClose, onOrderPlaced 
                         onClick={() => setSizeUsdc(preset)}
                         className={`px-1.5 py-0.5 rounded text-[10px] mono font-bold border transition-all ${
                           sizeUsdc === preset
-                            ? 'bg-blue-500/20 text-cyan-300 border-blue-500/50'
-                            : 'bg-[#0e1015] text-[#7e8aaa] border-[#1f2335] hover:text-white'
+                            ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50'
+                            : 'bg-[var(--bg-page)] text-[var(--text-secondary)] border-[var(--border)] hover:text-white'
                         }`}
                       >
                         ${preset}
@@ -581,10 +581,10 @@ export default function DepthChartModal({ tokenId, slug, onClose, onOrderPlaced 
                 const returnPct = s > 0 ? (estProfit / s) * 100 : 0
 
                 return (
-                  <div className="flex items-center gap-2 bg-[#13161e] border border-[#1f2335] px-2 py-0.5 rounded text-[10.5px]">
-                    <span className="text-[#7e8aaa]">Est. Shares: <strong className="text-[#dde1ed] mono tabular-nums">{estShares.toFixed(1)}</strong></span>
-                    <span className="text-[#3e4560]">|</span>
-                    <span className="text-[#7e8aaa]">Payout: <strong className="text-green-400 mono tabular-nums">${estPayout.toFixed(2)}</strong> ({returnPct >= 0 ? `+${returnPct.toFixed(0)}%` : `${returnPct.toFixed(0)}%`})</span>
+                  <div className="flex items-center gap-2 bg-[var(--bg-surface)] border border-[var(--border)] px-2 py-0.5 rounded text-[10.5px]">
+                    <span className="text-[var(--text-secondary)]">Est. Shares: <strong className="text-[var(--text-primary)] mono tabular-nums">{estShares.toFixed(1)}</strong></span>
+                    <span className="text-[var(--text-dim)]">|</span>
+                    <span className="text-[var(--text-secondary)]">Payout: <strong className="text-green-400 mono tabular-nums">${estPayout.toFixed(2)}</strong> ({returnPct >= 0 ? `+${returnPct.toFixed(0)}%` : `${returnPct.toFixed(0)}%`})</span>
                   </div>
                 )
               })()}

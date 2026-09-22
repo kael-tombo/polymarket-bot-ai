@@ -222,7 +222,7 @@ function ParamSlider({
       step={step}
       value={value}
       onChange={(e) => onChange(parseFloat(e.target.value))}
-      className="w-full h-1 mt-1.5 mb-0.5 accent-cyan-400 cursor-pointer opacity-70 hover:opacity-100 transition-opacity"
+      className="w-full h-1 mt-1.5 mb-0.5 accent-emerald-400 cursor-pointer opacity-70 hover:opacity-100 transition-opacity"
       aria-labelledby={labelId}
     />
   )
@@ -439,7 +439,7 @@ export default function StrategyConfigModal({ isOpen, onClose }: Props) {
           value={value}
           onChange={(e) => updateField(key, spec.parse(e.target.value))}
           onFocus={() => setTouched((p) => ({ ...p, [key]: true }))}
-          className={`input input-sm mono transition-colors duration-150 focus:ring-1 focus:ring-cyan-500/20 focus:border-cyan-500/40 ${
+          className={`input input-sm mono transition-colors duration-150 focus:ring-1 focus:ring-emerald-500/20 focus:border-emerald-500/40 ${
             err ? 'border-red-500/60 bg-red-500/[0.04]' : ''
           }`}
           aria-invalid={!!err}
@@ -482,7 +482,7 @@ export default function StrategyConfigModal({ isOpen, onClose }: Props) {
         <div className="modal-header">
           <div className="flex items-center gap-2">
             <span
-              className="inline-flex items-center justify-center size-7 rounded-md bg-cyan-500/[0.08] border border-cyan-500/25 text-cyan-400 shadow-[0_0_12px_rgba(34,211,238,0.10)]"
+              className="inline-flex items-center justify-center size-7 rounded-md bg-emerald-500/[0.08] border border-emerald-500/25 text-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.10)]"
               aria-hidden="true"
             >
               <GaugeCircle className="size-4" />
@@ -597,14 +597,14 @@ export default function StrategyConfigModal({ isOpen, onClose }: Props) {
                   <button
                     type="button"
                     onClick={() => setShowAdvanced((v) => !v)}
-                    className="inline-flex items-center gap-1.5 text-[10px] text-[var(--text-secondary)] hover:text-cyan-400 transition-colors"
+                    className="inline-flex items-center gap-1.5 text-[10px] text-[var(--text-secondary)] hover:text-emerald-400 transition-colors"
                     role="switch"
                     aria-checked={showAdvanced}
                     aria-label="Toggle advanced portfolio limits"
                   >
                     <span
                       className={`relative inline-flex h-3 w-6 rounded-full transition-colors ${
-                        showAdvanced ? 'bg-cyan-500/60' : 'bg-[var(--border-strong)]'
+                        showAdvanced ? 'bg-emerald-500/60' : 'bg-[var(--border-strong)]'
                       }`}
                       aria-hidden="true"
                     >

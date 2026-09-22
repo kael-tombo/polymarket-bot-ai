@@ -363,9 +363,9 @@ function SortIndicator({ active, direction }: { active: boolean; direction: Sort
     return <ArrowUpDown size={10} className="opacity-30" aria-hidden="true" />
   }
   return direction === 'asc' ? (
-    <ArrowUp size={10} className="text-cyan-400" aria-hidden="true" />
+    <ArrowUp size={10} className="text-emerald-400" aria-hidden="true" />
   ) : (
-    <ArrowDown size={10} className="text-cyan-400" aria-hidden="true" />
+    <ArrowDown size={10} className="text-emerald-400" aria-hidden="true" />
   )
 }
 
@@ -602,7 +602,7 @@ function StrategyCard({ row, color, onToggle, toggling }: StrategyCardProps) {
     <Card
       className={`bg-[var(--bg-surface)] border rounded-lg overflow-hidden ${
         row.is_running && implemented
-          ? 'border-blue-500/40 shadow-sm shadow-blue-500/10'
+          ? 'border-emerald-500/40 shadow-sm shadow-emerald-500/10'
           : 'border-[var(--border)]'
       }`}
       data-testid="strategy-card"
@@ -986,7 +986,7 @@ function PerformanceTable({ rows, colors }: PerformanceTableProps) {
             return (
               <TableRow
                 key={r.strategy_id}
-                className="border-[var(--border)] hover:bg-[var(--bg-surface)] text-xs border-l-2 border-l-transparent hover:border-l-cyan-400/60 transition-colors"
+                className="border-[var(--border)] hover:bg-[var(--bg-surface)] text-xs border-l-2 border-l-transparent hover:border-l-emerald-400/60 transition-colors"
                 data-testid="performance-table-row"
               >
                 <TableCell className="py-1.5 px-2">
@@ -1092,7 +1092,7 @@ function RiskRankingPanel({ rows }: RiskRankingPanelProps) {
             onClick={() => setMetric(m.id)}
             className={`px-2 py-1 text-[10px] font-semibold rounded border transition-colors ${
               metric === m.id
-                ? 'bg-cyan-500/15 text-cyan-300 border-cyan-500/40'
+                ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40'
                 : 'bg-[var(--bg-base)] text-[var(--text-secondary)] border-[var(--border)] hover:border-[var(--border-strong)]'
             }`}
             aria-pressed={metric === m.id}
@@ -1127,7 +1127,7 @@ function RiskRankingPanel({ rows }: RiskRankingPanelProps) {
           return (
             <div
               key={r.strategy_id}
-              className="flex items-center justify-between bg-[var(--bg-base)] px-2.5 py-1.5 rounded border border-[var(--border)] hover:border-cyan-500/30 transition-colors text-xs border-l-2 border-l-transparent hover:border-l-cyan-400/60"
+              className="flex items-center justify-between bg-[var(--bg-base)] px-2.5 py-1.5 rounded border border-[var(--border)] hover:border-emerald-500/30 transition-colors text-xs border-l-2 border-l-transparent hover:border-l-emerald-400/60"
               data-testid="risk-ranking-row"
             >
               <div className="flex items-center gap-2 min-w-0">
@@ -1387,7 +1387,7 @@ export default function StrategyPerformancePanel() {
       <div className="flex flex-wrap justify-between items-center pb-2 border-b border-[var(--border)] gap-2">
         <div>
           <div className="flex items-center gap-2">
-            <LayoutGrid size={18} className="text-cyan-400" aria-hidden="true" />
+            <LayoutGrid size={18} className="text-emerald-400" aria-hidden="true" />
             <span className="text-sm font-bold text-[var(--text-primary)]">
               Strategy Performance Dashboard
             </span>
@@ -1530,7 +1530,7 @@ export default function StrategyPerformancePanel() {
         <Card className="lg:col-span-2 bg-[var(--bg-surface)] border-[var(--border)]">
           <CardHeader className="px-4 py-3 border-b border-[var(--border)]">
             <div className="flex items-center gap-2">
-              <BarChart3 size={14} className="text-cyan-400" aria-hidden="true" />
+              <BarChart3 size={14} className="text-emerald-400" aria-hidden="true" />
               <CardTitle className="text-xs font-bold text-[var(--text-primary)] uppercase tracking-wider">
                 P&amp;L Attribution by Strategy
               </CardTitle>
@@ -1578,7 +1578,7 @@ export default function StrategyPerformancePanel() {
         <Card className="bg-[var(--bg-surface)] border-[var(--border)]">
           <CardHeader className="px-4 py-3 border-b border-[var(--border)]">
             <div className="flex items-center gap-2">
-              <Table2 size={14} className="text-cyan-400" aria-hidden="true" />
+              <Table2 size={14} className="text-emerald-400" aria-hidden="true" />
               <CardTitle className="text-xs font-bold text-[var(--text-primary)] uppercase tracking-wider">
                 Performance Comparison
               </CardTitle>

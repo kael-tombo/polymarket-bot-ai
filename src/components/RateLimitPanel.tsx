@@ -283,7 +283,7 @@ function EndpointRow({ endpoint, count, max }: EndpointRowProps) {
   const cfg = TONE[tone]
   return (
     <div
-      className={`flex items-center gap-2 py-1 px-1.5 rounded border-b border-[var(--border)]/50 last:border-b-0 hover:bg-cyan-500/[0.04] ${cfg.rowHover} transition-shadow`}
+      className={`flex items-center gap-2 py-1 px-1.5 rounded border-b border-[var(--border)]/50 last:border-b-0 hover:bg-emerald-500/[0.04] ${cfg.rowHover} transition-shadow`}
       data-tone={tone}
     >
       <div
@@ -318,7 +318,7 @@ function ClientRow({ ip, count, max }: ClientRowProps) {
   const cfg = TONE[tone]
   return (
     <div
-      className={`flex items-center gap-2 py-1 px-1.5 rounded border-b border-[var(--border)]/50 last:border-b-0 hover:bg-cyan-500/[0.04] ${cfg.rowHover} transition-shadow`}
+      className={`flex items-center gap-2 py-1 px-1.5 rounded border-b border-[var(--border)]/50 last:border-b-0 hover:bg-emerald-500/[0.04] ${cfg.rowHover} transition-shadow`}
       data-tone={tone}
     >
       <div
@@ -769,7 +769,7 @@ export default function RateLimitPanel() {
             hint={topEndpointEntry ? `${formatNumber(topEndpointEntry.count)} hits` : undefined}
             icon={Server}
             tone={topEndpointEntry ? countTone(topEndpointEntry.count) : 'neutral'}
-            accentClass="text-blue-400"
+            accentClass="text-emerald-400"
             title={topEndpointEntry ? `Top rate-limited endpoint: ${topEndpointEntry.endpoint} (${formatNumber(topEndpointEntry.count)} hits)` : undefined}
           />
           <KpiTile

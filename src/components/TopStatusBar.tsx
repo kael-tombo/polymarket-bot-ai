@@ -295,7 +295,7 @@ export default function TopStatusBar({
     mode === 'live'
       ? 'bg-red-500/20 text-red-400 border border-red-500/40'
       : mode === 'shadow'
-      ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/40'
+      ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
       : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
 
   const exposure = computeExposure(positions)
@@ -424,7 +424,7 @@ export default function TopStatusBar({
             title={`Paper balance ${paper_balance != null ? fmtUsd(paper_balance) : '—'}`}
           >
             <span className="text-[10px] text-[var(--text-secondary)] uppercase font-bold tracking-wider">BAL</span>
-            <span className="mono font-bold text-cyan-300 tabular-nums">
+            <span className="mono font-bold text-emerald-300 tabular-nums">
               {paper_balance != null ? fmtUsd(paper_balance) : '—'}
             </span>
           </div>
@@ -465,13 +465,13 @@ export default function TopStatusBar({
           {/* ML health pill — kept on xl+ only (desktop). */}
           {mlInfo && (
             <div className="hidden xl:flex items-center gap-2 bg-[var(--bg-surface)] border border-[var(--border)] px-2.5 py-1 rounded-md text-xs whitespace-nowrap">
-              <span className="text-[10px] text-cyan-400 font-bold uppercase tracking-wider flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" aria-hidden="true" />
+              <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" aria-hidden="true" />
                 ML:
               </span>
               <span className="mono text-[11px] text-green-400 font-semibold tabular-nums">Brier {mlInfo.brier.toFixed(3)}</span>
               <span className="text-[var(--text-muted)]" aria-hidden="true">|</span>
-              <span className="mono text-[11px] text-cyan-300 font-semibold tabular-nums">AUC {(mlInfo.auc * 100).toFixed(0)}%</span>
+              <span className="mono text-[11px] text-emerald-300 font-semibold tabular-nums">AUC {(mlInfo.auc * 100).toFixed(0)}%</span>
               <span className="text-[var(--text-muted)]" aria-hidden="true">|</span>
               <span className={`text-[10px] font-bold uppercase ${mlInfo.status === 'HEALTHY' ? 'text-green-400' : 'text-amber-400'}`}>
                 {mlInfo.status}

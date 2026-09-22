@@ -163,12 +163,12 @@ const TONE: Record<Tone, ToneConfig> = {
   positive: { text: 'text-green-400',  dot: 'bg-green-400',  halo: 'shadow-green-500/10' },
   negative: { text: 'text-red-400',    dot: 'bg-red-400',    halo: 'shadow-red-500/10' },
   warn:     { text: 'text-amber-400',  dot: 'bg-amber-400',  halo: 'shadow-amber-500/10' },
-  neutral:  { text: 'text-[#7e8aaa]',  dot: 'bg-[#5a637a]',  halo: '' },
+  neutral:  { text: 'text-[var(--text-secondary)]',  dot: 'bg-[var(--text-dim)]',  halo: '' },
 }
 
 // ── SectionHeader — Lucide icon + uppercase title + optional dim description
 // Mirrors the W51-2d SectionHeader pattern: icon at 12px, uppercase
-// 9.5px tracking-wider bold title in muted text-[#5a637a], optional dim
+// 9.5px tracking-wider bold title in muted text-[var(--text-dim)], optional dim
 // italic 8.5px description. The title is rendered in its own <span> so
 // RTL's `getByText('Bid / Ask Imbalance')` matches just the span, not
 // the wrapper div (the icon is an SVG with no text content).
@@ -188,11 +188,11 @@ function SectionHeader({
   return (
     <div className="flex items-center gap-1.5 mb-1.5">
       <Icon className={`size-3 ${TONE[tone].text}`} aria-hidden="true" />
-      <span className="text-[9.5px] uppercase tracking-wider font-bold text-[#5a637a]">
+      <span className="text-[9.5px] uppercase tracking-wider font-bold text-[var(--text-dim)]">
         {title}
       </span>
       {description && (
-        <span className="text-[8.5px] text-[#5a637a] italic truncate">
+        <span className="text-[8.5px] text-[var(--text-dim)] italic truncate">
           {description}
         </span>
       )}
@@ -302,7 +302,7 @@ function NoMarketsEmptyState() {
       style={{ minHeight: 240 }}
     >
       <Inbox
-        className="size-8 text-[#5a637a]/70"
+        className="size-8 text-[var(--text-dim)]/70"
         aria-hidden="true"
       />
       <span className="empty-state-title">No market selected</span>
@@ -519,7 +519,7 @@ export default function OrderFlowPanel({
     >
       {/* Top control bar: token selector + window selector + stats */}
       <div
-        className="card bg-[#13161e] border border-[#1f2335] shadow-md p-3"
+        className="card bg-[var(--bg-surface)] border border-[var(--border)] shadow-md p-3"
         data-testid="order-flow-panel-header"
       >
         <div className="flex flex-wrap items-center gap-3 justify-between">
@@ -527,7 +527,7 @@ export default function OrderFlowPanel({
           <div className="flex items-center gap-2 min-w-0">
             <label
               htmlFor="ofp-token-select"
-              className="text-[10px] uppercase font-bold text-[#7e8aaa] flex-shrink-0"
+              className="text-[10px] uppercase font-bold text-[var(--text-secondary)] flex-shrink-0"
             >
               Token
             </label>
@@ -535,7 +535,7 @@ export default function OrderFlowPanel({
               id="ofp-token-select"
               value={selectedTokenId ?? ''}
               onChange={handleTokenChange}
-              className="bg-[#0e1015] border border-[#1f2335] text-[#dde1ed] text-xs rounded px-2 py-1 mono max-w-[260px] truncate focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-cyan-500/20 transition-colors"
+              className="bg-[var(--bg-page)] border border-[var(--border)] text-[var(--text-primary)] text-xs rounded px-2 py-1 mono max-w-[260px] truncate focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/20 transition-colors"
               aria-label="Select market token"
               data-testid="order-flow-token-select"
             >
@@ -563,8 +563,8 @@ export default function OrderFlowPanel({
                 onClick={() => setTimeWindow(opt.value)}
                 className={`px-2 py-1 rounded text-[10px] mono font-bold border tabular-nums transition-colors ${
                   timeWindow === opt.value
-                    ? 'bg-blue-500/20 text-cyan-300 border-blue-500/50'
-                    : 'bg-[#0e1015] text-[#7e8aaa] border-[#1f2335] hover:text-white hover:border-[#2a2f48]'
+                    ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50'
+                    : 'bg-[var(--bg-page)] text-[var(--text-secondary)] border-[var(--border)] hover:text-white hover:border-[var(--border-strong)]'
                 }`}
                 aria-pressed={timeWindow === opt.value}
                 data-testid={`order-flow-window-${opt.value}`}
@@ -578,36 +578,36 @@ export default function OrderFlowPanel({
           <div className="flex items-center gap-3 text-[10px]">
             {/* Cumulative Δ — green for buy pressure, red for sell pressure */}
             <div
-              className="bg-[#0e1015] border border-[#1f2335] rounded px-2 py-1 transition-colors"
+              className="bg-[var(--bg-page)] border border-[var(--border)] rounded px-2 py-1 transition-colors"
               data-tone={deltaTone}
               data-testid="order-flow-delta-stat"
               title="Cumulative delta — net buy volume minus sell volume over the visible window"
             >
-              <span className="text-[#7e8aaa] uppercase">Δ </span>
+              <span className="text-[var(--text-secondary)] uppercase">Δ </span>
               <span className={`mono font-bold tabular-nums ${TONE[deltaTone].text}`}>
                 {cumulativeDelta >= 0 ? '+' : ''}{cumulativeDelta.toFixed(1)}
               </span>
             </div>
             {/* Imbalance ratio — green bid-heavy, red ask-heavy, amber balanced */}
             <div
-              className="bg-[#0e1015] border border-[#1f2335] rounded px-2 py-1 transition-colors"
+              className="bg-[var(--bg-page)] border border-[var(--border)] rounded px-2 py-1 transition-colors"
               data-tone={imbalanceTone}
               data-testid="order-flow-imbalance-stat"
               title="Bid/ask volume imbalance — (bid − ask) / (bid + ask)"
             >
-              <span className="text-[#7e8aaa] uppercase">Imb </span>
+              <span className="text-[var(--text-secondary)] uppercase">Imb </span>
               <span className={`mono font-bold tabular-nums ${TONE[imbalanceTone].text}`}>
                 {(imbalanceRatio * 100).toFixed(0)}%
               </span>
             </div>
             {/* Tape speed — neutral numeric (trades/min over last 60s) */}
             <div
-              className="bg-[#0e1015] border border-[#1f2335] rounded px-2 py-1 transition-colors"
+              className="bg-[var(--bg-page)] border border-[var(--border)] rounded px-2 py-1 transition-colors"
               data-tone="neutral"
               title="Tape speed — trades per minute over the last 60 seconds"
             >
-              <span className="text-[#7e8aaa] uppercase">Tape </span>
-              <span className="mono font-bold tabular-nums text-[#dde1ed]">
+              <span className="text-[var(--text-secondary)] uppercase">Tape </span>
+              <span className="mono font-bold tabular-nums text-[var(--text-primary)]">
                 {tradesPerMin}/min
               </span>
             </div>
@@ -642,7 +642,7 @@ export default function OrderFlowPanel({
 
       {/* Order flow chart — full width */}
       <div
-        className="card bg-[#13161e] border border-[#1f2335] shadow-md p-3"
+        className="card bg-[var(--bg-surface)] border border-[var(--border)] shadow-md p-3"
         data-testid="order-flow-chart-card"
       >
         <SectionHeader
@@ -665,7 +665,7 @@ export default function OrderFlowPanel({
       {/* Bottom grid: imbalance (left) + tape (right) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 flex-1 min-h-0">
         <div
-          className="card bg-[#13161e] border border-[#1f2335] shadow-md p-3"
+          className="card bg-[var(--bg-surface)] border border-[var(--border)] shadow-md p-3"
           data-testid="order-flow-imbalance-card"
         >
           <SectionHeader
@@ -689,7 +689,7 @@ export default function OrderFlowPanel({
           )}
           {!selectedTokenId && (
             <div
-              className="text-[10px] text-[#5a637a] italic text-center py-6"
+              className="text-[10px] text-[var(--text-dim)] italic text-center py-6"
               data-testid="order-flow-imbalance-placeholder"
             >
               Select a token to view depth.
@@ -697,7 +697,7 @@ export default function OrderFlowPanel({
           )}
         </div>
         <div
-          className="card bg-[#13161e] border border-[#1f2335] shadow-md p-3"
+          className="card bg-[var(--bg-surface)] border border-[var(--border)] shadow-md p-3"
           data-testid="order-flow-tape-card"
         >
           <SectionHeader

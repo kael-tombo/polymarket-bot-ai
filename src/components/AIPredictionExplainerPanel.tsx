@@ -607,7 +607,7 @@ function StatusPill({ label, value, hint, tone = 'neutral', dataTone }: StatusPi
         : tone === 'crit'
           ? 'bg-red-400'
           : tone === 'ai'
-            ? 'bg-blue-400'
+            ? 'bg-emerald-400'
             : 'bg-slate-500'
   // W54-c-retry — only render data-tone when explicitly provided so the
   // attribute is absent (not "undefined") when the pill has no semantic
@@ -628,7 +628,7 @@ function StatusPill({ label, value, hint, tone = 'neutral', dataTone }: StatusPi
       <span
         className={`mono text-[12px] font-bold tabular-nums ${
           tone === 'ai'
-            ? 'text-blue-300'
+            ? 'text-emerald-300'
             : tone === 'ok'
               ? 'text-emerald-400'
               : tone === 'warn'
@@ -674,7 +674,7 @@ function CIRangeBar({
         style={{
           left: `${leftPct}%`,
           width: `${widthPct}%`,
-          background: 'linear-gradient(90deg, rgba(96,165,250,0.6), rgba(168,85,247,0.85))',
+          background: 'linear-gradient(90deg, rgba(16,185,129,0.6), rgba(168,85,247,0.85))',
         }}
       />
       {pt != null && (
@@ -715,12 +715,12 @@ function PredictionHeadline({ probability, confidence, ci }: PredictionHeadlineP
 
   return (
     <div
-      className="bg-[var(--bg-base)] border border-blue-500/30 rounded-lg p-4"
+      className="bg-[var(--bg-base)] border border-emerald-500/30 rounded-lg p-4"
       data-testid="ai-prediction-headline"
     >
       <div className="flex items-center gap-2 mb-1">
-        <Sparkles className="size-3.5 text-blue-400" aria-hidden="true" />
-        <span className="text-[10px] uppercase tracking-wider text-blue-300 font-bold">
+        <Sparkles className="size-3.5 text-emerald-400" aria-hidden="true" />
+        <span className="text-[10px] uppercase tracking-wider text-emerald-300 font-bold">
           AI Prediction
         </span>
         <span className="text-[9px] text-[var(--text-secondary)] italic">
@@ -728,7 +728,7 @@ function PredictionHeadline({ probability, confidence, ci }: PredictionHeadlineP
         </span>
       </div>
       <div className="flex items-baseline gap-2 flex-wrap">
-        <span className="mono text-3xl font-bold text-blue-300 tabular-nums">
+        <span className="mono text-3xl font-bold text-emerald-300 tabular-nums">
           {probPct}
         </span>
         <span
@@ -755,7 +755,7 @@ function PredictionHeadline({ probability, confidence, ci }: PredictionHeadlineP
         <div className="mt-2">
           <div className="flex items-center justify-between text-[9.5px] text-[var(--text-secondary)]">
             <span>95% confidence interval</span>
-            <span className="mono text-blue-300 tabular-nums">
+            <span className="mono text-emerald-300 tabular-nums">
               [{(ci.low * 100).toFixed(1)}%, {(ci.high * 100).toFixed(1)}%]
             </span>
           </div>
@@ -803,7 +803,7 @@ function ModelVsMarket({ aiProbability, marketImplied, edge }: ModelVsMarketProp
     <Card className="bg-[var(--bg-base)] border border-[var(--border)] p-3 rounded-md" data-testid="model-vs-market-card">
       <div className="flex items-center justify-between mb-2">
         <span className="text-[10.5px] uppercase tracking-wider font-bold text-[var(--text-primary)] flex items-center gap-1.5">
-          <Gauge className="size-3 text-cyan-400" />
+          <Gauge className="size-3 text-emerald-400" />
           Model vs Market
         </span>
         <span className="text-[9px] text-[var(--text-secondary)] italic">
@@ -811,18 +811,18 @@ function ModelVsMarket({ aiProbability, marketImplied, edge }: ModelVsMarketProp
         </span>
       </div>
       <div className="grid grid-cols-3 gap-2">
-        <div className="text-center bg-blue-500/5 border border-blue-500/20 rounded-md p-2">
-          <div className="text-[9px] uppercase tracking-wider text-blue-300 font-bold">
+        <div className="text-center bg-emerald-500/5 border border-emerald-500/20 rounded-md p-2">
+          <div className="text-[9px] uppercase tracking-wider text-emerald-300 font-bold">
             AI Model
           </div>
-          <div className="mono text-lg font-bold text-blue-300 mt-0.5 tabular-nums">{aiPct}</div>
+          <div className="mono text-lg font-bold text-emerald-300 mt-0.5 tabular-nums">{aiPct}</div>
           <div className="text-[8.5px] text-[var(--text-secondary)]">predicted P(YES)</div>
         </div>
         <div className="text-center bg-[var(--bg-surface)] border border-[var(--border)] rounded-md p-2">
-          <div className="text-[9px] uppercase tracking-wider text-cyan-300 font-bold">
+          <div className="text-[9px] uppercase tracking-wider text-emerald-300 font-bold">
             Market
           </div>
-          <div className="mono text-lg font-bold text-cyan-300 mt-0.5 tabular-nums">{mktPct}</div>
+          <div className="mono text-lg font-bold text-emerald-300 mt-0.5 tabular-nums">{mktPct}</div>
           <div className="text-[8.5px] text-[var(--text-secondary)]">order-book mid</div>
         </div>
         <div className="text-center bg-purple-500/5 border border-purple-500/20 rounded-md p-2">
@@ -925,19 +925,19 @@ function WhyExplainer({
     : 1e-9
 
   return (
-    <Card className="bg-[var(--bg-base)] border border-blue-500/20 rounded-md" data-testid="why-explainer-card">
+    <Card className="bg-[var(--bg-base)] border border-emerald-500/20 rounded-md" data-testid="why-explainer-card">
       <Collapsible open={open} onOpenChange={setOpen}>
         <CollapsibleTrigger asChild>
           <button
             type="button"
-            className="w-full p-3 flex items-center justify-between hover:bg-blue-500/5 transition-colors rounded-t-md"
+            className="w-full p-3 flex items-center justify-between hover:bg-emerald-500/5 transition-colors rounded-t-md"
             aria-expanded={open}
             aria-controls="why-explainer-content"
             data-testid="why-explainer-trigger"
           >
             <span className="flex items-center gap-2">
-              <Lightbulb className="size-3.5 text-blue-400" aria-hidden="true" />
-              <span className="text-[11px] uppercase tracking-wider font-bold text-blue-300">
+              <Lightbulb className="size-3.5 text-emerald-400" aria-hidden="true" />
+              <span className="text-[11px] uppercase tracking-wider font-bold text-emerald-300">
                 Why? — Explainability
               </span>
               {tokenId && (
@@ -976,7 +976,7 @@ function WhyExplainer({
                   <code className="mono text-[10.5px] text-emerald-300">
                     {championVersion ?? '—'}
                   </code>
-                  <span className="mono text-[11px] text-blue-300 font-bold tabular-nums">
+                  <span className="mono text-[11px] text-emerald-300 font-bold tabular-nums">
                     {championProb == null ? '—' : `${(championProb * 100).toFixed(1)}%`}
                   </span>
                 </div>
@@ -1031,7 +1031,7 @@ function WhyExplainer({
                     // the blue→cyan gradient; bearish uses red→amber. Keeps
                     // the W51-2d visual consistency across panels.
                     const barColor = pushesYes
-                      ? 'from-blue-600 via-blue-500 to-cyan-400'
+                      ? 'from-emerald-600 via-emerald-500 to-emerald-400'
                       : 'from-red-600 via-red-500 to-amber-400'
                     return (
                       <div
@@ -1058,7 +1058,7 @@ function WhyExplainer({
                         </div>
                         <span
                           className={`mono text-[10px] font-bold w-16 text-right shrink-0 tabular-nums ${
-                            pushesYes ? 'text-blue-300' : 'text-red-300'
+                            pushesYes ? 'text-emerald-300' : 'text-red-300'
                           }`}
                         >
                           {pushesYes ? '+' : ''}
@@ -1070,7 +1070,7 @@ function WhyExplainer({
                   {/* W54-c — Bullish / Bearish legend, matching AIMLCommandCenter. */}
                   <div className="flex items-center gap-3 pt-2 mt-1 border-t border-[var(--border)] text-[9px] text-[var(--text-secondary)] uppercase tracking-wider font-bold">
                     <span className="inline-flex items-center gap-1">
-                      <span className="inline-block w-3 h-1 rounded-sm bg-gradient-to-r from-blue-600 to-cyan-400" aria-hidden="true" />
+                      <span className="inline-block w-3 h-1 rounded-sm bg-gradient-to-r from-emerald-600 to-emerald-400" aria-hidden="true" />
                       Bullish (→YES)
                     </span>
                     <span className="inline-flex items-center gap-1">
@@ -1088,9 +1088,9 @@ function WhyExplainer({
                   </div>
                   {explanation.explanation?.predicted_probability != null && (
                     <div className="text-[10px] text-[var(--text-secondary)] mt-1 flex items-center gap-1.5">
-                      <Info className="size-3 text-blue-400" aria-hidden="true" />
+                      <Info className="size-3 text-emerald-400" aria-hidden="true" />
                       Ensemble predicted P(YES) ={' '}
-                      <span className="mono text-blue-300 font-bold tabular-nums">
+                      <span className="mono text-emerald-300 font-bold tabular-nums">
                         {(explanation.explanation.predicted_probability * 100).toFixed(1)}%
                       </span>
                       {explanation.explanation.confidence != null && (
@@ -1251,8 +1251,8 @@ function PredictionHistoryTable({
               // W54-c — Refined row hover with inset shadow accent bar
               // (matches W51-2b PositionsPanel row-hover vocabulary).
               const rowAccent = isSelected
-                ? 'bg-blue-500/10 shadow-[inset_3px_0_0_0_rgba(96,165,250,0.7)]'
-                : 'hover:bg-blue-500/[0.04] hover:shadow-[inset_3px_0_0_0_rgba(96,165,250,0.4)]'
+                ? 'bg-emerald-500/10 shadow-[inset_3px_0_0_0_rgba(16,185,129,0.7)]'
+                : 'hover:bg-emerald-500/[0.04] hover:shadow-[inset_3px_0_0_0_rgba(16,185,129,0.4)]'
               return (
                 <TableRow
                   key={trade.id}
@@ -1270,7 +1270,7 @@ function PredictionHistoryTable({
                   <TableCell className="py-1.5 px-2 text-[10px] mono text-[var(--text-secondary)]">
                     {trade.strategy || '—'}
                   </TableCell>
-                  <TableCell className="py-1.5 px-2 text-right mono text-[10.5px] text-blue-300 font-bold tabular-nums">
+                  <TableCell className="py-1.5 px-2 text-right mono text-[10.5px] text-emerald-300 font-bold tabular-nums">
                     {(probYes * 100).toFixed(1)}%
                   </TableCell>
                   <TableCell className="py-1.5 px-2 text-right mono text-[10.5px] text-purple-300 font-bold tabular-nums">
@@ -1650,7 +1650,7 @@ export default function AIPredictionExplainerPanel() {
       {/* Header */}
       <div className="card-header p-3 border-b border-[var(--border)] flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <Brain className="size-4 text-blue-400" aria-hidden="true" />
+          <Brain className="size-4 text-emerald-400" aria-hidden="true" />
           <span className="card-title text-sm font-bold text-[var(--text-primary)]">
             Explainable AI / ML Prediction
           </span>
@@ -1778,7 +1778,7 @@ export default function AIPredictionExplainerPanel() {
           </div>
           {/* Skeleton headline + Model vs Market */}
           <div className="grid grid-cols-2 gap-3">
-            <div className="rounded p-3 border border-blue-500/20 bg-[var(--bg-base)]">
+            <div className="rounded p-3 border border-emerald-500/20 bg-[var(--bg-base)]">
               <ShimmerBlock className="!w-1/3" />
               <ShimmerBlock className="!w-1/2 !h-6 mt-2" />
               <ShimmerBlock className="!w-full !h-1.5 mt-3" />
@@ -2143,7 +2143,7 @@ export default function AIPredictionExplainerPanel() {
             <code>/api/ml/explain/&#123;token_id&#125;</code> ·{' '}
             <code>/api/data-quality</code> · Auto-refresh every 20s ·
             pauses when tab hidden · AI-generated fields shown in{' '}
-            <span className="text-blue-300">blue</span> /{' '}
+            <span className="text-emerald-300">blue</span> /{' '}
             <span className="text-purple-300">purple</span>
           </div>
         </div>

@@ -187,24 +187,24 @@ function TypingIndicator() {
       data-testid="ai-copilot-typing"
     >
       <div className="flex items-center gap-1.5 px-1 text-[10px] text-[var(--text-secondary)]">
-        <Bot className="size-3 text-cyan-400" aria-hidden="true" />
+        <Bot className="size-3 text-emerald-400" aria-hidden="true" />
         <span className="font-semibold tracking-wide">Copilot</span>
         <span aria-hidden="true">•</span>
         <span className="italic">typing…</span>
       </div>
       <div className="flex items-center gap-1.5 bg-[var(--bg-base)] border border-[var(--border)] rounded-xl rounded-bl-none p-3.5 shadow-md">
         <span
-          className="size-1.5 rounded-full bg-cyan-400/80 animate-bounce"
+          className="size-1.5 rounded-full bg-emerald-400/80 animate-bounce"
           style={{ animationDelay: '0ms' }}
           aria-hidden="true"
         />
         <span
-          className="size-1.5 rounded-full bg-cyan-400/80 animate-bounce"
+          className="size-1.5 rounded-full bg-emerald-400/80 animate-bounce"
           style={{ animationDelay: '150ms' }}
           aria-hidden="true"
         />
         <span
-          className="size-1.5 rounded-full bg-cyan-400/80 animate-bounce"
+          className="size-1.5 rounded-full bg-emerald-400/80 animate-bounce"
           style={{ animationDelay: '300ms' }}
           aria-hidden="true"
         />
@@ -231,7 +231,7 @@ function EmptyConversation() {
       data-testid="ai-copilot-empty"
       style={{ minHeight: 240 }}
     >
-      <Sparkles className="size-8 text-cyan-400/60" aria-hidden="true" />
+      <Sparkles className="size-8 text-emerald-400/60" aria-hidden="true" />
       <span className="empty-state-title">Start a conversation</span>
       <span className="empty-state-desc">
         Ask the Copilot about any market contract, probability edge, or
@@ -252,7 +252,7 @@ function StartConversationHint() {
       className="mt-2 flex items-center gap-2 px-3 py-2 rounded-lg border border-dashed border-[var(--border-strong)] bg-[var(--bg-base)]/60 text-[10.5px] text-[var(--text-secondary)]"
       role="status"
     >
-      <MessageSquarePlus className="size-3.5 text-cyan-400/70 shrink-0" aria-hidden="true" />
+      <MessageSquarePlus className="size-3.5 text-emerald-400/70 shrink-0" aria-hidden="true" />
       <span>
         <span className="text-[var(--text-primary)] font-semibold">Start a conversation</span>
         <span className="mx-1">—</span>
@@ -293,10 +293,10 @@ function MessageBubble({
       {/* Sender + timestamp strip */}
       <div className="flex items-center gap-1.5 mb-1 px-1 text-[10px] text-[var(--text-secondary)]">
         {isUser ? (
-          <UserIcon className="size-3 text-cyan-400/80" aria-hidden="true" />
+          <UserIcon className="size-3 text-emerald-400/80" aria-hidden="true" />
         ) : (
           <Bot
-            className={`size-3 ${cfg ? cfg.text : 'text-cyan-400/80'}`}
+            className={`size-3 ${cfg ? cfg.text : 'text-emerald-400/80'}`}
             aria-hidden="true"
           />
         )}
@@ -322,7 +322,7 @@ function MessageBubble({
       <div
         className={`max-w-[88%] rounded-xl p-3.5 shadow-md ${
           isUser
-            ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-br-none'
+            ? 'bg-gradient-to-r from-emerald-600 to-emerald-600 text-white rounded-br-none'
             : `bg-[var(--bg-base)] text-[var(--text-primary)] border rounded-bl-none ${cfg ? `${cfg.border} ${cfg.bg}` : 'border-[var(--border)]'}`
         }`}
         data-tone={isUser ? 'neutral' : tone}
@@ -350,7 +350,7 @@ function MessageBubble({
                   onClick={() =>
                     onSelectMarket?.({ tokenId: mkt.token_id, slug: mkt.slug })
                   }
-                  className="group text-[10px] bg-[var(--bg-surface)] text-cyan-300 hover:text-white border border-[var(--border)] hover:border-cyan-500 px-2.5 py-1 rounded-md mono transition-all flex items-center gap-1.5"
+                  className="group text-[10px] bg-[var(--bg-surface)] text-emerald-300 hover:text-white border border-[var(--border)] hover:border-emerald-500 px-2.5 py-1 rounded-md mono transition-all flex items-center gap-1.5"
                 >
                   <span className="truncate max-w-[180px]">{mkt.title || mkt.slug}</span>
                   {mkt.mid_price !== undefined && (
@@ -362,7 +362,7 @@ function MessageBubble({
                     ({(mkt.similarity * 100).toFixed(0)}%)
                   </span>
                   <ArrowUpRight
-                    className="size-2.5 text-[var(--text-secondary)] group-hover:text-cyan-300 transition-colors"
+                    className="size-2.5 text-[var(--text-secondary)] group-hover:text-emerald-300 transition-colors"
                     aria-hidden="true"
                   />
                 </button>
@@ -471,10 +471,10 @@ export default function AICopilotPanel({
       <div className="card-header flex flex-wrap justify-between items-center px-4 py-3 border-b border-[var(--border)] bg-[var(--bg-base)]">
         <div className="flex items-center gap-2">
           <span
-            className="inline-flex items-center justify-center size-7 rounded-md bg-cyan-500/10 border border-cyan-500/30 shadow-[0_0_8px_rgba(34,211,238,0.18)]"
+            className="inline-flex items-center justify-center size-7 rounded-md bg-emerald-500/10 border border-emerald-500/30 shadow-[0_0_8px_rgba(16,185,129,0.18)]"
             aria-hidden="true"
           >
-            <Sparkles className="size-3.5 text-cyan-300" aria-hidden="true" />
+            <Sparkles className="size-3.5 text-emerald-300" aria-hidden="true" />
           </span>
           <div>
             <span className="card-title text-sm font-bold text-[var(--text-primary)] uppercase tracking-wider block">
@@ -498,7 +498,7 @@ export default function AICopilotPanel({
             key={i}
             onClick={() => handleSendQuery(prompt)}
             disabled={loading}
-            className="text-[10.5px] bg-[var(--bg-surface)] text-[var(--text-primary)] hover:text-cyan-300 border border-[var(--border)] hover:border-cyan-500/40 focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 px-2.5 py-1 rounded-full transition-all whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+            className="text-[10.5px] bg-[var(--bg-surface)] text-[var(--text-primary)] hover:text-emerald-300 border border-[var(--border)] hover:border-emerald-500/40 focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/20 px-2.5 py-1 rounded-full transition-all whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {prompt}
           </button>
@@ -547,14 +547,14 @@ export default function AICopilotPanel({
             placeholder="Ask Copilot about any market contract, probability edge, or strategy rule..."
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            className="w-full bg-[var(--bg-surface)] border border-[var(--border)] focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 rounded-lg text-xs pl-8 pr-3 py-2 text-[var(--text-primary)] placeholder-[var(--text-dim)] outline-none transition-all"
+            className="w-full bg-[var(--bg-surface)] border border-[var(--border)] focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/20 rounded-lg text-xs pl-8 pr-3 py-2 text-[var(--text-primary)] placeholder-[var(--text-dim)] outline-none transition-all"
             aria-label="Ask copilot message"
           />
         </div>
         <button
           type="submit"
           disabled={loading || !input.trim()}
-          className="btn btn-primary btn-sm px-4 font-bold shadow-md hover:shadow-cyan-500/20 inline-flex items-center gap-1.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          className="btn btn-primary btn-sm px-4 font-bold shadow-md hover:shadow-emerald-500/20 inline-flex items-center gap-1.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Send className="size-3.5" aria-hidden="true" />
           <span>Send</span>

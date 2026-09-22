@@ -428,10 +428,10 @@ function KellyBar({ fraction }: { fraction: number | null }) {
           : `Estimated Kelly fraction ${(f * 100).toFixed(1)}% — zones: <25% conservative, 25–50% moderate, 50–75% aggressive, >75% danger`
       }
     >
-      <div className="relative h-2 bg-[var(--bg-base)] rounded-full overflow-hidden border border-[#181c28]">
+      <div className="relative h-2 bg-[var(--bg-base)] rounded-full overflow-hidden border border-[var(--border-dim)]">
         {/* zone bands — emerald (0–25%), cyan (25–50%), amber (50–75%), red (75–100%) */}
         <div className="absolute inset-y-0 left-0 bg-emerald-500/25" style={{ width: '25%' }} aria-hidden="true" />
-        <div className="absolute inset-y-0 bg-cyan-500/25" style={{ left: '25%', width: '25%' }} aria-hidden="true" />
+        <div className="absolute inset-y-0 bg-emerald-500/25" style={{ left: '25%', width: '25%' }} aria-hidden="true" />
         <div className="absolute inset-y-0 bg-amber-500/25" style={{ left: '50%', width: '25%' }} aria-hidden="true" />
         <div className="absolute inset-y-0 bg-red-500/25" style={{ left: '75%', right: 0 }} aria-hidden="true" />
         {/* live tick */}
@@ -446,7 +446,7 @@ function KellyBar({ fraction }: { fraction: number | null }) {
       <div className="flex justify-between text-[8px] text-[var(--text-secondary)] mono">
         <span>0%</span>
         <span className="text-emerald-400/70">25%</span>
-        <span className="text-cyan-400/70">50%</span>
+        <span className="text-emerald-400/70">50%</span>
         <span className="text-amber-400/70">75%</span>
         <span>100%</span>
       </div>
@@ -545,7 +545,7 @@ function EdgeSizeCurve({
         y={PAD_T}
         width={plotW}
         height={plotH}
-        fill="#0a0c12"
+        fill="var(--bg-base)"
         stroke="var(--border)"
         strokeWidth="1"
       />
@@ -656,7 +656,7 @@ function EdgeSizeCurve({
       <path
         d={pathD}
         fill="none"
-        stroke="#22d3ee"
+        stroke="var(--accent)"
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -664,7 +664,7 @@ function EdgeSizeCurve({
       {/* Area under curve (subtle) */}
       <path
         d={`${pathD} L ${pts[pts.length - 1].x.toFixed(2)} ${H - PAD_B} L ${pts[0].x.toFixed(2)} ${H - PAD_B} Z`}
-        fill="rgba(34, 211, 238, 0.06)"
+        fill="rgba(16,185,129, 0.06)"
         stroke="none"
       />
 
@@ -1218,7 +1218,7 @@ export default function CapitalAllocatorPanel() {
       {/* ── Header ── */}
       <div className="card-header p-3 border-b border-[var(--border)] flex flex-wrap justify-between items-center gap-2">
         <div className="flex items-center gap-2">
-          <Coins className="w-3.5 h-3.5 text-cyan-400" aria-hidden="true" />
+          <Coins className="w-3.5 h-3.5 text-emerald-400" aria-hidden="true" />
           <span className="card-title text-xs font-bold text-[var(--text-primary)]">
             Capital Allocator
           </span>
@@ -1247,7 +1247,7 @@ export default function CapitalAllocatorPanel() {
           <button
             onClick={() => fetchAll(true)}
             disabled={isRefreshing || loading}
-            className="btn btn-ghost btn-sm text-[10px] flex items-center gap-1 border border-[var(--border)] hover:border-cyan-500/30 hover:bg-cyan-500/[0.04] hover:text-white transition-colors"
+            className="btn btn-ghost btn-sm text-[10px] flex items-center gap-1 border border-[var(--border)] hover:border-emerald-500/30 hover:bg-emerald-500/[0.04] hover:text-white transition-colors"
             aria-label="Refresh allocator data"
           >
             <RefreshCw className={`w-3 h-3 ${isRefreshing ? 'animate-spin' : ''}`} aria-hidden="true" />
@@ -1255,7 +1255,7 @@ export default function CapitalAllocatorPanel() {
           </button>
           <button
             onClick={openEditor}
-            className="btn btn-ghost btn-sm text-[10px] flex items-center gap-1 border border-[var(--border)] hover:border-cyan-500/30 hover:bg-cyan-500/[0.04] hover:text-white transition-colors"
+            className="btn btn-ghost btn-sm text-[10px] flex items-center gap-1 border border-[var(--border)] hover:border-emerald-500/30 hover:bg-emerald-500/[0.04] hover:text-white transition-colors"
             aria-label="Edit allocator config"
           >
             <Settings className="w-3 h-3" aria-hidden="true" />
@@ -1322,7 +1322,7 @@ export default function CapitalAllocatorPanel() {
                 description="Michaelis-Menten sizing"
                 trailing={
                   <div className="flex items-center gap-2 text-[9px] mono">
-                    <span className="text-cyan-400">● curve</span>
+                    <span className="text-emerald-400">● curve</span>
                     {operatingEdge != null && (
                       <span className="text-amber-400">● live op-point</span>
                     )}
@@ -1382,13 +1382,13 @@ export default function CapitalAllocatorPanel() {
                 <div className="space-y-1">
                   <div className="flex justify-between text-[10px]">
                     <span className="text-[var(--text-secondary)]">Net Directional</span>
-                    <span className="mono tabular-nums text-cyan-300 font-semibold">
+                    <span className="mono tabular-nums text-emerald-300 font-semibold">
                       {fmtUsd(exposure?.net_directional_exposure ?? 0, 2)}
                     </span>
                   </div>
                   <div className="flex justify-between text-[10px]">
                     <span className="text-[var(--text-secondary)]">Gross Market Value</span>
-                    <span className="mono tabular-nums text-cyan-300 font-semibold">
+                    <span className="mono tabular-nums text-emerald-300 font-semibold">
                       {fmtUsd(exposure?.gross_market_value ?? 0, 2)}
                     </span>
                   </div>
@@ -1514,7 +1514,7 @@ export default function CapitalAllocatorPanel() {
                     return (
                       <div
                         key={s.name}
-                        className="flex items-center gap-2 rounded-sm px-1 py-0.5 hover:bg-cyan-500/[0.04] transition-colors"
+                        className="flex items-center gap-2 rounded-sm px-1 py-0.5 hover:bg-emerald-500/[0.04] transition-colors"
                         data-tone={sTone}
                         title={`${s.name} — ${fmtUsd(s.value, 2)} (${s.pct.toFixed(1)}% of total deployed, ${stratPctOfCap.toFixed(1)}% of cap)`}
                       >
@@ -1524,7 +1524,7 @@ export default function CapitalAllocatorPanel() {
                         >
                           {s.name || '<unknown>'}
                         </span>
-                        <div className="flex-1 h-3 bg-[var(--bg-base)] rounded-sm overflow-hidden border border-[#181c28]">
+                        <div className="flex-1 h-3 bg-[var(--bg-base)] rounded-sm overflow-hidden border border-[var(--border-dim)]">
                           <div
                             className="h-full rounded-sm transition-all duration-500"
                             style={{
@@ -1534,7 +1534,7 @@ export default function CapitalAllocatorPanel() {
                             }}
                           />
                         </div>
-                        <span className="mono text-[10px] text-cyan-300 font-semibold w-12 text-right shrink-0 tabular-nums">
+                        <span className="mono text-[10px] text-emerald-300 font-semibold w-12 text-right shrink-0 tabular-nums">
                           {fmtUsd(s.value, 2)}
                         </span>
                         <span className="mono text-[9px] text-[var(--text-secondary)] w-10 text-right shrink-0 tabular-nums">
@@ -1588,7 +1588,7 @@ export default function CapitalAllocatorPanel() {
                   })}
                   <div className="border-t border-[var(--border)] mt-1 pt-1 flex justify-between text-[10px]">
                     <span className="text-[var(--text-secondary)] font-semibold">product</span>
-                    <span className="mono font-bold text-cyan-300 tabular-nums">
+                    <span className="mono font-bold text-emerald-300 tabular-nums">
                       {breakdown.components.product_mult.toFixed(4)}×
                     </span>
                   </div>
@@ -1723,7 +1723,7 @@ export default function CapitalAllocatorPanel() {
                               </span>
                             )}
                           </td>
-                          <td className={`text-cyan-300 tabular-nums`}>
+                          <td className={`text-emerald-300 tabular-nums`}>
                             {sizeUsd == null ? '—' : fmtUsd(sizeUsd, 4)}
                           </td>
                           <td>
@@ -1773,12 +1773,12 @@ export default function CapitalAllocatorPanel() {
         <AlertDialogContent className="bg-[var(--bg-surface)] border border-[var(--border-strong)] max-w-lg">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-[var(--text-primary)] flex items-center gap-2">
-              <Settings className="w-4 h-4 text-cyan-400" aria-hidden="true" />
+              <Settings className="w-4 h-4 text-emerald-400" aria-hidden="true" />
               Allocator Configuration
             </AlertDialogTitle>
             <AlertDialogDescription className="text-[var(--text-secondary)] text-xs">
               Adjust the saturating edge curve parameters. Changes will be POSTed
-              to <code className="mono text-cyan-400">/api/capital/config</code>.
+              to <code className="mono text-emerald-400">/api/capital/config</code>.
               The current backend (<code className="mono">capital_allocator.py</code>)
               treats these as read-only module constants — the POST endpoint may
               not be registered. Each field carries a slider + numeric input
@@ -1979,7 +1979,7 @@ function ConfigField({
         value={Math.max(min, Math.min(max, value))}
         onChange={(e) => onChange(parseFloat(e.target.value) || 0)}
         aria-label={`${label} slider`}
-        className="w-full h-1.5 mt-1.5 appearance-none rounded-full bg-[var(--border)] accent-cyan-400 cursor-pointer focus:outline-none focus-visible:ring-1 focus-visible:ring-cyan-400/40"
+        className="w-full h-1.5 mt-1.5 appearance-none rounded-full bg-[var(--border)] accent-emerald-400 cursor-pointer focus:outline-none focus-visible:ring-1 focus-visible:ring-emerald-400/40"
       />
       <div className="flex items-center justify-between mt-1">
         <span className="form-hint">{hint}</span>

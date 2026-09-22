@@ -371,7 +371,7 @@ function PortfolioRiskSkeleton({ className }: { className?: string }) {
     >
       <div className="card-header p-3 border-b border-[var(--border)] flex justify-between items-center">
         <div className="flex items-center gap-2">
-          <Layers className="w-3.5 h-3.5 text-[#22d3ee]" aria-hidden="true" />
+          <Layers className="w-3.5 h-3.5 text-[var(--accent)]" aria-hidden="true" />
           <span className="card-title text-xs font-bold text-[var(--text-primary)]">
             Portfolio Risk Matrix
           </span>
@@ -583,7 +583,7 @@ function PortfolioRiskPanelImpl({
       >
         <div className="card-header p-3 border-b border-[var(--border)] flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <Layers className="w-3.5 h-3.5 text-[#22d3ee]" aria-hidden="true" />
+            <Layers className="w-3.5 h-3.5 text-[var(--accent)]" aria-hidden="true" />
             <span className="card-title text-xs font-bold text-[var(--text-primary)]">
               Portfolio Risk Matrix
             </span>
@@ -630,7 +630,7 @@ function PortfolioRiskPanelImpl({
       {/* ── Header ────────────────────────────────────────────────────────── */}
       <div className="card-header p-3 border-b border-[var(--border)] flex justify-between items-center flex-wrap gap-2">
         <div className="flex items-center gap-2">
-          <Layers className="w-3.5 h-3.5 text-[#22d3ee]" aria-hidden="true" />
+          <Layers className="w-3.5 h-3.5 text-[var(--accent)]" aria-hidden="true" />
           <span className="card-title text-xs font-bold text-[var(--text-primary)]">
             Portfolio Risk Matrix
           </span>
@@ -742,7 +742,7 @@ function PortfolioRiskPanelImpl({
           <Card className="bg-[var(--bg-page)] border-[var(--border)]">
             <CardHeader className="p-3 pb-2">
               <CardTitle className="text-xs flex items-center gap-2 text-[var(--text-primary)]">
-                <span className="text-[#22d3ee]" aria-hidden="true">🔥</span>
+                <span className="text-[var(--accent)]" aria-hidden="true">🔥</span>
                 P&amp;L Heatmap
                 <span className="text-[9.5px] text-[var(--text-secondary)] font-normal">
                   per-position · green = profit · red = loss
@@ -774,7 +774,7 @@ function PortfolioRiskPanelImpl({
           <Card className="bg-[var(--bg-page)] border-[var(--border)]">
             <CardHeader className="p-3 pb-2">
               <CardTitle className="text-xs flex items-center gap-2 text-[var(--text-primary)]">
-                <span className="text-[#22d3ee]" aria-hidden="true">⊞</span>
+                <span className="text-[var(--accent)]" aria-hidden="true">⊞</span>
                 Correlation Matrix
                 <span className="text-[9.5px] text-[var(--text-secondary)] font-normal">
                   Pearson · ρ ∈ [−1, +1]
@@ -869,7 +869,7 @@ function ExposureBreakdownImpl({ data, maxMagnitude }: ExposureBreakdownProps) {
         return (
           <div
             key={d.tokenId}
-            className={`flex items-center gap-2 text-xs px-2 py-1 rounded border border-[var(--border)] hover:bg-cyan-500/[0.04] hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.45)] transition-all ${cfg.bg}`}
+            className={`flex items-center gap-2 text-xs px-2 py-1 rounded border border-[var(--border)] hover:bg-emerald-500/[0.04] hover:shadow-[inset_3px_0_0_0_rgba(16,185,129,0.45)] transition-all ${cfg.bg}`}
             data-testid={`exposure-row-${d.tokenId}`}
             data-tone={rowTone}
           >
@@ -886,7 +886,7 @@ function ExposureBreakdownImpl({ data, maxMagnitude }: ExposureBreakdownProps) {
               {isMax && (
                 <span className="badge badge-amber text-[9px] mr-1.5 py-0">MAX</span>
               )}
-              <span className="text-[9px] uppercase font-bold tracking-wide text-cyan-400 mr-1.5">
+              <span className="text-[9px] uppercase font-bold tracking-wide text-emerald-400 mr-1.5">
                 {d.outcome}
               </span>
               {d.label}
@@ -896,11 +896,11 @@ function ExposureBreakdownImpl({ data, maxMagnitude }: ExposureBreakdownProps) {
                 className={`h-full rounded-full transition-all ${cfg.bar}`}
                 style={{
                   width: `${pct.toFixed(1)}%`,
-                  background: isMax ? '#fbbf24' : '#22d3ee',
+                  background: isMax ? '#fbbf24' : 'var(--accent)',
                 }}
               />
             </div>
-            <span className="mono font-bold text-cyan-300 w-20 text-right tabular-nums">
+            <span className="mono font-bold text-emerald-300 w-20 text-right tabular-nums">
               {fmtUsd(d.positionSize)}
             </span>
             <span

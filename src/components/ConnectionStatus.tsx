@@ -69,7 +69,7 @@ interface StateConfig {
   pulse: boolean
   /** Pill background tint — subtle 5%-opacity wash in the matching hue. */
   pillBg: string
-  /** Pill border color — brightens from `#1f2335` default to the
+  /** Pill border color — brightens from `var(--border)` default to the
    *  matching hue at 35% opacity. */
   pillBorder: string
   /** Pill hover border color — brighter on hover. */
@@ -163,13 +163,13 @@ export function ConnectionStatus({
             // W58-f premium pill — tone-tinted background + matching border.
             'flex items-center gap-1.5 rounded-md px-2 py-1',
             'text-[11px] whitespace-nowrap transition-colors',
-            'bg-[#0e1015] border border-[#1f2335] hover:border-[#2d3450]',
+            'bg-[var(--bg-page)] border border-[var(--border)] hover:border-[var(--border-strong)]',
             // Layered tone classes (additive — preserved over the W15-5 base).
             cfg.pillBg,
             cfg.pillBorder,
             cfg.pillHoverBorder,
             // Focus ring (W58 accessibility pass).
-            'focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-offset-[#0b0e14]',
+            'focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-offset-[#f8fafc]',
             cfg.ring,
             className,
           )}
@@ -212,7 +212,7 @@ export function ConnectionStatus({
             <span
               className={cn(
                 'mono tabular-nums text-[10px] font-medium',
-                'text-[#7e8aaa] border-l border-[#2d3450] pl-1.5',
+                'text-[var(--text-secondary)] border-l border-[var(--border-strong)] pl-1.5',
                 // Hide the ms readout in compact mode so the pill stays
                 // dot-only (matches the W15-5 compact contract).
                 compact && 'sr-only',
@@ -227,7 +227,7 @@ export function ConnectionStatus({
       <TooltipContent side="bottom" className="max-w-xs">
         <p className="text-xs leading-relaxed">{tip}</p>
         {latencyStr && (
-          <p className="text-[10px] mt-1 text-[#7e8aaa] mono tabular-nums">
+          <p className="text-[10px] mt-1 text-[var(--text-secondary)] mono tabular-nums">
             RTT: {latencyStr}
           </p>
         )}

@@ -259,16 +259,16 @@ function ProbabilityGauge({ mid }: { mid: number | null }) {
               ? 'linear-gradient(90deg, #16a34a, #4ade80)'
               : isLow
               ? 'linear-gradient(90deg, #dc2626, #f87171)'
-              : 'linear-gradient(90deg, #2563eb, #38bdf8)',
+              : 'linear-gradient(90deg, var(--accent-hover), #10b981)',
             boxShadow: isHigh
               ? '0 0 8px rgba(74, 222, 128, 0.4)'
               : isLow
               ? '0 0 8px rgba(248, 113, 113, 0.4)'
-              : '0 0 8px rgba(56, 189, 248, 0.3)',
+              : '0 0 8px rgba(16,185,129, 0.3)',
           }}
         />
       </div>
-      <span className={`mono text-xs font-bold w-10 text-right ${isHigh ? 'text-emerald-400' : isLow ? 'text-red-400' : 'text-cyan-300'}`}>
+      <span className={`mono text-xs font-bold w-10 text-right ${isHigh ? 'text-emerald-400' : isLow ? 'text-red-400' : 'text-emerald-300'}`}>
         {(mid * 100).toFixed(0)}%
       </span>
     </div>
@@ -462,7 +462,7 @@ function MarketsPanel({ books, onSelectMarket, priceFlashes, showPriceFlashes = 
             data-testid="markets-result-count"
             title={`Showing ${sorted.length} of ${books.length} markets after the active filters`}
           >
-            Showing <strong className="text-cyan-300 font-semibold">{sorted.length}</strong>
+            Showing <strong className="text-emerald-300 font-semibold">{sorted.length}</strong>
             <span className="opacity-50">of</span>
             <strong className="text-[var(--text-primary)] font-semibold">{books.length}</strong>
             markets
@@ -499,7 +499,7 @@ function MarketsPanel({ books, onSelectMarket, priceFlashes, showPriceFlashes = 
           </span>
           <span className="badge badge-green text-[9px] font-bold">L2 Stream</span>
           <span className="text-[10.5px] text-[var(--text-secondary)] mono hidden sm:inline-block">
-            Avg Spread: <strong className="text-cyan-300 font-semibold">{avgSpreadCents.toFixed(1)}¢</strong>
+            Avg Spread: <strong className="text-emerald-300 font-semibold">{avgSpreadCents.toFixed(1)}¢</strong>
           </span>
         </div>
 
@@ -533,7 +533,7 @@ function MarketsPanel({ books, onSelectMarket, priceFlashes, showPriceFlashes = 
               // already provides `border-color: var(--accent)` + the
               // layered focus shadow on `:focus`, so the Tailwind
               // ring is purely additive.
-              className="input input-sm w-44 focus:w-60 transition-all text-xs bg-[var(--bg-surface)] border border-[var(--border)] pl-8 pr-7 focus-visible:ring-1 focus-visible:ring-cyan-400/60 focus-visible:border-cyan-400/60"
+              className="input input-sm w-44 focus:w-60 transition-all text-xs bg-[var(--bg-surface)] border border-[var(--border)] pl-8 pr-7 focus-visible:ring-1 focus-visible:ring-emerald-400/60 focus-visible:border-emerald-400/60"
               aria-label="Search prediction markets"
               data-testid="markets-search-input"
             />
@@ -562,7 +562,7 @@ function MarketsPanel({ books, onSelectMarket, priceFlashes, showPriceFlashes = 
           rest of the dashboard. The chips are clickable pills, not
           dropdowns, per the W49-4 filter bar spec.
           W51-2a — active chips (category + spread) additionally carry a
-          subtle cyan accent border glow via `shadow-[0_0_8px_rgba(34,211,238,0.35)]`
+          subtle cyan accent border glow via `shadow-[0_0_8px_rgba(16,185,129,0.35)]`
           layered on top of the existing `.filter-chip.active` solid accent
           fill. This makes the active state more pronounced at a glance —
           important because there are now two parallel chip groups
@@ -576,7 +576,7 @@ function MarketsPanel({ books, onSelectMarket, priceFlashes, showPriceFlashes = 
               key={cat}
               onClick={() => setSelectedCat(cat)}
               className={`filter-chip text-[10px] uppercase ${
-                isActive ? 'active shadow-[0_0_8px_rgba(34,211,238,0.35)] ring-1 ring-cyan-400/30' : ''
+                isActive ? 'active shadow-[0_0_8px_rgba(16,185,129,0.35)] ring-1 ring-emerald-400/30' : ''
               }`}
               aria-pressed={isActive}
               data-testid={`category-filter-${cat.toLowerCase()}`}
@@ -597,7 +597,7 @@ function MarketsPanel({ books, onSelectMarket, priceFlashes, showPriceFlashes = 
               title={f.title}
               aria-pressed={isActive}
               className={`filter-chip text-[10px] uppercase ${
-                isActive ? 'active shadow-[0_0_8px_rgba(34,211,238,0.35)] ring-1 ring-cyan-400/30' : ''
+                isActive ? 'active shadow-[0_0_8px_rgba(16,185,129,0.35)] ring-1 ring-emerald-400/30' : ''
               }`}
               data-testid={`spread-filter-${f.key.toLowerCase()}`}
             >
@@ -636,7 +636,7 @@ function MarketsPanel({ books, onSelectMarket, priceFlashes, showPriceFlashes = 
           {search !== '' && (
             <button
               onClick={() => setSearch('')}
-              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded border border-blue-500/30 bg-blue-500/10 text-cyan-300 hover:bg-blue-500/20 transition-colors"
+              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded border border-emerald-500/30 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 transition-colors"
               title="Remove search filter"
               aria-label="Remove search filter"
               data-testid="active-filter-search"
@@ -649,7 +649,7 @@ function MarketsPanel({ books, onSelectMarket, priceFlashes, showPriceFlashes = 
           {selectedCat !== 'ALL' && (
             <button
               onClick={() => setSelectedCat('ALL')}
-              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded border border-blue-500/30 bg-blue-500/10 text-cyan-300 hover:bg-blue-500/20 transition-colors"
+              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded border border-emerald-500/30 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 transition-colors"
               title="Remove category filter"
               aria-label={`Remove category filter: ${selectedCat}`}
               data-testid="active-filter-category"
@@ -662,7 +662,7 @@ function MarketsPanel({ books, onSelectMarket, priceFlashes, showPriceFlashes = 
           {spreadFilter !== 'ALL' && (
             <button
               onClick={() => setSpreadFilter('ALL')}
-              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded border border-cyan-500/30 bg-cyan-500/10 text-cyan-300 hover:bg-cyan-500/20 transition-colors"
+              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded border border-emerald-500/30 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 transition-colors"
               title="Remove spread filter"
               aria-label={`Remove spread filter: ${spreadFilter}`}
               data-testid="active-filter-spread"
@@ -877,7 +877,7 @@ function MarketsPanel({ books, onSelectMarket, priceFlashes, showPriceFlashes = 
                     //     chip colour shift (`group-hover:text-[var(--text-secondary)]`)
                     //     and the question-title colour lift
                     //     (`group-hover:text-cyan-300`).
-                    className={`hover:bg-cyan-500/5 hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.65)] transition-colors cursor-pointer group ${
+                    className={`hover:bg-emerald-500/5 hover:shadow-[inset_3px_0_0_0_rgba(16,185,129,0.65)] transition-colors cursor-pointer group ${
                       isDead ? 'row-stale opacity-60' : isStale ? 'row-stale' : ''
                     }`}
                   >
@@ -920,7 +920,7 @@ function MarketsPanel({ books, onSelectMarket, priceFlashes, showPriceFlashes = 
                               (500) per the W39-4 spec. Title attribute
                               preserves the full text for hover tooltips. */}
                           <span
-                            className="text-[9.5px] text-cyan-400 font-medium uppercase tracking-wider truncate leading-tight min-w-0"
+                            className="text-[9.5px] text-emerald-400 font-medium uppercase tracking-wider truncate leading-tight min-w-0"
                             title={info.fullLabel}
                           >
                             {info.eventTitle}
@@ -941,7 +941,7 @@ function MarketsPanel({ books, onSelectMarket, priceFlashes, showPriceFlashes = 
                             so long titles ellipsize cleanly; the `title`
                             attribute preserves the full text on hover. */}
                         <span
-                          className="text-[var(--text-primary)] group-hover:text-cyan-300 font-medium leading-snug text-xs block truncate transition-colors min-w-0"
+                          className="text-[var(--text-primary)] group-hover:text-emerald-300 font-medium leading-snug text-xs block truncate transition-colors min-w-0"
                           title={info.question}
                         >
                           {info.question}
@@ -989,7 +989,7 @@ function MarketsPanel({ books, onSelectMarket, priceFlashes, showPriceFlashes = 
                         a liquidity proxy, not raw exchange volume. */}
                     <td className="text-right">
                       <span
-                        className="mono text-[11px] text-cyan-300 tabular-nums font-medium"
+                        className="mono text-[11px] text-emerald-300 tabular-nums font-medium"
                         title={`Synthesized 24h volume proxy ≈ clamp(1M / spread_cents, 1K, 5M).\nSpread: ${b.spread != null ? `${(b.spread * 100).toFixed(2)}¢` : 'n/a'}`}
                         data-testid={`volume-${b.token_id}`}
                       >
@@ -1079,7 +1079,7 @@ function MarketsPanel({ books, onSelectMarket, priceFlashes, showPriceFlashes = 
                             e.stopPropagation()
                             onSelectMarket && onSelectMarket(b.token_id, b.slug)
                           }}
-                          className="btn btn-primary btn-xs font-bold shadow-md hover:shadow-cyan-500/20"
+                          className="btn btn-primary btn-xs font-bold shadow-md hover:shadow-emerald-500/20"
                           aria-label={`View order book depth and trade ticket for ${info.question}`}
                         >
                           Depth
@@ -1124,7 +1124,7 @@ function MarketsPanel({ books, onSelectMarket, priceFlashes, showPriceFlashes = 
               <div>
                 <div className="flex items-center gap-2">
                   <span id="history-modal-title" className="text-sm font-bold text-[var(--text-primary)]">
-                    📈 Price History: <span className="text-cyan-300">{historyMarket.slug || historyMarket.tokenId.slice(0, 16)}</span>
+                    📈 Price History: <span className="text-emerald-300">{historyMarket.slug || historyMarket.tokenId.slice(0, 16)}</span>
                   </span>
                 </div>
                 <span className="text-[11px] text-[var(--text-secondary)] mono mt-0.5 block">

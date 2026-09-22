@@ -44,7 +44,7 @@ describe('SettingsModal', () => {
   it('renders all six section headers in canonical order', () => {
     savePreferences(getDefaults())
     render(<SettingsModal isOpen={true} onClose={vi.fn()} />)
-    // Section headers use <h3> with uppercase text-cyan-400.
+    // Section headers use <h3> with uppercase text-emerald-400.
     for (const section of [
       'Display',
       'Dashboard',

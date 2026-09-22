@@ -701,7 +701,7 @@ export default function Dashboard() {
 
   if (!mounted) {
     return (
-      <div style={{ minHeight: '100vh', background: 'var(--bg-base, #0b0e14)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ minHeight: '100vh', background: 'var(--bg-base, #f8fafc)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ fontFamily: 'JetBrains Mono, monospace', color: 'var(--text-secondary, #8b949e)', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px' }}>
           <span className="status-dot connecting" aria-hidden="true" />
           Initializing Polymarket Pro Workstation…

@@ -111,8 +111,8 @@ const RANK_BADGE: Record<number, RankBadgeStyle> = {
 }
 
 const MUTED_RANK_BADGE: RankBadgeStyle = {
-  badge: 'bg-[var(--border)] text-[var(--text-secondary)] ring-1 ring-[#2a2f45]',
-  rowHover: 'hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.55)]',
+  badge: 'bg-[var(--border)] text-[var(--text-secondary)] ring-1 ring-[var(--border-strong)]',
+  rowHover: 'hover:shadow-[inset_3px_0_0_0_rgba(16,185,129,0.55)]',
 }
 
 // ── Sort config ────────────────────────────────────────────────────────────
@@ -551,7 +551,7 @@ export default function LeaderboardPanel() {
           return (
             <div
               key={r.strategy}
-              className={`group flex items-center gap-2 text-xs bg-[var(--bg-page)] px-2.5 py-1.5 rounded border border-[var(--border)] hover:bg-cyan-500/[0.04] hover:border-cyan-500/30 transition-colors ${badge.rowHover}`}
+              className={`group flex items-center gap-2 text-xs bg-[var(--bg-page)] px-2.5 py-1.5 rounded border border-[var(--border)] hover:bg-emerald-500/[0.04] hover:border-emerald-500/30 transition-colors ${badge.rowHover}`}
             >
               <div className="flex items-center gap-2 min-w-0 flex-1">
                 <span

@@ -670,12 +670,12 @@ describe('AIPredictionExplainerPanel', () => {
     await waitFor(() => {
       expect(screen.getByTestId('ai-prediction-headline')).toBeInTheDocument()
     })
-    // The headline card has a blue border (border-blue-500/30).
+    // The headline card has an emerald accent border (border-emerald-500/30).
     const headline = screen.getByTestId('ai-prediction-headline')
-    expect(headline.className).toContain('border-blue-500')
-    // The "AI Prediction" label is rendered in blue text.
+    expect(headline.className).toContain('border-emerald-500')
+    // The "AI Prediction" label is rendered in emerald text.
     const aiLabel = screen.getAllByText(/AI Prediction/i)[0]
-    expect(aiLabel.className).toContain('text-blue-300')
+    expect(aiLabel.className).toContain('text-emerald-300')
     // The confidence is rendered in purple (it appears in both the
     // headline and the StatusPill — assert at least one is purple).
     const confidenceMatches = screen.getAllByText('0.72')

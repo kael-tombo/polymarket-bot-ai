@@ -354,7 +354,7 @@ function PolishedErrorState({ message, onRetry, retrying }: PolishedErrorStatePr
       <div className="error-state-title">Safety-gate endpoint unavailable</div>
       <div className="error-state-desc">
         The bot may be starting up, or the{' '}
-        <code className="mono text-cyan-300">/api/live/readiness</code>
+        <code className="mono text-emerald-300">/api/live/readiness</code>
         {' '}route is not responding.
       </div>
       {message && (
@@ -541,7 +541,7 @@ function CheckCard({
         <p
           className={`text-[11px] leading-snug ${
             status === 'PASS'
-              ? 'text-[#9aa3bc]'
+              ? 'text-[var(--text-secondary)]'
               : status === 'FAIL'
               ? 'text-red-300/85'
               : status === 'WARNING'
@@ -563,7 +563,7 @@ function CheckCard({
             <div className="text-[9.5px] uppercase tracking-wider text-[var(--text-secondary)] font-semibold">
               Threshold
             </div>
-            <code className="mono text-[10.5px] text-cyan-300/95 break-all">
+            <code className="mono text-[10.5px] text-emerald-300/95 break-all">
               {check.threshold || '—'}
             </code>
           </div>
@@ -571,7 +571,7 @@ function CheckCard({
             <div className="text-[9.5px] uppercase tracking-wider text-[var(--text-secondary)] font-semibold">
               Detail
             </div>
-            <p className="text-[10.5px] text-[#c8cfe0] leading-relaxed break-words">
+            <p className="text-[10.5px] text-[var(--text-mono)] leading-relaxed break-words">
               {check.detail || '—'}
             </p>
           </div>
@@ -580,7 +580,7 @@ function CheckCard({
               <div className="text-[9.5px] uppercase tracking-wider text-[var(--text-secondary)] font-semibold">
                 Measured value
               </div>
-              <pre className="mono text-[10px] text-[#9aa3bc] bg-[var(--bg-base)] border border-[var(--border)] rounded p-2 overflow-x-auto max-h-32">
+              <pre className="mono text-[10px] text-[var(--text-secondary)] bg-[var(--bg-base)] border border-[var(--border)] rounded p-2 overflow-x-auto max-h-32">
                 {JSON.stringify(check.value, null, 2)}
               </pre>
             </div>
@@ -588,7 +588,7 @@ function CheckCard({
           <div className="flex items-center justify-between text-[9.5px] text-[var(--text-secondary)] pt-0.5">
             <span>
               Severity:{' '}
-              <span className="mono text-[#c8cfe0]">{check.severity}</span>
+              <span className="mono text-[var(--text-mono)]">{check.severity}</span>
             </span>
             <span className="mono tabular-nums">#{index + 1} in staged order</span>
           </div>
@@ -612,7 +612,7 @@ function CheckSkeleton() {
         </div>
         <ShimmerBlock className="w-10 h-4 !rounded-md" />
       </div>
-      <div className="h-2 w-full mt-2.5 rounded bg-[#181c28]" style={{
+      <div className="h-2 w-full mt-2.5 rounded bg-[var(--border-dim)]" style={{
         background:
           'linear-gradient(90deg, rgba(161,168,181,0.06) 25%, rgba(161,168,181,0.14) 50%, rgba(161,168,181,0.06) 75%)',
         backgroundSize: '200% 100%',
@@ -671,7 +671,7 @@ function HistoryTimeline({ events }: { events: AuditEvent[] }) {
                   {fmtAge(e.timestamp)}
                 </span>
               </div>
-              <p className="text-[10px] text-[#9aa3bc] mt-0.5 line-clamp-2 break-words">
+              <p className="text-[10px] text-[var(--text-secondary)] mt-0.5 line-clamp-2 break-words">
                 {e.details}
               </p>
             </div>
@@ -704,7 +704,7 @@ function LiveSafetyGateSkeleton() {
       {/* Skeleton header bar — preserves the title + animate-spin spinner */}
       <div className="card-header p-3 border-b border-[var(--border)] flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <Shield className="h-4 w-4 text-cyan-400" aria-hidden="true" />
+          <Shield className="h-4 w-4 text-emerald-400" aria-hidden="true" />
           <span className="text-xs font-bold text-[var(--text-primary)] tracking-wide">
             LIVE SAFETY GATE · §82
           </span>
@@ -750,7 +750,7 @@ function LiveSafetyGateSkeleton() {
               className="h-full w-3/5 rounded-full"
               style={{
                 background:
-                  'linear-gradient(90deg, rgba(34,211,238,0.15) 0%, rgba(52,211,153,0.20) 100%)',
+                  'linear-gradient(90deg, rgba(16,185,129,0.15) 0%, rgba(52,211,153,0.20) 100%)',
                 backgroundSize: '200% 100%',
                 animation: 'skeleton-shimmer 1.5s ease-in-out infinite',
               }}
@@ -1098,7 +1098,7 @@ export default function LiveSafetyGatePanel() {
       <div className="card-header p-3 border-b border-[var(--border)] flex flex-wrap justify-between items-center gap-2">
         <div className="flex items-center gap-2">
           <span className="card-title text-xs font-bold text-[var(--text-primary)] tracking-wide flex items-center gap-1.5">
-            <Shield className="h-4 w-4 text-cyan-400" aria-hidden="true" />
+            <Shield className="h-4 w-4 text-emerald-400" aria-hidden="true" />
             LIVE SAFETY GATE · §82
           </span>
           <span
@@ -1232,7 +1232,7 @@ export default function LiveSafetyGatePanel() {
           />
           <Progress
             value={progressPct}
-            className="h-2 bg-[var(--bg-surface)] border border-[var(--border)] [&>[data-slot=progress-indicator]]:bg-gradient-to-r [&>[data-slot=progress-indicator]]:from-cyan-500 [&>[data-slot=progress-indicator]]:to-emerald-500"
+            className="h-2 bg-[var(--bg-surface)] border border-[var(--border)] [&>[data-slot=progress-indicator]]:bg-gradient-to-r [&>[data-slot=progress-indicator]]:from-emerald-500 [&>[data-slot=progress-indicator]]:to-emerald-500"
           />
           <div className="flex flex-wrap gap-2 mt-2 text-[9.5px]">
             <span className="flex items-center gap-1 text-green-400 mono tabular-nums">
@@ -1276,7 +1276,7 @@ export default function LiveSafetyGatePanel() {
                   <button
                     type="button"
                     onClick={expandAll}
-                    className="text-cyan-400 hover:text-cyan-300 transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-cyan-500/40 rounded px-1"
+                    className="text-emerald-400 hover:text-emerald-300 transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-emerald-500/40 rounded px-1"
                   >
                     Expand all
                   </button>
@@ -1339,22 +1339,22 @@ export default function LiveSafetyGatePanel() {
               <AlertTriangle className="h-4 w-4" aria-hidden="true" />
               Force-open live trading gate
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-[#9aa3bc] text-xs leading-relaxed">
+            <AlertDialogDescription className="text-[var(--text-secondary)] text-xs leading-relaxed">
               {openDialogStep === 1 ? (
                 <>
                   This is a <strong className="text-red-300">dangerous</strong>{' '}
                   operation. It bypasses the fail-closed §82 contract and
                   attempts to flip the bot into live trading mode via{' '}
-                  <code className="mono text-cyan-300">POST /api/live/enable</code>
+                  <code className="mono text-emerald-300">POST /api/live/enable</code>
                   . The backend will still refuse (HTTP 409) if any of the 10
                   staged checks are failing — this action only succeeds when the
                   gate is currently passing.
                   <br />
                   <br />
                   <strong className="text-amber-300">Side-effects:</strong> flips
-                  in-memory mode flags (<code className="mono text-cyan-300">live_trading_enabled=true</code>,
-                  <code className="mono text-cyan-300">trading_mode=live</code>,
-                  <code className="mono text-cyan-300">paper_trade=false</code>),
+                  in-memory mode flags (<code className="mono text-emerald-300">live_trading_enabled=true</code>,
+                  <code className="mono text-emerald-300">trading_mode=live</code>,
+                  <code className="mono text-emerald-300">paper_trade=false</code>),
                   logs an audit event, and starts admitting real orders
                   immediately. Restart the process for durable activation.
                 </>
@@ -1452,9 +1452,9 @@ export default function LiveSafetyGatePanel() {
               <Lock className="h-4 w-4" aria-hidden="true" />
               Force-close live trading gate
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-[#9aa3bc] text-xs leading-relaxed">
+            <AlertDialogDescription className="text-[var(--text-secondary)] text-xs leading-relaxed">
               Activates the kill-switch circuit breaker via{' '}
-              <code className="mono text-cyan-300">
+              <code className="mono text-emerald-300">
                 POST /api/kill-switch/activate
               </code>
               . This is the de-facto &quot;close the gate&quot; action — all
@@ -1507,7 +1507,7 @@ export default function LiveSafetyGatePanel() {
               ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-200'
               : toast.kind === 'error'
               ? 'bg-red-500/15 border-red-500/40 text-red-200'
-              : 'bg-cyan-500/15 border-cyan-500/40 text-cyan-200'
+              : 'bg-emerald-500/15 border-emerald-500/40 text-emerald-200'
           }`}
         >
           <div className="flex items-start gap-2">

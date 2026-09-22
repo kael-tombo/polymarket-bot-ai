@@ -218,17 +218,17 @@ const STAGE_STYLE: Record<
   { dot: string; text: string; bg: string; border: string; label: string }
 > = {
   PREDICTION: {
-    dot: 'bg-blue-400',
-    text: 'text-blue-300',
-    bg: 'bg-blue-500/10',
-    border: 'border-blue-500/30',
+    dot: 'bg-emerald-400',
+    text: 'text-emerald-300',
+    bg: 'bg-emerald-500/10',
+    border: 'border-emerald-500/30',
     label: 'PREDICTION',
   },
   SIGNAL: {
-    dot: 'bg-cyan-400',
-    text: 'text-cyan-300',
-    bg: 'bg-cyan-500/10',
-    border: 'border-cyan-500/30',
+    dot: 'bg-emerald-400',
+    text: 'text-emerald-300',
+    bg: 'bg-emerald-500/10',
+    border: 'border-emerald-500/30',
     label: 'SIGNAL',
   },
   RISK_APPROVED: {
@@ -321,7 +321,7 @@ const TONE: Record<Tone, ToneConfig> = {
   warn:    { bg: 'bg-amber-500/[0.06]',   border: 'border-amber-500/25',   text: 'text-amber-400',   bar: 'bg-amber-500',   dot: 'bg-amber-400',   label: 'text-amber-400/80',   halo: 'shadow-amber-500/10',   rowHover: 'hover:bg-amber-500/[0.04] hover:shadow-[inset_3px_0_0_0_rgba(245,158,11,0.45)]' },
   poor:    { bg: 'bg-red-500/[0.06]',     border: 'border-red-500/25',     text: 'text-red-400',     bar: 'bg-red-500',     dot: 'bg-red-400',     label: 'text-red-400/80',     halo: 'shadow-red-500/10',     rowHover: 'hover:bg-red-500/[0.04] hover:shadow-[inset_3px_0_0_0_rgba(239,68,68,0.45)]' },
   info:    { bg: 'bg-cyan-500/[0.06]',    border: 'border-cyan-500/25',    text: 'text-cyan-400',    bar: 'bg-cyan-500',    dot: 'bg-cyan-400',    label: 'text-cyan-400/80',    halo: 'shadow-cyan-500/10',    rowHover: 'hover:bg-cyan-500/[0.04] hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.45)]' },
-  neutral: { bg: 'bg-[var(--bg-page)]',          border: 'border-[var(--border)]',      text: 'text-[var(--text-primary)]',   bar: 'bg-[var(--text-secondary)]',   dot: 'bg-[var(--text-secondary)]',   label: 'text-[var(--text-secondary)]',      halo: '',                         rowHover: 'hover:bg-cyan-500/[0.04] hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.45)]' },
+  neutral: { bg: 'bg-[var(--bg-page)]',          border: 'border-[var(--border)]',      text: 'text-[var(--text-primary)]',   bar: 'bg-[var(--text-secondary)]',   dot: 'bg-[var(--text-secondary)]',   label: 'text-[var(--text-secondary)]',      halo: '',                         rowHover: 'hover:bg-emerald-500/[0.04] hover:shadow-[inset_3px_0_0_0_rgba(16,185,129,0.45)]' },
 }
 
 // ── Canonical stage pipeline (refined decision chain visualization) ────────
@@ -767,7 +767,7 @@ function StageNode({ event, isLast }: { event: DecisionEvent; isLast: boolean })
           </span>
         </div>
         {detail && (
-          <div className="mt-0.5 text-[11px] mono text-[#c8cfe0] break-words tabular-nums">
+          <div className="mt-0.5 text-[11px] mono text-[var(--text-mono)] break-words tabular-nums">
             {detail}
           </div>
         )}
@@ -895,7 +895,7 @@ function DecisionChainView({
                   title={`Decision ${d.id}`}
                   data-tone={dTone}
                 >
-                  <span className="mono text-[#c8cfe0] truncate">{shortId(d.id, 18)}</span>
+                  <span className="mono text-[var(--text-mono)] truncate">{shortId(d.id, 18)}</span>
                   <div className="flex items-center gap-1.5 shrink-0">
                     <span className="text-[9.5px] mono text-[var(--text-secondary)] tabular-nums">
                       {d.events.length} stage{d.events.length === 1 ? '' : 's'}
@@ -989,7 +989,7 @@ function DecisionCard({
       <button
         type="button"
         onClick={onToggle}
-        className="w-full text-left px-3 py-2.5 flex items-center gap-2 cursor-pointer focus:outline-none focus-visible:ring-1 focus-visible:ring-cyan-500/30 focus-visible:ring-inset"
+        className="w-full text-left px-3 py-2.5 flex items-center gap-2 cursor-pointer focus:outline-none focus-visible:ring-1 focus-visible:ring-emerald-500/30 focus-visible:ring-inset"
         aria-expanded={expanded}
         aria-label={`Expand decision ${row.decision_id}`}
       >
@@ -1048,13 +1048,13 @@ function DecisionCard({
           </div>
           <div className="text-right w-[44px]">
             <div className="text-[9px] text-[var(--text-secondary)] uppercase font-semibold">Conf</div>
-            <div className="mono text-[11px] font-bold text-cyan-300 tabular-nums">
+            <div className="mono text-[11px] font-bold text-emerald-300 tabular-nums">
               {fmtPct(row.confidence)}
             </div>
           </div>
           <div className="text-right w-[52px]">
             <div className="text-[9px] text-[var(--text-secondary)] uppercase font-semibold">Mid</div>
-            <div className="mono text-[11px] text-[#c8cfe0] tabular-nums">
+            <div className="mono text-[11px] text-[var(--text-mono)] tabular-nums">
               {row.market_mid != null ? fmtPrice(row.market_mid) : '—'}
             </div>
           </div>
@@ -1522,13 +1522,13 @@ export default function DecisionLedgerPanel() {
               value={tokenQuery}
               onChange={(e) => setTokenQuery(e.target.value)}
               placeholder="Search token, strategy, decision_id…"
-              className="input input-sm w-full text-xs bg-[var(--bg-page)] border border-[var(--border)] focus:border-cyan-500/50 focus:outline-none focus-visible:ring-1 focus-visible:ring-cyan-500/30 rounded pl-7 pr-2.5 py-1.5 text-[var(--text-primary)] placeholder-[var(--text-dim)] transition-all"
+              className="input input-sm w-full text-xs bg-[var(--bg-page)] border border-[var(--border)] focus:border-emerald-500/50 focus:outline-none focus-visible:ring-1 focus-visible:ring-emerald-500/30 rounded pl-7 pr-2.5 py-1.5 text-[var(--text-primary)] placeholder-[var(--text-dim)] transition-all"
               aria-label="Search decisions"
             />
             {tokenQuery && (
               <button
                 onClick={() => setTokenQuery('')}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-[var(--text-secondary)] hover:text-white focus:outline-none focus-visible:ring-1 focus-visible:ring-cyan-500/30 rounded"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-[var(--text-secondary)] hover:text-white focus:outline-none focus-visible:ring-1 focus-visible:ring-emerald-500/30 rounded"
                 aria-label="Clear search"
               >
                 ✕
@@ -1539,7 +1539,7 @@ export default function DecisionLedgerPanel() {
           <select
             value={actionFilter}
             onChange={(e) => setActionFilter(e.target.value as ActionFilter)}
-            className="bg-[var(--bg-page)] border border-[var(--border)] text-[var(--text-secondary)] rounded text-[10px] font-semibold px-2 py-1 outline-none cursor-pointer hover:border-cyan-500/30 focus:border-cyan-500/50 focus:outline-none focus-visible:ring-1 focus-visible:ring-cyan-500/30"
+            className="bg-[var(--bg-page)] border border-[var(--border)] text-[var(--text-secondary)] rounded text-[10px] font-semibold px-2 py-1 outline-none cursor-pointer hover:border-emerald-500/30 focus:border-emerald-500/50 focus:outline-none focus-visible:ring-1 focus-visible:ring-emerald-500/30"
             aria-label="Filter by action type"
           >
             {(Object.keys(ACTION_LABELS) as ActionFilter[]).map((k) => (
@@ -1552,7 +1552,7 @@ export default function DecisionLedgerPanel() {
           <select
             value={outcomeFilter}
             onChange={(e) => setOutcomeFilter(e.target.value as OutcomeFilter)}
-            className="bg-[var(--bg-page)] border border-[var(--border)] text-[var(--text-secondary)] rounded text-[10px] font-semibold px-2 py-1 outline-none cursor-pointer hover:border-cyan-500/30 focus:border-cyan-500/50 focus:outline-none focus-visible:ring-1 focus-visible:ring-cyan-500/30"
+            className="bg-[var(--bg-page)] border border-[var(--border)] text-[var(--text-secondary)] rounded text-[10px] font-semibold px-2 py-1 outline-none cursor-pointer hover:border-emerald-500/30 focus:border-emerald-500/50 focus:outline-none focus-visible:ring-1 focus-visible:ring-emerald-500/30"
             aria-label="Filter by outcome"
           >
             {(Object.keys(OUTCOME_LABELS) as OutcomeFilter[]).map((k) => (
@@ -1563,7 +1563,7 @@ export default function DecisionLedgerPanel() {
           </select>
           <button
             onClick={fetchList}
-            className="btn btn-ghost btn-sm text-[10px] px-2 py-1 border border-[var(--border)] text-[var(--text-secondary)] hover:text-white hover:border-cyan-500/30 hover:bg-cyan-500/[0.04] flex items-center gap-1 focus:outline-none focus-visible:ring-1 focus-visible:ring-cyan-500/30"
+            className="btn btn-ghost btn-sm text-[10px] px-2 py-1 border border-[var(--border)] text-[var(--text-secondary)] hover:text-white hover:border-emerald-500/30 hover:bg-emerald-500/[0.04] flex items-center gap-1 focus:outline-none focus-visible:ring-1 focus-visible:ring-emerald-500/30"
             title="Refresh now"
             aria-label="Refresh decision ledger"
           >

@@ -167,7 +167,7 @@ const CONFIRM_COLORS: Record<Severity, string> = {
 const SEVERITY_CHIP_TONE: Record<Severity, string> = {
   danger:  'bg-red-500/[0.10] border-red-500/30 text-red-400 shadow-[0_0_18px_rgba(248,113,113,0.12)]',
   warning: 'bg-amber-500/[0.10] border-amber-500/30 text-amber-400 shadow-[0_0_18px_rgba(251,191,36,0.12)]',
-  info:    'bg-cyan-500/[0.10] border-cyan-500/30 text-cyan-400 shadow-[0_0_18px_rgba(34,211,238,0.12)]',
+  info:    'bg-emerald-500/[0.10] border-emerald-500/30 text-emerald-400 shadow-[0_0_18px_rgba(16,185,129,0.12)]',
 }
 
 // W58-c — per-severity Lucide glyph rendered inside the confirm
@@ -185,7 +185,7 @@ const CONFIRM_LUCIDE: Record<Severity, LucideIcon> = {
 const ACCENT_STRIPE_CLASS: Record<Severity, string> = {
   danger:  'bg-red-500/60',
   warning: 'bg-amber-500/60',
-  info:    'bg-blue-500/60',
+  info:    'bg-emerald-500/60',
 }
 
 const RESULT_BANNER_CLASS: Record<ResultStatus, string> = {

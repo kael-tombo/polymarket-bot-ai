@@ -287,15 +287,15 @@ describe('EventLog', () => {
     render(<EventLog events={sampleEvents} />)
     // Initially "all" is active.
     const allBtn = screen.getByRole('button', { name: /^all$/i })
-    expect(allBtn.className).toContain('bg-blue-500/20')
-    expect(allBtn.className).toContain('text-cyan-300')
+    expect(allBtn.className).toContain('bg-emerald-500/20')
+    expect(allBtn.className).toContain('text-emerald-300')
     // Click "ml" — it should become active.
     const mlBtn = screen.getByRole('button', { name: /^ml$/i })
     fireEvent.click(mlBtn)
-    expect(mlBtn.className).toContain('bg-blue-500/20')
-    expect(mlBtn.className).toContain('text-cyan-300')
+    expect(mlBtn.className).toContain('bg-emerald-500/20')
+    expect(mlBtn.className).toContain('text-emerald-300')
     // "all" should no longer be active.
-    expect(allBtn.className).not.toContain('bg-blue-500/20')
+    expect(allBtn.className).not.toContain('bg-emerald-500/20')
   })
 
   it('renders the "Clear search" × button when the search box has a value', () => {

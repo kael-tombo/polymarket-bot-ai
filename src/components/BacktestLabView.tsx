@@ -853,7 +853,7 @@ export default function BacktestLabView() {
       <div className="flex flex-wrap justify-between items-center pb-3 border-b border-[var(--border)] gap-3">
         <div className="min-w-0">
           <div className="flex items-center gap-2.5 flex-wrap">
-            <FlaskConical className="size-5 text-cyan-300 shrink-0" aria-hidden="true" />
+            <FlaskConical className="size-5 text-emerald-300 shrink-0" aria-hidden="true" />
             <span className="text-sm font-bold text-[var(--text-primary)] tracking-wide">
               Quantitative Backtest &amp; Binary Payoff Simulation Lab
             </span>
@@ -883,7 +883,7 @@ export default function BacktestLabView() {
             <select
               value={strategyId}
               onChange={(e) => setStrategyId(e.target.value)}
-              className="w-full bg-[var(--bg-surface)] border border-[var(--border)] text-xs font-semibold text-[var(--text-primary)] rounded p-2 outline-none cursor-pointer transition-colors focus:ring-1 focus:ring-cyan-500/20 focus:border-cyan-500/40 hover:border-[var(--border-strong)]"
+              className="w-full bg-[var(--bg-surface)] border border-[var(--border)] text-xs font-semibold text-[var(--text-primary)] rounded p-2 outline-none cursor-pointer transition-colors focus:ring-1 focus:ring-emerald-500/20 focus:border-emerald-500/40 hover:border-[var(--border-strong)]"
             >
               {POPULAR_STRATS.map((s) => (
                 <option key={s.id} value={s.id}>
@@ -904,7 +904,7 @@ export default function BacktestLabView() {
               onChange={(e) => setCapital(Number(e.target.value))}
               min={10}
               max={100000}
-              className="w-full bg-[var(--bg-surface)] border border-[var(--border)] text-xs mono text-[var(--text-primary)] rounded p-2 outline-none transition-colors focus:ring-1 focus:ring-cyan-500/20 focus:border-cyan-500/40 hover:border-[var(--border-strong)] tabular-nums"
+              className="w-full bg-[var(--bg-surface)] border border-[var(--border)] text-xs mono text-[var(--text-primary)] rounded p-2 outline-none transition-colors focus:ring-1 focus:ring-emerald-500/20 focus:border-emerald-500/40 hover:border-[var(--border-strong)] tabular-nums"
             />
           </div>
 
@@ -919,7 +919,7 @@ export default function BacktestLabView() {
               onChange={(e) => setDays(Number(e.target.value))}
               min={1}
               max={365}
-              className="w-full bg-[var(--bg-surface)] border border-[var(--border)] text-xs mono text-[var(--text-primary)] rounded p-2 outline-none transition-colors focus:ring-1 focus:ring-cyan-500/20 focus:border-cyan-500/40 hover:border-[var(--border-strong)] tabular-nums"
+              className="w-full bg-[var(--bg-surface)] border border-[var(--border)] text-xs mono text-[var(--text-primary)] rounded p-2 outline-none transition-colors focus:ring-1 focus:ring-emerald-500/20 focus:border-emerald-500/40 hover:border-[var(--border-strong)] tabular-nums"
             />
           </div>
 
@@ -927,7 +927,7 @@ export default function BacktestLabView() {
             <button
               onClick={handleRun}
               disabled={running}
-              className="w-full btn btn-primary btn-sm py-2 font-bold flex items-center justify-center gap-1.5 shadow-md hover:shadow-cyan-500/20 transition-all"
+              className="w-full btn btn-primary btn-sm py-2 font-bold flex items-center justify-center gap-1.5 shadow-md hover:shadow-emerald-500/20 transition-all"
               aria-label="Run Monte Carlo Backtest"
             >
               {running ? (
@@ -1144,7 +1144,7 @@ export default function BacktestLabView() {
                     return (
                       <tr
                         key={i}
-                        className="border-b border-[var(--border)]/60 last:border-b-0 transition-colors hover:bg-cyan-500/[0.04] hover:shadow-[inset_3px_0_0_0_rgba(34,211,238,0.45)]"
+                        className="border-b border-[var(--border)]/60 last:border-b-0 transition-colors hover:bg-emerald-500/[0.04] hover:shadow-[inset_3px_0_0_0_rgba(16,185,129,0.45)]"
                         data-tone={row.tone}
                       >
                         <td className="py-1.5 px-3 text-[var(--text-primary)] font-medium">

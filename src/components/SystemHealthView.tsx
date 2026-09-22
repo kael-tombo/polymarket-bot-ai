@@ -606,7 +606,7 @@ export default function SystemHealthView() {
             return (
               <div
                 key={i}
-                className={`grid grid-cols-[minmax(0,1fr)_110px_90px_70px] gap-2 px-2.5 py-2 items-center text-xs transition-colors hover:bg-cyan-500/[0.04] hover:shadow-[inset_3px_0_0_0] ${cfg.bar}`}
+                className={`grid grid-cols-[minmax(0,1fr)_110px_90px_70px] gap-2 px-2.5 py-2 items-center text-xs transition-colors hover:bg-emerald-500/[0.04] hover:shadow-[inset_3px_0_0_0] ${cfg.bar}`}
                 role="row"
                 data-tone={sTone}
                 data-testid="system-health-service-row"
@@ -636,7 +636,7 @@ export default function SystemHealthView() {
                   {s.frequency ?? '—'}
                 </span>
                 <span
-                  className="text-[10px] text-cyan-400 mono tabular-nums text-right"
+                  className="text-[10px] text-emerald-400 mono tabular-nums text-right"
                   role="cell"
                 >
                   {s.port ?? '—'}
