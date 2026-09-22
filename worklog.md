@@ -45162,3 +45162,137 @@ Final production-ready state:
 - Responsive: desktop, tablet, mobile
 - Backend: starts correctly, processes live market data (OOMs in 4GB sandbox with frontend running)
 - Git: pushed to origin/main
+
+---
+Task ID: W71-b
+Agent: e2e-audit-dark-theme
+Task: Audit e2e tests for dark-theme-specific assertions (post green-light-theme switch)
+
+### Scope
+- Audited all 17 `e2e/*.spec.ts` files for dark-theme-specific
+  assertions / hex colors / CSS class references that would break
+  under the new green light theme (W63-b `defaultTheme='light'`).
+
+### Search matrix (ripgrep)
+1. **Dark hex / rgb** (`dark|bg-\[#0|bg-\[#1|#0b0e14|#0e1015|#13161e|
+   rgb(11|rgb(14|rgb(19)`) → **0 hits in e2e tests.** No hardcoded
+   dark color strings exist anywhere in `e2e/`.
+2. **Blue accent** (`#3b82f6|#60a5fa|blue-500|blue-400|text-blue|
+   bg-blue`) → **0 hits.** No blue→green CSS-class migration needed
+   in e2e tests.
+3. **Hex / rgb / hsl** (`#[0-9a-fA-F]{6}|#[0-9a-fA-F]{3}|rgb\(|rgba\(
+   |hsl\(`) → **0 hits.** No color-literal assertions.
+4. **CSS assertion hooks** (`toHaveCSS|toHaveStyle|computedStyle|
+   getComputedStyle|background|color`) → **0 hits.** No tests read
+   computed styles.
+5. **Screenshot baselines** (`screenshot|toHaveScreenshot|
+   toMatchScreenshot`) → **0 hits.** No visual-regression baselines
+   that depend on the theme palette.
+6. **Green/emerald checks** (sanity sweep — `emerald|green-|teal|mint`)
+   → **0 hits** — confirmed e2e tests don't pin to the new green
+   palette either; they're behavioral, not chromatic.
+7. **Theme / dark / light / toggle references** → 36 hits, ALL in
+   `theme.spec.ts`, `production-features.spec.ts`, and
+   `settings.spec.ts`. Inspected each — they fall into two buckets:
+   - **Dynamic theme-detection logic** (e.g. `const initialIsDark =
+     (initialClasses ?? '').includes('dark')`) → already theme-
+     agnostic. Works correctly under either default. **No changes
+     needed.**
+   - **Docstring/comments** that *stated* the default theme was
+     `dark` (ThemeProvider.tsx defaultTheme='dark') → **outdated**.
+     The source was already changed to `defaultTheme='light'` in
+     W63-b, but the e2e comment blocks had not been synced.
+
+### Edits made (comments only — no test logic touched)
+
+**`e2e/theme.spec.ts`** (2 comment edits):
+1. File-level docstring (lines 17–20): replaced
+   `The default theme is dark (ThemeProvider.tsx defaultTheme='dark'),
+   so the first toggle goes dark → light, the second light → dark.`
+   with
+   `The default theme is light (ThemeProvider.tsx defaultTheme='light'
+   — W63-b: the workstation now boots into the green light theme),
+   so the first toggle goes light → dark, the second dark → light.`
+   Also restored the ` *` separator blank-comment line above the
+   default-theme paragraph that was lost in the first edit pass.
+2. In-test comment (lines 33–35): flipped the "default" qualifier
+   to match the new light boot default — aria-label is now
+   described as `"Switch to dark mode" when light is active
+   (default) and "Switch to light mode" when dark is active.`
+   (previously the inverse).
+
+**`e2e/production-features.spec.ts`** (1 comment edit):
+- Lines 382–386 of the `theme toggle works` test comment block:
+  replaced `The default theme is dark (ThemeProvider.tsx
+  defaultTheme='dark'). The toggle's aria-label is "Switch to light
+  mode" when dark is active and "Switch to dark mode" when light is
+  active — we detect the current state via the aria-label.`
+  with
+  `The default theme is light (ThemeProvider.tsx defaultTheme='light'
+  — W63-b: green light theme is now the boot default). The toggle's
+  aria-label is "Switch to dark mode" when light is active (default)
+  and "Switch to light mode" when dark is active — we detect the
+  current state via the aria-label.`
+
+**`e2e/settings.spec.ts`** (0 edits):
+- Inspected lines 25–28 (theme-mechanism docstring) and lines
+  239–288 (`Theme toggle (in-modal)` block, including
+  `isCurrentlyDark = /dark/i.test(triggerValue)`). The block
+  dynamically picks the OPPOSITE theme option of whatever is
+  currently selected, so it works under either default. **No
+  changes needed.**
+
+### Test logic preservation
+- **No assertions changed.** Every `expect(...)` in every e2e spec
+  was inspected for theme dependence — every one is either:
+  - Pure behavioral/DOM (button renders, panel loads, role/name
+    exists), or
+  - Dynamic theme detection (`initialIsDark ? ... : ...`) that
+    flips correctly regardless of the starting theme.
+- The 36 grep hits under `theme|dark|light|toggle` were all either
+  test-variable names (`toggleDark`, `toggleLight`, `darkCount`,
+  `lightCount`, `initialIsDark`, `firstIsDark`, `isCurrentlyDark`)
+  or comments — none are hard assertions on a specific default
+  theme.
+
+### Verification
+- `bun run lint` → **clean** (`$ eslint .`, exit 0, no output).
+- Final search: `rg "dark|bg-\[#0|bg-\[#1|#0b0e14|#0e1015|#13161e|
+  rgb\(11|rgb\(14|rgb\(19|#3b82f6|#60a5fa|blue-500|blue-400|text-blue|
+  bg-blue|emerald|green-|teal|mint" e2e/*.ts` — only the
+  legitimate "dark/light" word occurrences in `theme.spec.ts`,
+  `production-features.spec.ts`, and `settings.spec.ts` (all
+  dynamic theme-detection variables / mechanism comments). No
+  chromatic literals or screenshot baselines anywhere.
+
+### Constraints honoured
+- **Don't break e2e test structure** — only 3 comment edits made,
+  no assertion / selector / `expect()` changes. Test logic is
+  byte-for-byte identical to before (other than the 3 comment
+  strings).
+- **If e2e tests don't reference colors/theme at all, report "no
+  changes needed"** — the tests reference *theme mechanics* (the
+  toggle button + class-flip behavior) but NOT theme *colors*. The
+  only "dark theme references" were outdated docstring claims about
+  the default theme, now corrected. So: **no color-assertion
+  changes were needed**; only comment accuracy fixes.
+
+### Files reviewed (17 / 17 specs)
+- analytics.spec.ts → clean (no theme/color references)
+- analytics-flows.spec.ts → clean
+- api-health.spec.ts → clean (only "primary" as a generic word)
+- command-palette.spec.ts → clean
+- dashboard.spec.ts → clean
+- database.spec.ts → clean
+- error-handling.spec.ts → clean (only "primary" as a generic word)
+- ml.spec.ts → clean (only "primary" as a generic word)
+- ml-flows.spec.ts → clean
+- navigation.spec.ts → clean (only sidebar collapse "toggle")
+- production-features.spec.ts → 1 comment block updated (theme default)
+- responsive.spec.ts → clean (only sidebar collapse "toggle")
+- settings.spec.ts → 0 edits needed (dynamic theme option pick)
+- strategies.spec.ts → clean (only "primary" as a generic word)
+- system.spec.ts → clean (only "primary" as a generic word)
+- theme.spec.ts → 2 comment edits (default-theme docstring + in-test
+  aria-label description)
+- trading.spec.ts → clean

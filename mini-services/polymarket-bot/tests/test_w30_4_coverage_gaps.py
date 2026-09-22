@@ -205,7 +205,12 @@ class TestSoakTestCoverageGaps:
         assert "simulated audit-chain corruption" in check.message
 
     @ASYNC
-    @pytest.mark.skipif(True, reason="Flaky in full suite — shared DB state ordering")
+    @pytest.mark.skip(
+        reason="Flaky in full suite — shared DB state ordering: the class-level "
+              "monkeypatch on db_manager.record_snapshot is overridden when "
+              "other test files in the same suite patch or reset the singleton "
+              "instance. Passes in isolation. See worklog task W71-a."
+    )
     async def test_check_db_writable_returns_failed_check_on_exception(
         self, monkeypatch,
     ):
@@ -1285,7 +1290,12 @@ class TestPreSubmissionGateCoverageGaps:
         assert check.value == "error"
         assert "passed" in check.message
 
-    @pytest.mark.skipif(True, reason="Flaky in full suite — shared state ordering")
+    @pytest.mark.skip(
+        reason="Flaky in full suite — shared state ordering: the class-level "
+              "monkeypatch on clob_breaker.can_execute is overridden when "
+              "other test files in the same suite patch or reset the singleton "
+              "instance. Passes in isolation. See worklog task W71-a."
+    )
     def test_circuit_breaker_check_fails_closed_on_exception(self, monkeypatch):
         """``_check_circuit_breaker`` returns ``passed=False`` when
         ``clob_breaker.can_execute`` raises — the documented

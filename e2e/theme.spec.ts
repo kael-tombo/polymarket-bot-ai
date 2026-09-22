@@ -15,8 +15,9 @@ import { test, expect } from '@playwright/test'
  *   2. Clicking the toggle flips the `<html>` class between dark / light.
  *   3. Clicking again restores the previous theme (round-trip).
  *
- * The default theme is `dark` (ThemeProvider.tsx `defaultTheme='dark'`),
- * so the first toggle goes dark → light, the second light → dark.
+ * The default theme is `light` (ThemeProvider.tsx `defaultTheme='light'`
+ * — W63-b: the workstation now boots into the green light theme),
+ * so the first toggle goes light → dark, the second dark → light.
  */
 
 test.beforeEach(async ({ page }) => {
@@ -30,8 +31,8 @@ test.describe('Theme Toggle', () => {
     // `if (!mounted) return null`). The dashboard's `beforeEach`
     // already waits for `.page-area`, which guarantees client mount.
     // Use the accessible name — the button's aria-label is "Switch to
-    // light mode" when dark is active (default) and "Switch to dark
-    // mode" when light is active.
+    // dark mode" when light is active (default) and "Switch to light
+    // mode" when dark is active.
     const toggleDark = page.getByRole('button', { name: 'Switch to light mode' })
     const toggleLight = page.getByRole('button', { name: 'Switch to dark mode' })
     // Exactly one of the two labels should be present (depending on

@@ -379,10 +379,11 @@ test.describe('Production Features', () => {
     // : 'dark')` from next-themes, which writes the new theme as a
     // CSS class on <html> (default attribute='class').
     //
-    // The default theme is `dark` (ThemeProvider.tsx defaultTheme='dark').
-    // The toggle's aria-label is "Switch to light mode" when dark is
-    // active and "Switch to dark mode" when light is active — we
-    // detect the current state via the aria-label.
+    // The default theme is `light` (ThemeProvider.tsx defaultTheme='light'
+    // — W63-b: green light theme is now the boot default). The toggle's
+    // aria-label is "Switch to dark mode" when light is active (default)
+    // and "Switch to light mode" when dark is active — we detect the
+    // current state via the aria-label.
     const html = page.locator('html')
     const initialClasses = await html.getAttribute('class')
     const initialIsDark = (initialClasses ?? '').includes('dark')
